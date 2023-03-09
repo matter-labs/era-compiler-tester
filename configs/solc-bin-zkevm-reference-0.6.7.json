@@ -1,0 +1,14 @@
+{
+  "binaries": {
+    "0.6.7": {
+      "is_enabled": true,
+      "protocol": "solc-bin-list",
+      "source": "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/${PLATFORM}/list.json",
+      "destination": "./solc-bin/solc-0.6.7"
+    }
+  },
+  "platforms": {
+    "linux": "linux-amd64",
+    "macos": "macosx-amd64"
+  }
+}
