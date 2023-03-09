@@ -1,0 +1,12 @@
+[submodule "tests"]
+	path = tests
+	url = https://github.com/matter-labs/era-compiler-tests
+	branch = main
+[submodule "solidity"]
+	path = solidity
+	url = https://github.com/ethereum/solidity
+	branch = develop
+[submodule "system-contracts"]
+	path = system-contracts
+	url = ssh://git@github.com/code-423n4/2023-03-zksync.git 
+	branch = main

@@ -1,0 +1,91 @@
+//!
+//! The compiler tester arguments.
+//!
+
+use std::path::PathBuf;
+
+use structopt::StructOpt;
+
+///
+/// The compiler tester arguments.
+///
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "compiler-tester",
+    about = "zkEVM Compiler Integration Testing Framework"
+)]
+pub struct Arguments {
+    /// The logging level.
+    #[structopt(short = "v", long = "verbose")]
+    pub verbosity: bool,
+
+    /// Suppresses the output completely.
+    #[structopt(short = "q", long = "quiet")]
+    pub quiet: bool,
+
+    /// Saves all IRs produced by compilers to `./debug/` directory.
+    #[structopt(short = "D", long = "debug")]
+    pub debug: bool,
+
+    /// Saves all JSON traces produced by VM to `./trace/` directory.
+    /// If passed twice, dumps zkEVM instructions and registers to the terminal.
+    #[structopt(short = "T", long = "trace", parse(from_occurrences))]
+    pub trace: usize,
+
+    /// Runs tests only in modes that contain any string from the specified ones.
+    #[structopt(short = "m", long = "mode")]
+    pub modes: Vec<String>,
+
+    /// Runs only tests whose name contains any string from the specified ones.
+    #[structopt(short = "p", long = "path")]
+    pub paths: Vec<String>,
+
+    /// Runs only tests from the specified groups.
+    #[structopt(short = "g", long = "group")]
+    pub groups: Vec<String>,
+
+    /// The benchmark output path, if requested.
+    #[structopt(short = "b", long = "benchmark")]
+    pub benchmark: Option<PathBuf>,
+
+    /// Sets the number of threads, which execute the tests concurrently.
+    #[structopt(short = "t", long = "threads")]
+    pub threads: Option<usize>,
+
+    /// Whether to dump the debug data for system contracts.
+    #[structopt(long = "dump-system")]
+    pub dump_system: bool,
+
+    /// Whether the deployer should be disabled.
+    #[structopt(long = "disable-deployer")]
+    pub disable_deployer: bool,
+
+    /// Whether the msg.value simulator should be disabled.
+    #[structopt(long = "disable-value-simulator")]
+    pub disable_value_simulator: bool,
+
+    /// Path to the default `solc` binaries download configuration file.
+    #[structopt(long = "solc-bin-config-path")]
+    pub solc_bin_config_path: Option<PathBuf>,
+
+    /// Path to the default `vyper` binaries download configuration file.
+    #[structopt(long = "vyper-bin-config-path")]
+    pub vyper_bin_config_path: Option<PathBuf>,
+
+    /// Whether to load the system contracts builds from the specified file.
+    #[structopt(long = "load-system-contracts")]
+    pub load_system_contracts: Option<PathBuf>,
+
+    /// Whether to save the system contracts builds to the specified file.
+    #[structopt(long = "save-system-contracts")]
+    pub save_system_contracts: Option<PathBuf>,
+}
+
+impl Arguments {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new() -> Self {
+        Self::from_args()
+    }
+}

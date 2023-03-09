@@ -1,0 +1,648 @@
+---
+zinc:
+  simple:
+    loop:
+      do_while: "Unsupported in Zinc"
+    return:
+      loop:
+        do_while: "Unsupported in Zinc"
+    algorithm:
+      arrays:
+        standart_functions_high_order: "Function pointers unsupported in Zinc"
+    storage:
+      mapping: "Unsupported in Zinc"
+    reports:
+      "CPR-215": "-"
+      "CPR-220": "-"
+      "CPR-222": "-"
+
+
+solidity:
+  simple:
+    array:
+      slice: "Unsupported in Solidity"
+    immutable:
+      aligned:
+        array: "Immutable variables cannot have a non-value type in Solidity"
+        structure: "Immutable variables cannot have a non-value type in Solidity"
+      bytestring: "Immutable variables cannot have a non-value type in Solidity"
+      string: "Immutable variables cannot have a non-value type in Solidity"
+      unaligned:
+        array: "Immutable variables cannot have a non-value type in Solidity"
+        structure: "Immutable variables cannot have a non-value type in Solidity"
+    libsolidity: "From the Solidity repository"
+    loop:
+      for:
+        array: "For loop in array unsupported in Solidity"
+      loop: "Unsupported in Solidity"
+    overflow:
+      positive:
+        pointer_compound: "Pointers unsupported in Solidity"
+        pointer_primitive: "Pointers unsupported in Solidity"
+    return:
+      loop: "Unsupported in Solidity"
+    structure:
+      nested_constant: "Constant structs unsupported in Solidity"
+    storage:
+      unaligned:
+        tuple: "Tuples unsupported in Solidity"
+      aligned:
+        tuple: "Tuples unsupported in Solidity"
+    tuple: "Unsupported in Solidity"
+
+  complex:
+    create2_recursion_fact: "Recursive create unsupported in Solidity"
+    create_recursion_fact: "Recursive create unsupported in Solidity"
+    create:
+      recursive: "Recursive create unsupported in Solidity"
+    defi:
+      Curve: "Only for Vyper"
+    external: "External tests"
+
+
+vyper:
+  simple:
+    algorithm:
+      arrays:
+        standart_functions_high_order: "Function types unsupported in Vyper"
+      recursion: "Recursive internal calls unsupported in Vyper"
+      sort:
+        merge_recursive: "Recursive internal calls unsupported in Vyper"
+        quick: "Recursive internal calls unsupported in Vyper"
+      tree:
+        treap: "Recursive internal calls unsupported in Vyper"
+    array:
+      double_dynamic: "Empty dynamic arrays unsupported in Vyper"
+      mutating_storage_in_constructor: "-"
+      slice: "Arrays slices unsupported in Vyper"
+    destructuring:
+      tuple_with_gaps: "Tuples unsupported in Vyper"
+    implementation:
+      enumeration_common_namespace: "Enums unsupported in Vyper"
+      enumeration_constructors: "Enums unsupported in Vyper"
+      enumeration_immutable_method: "Enums unsupported in Vyper"
+      enumeration_method_chain: "Enums unsupported in Vyper"
+      enumeration_method_next: "Enums unsupported in Vyper"
+      enumeration_method_opposite: "Enums unsupported in Vyper"
+      enumeration_mutable_method: "Enums unsupported in Vyper"
+    libsolidity: "External tests"
+    loop:
+      array:
+        inclusive_lower_half: "Inclusive for ranges unsupported in Vyper"
+        inclusive_middle_half: "Inclusive for ranges unsupported in Vyper"
+        inclusive_upper_half: "Inclusive for ranges unsupported in Vyper"
+      do_while: "Unsupported in Vyper"
+      loop: "Unsupported in Vyper"
+      range_bitlength_inference:
+        u8_to_u64_variable: "Variable for range unsupported in Vyper"
+      while: "Unsupported in Vyper"
+    match: "Unsupported in Vyper"
+    operator:
+      arithmetic:
+        exponentiation_i8: "Exponentiation with 2 variables unsupported in Vyper"
+        exponentiation_u8: "Exponentiation with 2 variables unsupported in Vyper"
+      bitwise:
+        and_u8: "Unsupported in Vyper"
+        not_u8: "Unsupported in Vyper"
+        or_u8: "Unsupported in Vyper"
+        shift_left:
+          u8_min_to_max: "Unsupported in Vyper"
+          u8_ordinar: "Unsupported in Vyper"
+        shift_right:
+          u8_max_to_min: "Unsupported in Vyper"
+          u8_ordinar: "Unsupported in Vyper"
+        xor_u8: "Unsupported in Vyper"
+      logical:
+        xor: "Unsupported in Vyper"
+      comparison:
+        address:
+          greater: "Unsupported in Vyper"
+          greater_equals: "Unsupported in Vyper"
+          lesser: "Unsupported in Vyper"
+          lesser_equals: "Unsupported in Vyper"
+          ternary: "Unsupported in Vyper"
+    overflow:
+      positive:
+        pointer_compound: "Pointers unsupported in Vyper"
+        pointer_primitive: "Pointers unsupported in Vyper"
+    pointer: "Unsupported in Vyper"
+    return:
+      calldata_array_order: "-"
+      loop:
+        do_while: "Unsupported in Vyper"
+        loop: "Unsupported in Vyper"
+        while: "Unsupported in Vyper"
+      match: "Unsupported in Vyper"
+    solidity_by_example:
+      simple:
+        calling_parent_contracts: "Inheritance unsupported in Vyper"
+        data_locations: "Specifying of data location unsupported in Vyper"
+        enum: "Unsupported in Vyper"
+        for_and_while_loop: "Unsupported in Vyper"
+        function_modifier: "Unsupported in Vyper"
+        shadowing_inherited_state_variables: "Inheritance unsupported in Vyper"
+    storage:
+      aligned:
+        tuple: "Tuples unsupported in Vyper"
+      unaligned:
+        tuple: "Tuples unsupported in Vyper"
+    system: "System contracts"
+    try_catch: "Unsupported in Vyper"
+    tuple: "Unsupported in Vyper"
+
+  complex:
+    create_in_library: "Libraries unsupported in Vyper"
+    default_single_file: "Many contracts in one file unsupported in Vyper"
+    defi:
+      shitdao: "Only for Solidity"
+      Mooniswap: "Only for Solidity"
+      UniswapV2Router01: "Only for Solidity"
+    import_library_inline: "Libraries unsupported in Vyper"
+    parser:
+      svg: "Only for Solidity, may be rewritten in the future"
+    library_call_tuple: "Libraries unsupported in Vyper"
+    solidity_by_example:
+      simple:
+        constructor_multiple_inheritance_empty: "Inheritance unsupported in Vyper"
+        constructor_multiple_inheritance_order: "Inheritance unsupported in Vyper"
+        constructor_multiple_inheritance_with_arguments: "Inheritance unsupported in Vyper"
+        enum: "Unsupported in Vyper"
+        inheritance: "Unsupported in Vyper"
+        library: "Unsupported in Vyper"
+        structs: "Structs importing unsupported in Vyper"
+        try_catch: "Unsupported in Vyper"
+    try_catch: "Unsupported in Vyper"
+
+  external:
+    abiencodedecode:
+      abi_decode_calldata: "Decode unsupported in Vyper"
+      abi_decode_simple: "Decode unsupported in Vyper"
+      abi_decode_simple_storage: "Decode unsupported in Vyper"
+      abi_encode_call: "EncodeCall unsupported in Vyper"
+      abi_encode_call_declaration: "EncodeCall unsupported in Vyper"
+      abi_encode_call_memory: "EncodeCall unsupported in Vyper"
+      contract_array: "Decode unsupported in Vyper"
+      contract_array_v2: "Decode unsupported in Vyper"
+      offset_overflow_in_array_decoding: "Decode unsupported in Vyper"
+      offset_overflow_in_array_decoding_2: "Decode unsupported in Vyper"
+      offset_overflow_in_array_decoding_3: "Decode unsupported in Vyper"
+    abiEncoderV1:
+      abi_decode_dynamic_array: "Decode unsupported in Vyper"
+      abi_decode_static_array: "Decode unsupported in Vyper"
+      abi_decode_static_array_v2: "Decode unsupported in Vyper"
+      abi_decode_trivial: "Decode unsupported in Vyper"
+      abi_decode_v2: "Decode unsupported in Vyper"
+      abi_decode_v2_calldata: "Decode unsupported in Vyper"
+      abi_decode_v2_storage: "Decode unsupported in Vyper"
+      abi_encode_decode_simple: "Decode unsupported in Vyper"
+      bool_out_of_bounds: "AbiCoderV1 unsupported in Vyper"
+      cleanup: "AbiCoderV1 unsupported in Vyper"
+      decode_slice: "AbiCoderV1 unsupported in Vyper"
+      dynamic_memory_copy: "Assembly or alternatives unsupported in Vyper"
+      enums: "Unsupported in Vyper"
+      return_dynamic_types_cross_call_out_of_range_1: "Assembly or alternatives unsupported in Vyper"
+      return_dynamic_types_cross_call_out_of_range_2: "Assembly or alternatives unsupported in Vyper"
+    abiEncoderV2:
+      abi_encode_v2_in_function_inherited_in_v1_contract: "Inheritance unsupported in Vyper"
+      abi_encode_v2_in_modifier_used_in_v1_contract: "Function modifiers unsupported in Vyper"
+      calldata_array_function_types: "Function types unsupported in Vyper"
+      calldata_array_short: "The same test without revertStrings present"
+      cleanup:
+        function: "Function types unsupported in Vyper"
+      enums: "Unsupported in Vyper"
+      struct:
+        struct_function: "Function types unsupported in Vyper"
+        validation_function_type_inside_struct: "Function types unsupported in Vyper"
+    accessor:
+      accessor_for_const_state_variable: "Public constant variables unsupported in Vyper"
+    arithmetics:
+      block_inside_unchecked: "Unchecked unsupported in Vyper"
+      checked_add_v1: "AbiCoderV1 unsupported in Vyper"
+      checked_called_by_unchecked: "Unchecked unsupported in Vyper"
+      checked_modifier_called_by_unchecked: "Unchecked unsupported in Vyper"
+      exp_associativity: "Exponentiation with 2 variables unsupported in Vyper"
+      unchecked_called_by_checked: "Unchecked unsupported in Vyper"
+      unchecked_div_by_zero: "Unchecked unsupported in Vyper"
+    array:
+      byte_array_storage_layout: "Assembly or alternatives unsupported in Vyper"
+      calldata_slice_access: "Slices unsupported in Vyper"
+      concat:
+        bytes_concat_empty_argument_list: "Unsupported in Vyper"
+      copying:
+        array_copy_different_packing: "Copy with different base unsupported in Vyper"
+        array_copy_storage_storage_different_base: "Copy with different base unsupported in Vyper"
+        array_copy_storage_storage_different_base_nested: "Copy with different base unsupported in Vyper"
+        array_copy_target_leftover: "Copy with different base unsupported in Vyper"
+        array_copy_target_leftover2: "Copy with different base unsupported in Vyper"
+        array_copy_target_simple: "Copy with different base unsupported in Vyper"
+        array_copy_target_simple_2: "Copy with different base unsupported in Vyper"
+        array_of_function_external_storage_to_storage_dynamic: "Function types unsupported in Vyper"
+        array_of_function_external_storage_to_storage_dynamic_different_mutability: "Function types unsupported in Vyper"
+        calldata_to_storage_different_base: "Copy with different base unsupported in Vyper"
+        copy_byte_array_to_storage: "Assembly or alternatives unsupported in Vyper"
+        copy_function_internal_storage_array: "Function types unsupported in Vyper"
+        copy_internal_function_array_to_storage: "Function types unsupported in Vyper"
+        dirty_memory_bytes_to_storage_copy: "Assembly or alternatives unsupported in Vyper"
+        dirty_memory_bytes_to_storage_copy_ir: "Assembly or alternatives unsupported in Vyper"
+        function_type_array_to_storage: "Function types unsupported in Vyper"
+        memory_to_storage_different_base: "Copy with different base unsupported in Vyper"
+      delete:
+        bytes_delete_element: "Bytes index access unsupported in Vyper"
+      fixed_bytes_length_access: "Fixed bytes length unsupported in Vyper"
+      function_array_cross_calls: "Function types unsupported in Vyper"
+      function_memory_array: "Function types unsupported in Vyper"
+      indexAccess:
+        bytes_index_access: "Bytes index access unsupported in Vyper"
+        bytes_index_access_memory: "Bytes index access unsupported in Vyper"
+        bytes_memory_index_access: "Bytes index access unsupported in Vyper"
+        fixed_bytes_index_access: "Bytes index access unsupported in Vyper"
+        index_access: "Bytes index access unsupported in Vyper"
+      invalid_encoding_for_storage_byte_array: "Assembly or alternatives unsupported in Vyper"
+      pop:
+        byte_array_pop: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_copy_long: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_empty_exception: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_isolated: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_long_storage_empty: "Pop for bytes unsupported in Vyper"
+        byte_array_popbyte_array_pop: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_masking_long: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_storage_empty: "Pop for bytes unsupported in Vyper"
+        byte_array_pop_long_storage_empty_garbage_ref: "Pop for bytes unsupported in Vyper"
+      push:
+        byte_array_push: "Push for bytes unsupported in Vyper"
+        byte_array_push_transition: "Push for bytes unsupported in Vyper"
+        nested_bytes_push: "Push for bytes unsupported in Vyper"
+        push_no_args_bytes: "Push for bytes unsupported in Vyper"
+        push_no_args_1d: "Push(append) without args unsupported in Vyper"
+        push_no_args_2d: "Push(append) without args unsupported in Vyper"
+        push_no_args_struct: "Push(append) without args unsupported in Vyper"
+      slices: "Slices unsupported in Vyper"
+    asmForLoop: "Assembly or alternatives unsupported in Vyper"
+    builtinFunctions:
+      function_types_sig: "Unsupported in Vyper"
+      msg_sig: "Unsupported in Vyper"
+      msg_sig_after_internal_call_is_same: "Unsupported in Vyper"
+      ripemd160_empty: "Unsupported in Vyper"
+    c99_scoping_activation: "Unsupported in Vyper"
+    calldata:
+      calldata_internal_function_pointer: "Function pointers unsupported in Vyper"
+      calldata_internal_library: "Libraries unsupported in Vyper"
+    cleanup:
+      bool_conversion_v1: "AbiCoderV1 unsupported in Vyper"
+      cleanup_address_types_shortening: "Cleanup unsupported in Vyper"
+      cleanup_address_types_v1: "AbiCoderV1 unsupported in Vyper"
+      cleanup_bytes_types_shortening_newCodeGen: "Unsupported in Vyper"
+      cleanup_bytes_types_shortening_OldCodeGen: "Unsupported in Vyper"
+      cleanup_bytes_types_v1: "AbiCoderV1 unsupported in Vyper"
+      cleanup_in_compound_assign: "Cleanup unsupported in Vyper"
+      exp_cleanup: "Cleanup unsupported in Vyper"
+      exp_cleanup_direct: "Cleanup unsupported in Vyper"
+      exp_cleanup_nonzero_base: "Cleanup unsupported in Vyper"
+      exp_cleanup_smaller_base: "Cleanup unsupported in Vyper"
+      indexed_log_topic_during_explicit_downcast: "Unsupported in Vyper"
+      indexed_log_topic_during_explicit_downcast_during_emissions: "Unsupported in Vyper"
+    constants:
+      asm_address_constant_regression: "Assembly or alternatives unsupported in Vyper"
+      asm_constant_file_level: "Assembly or alternatives unsupported in Vyper"
+      constants_at_file_level_referencing: "Constants referencing unsupported in Vyper"
+      function_unreferenced: "Unsupported in Vyper"
+      same_constants_different_files: "Constants importing unsupported in Vyper"
+    constructor:
+      base_constructor_arguments: "Inheritance unsupported in Vyper"
+      constructor_function_argument: "Function types unsupported in Vyper"
+      constructor_function_complex: "Function types unsupported in Vyper"
+      function_usage_in_constructor_arguments: "Inheritance unsupported in Vyper"
+      functions_called_by_constructor_through_dispatch: "Function pointers unsupported in Vyper"
+      inline_member_init_inheritence_without_constructor: "Inheritance unsupported in Vyper"
+      order_of_evaluation: "Inheritance unsupported in Vyper"
+      store_function_in_constructor: "Function types unsupported in Vyper"
+      store_function_in_constructor_packed: "Function types unsupported in Vyper"
+      store_internal_unused_function_in_constructor: "Function types unsupported in Vyper"
+      store_internal_unused_library_function_in_constructor: "Function types unsupported in Vyper"
+    constructor_inheritance_init_order: "Inheritance unsupported in Vyper"
+    constructor_inheritance_init_order_2: "Inheritance unsupported in Vyper"
+    constructor_inheritance_init_order_3_legacy: "Inheritance unsupported in Vyper"
+    constructor_inheritance_init_order_3_viaIR: "Inheritance unsupported in Vyper"
+    constructor_with_params_diamond_inheritance: "Inheritance unsupported in Vyper"
+    constructor_with_params_inheritance: "Inheritance unsupported in Vyper"
+    constructor_with_params_inheritance_2: "Inheritance unsupported in Vyper"
+    conversions:
+      function_type_array_to_storage: "Function types unsupported in Vyper"
+      empty_for_loop: "Unsupported in Vyper"
+    ecrecover:
+      ecrecover_abiV2: "Abi coder v2 unsupported in Vyper"
+    empty_for_loop: "Unsupported in Vyper"
+    enums: "Enums unsupported in Vyper"
+    error: "Custom errors unsupported in Vyper"
+    errors: "Custom errors unsupported in Vyper"
+    events:
+      event_access_through_base_name_emit: "Inheritance unsupported in Vyper"
+      event_anonymous: "Anonymous events unsupported in Vyper"
+      event_anonymous_with_signature_collision: "Anonymous events unsupported in Vyper"
+      event_anonymous_with_signature_collision2: "Anonymous events unsupported in Vyper"
+      event_anonymous_with_topics: "Anonymous events unsupported in Vyper"
+      event_dynamic_array_memory_v2: "Abi coder v2 unsupported in Vyper"
+      event_dynamic_array_storage_v2: "Abi coder v2 unsupported in Vyper"
+      event_indexed_function: "Function types unsupported in Vyper"
+      event_indexed_function2: "Function types unsupported in Vyper"
+      event_selector: "Unsupported in Vyper"
+      event_signature_in_library: "Libraries unsupported in Vyper"
+      events_with_same_name: "Unsupported in Vyper"
+      events_with_same_name_inherited_emit: "Unsupported in Vyper"
+      simple: "Inheritance unsupported in Vyper"
+    exponentiation:
+      literal_base: "Exponentiation overflow unsupported in Vyper"
+      signed_base: "Exponentiation overflow unsupported in Vyper"
+      small_exp: "Exponentiation with 2 variables unsupported in Vyper"
+    expressions:
+      bytes_comparison: "Unsupported in Vyper"
+      conditional_expression_different_types: "Conditional expression unsupported in Vyper"
+      conditional_expression_false_literal: "Conditional expression unsupported in Vyper"
+      conditional_expression_functions: "Conditional expression unsupported in Vyper"
+      conditional_expression_multiple: "Conditional expression unsupported in Vyper"
+      conditional_expression_storage_memory_1: "Conditional expression unsupported in Vyper"
+      conditional_expression_storage_memory_2: "Conditional expression unsupported in Vyper"
+      conditional_expression_true_literal: "Conditional expression unsupported in Vyper"
+      conditional_expression_tuples: "Conditional expression unsupported in Vyper"
+      conditional_expression_with_return_values: "Conditional expression unsupported in Vyper"
+      inc_dec_operators: "Unsupported in Vyper"
+      uncalled_address_transfer_send: "Unsupported in Vyper"
+    externalContracts: "Temporary unsupported in runner"
+    externalSource: "Temporary unsupported in runner"
+    fallback:
+      fallback_argument: "Arguments in fallback functions unsupported in Vyper"
+      fallback_argument_to_storage: "Arguments in fallback functions unsupported in Vyper"
+      fallback_or_receive: "Receive function unsupported in Vyper"
+      fallback_override: "Inheritance unsupported in Vyper"
+      fallback_override2: "Inheritance unsupported in Vyper"
+      fallback_override_multi: "Inheritance unsupported in Vyper"
+      inherited: "Inheritance unsupported in Vyper"
+    freeFunctions: "Unsupported in Vyper"
+    functionCall:
+      bare_call_no_returndatacopy: "Uses ecrecover with invalid input"
+      bound_function_in_function: "Function types unsupported in Vyper"
+      bound_function_in_var: "Unsupported in Vyper"
+      bound_function_to_string: "Unsupported in Vyper"
+      call_function_returning_function: "Function types unsupported in Vyper"
+      call_function_returning_nothing_via_pointer: "Function pointers unsupported in Vyper"
+      call_internal_function_with_multislot_arguments_via_pointer: "Function pointers unsupported in Vyper"
+      call_options_overload: "Unsupported in Vyper"
+      calling_uninitialized_function: "Function types unsupported in Vyper"
+      calling_uninitialized_function_in_detail: "Function types unsupported in Vyper"
+      calling_uninitialized_function_through_array: "Function types unsupported in Vyper"
+      conditional_with_arguments: "Conditional expression unsupported in Vyper"
+      disordered_named_args: "Unsupported in Vyper"
+      external_call_to_nonexisting_debugstrings: "revertStrings unsupported in Vyper"
+      external_public_override: "Inheritance unsupported in Vyper"
+      file_level_call_via_module: "Temporary unsupported in runner"
+      gas_and_value_basic: "Ignored for Solidity"
+      gas_and_value_brace_syntax: "Ignored for Solidity"
+      inheritance: "Inheritance unsupported in Vyper"
+      mapping_array_internal_argument: "Unsupported in Vyper"
+      mapping_internal_argument: "Unsupported in Vyper"
+      mapping_internal_return: "Unsupported in Vyper"
+      named_args: "Unsupported in Vyper"
+      named_args_overload: "Unsupported in Vyper"
+      precompile_extcodesize_check: "Uses unsupported code reflection"
+      return_size_bigger_than_expected: "Assembly or alternatives unsupported in Vyper"
+      return_size_shorter_than_expected: "Assembly or alternatives unsupported in Vyper"
+      return_size_shorter_than_expected_evm_version_after_homestead: "Assembly or alternatives unsupported in Vyper"
+      send_zero_ether: "Receive function unsupported in Vyper"
+    functionSelector: "Unsupported in Vyper"
+    functionTypes: "Function types unsupported in Vyper"
+    immutable:
+      getter: "Public immutable variables unsupported in Vyper"
+      getter_call_in_constructor: "Public immutable variables unsupported in Vyper"
+      inheritance: "Inheritance unsupported in Vyper"
+      internal_function_pointer: "Function pointers unsupported in Vyper"
+    inheritance: "Unsupported in Vyper"
+    inlineAssembly: "Unsupported in Vyper"
+    interfaceID:
+      homer_interfaceId: "interfaceID unsupported in Vyper"
+      interfaceId_events: "interfaceID unsupported in Vyper"
+      interfaces: "interfaceID unsupported in Vyper"
+      lisa_interfaceId: "interfaceID unsupported in Vyper"
+    interface_inheritance_conversions: "Inheritance unsupported in Vyper"
+    libraries: "Unsupported in Vyper"
+    literals:
+      hex_string_with_underscore: "Unsupported in Vyper"
+      ternary_operator_with_literal_types_overflow: "Ternary operators unsupported in Vyper"
+    memoryManagement:
+      assembly_access: "Assembly unsupported in Vyper"
+      return_variable: "Assembly or alternatives unsupported in Vyper"
+      static_memory_array_allocation: "Assembly or alternatives unsupported in Vyper"
+      struct_allocation: "Assembly or alternatives unsupported in Vyper"
+    metaTypes:
+      name_other_contract: "Unsupported in Vyper"
+    modifiers: "Unsupported in Vyper"
+    multiSource: "Temporary unsupported in runner"
+    operators:
+      shifts:
+        shift_bytes_cleanup: "Cleanup unsupported in Vyper"
+        shift_bytes_cleanup_viaYul: "Cleanup unsupported in Vyper"
+        shift_constant_left_assignment: "Shift left assignment operator unsupported in Vyper"
+        shift_constant_right_assignment: "Shift right assignment operator unsupported in Vyper"
+        shift_left_assignment: "Shift left assignment operator unsupported in Vyper"
+        shift_left_assignment_different_type: "Shift left assignment operator unsupported in Vyper"
+        shift_left_larger_type: "Exponentiation overflow unsupported in Vyper"
+        shift_left_uint32: "Exponentiation overflow unsupported in Vyper"
+        shift_left_uint8: "Exponentiation overflow unsupported in Vyper"
+        shift_negative_constant_left: "Negative numbers shifts unsupported in Vyper"
+        shift_negative_constant_right: "Negative numbers shifts unsupported in Vyper"
+        shift_right_assignment: "Shift right assignment operator unsupported in Vyper"
+        shift_right_garbled_signed_v1: "Assembly or alternatives unsupported in Vyper"
+        shift_right_garbled_signed_v2: "Assembly or alternatives unsupported in Vyper"
+        shift_right_garbled_v1: "Assembly or alternatives unsupported in Vyper"
+        shift_right_garbled_v2: "Assembly or alternatives unsupported in Vyper"
+        shift_right_negative_literal: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_assignment: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_int16: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_int32: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_int8: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_signextend_int16_v1: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_signextend_int16_v2: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_signextend_int32_v1: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_signextend_int32_v2: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_signextend_int8_v1: "Negative values shifts unsupported in Vyper"
+        shift_right_negative_lvalue_signextend_int8_v2: "Negative values shifts unsupported in Vyper"
+        shift_right_uint32: "uint32 shifts unsupported in Vyper"
+        shift_right_uint8: "uint8 shifts unsupported in Vyper"
+    payable:
+      no_nonpayable_circumvention_by_modifier: "Function modifiers unsupported in Vyper"
+    receive: "Receive function unsupported in Vyper"
+    revertStrings:
+      array_slices: "Unsupported in Vyper"
+      calldata_too_short_v1: "Abi decode unsupported in Vyper"
+      empty_v2: "Abi coder v2 unsupported in Vyper"
+      enum_v1: "Enums unsupported in Vyper"
+      enum_v2: "Enums unsupported in Vyper"
+      function_entry_checks_v2: "Abi coder v2 unsupported in Vyper"
+      invalid_abi_decoding_calldata_v1: "Abi decode unsupported in Vyper"
+      invalid_abi_decoding_memory_v1: "Assembly or alternatives unsupported in Vyper"
+      library_non_view_call: "Libraries unsupported in Vyper"
+    reverts:
+      error_struct: "Custom errors unsupported in Vyper"
+      invalid_enum_as_external_arg: "Enums unsupported in Vyper"
+      invalid_enum_as_external_ret: "Enums unsupported in Vyper"
+      invalid_enum_compared: "Enums unsupported in Vyper"
+      invalid_enum_stored: "Enums unsupported in Vyper"
+      invalid_instruction: "Assembly or alternatives unsupported in Vyper"
+      revert_return_area: "Assembly or alternatives unsupported in Vyper"
+    specialFunctions:
+      abi_encode_with_signature_from_string: "Unsupported in Vyper"
+      abi_functions_member_access: "Unsupported in Vyper"
+    state:
+      block_basefee: "Uses unsupported basefee"
+      block_chainid: "Uses unsupported chainid"
+      block_coinbase: "Uses unsupported coinbase"
+      block_difficulty: "Uses unsupported difficulty"
+      block_gaslimit: "Uses unsupported ETH/gas/balance"
+      block_number: "Uses unsupported number"
+      block_timestamp: "Uses unsupported timestamp"
+      blockhash_basic: "Uses unsupported blockhash"
+      gasleft: "Uses unsupported ETH/gas/balance"
+      msg_sig: "Uses unsupported msg.sig"
+      msg_value: "Uses unsupported ETH/gas/balance"
+      tx_gasprice: "Uses unsupported ETH/gas/balance"
+      tx_origin: "Uses unsupported origin"
+      uncalled_blockhash: "Uses unsupported blockhash"
+    state_variables_init_order: "Inheritance unsupported in Vyper"
+    state_variables_init_order_2: "Inheritance unsupported in Vyper"
+    state_variables_init_order_3: "Inheritance unsupported in Vyper"
+    statements:
+      do_while_loop_continue: "Do while loop unsupported in Vyper"
+    storage:
+      packed_functions: "Function types unsupported in Vyper"
+      packed_storage_overflow: "Unchecked unsupported in Vyper"
+      packed_storage_structs_enum: "Enums unsupported in Vyper"
+    strings:
+      concat:
+        string_concat_empty_argument_list: "Unsupported in Vyper"
+    structs:
+      calldata:
+        calldata_struct_as_argument_of_lib_function: "Libraries unsupported in Vyper"
+        calldata_struct_to_memory_tuple_assignment: "Unsupported in Vyper"
+      function_type_copy: "Function types unsupported in Vyper"
+      recursive_struct_2: "Assembly or alternatives unsupported in Vyper"
+      struct_assign_reference_to_struct: "Storage references unsupported in Vyper"
+      struct_memory_to_storage_function_ptr: "Function pointers unsupported in Vyper"
+      struct_reference: "Storage references unsupported in Vyper"
+      struct_referencing: "Unsupported in Vyper"
+      struct_storage_to_memory_function_ptr: "Function pointers unsupported in Vyper"
+      using_for_function_on_struct: "Unsupported in Vyper"
+    tryCatch: "Unsupported in Vyper"
+    types:
+      array_mapping_abstract_constructor_param: "Abstract contracts unsupported in Vyper"
+      convert_fixed_bytes_to_fixed_bytes_same_size: "Unsupported in Vyper"
+      external_function_to_address: "Function types unsupported in Vyper"
+      user_defined_types_mapping_storage: "User defined value types unsupported in Vyper"
+      mapping:
+        user_defined_types_mapping_storage: "User defined value types unsupported in Vyper"
+      mapping_abstract_constructor_param: "Abstract contracts unsupported in Vyper"
+      mapping_contract_key_library: "Libraries unsupported in Vyper"
+      mapping_enum_key_getter_v1: "Enums unsupported in Vyper"
+      mapping_enum_key_getter_v2: "Enums unsupported in Vyper"
+      mapping_enum_key_library_v1: "Enums unsupported in Vyper"
+      mapping_enum_key_library_v2: "Enums unsupported in Vyper"
+      mapping_enum_key_v1: "Enums unsupported in Vyper"
+      mapping_enum_key_v2: "Enums unsupported in Vyper"
+      nested_tuples: "Tuples unsupported in Vyper"
+      struct_mapping_abstract_constructor_param: "Abstract contracts unsupported in Vyper"
+      tuple_assign_multi_slot_grow: "Tuples unsupported in Vyper"
+      type_conversion_cleanup: "Cleanup unsupported in Vyper"
+    uninitializedFunctionPointer: "Function pointers unsupported in Vyper"
+    userDefinedValueType: "Unsupported in Vyper"
+    using: "Unsupported in Vyper"
+    variables:
+      mapping_local_assignment: "Unsupported in Vyper"
+      mapping_local_compound_assignment: "Unsupported in Vyper"
+      mapping_local_tuple_assignment: "Unsupported in Vyper"
+      public_state_overridding: "Inheritance unsupported in Vyper"
+      public_state_overridding_dynamic_struct: "Inheritance unsupported in Vyper"
+      public_state_overridding_mapping_to_dynamic_struct: "Inheritance unsupported in Vyper"
+      storing_invalid_boolean: "Assembly or alternatives unsupported in Vyper"
+    various:
+      address_code: "Uses unsupported code reflection"
+      address_code_complex: "Uses unsupported code reflection"
+      balance: "Uses unsupported ETH/gas/balance"
+      code_access_content: "Uses unsupported code reflection"
+      code_access_create: "Uses unsupported code reflection"
+      code_access_padding: "Uses unsupported code reflection"
+      code_access_runtime: "Uses unsupported code reflection"
+      code_length: "Uses unsupported code reflection"
+      code_length_contract_member: "Uses unsupported code reflection"
+      codebalance_assembly: "Uses unsupported code reflection"
+      codehash: "Uses unsupported code reflection"
+      codehash_assembly: "Uses unsupported code reflection"
+      crazy_elementary_typenames_on_stack: "Unsupported in Vyper"
+      cross_contract_types: "Temporary unsupported in runner"
+      destructuring_assignment: "Unsupported in Vyper"
+      gasleft_decrease: "Uses unsupported ETH/gas/balance"
+      gasleft_shadow_resolution: "gasleft function not present in Vyper"
+      inline_member_init_inheritence: "Inheritance unsupported in Vyper"
+      multi_modifiers: "Function modifiers unsupported in Vyper"
+      multi_variable_declaration: "Unsupported in Vyper"
+      single_copy_with_multiple_inheritance: "Inheritance unsupported in Vyper"
+      state_variable_under_contract_name: "Unsupported in Vyper"
+      staticcall_for_view_and_pure_pre_byzantium: "Ignored for Solidity"
+      super: "Inheritance unsupported in Vyper"
+      super_alone: "Unsupported in Vyper"
+      super_parentheses: "Inheritance unsupported in Vyper"
+      test_underscore_in_hex: "Unsupported in Vyper"
+      typed_multi_variable_declaration: "Unsupported in Vyper"
+      value_complex: "Ignored for Solidity"
+      value_insane: "Ignored for Solidity"
+    viaYul:
+      array_function_pointers: "Function pointers unsupported in Vyper"
+      array_push_return_reference: "Unsupported in Vyper"
+      array_storage_index_zeroed_test: "Assembly or alternatives unsupported in Vyper"
+      array_storage_push_empty: "Push(append) without args unsupported in Vyper"
+      array_storage_push_empty_length_address: "Push(append) without args unsupported in Vyper"
+      calldata_array_index_range_access: "Unsupported in Vyper"
+      cleanup: "Assembly or alternatives unsupported in Vyper"
+      comparison_functions: "Function types unsupported in Vyper"
+      conditional: "Conditional expression unsupported in Vyper"
+      conversion:
+        function_cast: "Function types unsupported in Vyper"
+        implicit_cast_assignment: "Implicit conversions unsupported in Vyper"
+        implicit_cast_function_call: "Implicit conversions unsupported in Vyper"
+        implicit_cast_local_assignment: "Implicit conversions unsupported in Vyper"
+      copy_struct_invalid_ir_bug: "Function types unsupported in Vyper"
+      delete: "Function types unsupported in Vyper"
+      dirty_calldata_struct: "Cleanup unsupported in Vyper"
+      dirty_memory_dynamic_array: "Assembly or alternatives unsupported in Vyper"
+      dirty_memory_int32: "Cleanup unsupported in Vyper"
+      dirty_memory_static_array: "Assembly or alternatives unsupported in Vyper"
+      dirty_memory_struct: "Assembly or alternatives unsupported in Vyper"
+      dirty_memory_uint32: "Cleanup unsupported in Vyper"
+      empty_return_corrupted_free_memory_pointer: "Assembly or alternatives unsupported in Vyper"
+      exp: "Exponentiation with 2 variables unsupported in Vyper"
+      exp_neg: "Exponentiation with 2 variables unsupported in Vyper"
+      exp_neg_overflow: "Exponentiation with 2 variables unsupported in Vyper"
+      exp_overflow: "Exponentiation with 2 variables unsupported in Vyper"
+      exp_various: "Exponentiation with 2 variables unsupported in Vyper"
+      function_address: "Unsupported in Vyper"
+      function_pointers: "Function pointers unsupported in Vyper"
+      function_selector: "Unsupported in Vyper"
+      local_tuple_assignment: "Unsupported in Vyper"
+      mapping_enum_key_getter: "Enums unsupported in Vyper"
+      memory_struct_allow: "Assembly or alternatives unsupported in Vyper"
+      return_storage_pointers: "Storage pointers unsupported in Vyper"
+      simple_inline_asm: "Assembly unsupported in Vyper"
+      storage:
+        dirty_storage_bytes: "Assembly or alternatives unsupported in Vyper"
+        dirty_storage_dynamic_array: "Assembly or alternatives unsupported in Vyper"
+        dirty_storage_static_array: "Assembly or alternatives unsupported in Vyper"
+        dirty_storage_struct: "Assembly or alternatives unsupported in Vyper"
+      unary_fixedbytes: "Unsupported in Vyper"
+      various_inline_asm: "Assembly unsupported in Vyper"
+      virtual_functions: "Unsupported in Vyper"
+    virtualFunctions: "Unsupported in Vyper"
+
+
+
+
+
+
+
