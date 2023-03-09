@@ -34,59 +34,54 @@ pub struct SystemContracts {
 
 impl SystemContracts {
     /// The empty contract implementation path.
-    const PATH_EMPTY_CONTRACT: &'static str =
-        "system-contracts/contracts/EmptyContract.sol:EmptyContract";
+    const PATH_EMPTY_CONTRACT: &'static str = "../contracts/EmptyContract.sol:EmptyContract";
 
     /// The `keccak256` system contract implementation path.
-    const PATH_KECCAK256: &'static str = "system-contracts/contracts/precompiles/Keccak256.yul";
+    const PATH_KECCAK256: &'static str = "../contracts/precompiles/Keccak256.yul";
 
     /// The `ecrecover` system contract implementation path.
-    const PATH_ECRECOVER: &'static str = "system-contracts/contracts/precompiles/Ecrecover.yul";
+    const PATH_ECRECOVER: &'static str = "../contracts/precompiles/Ecrecover.yul";
 
     /// The `sha256` system contract implementation path.
-    const PATH_SHA256: &'static str = "system-contracts/contracts/precompiles/SHA256.yul";
+    const PATH_SHA256: &'static str = "../contracts/precompiles/SHA256.yul";
 
     /// The account code storage system contract implementation path.
     const PATH_ACCOUNT_CODE_STORAGE: &'static str =
-        "system-contracts/contracts/AccountCodeStorage.sol:AccountCodeStorage";
+        "../contracts/AccountCodeStorage.sol:AccountCodeStorage";
 
     /// The contract deployer system contract implementation path.
     const PATH_CONTRACT_DEPLOYER: &'static str =
-        "system-contracts/contracts/ContractDeployer.sol:ContractDeployer";
+        "../contracts/ContractDeployer.sol:ContractDeployer";
 
     /// The nonce holder system contract implementation path.
-    const PATH_NONCE_HOLDER: &'static str =
-        "system-contracts/contracts/NonceHolder.sol:NonceHolder";
+    const PATH_NONCE_HOLDER: &'static str = "../contracts/NonceHolder.sol:NonceHolder";
 
     /// The knows codes storage system contract implementation path.
     const PATH_KNOWN_CODES_STORAGE: &'static str =
-        "system-contracts/contracts/KnownCodesStorage.sol:KnownCodesStorage";
+        "../contracts/KnownCodesStorage.sol:KnownCodesStorage";
 
     /// The immutable simulator system contract implementation path.
     const PATH_IMMUTABLE_SIMULATOR: &'static str =
-        "system-contracts/contracts/ImmutableSimulator.sol:ImmutableSimulator";
+        "../contracts/ImmutableSimulator.sol:ImmutableSimulator";
 
     /// The L1-messenger system contract implementation path.
-    const PATH_L1_MESSENGER: &'static str =
-        "system-contracts/contracts/L1Messenger.sol:L1Messenger";
+    const PATH_L1_MESSENGER: &'static str = "../contracts/L1Messenger.sol:L1Messenger";
 
     /// The `msg.value` simulator system contract implementation path.
     const PATH_MSG_VALUE_SIMULATOR: &'static str =
-        "system-contracts/contracts/MsgValueSimulator.sol:MsgValueSimulator";
+        "../contracts/MsgValueSimulator.sol:MsgValueSimulator";
 
     /// The system context system contract implementation path.
-    const PATH_SYSTEM_CONTEXT: &'static str =
-        "system-contracts/contracts/SystemContext.sol:SystemContext";
+    const PATH_SYSTEM_CONTEXT: &'static str = "../contracts/SystemContext.sol:SystemContext";
 
     /// The event writer system contract implementation path.
-    const PATH_EVENT_WRITER: &'static str = "system-contracts/contracts/EventWriter.yul";
+    const PATH_EVENT_WRITER: &'static str = "../contracts/EventWriter.yul";
 
     /// The ETH token system contract implementation path.
-    const PATH_ETH_TOKEN: &'static str = "system-contracts/contracts/L2EthToken.sol:L2EthToken";
+    const PATH_ETH_TOKEN: &'static str = "../contracts/L2EthToken.sol:L2EthToken";
 
     /// The default account abstraction contract implementation path.
-    const PATH_DEFAULT_AA: &'static str =
-        "system-contracts/contracts/DefaultAccount.sol:DefaultAccount";
+    const PATH_DEFAULT_AA: &'static str = "../contracts/DefaultAccount.sol:DefaultAccount";
 
     ///
     /// Load or build the system contracts.
@@ -213,7 +208,7 @@ impl SystemContracts {
             let file_path = path.split(':').next().expect("Always valid");
             solidity_file_paths.push(file_path.to_owned());
         }
-        for path in glob::glob("system-contracts/**/*.sol")?.filter_map(Result::ok) {
+        for path in glob::glob("../contracts/**/*.sol")?.filter_map(Result::ok) {
             let path = path.to_string_lossy().to_string();
             if !solidity_file_paths.contains(&path) {
                 solidity_file_paths.push(path);

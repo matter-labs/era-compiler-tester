@@ -77,7 +77,7 @@ impl SolidityCompiler {
     const DIRECTORY: &'static str = "solc-bin/";
 
     /// The solc allow paths argument value.
-    const SOLC_ALLOW_PATHS: &'static str = "tests";
+    const SOLC_ALLOW_PATHS: &'static str = "..";
 
     ///
     /// Returns the `solc` compiler path by version.
