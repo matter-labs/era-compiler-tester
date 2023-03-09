@@ -83,6 +83,15 @@ impl SystemContracts {
     /// The default account abstraction contract implementation path.
     const PATH_DEFAULT_AA: &'static str = "../contracts/DefaultAccount.sol:DefaultAccount";
 
+    /// The bootloader utilities contract implementation path.
+    const PATH_BOOTLOADER_UTILITIES: &'static str = "../contracts/BootloaderUtilities.sol:BootloaderUtilities";
+
+    /// The bytecode compressor contract implementation path.
+    const PATH_BYTECODE_COMPRESSOR: &'static str = "../contracts/BytecodeCompressor.sol:BytecodeCompressor";
+
+    /// The bytecode compressor contract address.
+    const ADDRESS_BYTECODE_COMPRESSOR: u16 = 0x800E;
+
     ///
     /// Load or build the system contracts.
     ///
@@ -191,6 +200,14 @@ impl SystemContracts {
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
                 Self::PATH_ETH_TOKEN,
+            ),
+            (
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::system_params::ADDRESS_BOOTLOADER_UTILITIES.into()),
+                Self::PATH_BOOTLOADER_UTILITIES,
+            ),
+            (
+                web3::types::Address::from_low_u64_be(Self::ADDRESS_BYTECODE_COMPRESSOR.into()),
+                Self::PATH_BYTECODE_COMPRESSOR,
             ),
         ];
 
