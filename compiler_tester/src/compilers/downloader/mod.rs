@@ -19,13 +19,25 @@ use self::solc_list::SolcList;
 ///
 /// The compiler downloader.
 ///
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Downloader {
+    /// The `reqwest` HTTP client.
+    http_client: reqwest::blocking::Client,
     /// The solc-bin JSON list metadata.
     solc_list: Option<SolcList>,
 }
 
 impl Downloader {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(http_client: reqwest::blocking::Client) -> Self {
+        Self {
+            http_client,
+            solc_list: None,
+        }
+    }
+
     ///
     /// Downloads the compilers described in the config.
     ///
@@ -82,7 +94,7 @@ impl Downloader {
                         source_url,
                         binary.destination,
                     );
-                    reqwest::blocking::get(source_url)?.bytes()?
+                    self.http_client.get(source_url).send()?.bytes()?
                 }
                 Protocol::SolcBinList => {
                     if destination_path.exists() {
@@ -119,7 +131,7 @@ impl Downloader {
                         source_url,
                         binary.destination,
                     );
-                    reqwest::blocking::get(source_url)?.bytes()?
+                    self.http_client.get(source_url).send()?.bytes()?
                 }
             };
 

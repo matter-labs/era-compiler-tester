@@ -67,7 +67,7 @@ struct BuildHelper {
     /// The contract assembly string.
     assembly: String,
     /// The contract metadata hash.
-    metadata_hash: [u8; 32],
+    metadata_hash: Option<[u8; compiler_common::BYTE_LENGTH_FIELD]>,
 }
 
 impl Serialize for Build {

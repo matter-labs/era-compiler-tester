@@ -6,20 +6,23 @@ pub(crate) mod compilers;
 pub(crate) mod deployers;
 pub(crate) mod directories;
 pub(crate) mod filters;
+pub(crate) mod llvm_options;
 pub(crate) mod summary;
 pub(crate) mod test;
 pub(crate) mod utils;
 pub(crate) mod zkevm;
 
-pub use deployers::native_deployer::NativeDeployer;
-pub use deployers::system_contract_deployer::SystemContractDeployer;
-pub use filters::Filters;
-pub use summary::Summary;
+pub use self::deployers::native_deployer::NativeDeployer;
+pub use self::deployers::system_contract_deployer::SystemContractDeployer;
+pub use self::filters::Filters;
+pub use self::llvm_options::LLVMOptions;
+pub use self::summary::Summary;
 
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
@@ -100,19 +103,27 @@ impl CompilerTester {
     pub fn new(
         summary: Arc<Mutex<Summary>>,
         filters: Filters,
+
         debug_config: Option<compiler_llvm_context::DebugConfig>,
+
         binary_download_config_paths: Vec<PathBuf>,
         system_contracts_download_config_path: PathBuf,
         system_contracts_debug_config: Option<compiler_llvm_context::DebugConfig>,
         system_contracts_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
     ) -> anyhow::Result<Self> {
+        let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
+        http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
+        http_client_builder = http_client_builder.pool_idle_timeout(Duration::from_secs(60));
+        http_client_builder = http_client_builder.timeout(Duration::from_secs(60));
+        let http_client = http_client_builder.build()?;
+
         let download_time_start = Instant::now();
         println!(" {} compiler binaries", "Downloading".bright_green().bold());
-        let system_contracts_download_config = CompilerDownloader::default()
+        let system_contracts_solc_downloader_config = CompilerDownloader::new(http_client.clone())
             .download(system_contracts_download_config_path.as_path())?;
         for config_path in binary_download_config_paths.into_iter() {
-            CompilerDownloader::default().download(config_path.as_path())?;
+            CompilerDownloader::new(http_client.clone()).download(config_path.as_path())?;
         }
         println!(
             "    {} downloading compiler binaries in {}m{:02}s",
@@ -122,7 +133,7 @@ impl CompilerTester {
         );
 
         let initial_vm = Arc::new(zkEVM::initialize(
-            system_contracts_download_config,
+            system_contracts_solc_downloader_config,
             system_contracts_debug_config,
             system_contracts_path,
             system_contracts_save_path,
@@ -131,7 +142,9 @@ impl CompilerTester {
         Ok(Self {
             summary,
             filters,
+
             debug_config,
+
             initial_vm,
         })
     }

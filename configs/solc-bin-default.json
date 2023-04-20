@@ -1,17 +1,5 @@
 {
   "binaries": {
-    "0.4.10": {
-      "is_enabled": false,
-      "protocol": "solc-bin-list",
-      "source": "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/${PLATFORM}/list.json",
-      "destination": "./solc-bin/solc-0.4.10"
-    },
-    "0.4.11": {
-      "is_enabled": false,
-      "protocol": "solc-bin-list",
-      "source": "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/${PLATFORM}/list.json",
-      "destination": "./solc-bin/solc-0.4.11"
-    },
     "0.4.12": {
       "is_enabled": false,
       "protocol": "solc-bin-list",
