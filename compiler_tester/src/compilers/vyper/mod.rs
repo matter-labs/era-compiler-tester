@@ -214,6 +214,7 @@ impl Compiler for VyperCompiler {
         let build = cached_project.compile(
             target_machine,
             mode.llvm_optimizer_settings.clone(),
+            true,
             self.debug_config.clone(),
         )?;
 
@@ -245,10 +246,12 @@ impl Compiler for VyperCompiler {
                 zkEVMContractBuild::new_with_hash(
                     zkevm_assembly::Assembly::from_string(
                         compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.to_owned(),
-                        sha3::Keccak256::digest(
-                            compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.as_bytes(),
-                        )
-                        .into(),
+                        Some(
+                            sha3::Keccak256::digest(
+                                compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.as_bytes(),
+                            )
+                            .into(),
+                        ),
                     )
                     .map_err(|error| anyhow::anyhow!("Vyper forwarder assembly: {}", error))?,
                     compiler_vyper::FORWARDER_CONTRACT_HASH.clone(),
@@ -292,6 +295,7 @@ impl Compiler for VyperCompiler {
         {
             compiler_vyper::Contract::Vyper(inner) => &inner.abi,
             compiler_vyper::Contract::LLVMIR(_inner) => panic!("Only used in the Vyper CLI"),
+            compiler_vyper::Contract::ZKASM(_inner) => panic!("Only used in the Vyper CLI"),
         };
 
         contract_identifiers

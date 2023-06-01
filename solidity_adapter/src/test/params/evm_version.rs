@@ -103,6 +103,8 @@ pub enum EVM {
     London,
     /// Paris EVM version.
     Paris,
+    /// Shanghai EVM version.
+    Shanghai,
 }
 
 impl TryFrom<&str> for EVM {
@@ -120,6 +122,7 @@ impl TryFrom<&str> for EVM {
             "berlin" => EVM::Berlin,
             "london" => EVM::London,
             "paris" => EVM::Paris,
+            "shanghai" => EVM::Shanghai,
             _ => anyhow::bail!("Invalid EVM: {}", value),
         })
     }

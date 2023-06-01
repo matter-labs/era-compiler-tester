@@ -2,7 +2,7 @@
 //! The Solidity tests file system entity.
 //!
 
-pub mod conflicts;
+mod changes;
 mod directory;
 pub mod enabled;
 mod test_file;
@@ -17,7 +17,7 @@ use std::path::PathBuf;
 use serde::Deserialize;
 use serde::Serialize;
 
-use self::conflicts::Conflicts;
+use self::changes::Changes;
 use self::directory::Directory;
 use self::enabled::EnabledTest;
 use self::test_file::TestFile;
@@ -76,17 +76,10 @@ impl FSEntity {
     ///
     /// Updates the new index, tests and returns changes.
     ///
-    #[allow(clippy::type_complexity)]
-    pub fn update(
-        &self,
-        new: &mut FSEntity,
-        initial: &Path,
-    ) -> anyhow::Result<(Vec<PathBuf>, Vec<PathBuf>, Vec<(PathBuf, Conflicts)>)> {
-        let mut created = Vec::new();
-        let mut deleted = Vec::new();
-        let mut updated = Vec::new();
-        self.update_recursive(new, initial, &mut created, &mut deleted, &mut updated)?;
-        Ok((created, deleted, updated))
+    pub fn update(&self, new: &mut FSEntity, initial: &Path) -> anyhow::Result<Changes> {
+        let mut changes = Changes::default();
+        self.update_recursive(new, initial, &mut changes)?;
+        Ok(changes)
     }
 
     ///
@@ -143,51 +136,40 @@ impl FSEntity {
         &self,
         new: &mut FSEntity,
         current: &Path,
-        created: &mut Vec<PathBuf>,
-        deleted: &mut Vec<PathBuf>,
-        updated: &mut Vec<(PathBuf, Conflicts)>,
+        changes: &mut Changes,
     ) -> anyhow::Result<()> {
         let (old_entities, new_entities) = match (self, new) {
             (Self::File(old_file), Self::File(new_file)) => {
-                let new_hash = TestFile::md5(
-                    new_file
-                        .data
-                        .as_ref()
-                        .ok_or_else(|| anyhow::anyhow!("Test data is None: {:?}", current))?
-                        .as_str(),
-                );
-                if old_file
+                new_file.enabled = old_file.enabled;
+                new_file.group = old_file.group.clone();
+                new_file.comment = old_file.comment.clone();
+                new_file.modes = old_file.modes.clone();
+                new_file.version = old_file.version.clone();
+
+                let new_hash = new_file
+                    .hash
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {:?}", current))?;
+
+                if !old_file
                     .hash
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {:?}", current))?
-                    .eq(&new_hash)
+                    .eq(new_hash)
                 {
-                    new_file.enabled = old_file.enabled;
-                    new_file.group = old_file.group.clone();
-                    new_file.comment = old_file.comment.clone();
-                    new_file.modes = old_file.modes.clone();
-                    new_file.version = old_file.version.clone();
-                } else {
-                    let conflicts = Conflicts::try_from_test_entity_changes(old_file, current)
-                        .map_err(|err| {
-                            anyhow::anyhow!(
-                                "Failed to get conflicts flags for test file {:?}: {}",
-                                current,
-                                err
-                            )
-                        })?;
-                    let mut file_to_write = fs::OpenOptions::new()
-                        .write(true)
-                        .truncate(true)
-                        .open(current)?;
-                    file_to_write.write_all(
+                    if old_file.was_changed(current)? {
+                        changes.conflicts.push(current.to_owned());
+                    } else {
+                        changes.updated.push(current.to_owned());
+                    }
+                    TestFile::write_to_file(
+                        current,
                         new_file
                             .data
                             .as_ref()
                             .ok_or_else(|| anyhow::anyhow!("Test data is None: {:?}", current))?
                             .as_bytes(),
                     )?;
-                    updated.push((current.to_owned(), conflicts));
                 }
                 return Ok(());
             }
@@ -209,8 +191,8 @@ impl FSEntity {
                 (old_entities, new_entities)
             }
             (_, new) => {
-                self.list_recursive(current, deleted);
-                new.list_recursive(current, created);
+                self.list_recursive(current, &mut changes.deleted);
+                new.list_recursive(current, &mut changes.created);
                 self.delete(current)?;
                 new.create_recursive(current)?;
                 return Ok(());
@@ -221,9 +203,9 @@ impl FSEntity {
             let mut current = current.to_owned();
             current.push(name);
             if let Some(new_entity) = new_entities.get_mut(name) {
-                entity.update_recursive(new_entity, &current, created, deleted, updated)?;
+                entity.update_recursive(new_entity, &current, changes)?;
             } else {
-                entity.list_recursive(&current, deleted);
+                entity.list_recursive(&current, &mut changes.deleted);
                 entity.delete(&current)?;
             }
         }
@@ -231,7 +213,7 @@ impl FSEntity {
             if !old_entities.contains_key(name) {
                 let mut current = current.to_owned();
                 current.push(name);
-                entity.list_recursive(&current, created);
+                entity.list_recursive(&current, &mut changes.created);
                 entity.create_recursive(&current)?;
             }
         }

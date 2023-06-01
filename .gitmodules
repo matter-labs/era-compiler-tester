@@ -8,5 +8,5 @@
 	branch = develop
 [submodule "system-contracts"]
 	path = system-contracts
-	url = ssh://git@github.com/code-423n4/2023-03-zksync.git 
+	url = https://github.com/matter-labs/era-system-contracts
 	branch = main

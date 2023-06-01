@@ -8,6 +8,8 @@ use std::fs::OpenOptions;
 use std::io::BufReader;
 use std::io::Write;
 
+use colored::Colorize;
+
 use self::arguments::Arguments;
 
 ///
@@ -26,25 +28,34 @@ fn main() {
 
     let mut new_index =
         solidity_adapter::FSEntity::index(&arguments.source).expect("Failed to update index");
-    let (created, deleted, updated) = old_index
+    let changes = old_index
         .update(&mut new_index, arguments.destination.as_path())
         .expect("Failed to update tests");
 
-    println!("{} files created:\n", created.len());
-    for file in created {
+    println!("{} files created:\n", changes.created.len());
+    for file in changes.created {
+        println!("{}", file.to_string_lossy().green());
+    }
+    println!();
+
+    println!("{} files deleted:\n", changes.deleted.len());
+    for file in changes.deleted {
+        println!("{}", file.to_string_lossy().red());
+    }
+    println!();
+
+    println!("{} files updated:\n", changes.updated.len());
+    for file in changes.updated {
         println!("{}", file.to_string_lossy());
     }
     println!();
 
-    println!("{} files deleted:\n", deleted.len());
-    for file in deleted {
-        println!("{}", file.to_string_lossy());
-    }
-    println!();
-
-    println!("{} files updated:\n", updated.len());
-    for (file, conflicts) in updated {
-        println!("{} ({})", file.to_string_lossy(), conflicts);
+    println!(
+        "{} conflicts(both modified, were overwritten):\n",
+        changes.conflicts.len()
+    );
+    for file in changes.conflicts {
+        println!("{}", file.to_string_lossy().bright_red());
     }
     println!();
 

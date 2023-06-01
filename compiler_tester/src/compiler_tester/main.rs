@@ -12,6 +12,9 @@ use colored::Colorize;
 
 use self::arguments::Arguments;
 
+/// The rayon worker stack size.
+const RAYON_WORKER_STACK_SIZE: usize = 16 * 1024 * 1024;
+
 ///
 /// The application entry point.
 ///
@@ -54,17 +57,23 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
     zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
 
+    let mut thread_pool_builder = rayon::ThreadPoolBuilder::new();
     if let Some(threads) = arguments.threads {
-        rayon::ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build_global()
-            .expect("Thread pool configuration failure");
+        thread_pool_builder = thread_pool_builder.num_threads(threads);
     }
+    thread_pool_builder
+        .stack_size(RAYON_WORKER_STACK_SIZE)
+        .build_global()
+        .expect("Thread pool configuration failure");
 
     let summary = compiler_tester::Summary::new(arguments.verbosity, arguments.quiet).wrap();
 
     inkwell::support::enable_llvm_pretty_stack_trace();
     compiler_llvm_context::initialize_target();
+    compiler_tester::LLVMOptions::initialize(
+        arguments.llvm_verify_each,
+        arguments.llvm_debug_logging,
+    )?;
 
     let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
     let system_contract_debug_config = if arguments.dump_system {

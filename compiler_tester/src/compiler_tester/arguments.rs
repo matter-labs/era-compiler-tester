@@ -79,6 +79,14 @@ pub struct Arguments {
     /// Whether to save the system contracts builds to the specified file.
     #[structopt(long = "save-system-contracts")]
     pub save_system_contracts: Option<PathBuf>,
+
+    /// Sets the `verify each` option in LLVM.
+    #[structopt(long = "llvm-verify-each")]
+    pub llvm_verify_each: bool,
+
+    /// Sets the `debug logging` option in LLVM.
+    #[structopt(long = "llvm-debug-logging")]
+    pub llvm_debug_logging: bool,
 }
 
 impl Arguments {

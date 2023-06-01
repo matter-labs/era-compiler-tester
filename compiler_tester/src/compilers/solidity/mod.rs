@@ -173,11 +173,16 @@ impl SolidityCompiler {
             None,
         );
 
+        let via_ir = subprocess_mode.version >= compiler_solidity::SolcCompiler::FIRST_YUL_VERSION
+            && subprocess_mode.pipeline == compiler_solidity::SolcPipeline::Yul;
+
         let solc_input = compiler_solidity::SolcStandardJsonInput::try_from_sources(
             self.sources.clone().into_iter().collect(),
             self.libraries.clone(),
             output_selection,
             optimizer,
+            None,
+            via_ir,
         )
         .map_err(|error| anyhow::anyhow!("Failed to build solc input standard json: {}", error))?;
 
@@ -187,7 +192,13 @@ impl SolidityCompiler {
             .to_string_lossy()
             .to_string();
 
-        let mut solc_output = solc.standard_json(solc_input, None, vec![], Some(allow_paths))?;
+        let mut solc_output = solc.standard_json(
+            solc_input,
+            subprocess_mode.pipeline,
+            None,
+            vec![],
+            Some(allow_paths),
+        )?;
 
         if let Some(errors) = solc_output.errors.as_deref() {
             let mut has_errors = false;
@@ -214,9 +225,6 @@ impl SolidityCompiler {
                     match sources
                         .get(path)
                         .ok_or_else(|| anyhow::anyhow!("Last source not found in the output"))?
-                        .ast
-                        .as_ref()
-                        .ok_or_else(|| anyhow::anyhow!("AST not found for the last source"))?
                         .last_contract_name()
                     {
                         Ok(name) => return Ok(format!("{path}:{name}")),
@@ -339,6 +347,7 @@ impl Compiler for SolidityCompiler {
                 target_machine,
                 mode.llvm_optimizer_settings.clone(),
                 self.is_system_mode,
+                true,
                 self.debug_config.clone(),
             )?
             .contracts
@@ -469,6 +478,7 @@ impl Compiler for SolidityCompiler {
             solidity_adapter::EVM::Berlin,
             solidity_adapter::EVM::London,
             solidity_adapter::EVM::Paris,
+            solidity_adapter::EVM::Shanghai,
         ]) {
             return false;
         }

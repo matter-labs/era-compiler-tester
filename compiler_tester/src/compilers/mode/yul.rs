@@ -2,6 +2,8 @@
 //! The compiler tester Yul mode.
 //!
 
+use crate::llvm_options::LLVMOptions;
+
 use super::Mode as ModeWrapper;
 
 ///
@@ -20,7 +22,11 @@ impl Mode {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings) -> Self {
+    pub fn new(mut llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings) -> Self {
+        let llvm_options = LLVMOptions::get();
+        llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
+        llvm_optimizer_settings.is_debug_logging_enabled = llvm_options.is_debug_logging_enabled();
+
         Self {
             llvm_optimizer_settings,
         }

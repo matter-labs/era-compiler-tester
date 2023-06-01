@@ -2,6 +2,8 @@
 //! The compiler tester Solidity mode.
 //!
 
+use crate::llvm_options::LLVMOptions;
+
 use super::Mode as ModeWrapper;
 
 ///
@@ -30,8 +32,12 @@ impl Mode {
         solc_version: semver::Version,
         solc_pipeline: compiler_solidity::SolcPipeline,
         solc_optimize: bool,
-        llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+        mut llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
     ) -> Self {
+        let llvm_options = LLVMOptions::get();
+        llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
+        llvm_optimizer_settings.is_debug_logging_enabled = llvm_options.is_debug_logging_enabled();
+
         Self {
             solc_version,
             solc_pipeline,

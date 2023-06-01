@@ -74,6 +74,7 @@ impl Compiler for YulCompiler {
                         target_machine,
                         mode.llvm_optimizer_settings.clone(),
                         self.is_system_mode,
+                        true,
                         self.debug_config.clone(),
                     )?
                     .contracts

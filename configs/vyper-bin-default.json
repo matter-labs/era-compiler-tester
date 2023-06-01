@@ -6,23 +6,11 @@
       "source": "https://github.com/vyperlang/vyper/releases/download/v0.3.3/vyper.0.3.3+commit.48e326f0.${PLATFORM}",
       "destination": "./vyper-bin/vyper-0.3.3"
     },
-    "0.3.4": {
-      "is_enabled": false,
+    "0.3.9": {
+      "is_enabled": true,
       "protocol": "https",
-      "source": "https://github.com/vyperlang/vyper/releases/download/v0.3.4/vyper.0.3.4+commit.f31f0ec4.${PLATFORM}",
-      "destination": "./vyper-bin/vyper-0.3.4"
-    },
-    "0.3.6": {
-      "is_enabled": false,
-      "protocol": "https",
-      "source": "https://github.com/vyperlang/vyper/releases/download/v0.3.6/vyper.0.3.6+commit.4a2124d0.${PLATFORM}",
-      "destination": "./vyper-bin/vyper-0.3.6"
-    },
-    "0.3.7": {
-      "is_enabled": false,
-      "protocol": "https",
-      "source": "https://github.com/vyperlang/vyper/releases/download/v0.3.7/vyper.0.3.7+commit.6020b8bb.${PLATFORM}",
-      "destination": "./vyper-bin/vyper-0.3.7"
+      "source": "https://github.com/vyperlang/vyper/releases/download/v0.3.9/vyper.0.3.9+commit.66b96705.${PLATFORM}",
+      "destination": "./vyper-bin/vyper-0.3.9"
     }
   },
   "platforms": {

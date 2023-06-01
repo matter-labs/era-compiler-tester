@@ -2,6 +2,8 @@
 //! The compiler tester Vyper mode.
 //!
 
+use crate::llvm_options::LLVMOptions;
+
 use super::Mode as ModeWrapper;
 
 ///
@@ -27,8 +29,12 @@ impl Mode {
     pub fn new(
         vyper_version: semver::Version,
         vyper_optimize: bool,
-        llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+        mut llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
     ) -> Self {
+        let llvm_options = LLVMOptions::get();
+        llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
+        llvm_optimizer_settings.is_debug_logging_enabled = llvm_options.is_debug_logging_enabled();
+
         Self {
             vyper_version,
             vyper_optimize,

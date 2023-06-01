@@ -1,10 +1,10 @@
 {
   "binaries": {
-    "0.4.11": {
+    "0.8.20": {
       "is_enabled": true,
       "protocol": "file",
-      "source": "./solc-bin/solc-0.4.11",
-      "destination": "./solc-bin/solc-0.4.11"
+      "source": "./solc-bin/solc-0.8.20",
+      "destination": "./solc-bin/solc-0.8.20"
     }
   },
   "platforms": {
