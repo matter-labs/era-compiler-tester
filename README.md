@@ -1,4 +1,4 @@
-# zkSync Era: The zkEVM Compiler Integration Test Framework
+# zkSync Era: The EraVM Compiler Integration Test Framework
 
 [![Logo](eraLogo.svg)](https://zksync.io/)
 
@@ -7,8 +7,8 @@ or decentralization. As it's EVM-compatible (with Solidity/Vyper), 99% of Ethere
 needing to refactor or re-audit any code. zkSync Era also uses an LLVM-based compiler that will eventually enable
 developers to write smart contracts in popular languages such as C++ and Rust.
 
-The `compiler-tester` integration test framework runs tests for Matter Labs compilers which target the zkEVM,
-for supported languages listed below. It compiles source code via internal API calls,
+The `compiler-tester` integration test framework runs tests for Matter Labs compilers which target the EraVM,
+for supported languages listed below. It compiles source code via external API calls,
 e.g. to [Inkwell](https://thedan64.github.io/inkwell/inkwell/index.html). In software quality assurance jargon,
 this makes it a whitebox testing framework.
 
@@ -16,7 +16,7 @@ The `compiler-tester` repository includes the Compiler Tests Collection reposito
 
 By default, the Tester SHOULD run the entire Collection in all possible combinations of compiler versions and settings,
 but it MAY omit some subset of the combinations for the sake of saving time, e.g. when only front-end changes have been
-made, and there is no point of running tests in all LLVM optimization modes.
+made, and there is no point in running tests in all LLVM optimization modes.
 
 ## Building
 
@@ -26,17 +26,29 @@ made, and there is no point of running tests in all LLVM optimization modes.
    1.c. On MacOS, install the [HomeBrew](https://brew.sh) package manager (being careful to install it as the appropriate user), then `brew install cmake ninja coreutils parallel`. Install your choice of a recent LLVM/[Clang](https://clang.llvm.org) compiler, e.g. via [Xcode](https://developer.apple.com/xcode/), [Apple’s Command Line Tools](https://developer.apple.com/library/archive/technotes/tn2339/_index.html), or your preferred package manager.  
    1.d. Their equivalents with other package managers  
 
-1. [Install Rust](https://www.rust-lang.org/tools/install).
+2. [Install Rust](https://www.rust-lang.org/tools/install).
 
-1. Check out or clone the appropriate branch of this repository using the `--recursive` option.
+3. Check out or clone the appropriate branch of this repository using the `--recursive` option.
 
-1. Install the LLVM building tool: `cargo install compiler-llvm-builder`.
+4. Install the LLVM building tool: `cargo install compiler-llvm-builder`.
 
-1. Clone and build the LLVM framework: `zkevm-llvm clone && zkevm-llvm build`.
+5. Pull and build the LLVM framework:  
+   5.a. If you have not cloned the LLVM repository yet:
+   ```
+   zkevm-llvm clone && zkevm-llvm build
+   ```
+   5.b. If you have already cloned the LLVM repository:  
+   ```
+   zkevm-llvm checkout
+   git -C './llvm/' pull
+   zkevm-llvm build
+   ```
 
-1. Build the Tester with `cargo build --release`.
+6. Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
 
-Then run the tests using the examples below under “Usage.”
+7. Build the Tester with `cargo build --release`.
+
+8. Run the tests using the examples below under “Usage”.
 
 ## What is supported
 
@@ -46,22 +58,27 @@ Then run the tests using the examples below under “Usage.”
 - Yul
 - Vyper
 - LLVM IR
-- zkEVM assembly
+- EraVM assembly
 
-### Optimization modes
+### Optimizers
 
-- LLVM middle-end (levels 0 to 3, s, z, e.g. `M0`, `M1` etc.)
-- LLVM back-end (levels 0 to 3, e.g. `B0`, `B1` etc.)
-- `solc` compiler (disabled or enabled), marked as one of [`Y-`, `Y+`, `E-`, `E+`]
-- `vyper` compiler (disabled or enabled), marked as one of [`V-`, `V+`]
+- LLVM middle-end optimizer (levels 0 to 3, s, z, e.g. `M0`, `M1` etc.)
+- LLVM back-end optimizer (levels 0 to 3, e.g. `B0`, `B1` etc.)
+- `solc` optimizer (`-` or `+`)
+- `vyper` optimizer (`-` or `+`)
+
+### Solidity codegens
+
+- Yul pure (`Y`)
+- EVM assembly from Yul (`y`)
+- EVM assembly (`E`)
 
 ### Compiler versions
 
-Only relevant for Solidity and Vyper tests:
-
-- `^0.8` for compiling Solidity via Yul
+- `>=0.8` for compiling Solidity via Yul
+- `>=0.8.13` for compiling Solidity via EVM assembly from Yul
 - [0.4.10; latest] for compiling Solidity via EVM assembly
-- [0.3.3; latest] for compiling Vyper via LLL IR
+- [0.3.3, 0.3.9] for compiling Vyper via LLL IR
 
 ### Compiler pipelines
 
@@ -91,7 +108,7 @@ There are more rarely used options, which you may check out with `./target/relea
 
 ### Example 1
 
-Run a simple Solidity test, dumping Yul, unoptimized and optimized LLVM IR, and zkEVM assembly to the specified directory.
+Run a simple Solidity test, dumping Yul, unoptimized and optimized LLVM IR, and EraVM assembly to the specified directory.
 
 Use:
 
@@ -99,7 +116,7 @@ Use:
 - Yul optimizations enabled (`+`)
 - level 3 optimizations in LLVM middle-end (`M3`)
 - level 3 optimizations in LLVM back-end (`B3`)
-- Solidity compiler version (`0.8.19`)
+- Solidity compiler version (`0.8.20`)
 
 Output:
 
@@ -110,12 +127,13 @@ Output:
 ```bash
 cargo run --release --bin compiler-tester -- -DT \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M3B3 0.8.19'
+	--mode='Y+M3B3 0.8.20' \
+	--zksolc '../compiler-solidity/target/release/zksolc'
 ```
 
 ### Example 2
 
-Run all simple Solidity tests. This currently runs about three hundred tests and takes about eight minutes.
+Run all simple Yul tests. This currently runs about three hundred tests and takes about eight minutes.
 
 Use:
 
@@ -139,8 +157,15 @@ Run all tests (currently about three million) in all modes.
 This takes a few hours on the CI server, and probably much longer on your personal machine.
 
 ```bash
-cargo run --release --bin compiler-tester
+cargo run --release --bin compiler-tester -- \
+	--zksolc '../compiler-solidity/target/release/zksolc' \
+	--zkvyper '../compiler-vyper/target/release/zkvyper'
 ```
+
+## Tracing
+
+If you run the tester with `-T` flag, JSON trace files will be written to the `./trace/` directory.
+The trace files can be used with our [custom zkSync EraVM assembly tracer](https://staging-scan-v2.zksync.dev/tools/debugger) for debugging and research purposes.
 
 ## Benchmarking
 
@@ -153,7 +178,7 @@ zkevm-llvm checkout && zkevm-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.19' \
+	--mode='Y+M^B3 0.8.20' \
 	--benchmark='reference.json'
 ```
 
@@ -166,7 +191,7 @@ zkevm-llvm checkout && zkevm-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.19' \
+	--mode='Y+M^B3 0.8.20' \
 	--benchmark='candidate.json'
 ```
 
@@ -183,7 +208,7 @@ After you make any changes in LLVM, you only need to repeat steps 2-3 to update 
 then prepending the `cargo` command with `CARGO_NET_GIT_FETCH_WITH_CLI=true`
 may help.
 - On MacOS, `git config --global credential.helper osxkeychain` followed by cloning a repository manually with a personal access token may help.
-- Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`
+- Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`.
 
 ## License
 

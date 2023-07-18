@@ -83,6 +83,7 @@ impl Deployer for NativeDeployer {
         Ok(ExecutionResult::new(
             Output::new(return_data, false, result.output.events),
             result.cycles,
+            result.ergs,
         ))
     }
 }

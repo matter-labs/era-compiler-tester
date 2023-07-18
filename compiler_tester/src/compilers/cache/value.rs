@@ -3,7 +3,6 @@
 //!
 
 use std::sync::Arc;
-use std::sync::Condvar;
 use std::sync::Mutex;
 
 ///
@@ -11,7 +10,7 @@ use std::sync::Mutex;
 ///
 pub enum Value<T> {
     /// The value is being computed.
-    Waiter(Arc<(Mutex<()>, Condvar)>),
+    Waiter(Arc<Mutex<()>>),
     /// The value is already computed.
     Value(T),
 }
@@ -20,8 +19,8 @@ impl<T> Value<T> {
     ///
     /// A shortcut waiter constructor.
     ///
-    pub fn waiter() -> Arc<(Mutex<()>, Condvar)> {
-        Arc::new((Mutex::new(()), Condvar::new()))
+    pub fn waiter() -> Arc<Mutex<()>> {
+        Arc::new(Mutex::new(()))
     }
 
     ///
@@ -29,12 +28,12 @@ impl<T> Value<T> {
     ///
     /// # Panics
     ///
-    /// If the value is being waited for.
+    /// If the value is computed.
     ///
     pub fn unwrap_value(&self) -> &T {
         match self {
             Self::Value(value) => value,
-            _ => panic!("Not a value"),
+            _ => panic!("Value is not computed"),
         }
     }
 }

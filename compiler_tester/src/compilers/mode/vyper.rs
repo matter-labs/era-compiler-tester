@@ -20,9 +20,6 @@ pub struct Mode {
 }
 
 impl Mode {
-    /// The language name.
-    pub const LANGUAGE: &'static str = "Vyper";
-
     ///
     /// A shortcut constructor.
     ///
@@ -55,14 +52,34 @@ impl Mode {
             _ => panic!("Non-Vyper mode"),
         }
     }
+
+    ///
+    /// Checks if the mode is compatible with the source code pragmas.
+    ///
+    pub fn check_pragmas(&self, sources: &[(String, String)]) -> bool {
+        sources.iter().all(|(_, source_code)| {
+            match source_code.lines().find_map(|line| {
+                let mut split = line.split_whitespace();
+                if let (Some("#"), Some("@version"), Some(version)) =
+                    (split.next(), split.next(), split.next())
+                {
+                    semver::VersionReq::parse(version).ok()
+                } else {
+                    None
+                }
+            }) {
+                Some(pragma_version_req) => pragma_version_req.matches(&self.vyper_version),
+                None => true,
+            }
+        })
+    }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{:>8} V{}{} {}",
-            Self::LANGUAGE,
+            "V{}{} {}",
             if self.vyper_optimize { '+' } else { '-' },
             self.llvm_optimizer_settings,
             self.vyper_version,

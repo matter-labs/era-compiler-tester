@@ -24,7 +24,7 @@ colored = "2.0"
 serde = { version = "1.0", features = [ "derive" ] }
 serde_yaml = "0.9"
 semver = { version = "1.0", features = [ "serde" ] }
-regex = "1.8"
+regex = "1.9"
 md5 = "0.7"
 
 web3 = { version= "0.18.0", default-features = false, features = ["http-rustls-tls", "test", "signing"] }

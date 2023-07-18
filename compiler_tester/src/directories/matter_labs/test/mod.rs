@@ -51,45 +51,30 @@ pub fn default_caller_address() -> String {
 ///
 /// The Matter Labs compiler test.
 ///
-pub struct MatterLabsTest<C>
-where
-    C: Compiler,
-{
-    /// The test name.
-    test_name: String,
-    /// The test compiler.
-    compiler: C,
-    /// The address predictor.
-    address_predictor: AddressPredictor,
+pub struct MatterLabsTest {
+    /// The test path.
+    path: PathBuf,
     /// The test metadata.
     metadata: Metadata,
-    /// The libraries addresses.
-    libraries_instances: HashMap<String, web3::types::Address>,
+    /// The test sources.
+    sources: Vec<(String, String)>,
 }
 
-impl<C> MatterLabsTest<C>
-where
-    C: Compiler,
-{
+impl MatterLabsTest {
     ///
     /// Try to create new test.
     ///
-    pub fn new(
-        path: PathBuf,
-        summary: Arc<Mutex<Summary>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
-        filters: &Filters,
-    ) -> Option<Self> {
-        let test_name = path.to_string_lossy().to_string();
+    pub fn new(path: PathBuf, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Self> {
+        let test_path = path.to_string_lossy().to_string();
 
-        if !filters.check_test_path(&test_name) {
+        if !filters.check_test_path(&test_path) {
             return None;
         }
 
         let metadata_file_string = match std::fs::read_to_string(path.as_path()) {
             Ok(metadata_file_string) => metadata_file_string,
             Err(error) => {
-                Summary::invalid(summary, None, test_name, error);
+                Summary::invalid(summary, None, test_path, error);
                 return None;
             }
         };
@@ -99,13 +84,13 @@ where
         {
             Ok(metadata) => metadata,
             Err(error) => {
-                Summary::invalid(summary, None, test_name, error);
+                Summary::invalid(summary, None, test_path, error);
                 return None;
             }
         };
 
         if metadata.ignore {
-            Summary::ignored(summary, test_name);
+            Summary::ignored(summary, test_path);
             return None;
         }
 
@@ -114,14 +99,6 @@ where
         }
 
         let sources = if metadata.contracts.is_empty() {
-            let contract_name = if C::has_many_contracts() {
-                format!("{}:{}", path.to_string_lossy(), SIMPLE_TESTS_CONTRACT_NAME)
-            } else {
-                path.to_string_lossy().to_string()
-            };
-            metadata
-                .contracts
-                .insert(SIMPLE_TESTS_INSTANCE.to_owned(), contract_name);
             vec![(path.to_string_lossy().to_string(), metadata_file_string)]
         } else {
             let mut sources = HashMap::new();
@@ -156,7 +133,7 @@ where
                 {
                     Ok(source) => source,
                     Err(error) => {
-                        Summary::invalid(summary, None, test_name, error);
+                        Summary::invalid(summary, None, test_path, error);
                         return None;
                     }
                 };
@@ -165,20 +142,69 @@ where
             sources.into_iter().collect()
         };
 
+        metadata.cases.retain(|case| {
+            let case_name = format!("{}::{}", test_path, case.name);
+            if case.ignore {
+                Summary::ignored(summary.clone(), case_name);
+                return false;
+            }
+
+            if !filters.check_case_path(&case_name) {
+                return false;
+            }
+            true
+        });
+
+        Some(Self {
+            path,
+            metadata,
+            sources,
+        })
+    }
+}
+
+impl Buildable for MatterLabsTest {
+    fn build(
+        &self,
+        mode: Mode,
+        compiler: Arc<dyn Compiler>,
+        summary: Arc<Mutex<Summary>>,
+        filters: &Filters,
+        debug_config: Option<compiler_llvm_context::DebugConfig>,
+    ) -> Option<Test> {
+        let test_path = self.path.to_string_lossy().to_string();
+        if !filters.check_mode(&mode) {
+            return None;
+        }
+
+        if let Some(filters) = self.metadata.modes.as_ref() {
+            if !mode.check_extended_filters(filters.as_slice()) {
+                return None;
+            }
+        }
+
+        if !mode.check_pragmas(&self.sources) {
+            return None;
+        }
+
+        let mut contracts = self.metadata.contracts.clone();
+        if contracts.is_empty() {
+            let contract_name = if compiler.has_many_contracts() {
+                format!("{}:{}", test_path, SIMPLE_TESTS_CONTRACT_NAME)
+            } else {
+                test_path.clone()
+            };
+            contracts.insert(SIMPLE_TESTS_INSTANCE.to_owned(), contract_name);
+        }
+
         let mut address_predictor = AddressPredictor::new();
 
-        let instances = metadata
-            .contracts
-            .keys()
-            .cloned()
-            .collect::<BTreeSet<String>>();
-
-        let mut libraries_instances = Vec::new();
+        let mut libraries_instances_names = Vec::new();
         let mut libraries_for_compiler = BTreeMap::new();
         let mut libraries_instances_addresses = HashMap::new();
 
-        for (file, metadata_file_libraries) in metadata.libraries.iter() {
-            let mut file_path = path.clone();
+        for (file, metadata_file_libraries) in self.metadata.libraries.iter() {
+            let mut file_path = self.path.clone();
             file_path.pop();
             file_path.push(file);
             let mut file_libraries = BTreeMap::new();
@@ -192,114 +218,71 @@ where
                     format!("0x{}", crate::utils::address_as_string(&address)),
                 );
                 libraries_instances_addresses.insert(instance.to_owned(), address);
-                libraries_instances.push(instance.to_owned());
+                libraries_instances_names.push(instance.to_owned());
             }
             libraries_for_compiler.insert(file_path.to_string_lossy().to_string(), file_libraries);
         }
 
-        let mut cases = Vec::with_capacity(metadata.cases.len());
-        for mut case in metadata.cases.into_iter() {
-            let case_name = format!("{}::{}", test_name, case.name);
-            if case.ignore {
-                Summary::ignored(summary.clone(), case_name);
-                continue;
-            }
-
-            if !filters.check_case_path(&case_name) {
-                continue;
-            }
-
-            match case.normalize_deployer_calls(&instances, &libraries_instances) {
-                Ok(_) => {}
-                Err(error) => {
-                    Summary::invalid(summary, None, test_name, error);
-                    return None;
-                }
-            }
-            case.normalize_expected();
-            cases.push(case);
-        }
-
-        metadata.cases = cases;
-
-        Some(Self {
-            test_name,
-            compiler: C::new(
-                sources,
+        let compiler_output = match compiler
+            .compile(
+                test_path.clone(),
+                self.sources.clone(),
                 libraries_for_compiler,
+                &mode,
+                self.metadata.system_mode,
+                false,
                 debug_config,
-                metadata.system_mode,
-            ),
-            address_predictor,
-            metadata,
-            libraries_instances: libraries_instances_addresses,
-        })
-    }
-}
-
-impl<C> Buildable for MatterLabsTest<C>
-where
-    C: Compiler,
-{
-    fn build(&self, mode: Mode, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Test> {
-        if !filters.check_mode(&mode) {
-            return None;
-        }
-
-        if let Some(filters) = self.metadata.modes.as_ref() {
-            if !Filters::check_mode_filters(&mode, filters.as_slice()) {
-                return None;
-            }
-        }
-
-        if !self.compiler.check_pragmas(&mode) {
-            return None;
-        }
-
-        let mut instances = HashMap::new();
-
-        let builds = match self
-            .compiler
-            .compile(&mode, false)
+            )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
-            .and_then(|builds| {
-                for (instance, path) in self.metadata.contracts.iter() {
-                    let build = builds.get(path).ok_or_else(|| {
-                        anyhow::anyhow!("{} not found in the compiler build artifacts", path)
-                    })?;
-                    let hash = build.bytecode_hash;
-                    let address = self.libraries_instances.get(instance).cloned();
-                    instances.insert(instance.clone(), Instance::new(path.clone(), address, hash));
-                }
-                Ok(builds
-                    .into_values()
-                    .map(|build| (build.bytecode_hash, build.assembly))
-                    .collect())
-            }) {
-            Ok(builds) => builds,
+        {
+            Ok(output) => output,
             Err(error) => {
-                Summary::invalid(summary, Some(mode.clone()), self.test_name.clone(), error);
+                Summary::invalid(summary, Some(mode), test_path, error);
                 return None;
             }
         };
 
+        let instances_names = contracts.keys().cloned().collect::<BTreeSet<String>>();
+        let mut instances = HashMap::new();
+
+        for (instance, path) in contracts.into_iter() {
+            let build = match compiler_output.builds.get(&path).ok_or_else(|| {
+                anyhow::anyhow!("{} not found in the compiler build artifacts", path)
+            }) {
+                Ok(build) => build,
+                Err(error) => {
+                    Summary::invalid(summary, Some(mode), test_path, error);
+                    return None;
+                }
+            };
+            let hash = build.bytecode_hash;
+            let address = libraries_instances_addresses.get(&instance).cloned();
+            instances.insert(instance, Instance::new(path, address, hash));
+        }
+
         let mut cases = Vec::with_capacity(self.metadata.cases.len());
         for case in self.metadata.cases.iter() {
-            let mut address_predictor = self.address_predictor.clone();
-
             if let Some(filters) = case.modes.as_ref() {
-                if !Filters::check_mode_filters(&mode, filters.as_slice()) {
+                if !mode.check_extended_filters(filters.as_slice()) {
                     continue;
                 }
             }
 
+            let mut case = case.clone();
+            match case.normalize_deployer_calls(&instances_names, &libraries_instances_names) {
+                Ok(_) => {}
+                Err(error) => {
+                    Summary::invalid(summary, Some(mode), test_path, error);
+                    return None;
+                }
+            }
+            case.normalize_expected();
+
+            let mut address_predictor = address_predictor.clone();
+
             let instances_addresses = match case
                 .instances_addresses(
-                    &self
-                        .libraries_instances
-                        .keys()
-                        .cloned()
-                        .collect::<BTreeSet<String>>(),
+                    &libraries_instances_names.clone().into_iter().collect(),
                     &mut address_predictor,
                     &mode,
                 )
@@ -312,23 +295,29 @@ where
                 }) {
                 Ok(addresses) => addresses,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode.clone()), self.test_name.clone(), error);
+                    Summary::invalid(summary, Some(mode), test_path, error);
                     return None;
                 }
             };
             let mut instances = instances.clone();
             for (instance, address) in instances_addresses {
-                if let Some(instance) = instances.get_mut(&instance) {
-                    instance.address = Some(address);
-                }
+                let instance = instances
+                    .get_mut(&instance)
+                    .expect("Redundant instance from the instances_addresses case method");
+                instance.address = Some(address);
             }
 
-            let case = match Case::from_matter_labs(case, &mode, &instances, &self.compiler)
-                .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case.name, error))
+            let case = match Case::try_from_matter_labs(
+                &case,
+                &mode,
+                &instances,
+                &compiler_output.method_identifiers,
+            )
+            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case.name, error))
             {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode.clone()), self.test_name.clone(), error);
+                    Summary::invalid(summary, Some(mode), test_path, error);
                     return None;
                 }
             };
@@ -336,8 +325,14 @@ where
             cases.push(case);
         }
 
+        let builds = compiler_output
+            .builds
+            .into_values()
+            .map(|build| (build.bytecode_hash, build.assembly))
+            .collect();
+
         Some(Test::new(
-            self.test_name.clone(),
+            test_path,
             self.metadata.group.clone(),
             mode,
             builds,

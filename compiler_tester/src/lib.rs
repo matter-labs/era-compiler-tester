@@ -54,7 +54,7 @@ pub const TRACE_DIRECTORY: &str = "./trace/";
 ///
 /// The compiler test generic representation.
 ///
-type Test = (Arc<dyn Buildable>, Mode);
+type Test = (Arc<dyn Buildable>, Arc<dyn Compiler>, Mode);
 
 ///
 /// The compiler-tester.
@@ -156,50 +156,71 @@ impl CompilerTester {
     where
         D: Deployer,
     {
+        let solidity_compiler = Arc::new(SolidityCompiler::new());
+        let vyper_compiler = Arc::new(VyperCompiler::new());
+        let yul_compiler = Arc::new(YulCompiler::new());
+        let llvm_compiler = Arc::new(LLVMCompiler::new());
+        let zkevm_compiler = Arc::new(zkEVMCompiler::new());
+
         let mut tests = Vec::new();
-        tests.extend(self.directory::<MatterLabsDirectory, SolidityCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::SOLIDITY_SIMPLE,
             compiler_common::EXTENSION_SOLIDITY,
+            solidity_compiler.clone(),
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory, VyperCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::VYPER_SIMPLE,
             compiler_common::EXTENSION_VYPER,
+            vyper_compiler.clone(),
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory, YulCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::YUL_SIMPLE,
             compiler_common::EXTENSION_YUL,
+            yul_compiler,
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory, LLVMCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::LLVM_SIMPLE,
             compiler_common::EXTENSION_LLVM_SOURCE,
+            llvm_compiler,
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory, zkEVMCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::ZKEVM_SIMPLE,
             compiler_common::EXTENSION_ZKEVM_ASSEMBLY,
+            zkevm_compiler,
         )?);
 
-        tests.extend(self.directory::<MatterLabsDirectory, SolidityCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::SOLIDITY_COMPLEX,
             compiler_common::EXTENSION_JSON,
+            solidity_compiler.clone(),
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory, VyperCompiler>(
+        tests.extend(self.directory::<MatterLabsDirectory>(
             Self::VYPER_COMPLEX,
             compiler_common::EXTENSION_JSON,
+            vyper_compiler.clone(),
         )?);
 
-        tests.extend(self.directory::<EthereumDirectory, SolidityCompiler>(
+        tests.extend(self.directory::<EthereumDirectory>(
             Self::SOLIDITY_ETHEREUM,
             compiler_common::EXTENSION_SOLIDITY,
+            solidity_compiler,
         )?);
-        tests.extend(self.directory::<EthereumDirectory, VyperCompiler>(
+        tests.extend(self.directory::<EthereumDirectory>(
             Self::VYPER_ETHEREUM,
             compiler_common::EXTENSION_VYPER,
+            vyper_compiler,
         )?);
 
         let _: Vec<()> = tests
             .into_par_iter()
-            .map(|(test, mode)| {
-                if let Some(test) = test.build(mode, self.summary.clone(), &self.filters) {
+            .map(|(test, compiler, mode)| {
+                if let Some(test) = test.build(
+                    mode,
+                    compiler,
+                    self.summary.clone(),
+                    &self.filters,
+                    self.debug_config.clone(),
+                ) {
                     test.run::<D, M>(self.summary.clone(), self.initial_vm.clone());
                 }
             })
@@ -209,18 +230,21 @@ impl CompilerTester {
     }
 
     ///
-    /// Returns all test from the specified directory.
+    /// Returns all test from the specified directory with the specified compiler.
     ///
-    fn directory<T, C>(&self, path: &str, extension: &'static str) -> anyhow::Result<Vec<Test>>
+    fn directory<T>(
+        &self,
+        path: &str,
+        extension: &'static str,
+        compiler: Arc<dyn Compiler>,
+    ) -> anyhow::Result<Vec<Test>>
     where
-        C: Compiler,
-        T: TestsDirectory<C>,
+        T: TestsDirectory,
     {
         Ok(T::all_tests(
             Path::new(path),
             extension,
             self.summary.clone(),
-            self.debug_config.clone(),
             &self.filters,
         )
         .map_err(|error| {
@@ -228,7 +252,8 @@ impl CompilerTester {
         })?
         .into_iter()
         .map(|test| Arc::new(test) as Arc<dyn Buildable>)
-        .cartesian_product(C::modes())
+        .cartesian_product(compiler.modes())
+        .map(|(test, mode)| (test, compiler.clone() as Arc<dyn Compiler>, mode))
         .collect())
     }
 }

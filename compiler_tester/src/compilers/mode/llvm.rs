@@ -16,9 +16,6 @@ pub struct Mode {
 }
 
 impl Mode {
-    /// The language name.
-    pub const LANGUAGE: &'static str = "LLVM";
-
     ///
     /// A shortcut constructor.
     ///
@@ -49,6 +46,6 @@ impl Mode {
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:>8} {}", Self::LANGUAGE, self.llvm_optimizer_settings,)
+        write!(f, "{}", self.llvm_optimizer_settings,)
     }
 }

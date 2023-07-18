@@ -13,10 +13,10 @@ use colored::Colorize;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::compilers::build::Build as zkEVMContractBuild;
 use crate::compilers::mode::solidity::Mode as SolidityMode;
 use crate::compilers::mode::yul::Mode as YulMode;
 use crate::compilers::mode::Mode;
+use crate::compilers::output::build::Build as zkEVMContractBuild;
 use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
@@ -205,8 +205,12 @@ impl SystemContracts {
             yul_file_paths.push(file_path.to_owned());
         }
         let yul_mode = YulMode::new(compiler_llvm_context::OptimizerSettings::cycles()).into();
-        let mut builds =
-            Self::compile::<YulCompiler>(&yul_mode, yul_file_paths, debug_config.clone())?;
+        let mut builds = Self::compile(
+            YulCompiler::new(),
+            &yul_mode,
+            yul_file_paths,
+            debug_config.clone(),
+        )?;
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
         for (_, path) in solidity_system_contracts.iter() {
@@ -223,10 +227,12 @@ impl SystemContracts {
             solc_version,
             compiler_solidity::SolcPipeline::Yul,
             true,
+            true,
             compiler_llvm_context::OptimizerSettings::cycles(),
         )
         .into();
-        builds.extend(Self::compile::<SolidityCompiler>(
+        builds.extend(Self::compile(
+            SolidityCompiler::new(),
             &solidity_mode,
             solidity_file_paths,
             debug_config,
@@ -270,7 +276,8 @@ impl SystemContracts {
         let system_contracts: SystemContracts = bincode::deserialize_from(system_contracts_file)
             .map_err(|error| anyhow::anyhow!("System contract deserialization: {}", error))?;
         println!(
-            "System contracts build successfully loaded from `{}`",
+            "      {} the System Contracts from `{}`",
+            "Loaded".bright_green().bold(),
             system_contracts_path.to_string_lossy()
         );
         Ok(system_contracts)
@@ -279,21 +286,23 @@ impl SystemContracts {
     ///
     /// Save the system contracts build to the given file.
     ///
-    fn save(&self, system_contracts_save_path: PathBuf) -> anyhow::Result<()> {
-        let system_contracts_file = File::create(system_contracts_save_path.as_path())?;
+    fn save(&self, system_contracts_path: PathBuf) -> anyhow::Result<()> {
+        let system_contracts_file = File::create(system_contracts_path.as_path())?;
         bincode::serialize_into(system_contracts_file, self)
             .map_err(|error| anyhow::anyhow!("System contracts serialization: {}", error,))?;
         println!(
-            "System contracts build successfully saved to `{}`",
-            system_contracts_save_path.to_string_lossy(),
+            "       {} the System Contracts to `{}`",
+            "Saved".bright_green().bold(),
+            system_contracts_path.to_string_lossy()
         );
         Ok(())
     }
 
     ///
-    /// Compiles the system contracts using the specified compiler.
+    /// Compiles the system contracts with a compiler.
     ///
     fn compile<C>(
+        compiler: C,
         mode: &Mode,
         paths: Vec<String>,
         debug_config: Option<compiler_llvm_context::DebugConfig>,
@@ -303,7 +312,7 @@ impl SystemContracts {
     {
         let mut sources = Vec::new();
         for path in paths.into_iter() {
-            let file_path = if C::has_many_contracts() {
+            let file_path = if compiler.has_many_contracts() {
                 path.split(':').next().expect("Always valid").to_string()
             } else {
                 path
@@ -318,9 +327,17 @@ impl SystemContracts {
             })?;
             sources.push((file_path.to_string(), source));
         }
-        let compiler = C::new(sources, BTreeMap::new(), debug_config, true);
         compiler
-            .compile(mode, true)
+            .compile(
+                "system-contracts".to_owned(),
+                sources,
+                BTreeMap::new(),
+                mode,
+                true,
+                true,
+                debug_config,
+            )
+            .map(|output| output.builds)
             .map_err(|error| anyhow::anyhow!("Failed to compile system contracts: {}", error))
     }
 }

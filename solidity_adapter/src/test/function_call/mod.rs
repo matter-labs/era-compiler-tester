@@ -18,7 +18,7 @@ use self::gas_option::GasOption;
 ///
 /// The function call.
 ///
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FunctionCall {
     /// The library.
     Library {

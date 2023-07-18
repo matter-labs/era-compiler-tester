@@ -22,16 +22,20 @@ pub trait Buildable: Send + Sync + 'static {
     ///
     /// Builds the test.
     ///
-    fn build(&self, mode: Mode, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Test>;
+    fn build(
+        &self,
+        mode: Mode,
+        compiler: Arc<dyn Compiler>,
+        summary: Arc<Mutex<Summary>>,
+        filters: &Filters,
+        debug_config: Option<compiler_llvm_context::DebugConfig>,
+    ) -> Option<Test>;
 }
 
 ///
 /// The compiler tests directory trait.
 ///
-pub trait TestsDirectory<C>
-where
-    C: Compiler,
-{
+pub trait TestsDirectory {
     ///
     /// The test type.
     ///
@@ -44,7 +48,6 @@ where
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
         filters: &Filters,
     ) -> anyhow::Result<Vec<Self::Test>>;
 
@@ -56,7 +59,6 @@ where
         test_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
         filters: &Filters,
     ) -> anyhow::Result<Option<Self::Test>>;
 }

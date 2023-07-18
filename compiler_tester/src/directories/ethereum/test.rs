@@ -20,65 +20,76 @@ use crate::test::Test;
 ///
 /// The Ethereum compiler test.
 ///
-pub struct EthereumTest<C>
-where
-    C: Compiler,
-{
-    /// The test name.
-    test_name: String,
+pub struct EthereumTest {
     /// The index test entity.
     index_entity: solidity_adapter::EnabledTest,
-    /// The test compiler.
-    compiler: C,
-    /// The test function calls.
-    calls: Vec<solidity_adapter::FunctionCall>,
-    /// The test params.
-    params: solidity_adapter::Params,
-    /// The main contract address.
-    contract_address: web3::types::Address,
-    /// The libraries addresses.
-    libraries_addresses: HashMap<String, web3::types::Address>,
-    /// The last source name.
-    last_source: String,
+    /// The test data.
+    test: solidity_adapter::Test,
 }
 
-impl<C> EthereumTest<C>
-where
-    C: Compiler,
-{
+impl EthereumTest {
     ///
     /// Try to create new test.
     ///
     pub fn new(
         index_entity: solidity_adapter::EnabledTest,
         summary: Arc<Mutex<Summary>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
         filters: &Filters,
     ) -> Option<Self> {
-        let test_name = index_entity.path.to_string_lossy().to_string();
+        let test_path = index_entity.path.to_string_lossy().to_string();
 
-        if !filters.check_group(&index_entity.group) {
+        if !filters.check_case_path(&test_path) {
             return None;
         }
 
-        if !filters.check_case_path(&test_name) {
+        if !filters.check_group(&index_entity.group) {
             return None;
         }
 
         let test = match solidity_adapter::Test::try_from(index_entity.path.as_path()) {
             Ok(test) => test,
             Err(error) => {
-                Summary::invalid(summary, None, test_name, error);
+                Summary::invalid(summary, None, test_path, error);
                 return None;
             }
         };
 
-        let solidity_adapter::Test {
-            sources,
-            mut calls,
-            params,
-        } = test;
+        Some(Self { index_entity, test })
+    }
+}
 
+impl Buildable for EthereumTest {
+    fn build(
+        &self,
+        mode: Mode,
+        compiler: Arc<dyn Compiler>,
+        summary: Arc<Mutex<Summary>>,
+        filters: &Filters,
+        debug_config: Option<compiler_llvm_context::DebugConfig>,
+    ) -> Option<Test> {
+        let test_path = self.index_entity.path.to_string_lossy().to_string();
+
+        if !filters.check_mode(&mode) {
+            return None;
+        }
+
+        if let Some(filters) = self.index_entity.modes.as_ref() {
+            if !mode.check_extended_filters(filters.as_slice()) {
+                return None;
+            }
+        }
+
+        if let Some(versions) = self.index_entity.version.as_ref() {
+            if !mode.check_version(versions) {
+                return None;
+            }
+        }
+
+        if !mode.check_ethereum_tests_params(&self.test.params) {
+            return None;
+        }
+
+        let mut calls = self.test.calls.clone();
         if !calls
             .iter()
             .any(|call| matches!(call, solidity_adapter::FunctionCall::Constructor { .. }))
@@ -96,13 +107,13 @@ where
             calls.insert(constructor_insert_index, constructor);
         }
 
-        let last_source = match sources.last() {
+        let last_source = match self.test.sources.last() {
             Some(last_source) => last_source.0.clone(),
             None => {
                 Summary::invalid(
                     summary,
-                    None,
-                    test_name,
+                    Some(mode),
+                    test_path,
                     anyhow::anyhow!("Sources is empty"),
                 );
                 return None;
@@ -123,8 +134,8 @@ where
                     if contract_address.is_some() {
                         Summary::invalid(
                             summary,
-                            None,
-                            test_name,
+                            Some(mode),
+                            test_path,
                             anyhow::anyhow!("Two constructors in test"),
                         );
                         return None;
@@ -148,8 +159,8 @@ where
                     if !expected.eq(&address) {
                         Summary::invalid(
                             summary,
-                            None,
-                            test_name,
+                            Some(mode),
+                            test_path,
                             anyhow::anyhow!(
                                 "Expected address: {}, but found {}",
                                 expected,
@@ -166,118 +177,87 @@ where
 
         let contract_address = contract_address.expect("Always valid");
 
-        Some(Self {
-            test_name,
-            index_entity,
-            compiler: C::new(sources, libraries_for_compiler, debug_config, false),
-            calls,
-            params,
-            contract_address,
-            libraries_addresses,
-            last_source,
-        })
-    }
-}
-
-impl<C> Buildable for EthereumTest<C>
-where
-    C: Compiler,
-{
-    fn build(&self, mode: Mode, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Test> {
-        let test_name = self.index_entity.path.to_string_lossy().to_string();
-
-        if !filters.check_mode(&mode) {
-            return None;
-        }
-
-        if let Some(filters) = self.index_entity.modes.as_ref() {
-            if !Filters::check_mode_filters(&mode, filters.as_slice()) {
-                return None;
-            }
-        }
-
-        if let Some(versions) = self.index_entity.version.as_ref() {
-            if !mode.check_version(versions) {
-                return None;
-            }
-        }
-
-        if !C::check_ethereum_tests_params(&mode, &self.params) {
-            return None;
-        }
-
-        let main_contract = match self
-            .compiler
-            .last_contract(&mode, false)
-            .map_err(|error| anyhow::anyhow!("Failed to get main contract: {}", error))
-        {
-            Ok(main_contract) => main_contract,
-            Err(error) => {
-                Summary::invalid(summary, Some(mode.clone()), test_name, error);
-                return None;
-            }
-        };
-
-        let mut main_contract_instance = None;
-        let mut libraries_instances = HashMap::with_capacity(self.libraries_addresses.len());
-
-        let builds = match self
-            .compiler
-            .compile(&mode, false)
+        let compiler_output = match compiler
+            .compile(
+                test_path.clone(),
+                self.test.sources.clone(),
+                libraries_for_compiler,
+                &mode,
+                false,
+                false,
+                debug_config,
+            )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
-            .and_then(|builds| {
-                let main_contract_build = builds.get(main_contract.as_str()).ok_or_else(|| {
-                    anyhow::anyhow!("Main contract not found in the compiler build artifacts")
-                })?;
-                main_contract_instance = Some(Instance::new(
-                    main_contract.clone(),
-                    Some(self.contract_address),
-                    main_contract_build.bytecode_hash,
-                ));
-
-                for (library_name, library_address) in self.libraries_addresses.iter() {
-                    let build = builds.get(library_name).ok_or_else(|| {
-                        anyhow::anyhow!(
-                            "Library {} not found in the compiler build artifacts",
-                            library_name
-                        )
-                    })?;
-                    libraries_instances.insert(
-                        library_name.clone(),
-                        Instance::new(
-                            library_name.clone(),
-                            Some(*library_address),
-                            build.bytecode_hash,
-                        ),
-                    );
-                }
-                Ok(builds
-                    .into_values()
-                    .map(|build| (build.bytecode_hash, build.assembly))
-                    .collect())
-            }) {
-            Ok(builds) => builds,
+        {
+            Ok(output) => output,
             Err(error) => {
-                Summary::invalid(summary, Some(mode.clone()), test_name, error);
+                Summary::invalid(summary, Some(mode), test_path, error);
                 return None;
             }
         };
 
-        let case = match Case::from_ethereum::<C>(
-            &self.calls,
-            &main_contract_instance.expect("Always valid"),
+        let main_contract = compiler_output.last_contract;
+
+        let main_contract_build = match compiler_output
+            .builds
+            .get(main_contract.as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!("Main contract not found in the compiler build artifacts")
+            }) {
+            Ok(build) => build,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), test_path, error);
+                return None;
+            }
+        };
+        let main_contract_instance = Instance::new(
+            main_contract,
+            Some(contract_address),
+            main_contract_build.bytecode_hash,
+        );
+
+        let mut libraries_instances = HashMap::with_capacity(libraries_addresses.len());
+
+        for (library_name, library_address) in libraries_addresses {
+            let build = match compiler_output.builds.get(&library_name).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Library {} not found in the compiler build artifacts",
+                    library_name
+                )
+            }) {
+                Ok(build) => build,
+                Err(error) => {
+                    Summary::invalid(summary, Some(mode), test_path, error);
+                    return None;
+                }
+            };
+            libraries_instances.insert(
+                library_name.clone(),
+                Instance::new(library_name, Some(library_address), build.bytecode_hash),
+            );
+        }
+
+        let case = match Case::try_from_ethereum(
+            &calls,
+            &main_contract_instance,
             &libraries_instances,
-            &self.last_source,
+            &last_source,
         ) {
             Ok(case) => case,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.test_name.clone(), error);
+                Summary::invalid(summary, Some(mode), test_path, error);
                 return None;
             }
         };
 
+        let builds = compiler_output
+            .builds
+            .into_values()
+            .map(|build| (build.bytecode_hash, build.assembly))
+            .collect();
+
         Some(Test::new(
-            test_name,
+            test_path,
             self.index_entity.group.clone(),
             mode,
             builds,

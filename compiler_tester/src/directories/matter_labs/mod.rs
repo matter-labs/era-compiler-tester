@@ -9,7 +9,6 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::compilers::Compiler;
 use crate::filters::Filters;
 use crate::summary::Summary;
 
@@ -20,19 +19,15 @@ use self::test::MatterLabsTest;
 ///
 /// The Matter Labs compiler tests directory.
 ///
-pub struct MatterLabsDirectory {}
+pub struct MatterLabsDirectory;
 
-impl<C> TestsDirectory<C> for MatterLabsDirectory
-where
-    C: Compiler,
-{
-    type Test = MatterLabsTest<C>;
+impl TestsDirectory for MatterLabsDirectory {
+    type Test = MatterLabsTest;
 
     fn all_tests(
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
         filters: &Filters,
     ) -> anyhow::Result<Vec<Self::Test>> {
         let mut tests = Vec::new();
@@ -49,13 +44,7 @@ where
             })?;
 
             if entry_type.is_dir() {
-                tests.extend(Self::all_tests(
-                    &path,
-                    extension,
-                    summary.clone(),
-                    debug_config.clone(),
-                    filters,
-                )?);
+                tests.extend(Self::all_tests(&path, extension, summary.clone(), filters)?);
                 continue;
             } else if !entry_type.is_file() {
                 anyhow::bail!("Invalid file type: {}", path.to_string_lossy());
@@ -72,9 +61,7 @@ where
                 continue;
             }
 
-            if let Some(test) =
-                MatterLabsTest::new(path, summary.clone(), debug_config.clone(), filters)
-            {
+            if let Some(test) = MatterLabsTest::new(path, summary.clone(), filters) {
                 tests.push(test);
             }
         }
@@ -87,7 +74,6 @@ where
         test_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
         filters: &Filters,
     ) -> anyhow::Result<Option<Self::Test>> {
         let file_extension = test_path.extension().ok_or_else(|| {
@@ -103,6 +89,6 @@ where
         let mut path = directory_path.to_path_buf();
         path.push(test_path);
 
-        Ok(MatterLabsTest::new(path, summary, debug_config, filters))
+        Ok(MatterLabsTest::new(path, summary, filters))
     }
 }

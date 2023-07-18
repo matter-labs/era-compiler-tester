@@ -100,7 +100,15 @@ impl Deploy {
                     return;
                 }
             };
-            Summary::passed_deploy(summary, mode, name, test_group, build_size, result.cycles);
+            Summary::passed_deploy(
+                summary,
+                mode,
+                name,
+                test_group,
+                build_size,
+                result.cycles,
+                result.ergs,
+            );
         } else {
             Summary::failed(
                 summary,

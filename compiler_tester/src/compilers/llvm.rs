@@ -5,20 +5,18 @@
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
-use super::build::Build as zkEVMContractBuild;
+use sha3::Digest;
+
 use super::mode::llvm::Mode as LLVMMode;
 use super::mode::Mode;
+use super::output::build::Build as zkEVMContractBuild;
+use super::output::Output;
 use super::Compiler;
 
 ///
 /// The LLVM compiler.
 ///
-pub struct LLVMCompiler {
-    /// The name-to-code source files mapping.
-    sources: Vec<(String, String)>,
-    /// The compiler debug config.
-    debug_config: Option<compiler_llvm_context::DebugConfig>,
-}
+pub struct LLVMCompiler;
 
 lazy_static::lazy_static! {
     ///
@@ -34,17 +32,21 @@ lazy_static::lazy_static! {
 
 impl LLVMCompiler {
     ///
+    /// A shortcut constructor.
+    ///
+    pub fn new() -> Self {
+        Self
+    }
+
+    ///
     /// Compiles the source.
     ///
     fn compile_source(
-        &self,
         source_code: &str,
         name: &str,
         mode: &LLVMMode,
+        debug_config: Option<compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<zkEVMContractBuild> {
-        let target_machine =
-            compiler_llvm_context::TargetMachine::new(&mode.llvm_optimizer_settings)?;
-
         let llvm = inkwell::context::Context::create();
         let memory_buffer = inkwell::memory_buffer::MemoryBuffer::create_from_memory_range_copy(
             source_code.as_bytes(),
@@ -53,100 +55,60 @@ impl LLVMCompiler {
         let module = llvm
             .create_module_from_ir(memory_buffer)
             .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+        let optimizer = compiler_llvm_context::Optimizer::new(mode.llvm_optimizer_settings.clone());
+        let source_hash = sha3::Keccak256::digest(source_code.as_bytes()).into();
 
-        if let Some(ref debug_config) = self.debug_config {
-            debug_config.dump_llvm_ir_unoptimized(name, &module)?;
-        }
-        module
-            .verify()
-            .map_err(|error| anyhow::anyhow!("Unoptimized LLVM IR verification: {}", error))?;
-
-        let optimizer = compiler_llvm_context::Optimizer::new(
-            target_machine,
-            mode.llvm_optimizer_settings.clone(),
+        let context = compiler_llvm_context::Context::<compiler_llvm_context::DummyDependency>::new(
+            &llvm,
+            module,
+            optimizer,
+            None,
+            true,
+            debug_config,
         );
-        optimizer
-            .run(&module)
-            .map_err(|error| anyhow::anyhow!(error.to_string()))?;
-        if let Some(ref debug_config) = self.debug_config {
-            debug_config.dump_llvm_ir_optimized(name, &module)?;
-        }
-        module
-            .verify()
-            .map_err(|error| anyhow::anyhow!("Optimized LLVM IR verification: {}", error))?;
-
-        let assembly_text = match optimizer.target_machine().write_to_memory_buffer(&module) {
-            Ok(assembly) => String::from_utf8_lossy(assembly.as_slice()).to_string(),
-            Err(error) => {
-                anyhow::bail!("LLVM module compiling: {}", error);
-            }
-        };
-
-        if let Some(ref debug_config) = self.debug_config {
-            debug_config.dump_assembly(name, assembly_text.as_str())?;
-        }
-
-        let assembly = zkevm_assembly::Assembly::try_from(assembly_text)
-            .map_err(|error| anyhow::anyhow!(error))?;
+        let build = context.build(name, Some(source_hash))?;
+        let assembly =
+            zkevm_assembly::Assembly::from_string(build.assembly_text, build.metadata_hash)?;
 
         zkEVMContractBuild::new(assembly)
     }
 }
 
 impl Compiler for LLVMCompiler {
-    fn new(
-        sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
-        _is_system_mode: bool,
-    ) -> Self {
-        Self {
-            sources,
-            debug_config,
-        }
-    }
-
-    fn modes() -> Vec<Mode> {
+    fn modes(&self) -> Vec<Mode> {
         MODES.clone()
     }
 
     fn compile(
         &self,
+        _test_path: String,
+        sources: Vec<(String, String)>,
+        _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
-        _is_system_contract_mode: bool,
-    ) -> anyhow::Result<HashMap<String, zkEVMContractBuild>> {
+        _is_system_mode: bool,
+        _is_system_contracts_mode: bool,
+        debug_config: Option<compiler_llvm_context::DebugConfig>,
+    ) -> anyhow::Result<Output> {
         let mode = LLVMMode::unwrap(mode);
-        self.sources
+
+        let builds = sources
             .iter()
             .map(|(path, source)| {
-                self.compile_source(source, path, mode)
+                Self::compile_source(source, path, mode, debug_config.clone())
                     .map(|build| (path.to_owned(), build))
             })
-            .collect()
-    }
+            .collect::<anyhow::Result<HashMap<String, zkEVMContractBuild>>>()?;
 
-    fn last_contract(
-        &self,
-        _mode: &Mode,
-        _is_system_contract_mode: bool,
-    ) -> anyhow::Result<String> {
-        Ok(self
-            .sources
+        let last_contract = sources
             .last()
             .ok_or_else(|| anyhow::anyhow!("Sources is empty"))?
             .0
-            .clone())
+            .clone();
+
+        Ok(Output::new(builds, None, last_contract))
     }
 
-    fn has_many_contracts() -> bool {
+    fn has_many_contracts(&self) -> bool {
         false
-    }
-
-    fn check_pragmas(&self, _mode: &Mode) -> bool {
-        true
-    }
-
-    fn check_ethereum_tests_params(_mode: &Mode, _params: &solidity_adapter::Params) -> bool {
-        true
     }
 }

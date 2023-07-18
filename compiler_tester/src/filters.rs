@@ -56,11 +56,7 @@ impl Filters {
     /// Check if the mode is compatible with the filters.
     ///
     pub fn check_mode(&self, mode: &Mode) -> bool {
-        self.mode_filters.is_empty()
-            || self
-                .mode_filters
-                .iter()
-                .any(|filter| Self::normalize_mode(mode, filter).contains(filter))
+        mode.check_filters(self.mode_filters.as_slice())
     }
 
     ///
@@ -75,71 +71,5 @@ impl Filters {
         } else {
             false
         }
-    }
-
-    ///
-    /// Checks if the mode is compatible with the specified filters.
-    ///
-    pub fn check_mode_filters(mode: &Mode, filters: &[String]) -> bool {
-        if filters.is_empty() {
-            return true;
-        }
-        for filter in filters.iter() {
-            let mut split = filter.split_whitespace();
-            let mode_filter = split.next().unwrap_or_default();
-            let normalized_mode = Self::normalize_mode(mode, mode_filter);
-            if !normalized_mode.contains(mode_filter) {
-                continue;
-            }
-
-            let version = match split.next() {
-                Some(version) => version,
-                None => return true,
-            };
-            if let Ok(version_req) = semver::VersionReq::parse(version) {
-                if mode.check_version(&version_req) {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
-    ///
-    /// Normalizes the mode according to the filter.
-    ///
-    fn normalize_mode(mode: &Mode, filter: &str) -> String {
-        let mut current = mode.to_string();
-        if filter.contains("Y*") {
-            current = regex::Regex::new("Y[-+]")
-                .expect("Always valid")
-                .replace_all(current.as_str(), "Y*")
-                .to_string();
-        }
-        if filter.contains("E*") {
-            current = regex::Regex::new("E[-+]")
-                .expect("Always valid")
-                .replace_all(current.as_str(), "E*")
-                .to_string();
-        }
-        if filter.contains("M^") {
-            current = regex::Regex::new("M[3z]")
-                .expect("Always valid")
-                .replace_all(current.as_str(), "M^")
-                .to_string();
-        }
-        if filter.contains("M*") {
-            current = regex::Regex::new("M[0123sz]")
-                .expect("Always valid")
-                .replace_all(current.as_str(), "M*")
-                .to_string();
-        }
-        if filter.contains("B*") {
-            current = regex::Regex::new("B[0123]")
-                .expect("Always valid")
-                .replace_all(current.as_str(), "B*")
-                .to_string();
-        }
-        current
     }
 }

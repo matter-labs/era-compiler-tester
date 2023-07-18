@@ -11,13 +11,13 @@ pub mod storage;
 pub mod storage_empty;
 pub mod value;
 
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::Compiler;
 use crate::deployers::Deployer;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
@@ -51,15 +51,12 @@ impl Input {
     ///
     /// Try convert from Matter Labs compiler test metadata input.
     ///
-    pub fn try_from_matter_labs<C>(
+    pub fn try_from_matter_labs(
         input: &MatterLabsTestInput,
         mode: &Mode,
         instances: &HashMap<String, Instance>,
-        compiler: &C,
-    ) -> anyhow::Result<Self>
-    where
-        C: Compiler,
-    {
+        method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
+    ) -> anyhow::Result<Self> {
         let caller = web3::types::Address::from_str(input.caller.as_str())
             .map_err(|error| anyhow::anyhow!("Invalid caller: {}", error))?;
 
@@ -130,9 +127,26 @@ impl Input {
                     )
                 })?;
                 let path = instance.path.as_str();
-                let selector = compiler
-                    .selector(mode, path, entry, false)
-                    .map_err(|error| anyhow::anyhow!("Failed to get selector: {}", error))?;
+                let selector = match method_identifiers {
+                    Some(method_identifiers) => method_identifiers
+                        .get(path)
+                        .ok_or_else(|| {
+                            anyhow::anyhow!("Contract {} not found in the method identifiers", path)
+                        })?
+                        .iter()
+                        .find_map(|(name, selector)| {
+                            if name.starts_with(entry) {
+                                Some(*selector)
+                            } else {
+                                None
+                            }
+                        })
+                        .ok_or_else(|| {
+                            anyhow::anyhow!("Selector of the method `{}` not found", entry)
+                        })?,
+                    None => u32::from_str_radix(entry, compiler_common::BASE_HEXADECIMAL)
+                        .map_err(|err| anyhow::anyhow!("Invalid entry value: {}", err))?,
+                };
 
                 calldata.add_selector(selector);
 

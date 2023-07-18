@@ -40,6 +40,27 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         inkwell::support::get_commit_id().to_string(),
     );
 
+    inkwell::support::enable_llvm_pretty_stack_trace();
+    compiler_llvm_context::initialize_target();
+    compiler_tester::LLVMOptions::initialize(
+        arguments.llvm_verify_each,
+        arguments.llvm_debug_logging,
+    )?;
+    compiler_solidity::EXECUTABLE
+        .set(
+            arguments
+                .zksolc
+                .unwrap_or_else(|| PathBuf::from(compiler_solidity::DEFAULT_EXECUTABLE_NAME)),
+        )
+        .expect("Always valid");
+    compiler_vyper::EXECUTABLE
+        .set(
+            arguments
+                .zkvyper
+                .unwrap_or_else(|| PathBuf::from(compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+        )
+        .expect("Always valid");
+
     let debug_config = if arguments.debug {
         std::fs::create_dir_all(compiler_tester::DEBUG_DIRECTORY)?;
         Some(compiler_llvm_context::DebugConfig::new(PathBuf::from_str(
@@ -67,13 +88,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .expect("Thread pool configuration failure");
 
     let summary = compiler_tester::Summary::new(arguments.verbosity, arguments.quiet).wrap();
-
-    inkwell::support::enable_llvm_pretty_stack_trace();
-    compiler_llvm_context::initialize_target();
-    compiler_tester::LLVMOptions::initialize(
-        arguments.llvm_verify_each,
-        arguments.llvm_debug_logging,
-    )?;
 
     let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
     let system_contract_debug_config = if arguments.dump_system {
@@ -151,23 +165,24 @@ mod tests {
         let arguments = Arguments {
             verbosity: false,
             quiet: false,
+            debug: false,
             trace: 2,
-            modes: vec!["Y+M3I+B3 0.8.17".to_owned()],
-            paths: vec![
-                "tests/solidity/complex/solidity_by_example/simple/import/test.json".to_owned(),
-            ],
+            modes: vec!["Y+M3B3 0.8.20".to_owned()],
+            paths: vec!["tests/solidity/simple/default.sol".to_owned()],
             groups: vec![],
             benchmark: None,
             threads: Some(1),
-            llvm_options: None,
             dump_system: false,
-            debug_output_directory: None,
             disable_deployer: false,
             disable_value_simulator: false,
-            solc_bin_config_path: None,
-            vyper_bin_config_path: None,
+            zksolc: Some(PathBuf::from(compiler_solidity::DEFAULT_EXECUTABLE_NAME)),
+            zkvyper: Some(PathBuf::from(compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+            solc_bin_config_path: Some(PathBuf::from("configs/solc-bin-default.json")),
+            vyper_bin_config_path: Some(PathBuf::from("configs/vyper-bin-default.json")),
             load_system_contracts: None,
             save_system_contracts: None,
+            llvm_verify_each: false,
+            llvm_debug_logging: false,
         };
 
         main_inner(arguments).expect("Manual testing failed");

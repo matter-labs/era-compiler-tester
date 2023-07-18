@@ -8,7 +8,7 @@ use crate::test::function_call::parser::GasVariant;
 ///
 /// The gas option.
 ///
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GasOption {
     /// `irOptimized` in the metadata.
     IrOptimized(web3::types::U256),

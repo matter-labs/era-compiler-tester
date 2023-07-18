@@ -74,6 +74,18 @@ impl zkEVM {
             system_contracts.default_aa.assembly,
             system_contracts.default_aa.bytecode_hash,
         );
+        vm.add_known_contract(
+            zkevm_assembly::Assembly::from_string(
+                compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.to_owned(),
+                None,
+            )
+            .expect("Always valid"),
+            web3::types::U256::from_str_radix(
+                compiler_vyper::FORWARDER_CONTRACT_HASH.as_str(),
+                compiler_common::BASE_HEXADECIMAL,
+            )
+            .expect("Always valid"),
+        );
 
         for (address, build) in system_contracts.deployed_contracts {
             vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly));

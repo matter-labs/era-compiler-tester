@@ -82,15 +82,15 @@ impl Summary {
             benchmark_analyzer::BenchmarkGroup::default(),
         );
         for element in self.elements.iter() {
-            let (size, cycles, group) = match &element.outcome {
+            let (size, cycles, ergs, group) = match &element.outcome {
                 Outcome::Passed {
-                    variant: PassedVariant::Deploy { size, cycles },
+                    variant: PassedVariant::Deploy { size, cycles, ergs },
                     group,
-                } => (Some(*size), *cycles, group.clone()),
+                } => (Some(*size), *cycles, *ergs, group.clone()),
                 Outcome::Passed {
-                    variant: PassedVariant::Runtime { cycles },
+                    variant: PassedVariant::Runtime { cycles, ergs },
                     group,
-                } => (None, *cycles, group.clone()),
+                } => (None, *cycles, *ergs, group.clone()),
                 _ => continue,
             };
             let key = format!(
@@ -102,7 +102,7 @@ impl Summary {
                     .unwrap_or_default(),
                 element.name
             );
-            let benchmark_element = benchmark_analyzer::BenchmarkElement::new(size, cycles);
+            let benchmark_element = benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs);
             if let Some(group) = group {
                 benchmark
                     .groups
@@ -182,8 +182,9 @@ impl Summary {
         group: Option<String>,
         size: usize,
         cycles: usize,
+        ergs: u32,
     ) {
-        let passed_variant = PassedVariant::Deploy { size, cycles };
+        let passed_variant = PassedVariant::Deploy { size, cycles, ergs };
         Self::passed(summary, mode, name, group, passed_variant);
     }
 
@@ -196,8 +197,9 @@ impl Summary {
         name: String,
         group: Option<String>,
         cycles: usize,
+        ergs: u32,
     ) {
-        let passed_variant = PassedVariant::Runtime { cycles };
+        let passed_variant = PassedVariant::Runtime { cycles, ergs };
         Self::passed(summary, mode, name, group, passed_variant);
     }
 

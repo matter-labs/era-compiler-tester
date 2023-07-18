@@ -45,6 +45,14 @@ impl Group {
         let mut cycles_total_reference: u64 = 0;
         let mut cycles_total_candidate: u64 = 0;
 
+        let mut ergs_factors = Vec::with_capacity(elements_number);
+        let mut ergs_min = 1.0;
+        let mut ergs_max = 1.0;
+        let mut ergs_negatives = Vec::with_capacity(elements_number);
+        let mut ergs_positives = Vec::with_capacity(elements_number);
+        let mut ergs_total_reference: u64 = 0;
+        let mut ergs_total_candidate: u64 = 0;
+
         for (path, reference) in reference.elements.iter() {
             let candidate = match candidate.elements.get(path.as_str()) {
                 Some(candidate) => candidate,
@@ -67,6 +75,23 @@ impl Group {
                 cycles_max = cycles_factor;
             }
             cycles_factors.push(cycles_factor);
+
+            ergs_total_reference += reference.ergs as u64;
+            ergs_total_candidate += candidate.ergs as u64;
+            let ergs_factor = (candidate.ergs as f64) / (reference.ergs as f64);
+            if ergs_factor > 1.0 {
+                ergs_negatives.push((ergs_factor, path.as_str()));
+            }
+            if ergs_factor < 1.0 {
+                ergs_positives.push((ergs_factor, path.as_str()));
+            }
+            if ergs_factor < ergs_min {
+                ergs_min = ergs_factor;
+            }
+            if ergs_factor > ergs_max {
+                ergs_max = ergs_factor;
+            }
+            ergs_factors.push(ergs_factor);
 
             let reference_size = match reference.size {
                 Some(size) => size,
@@ -100,6 +125,9 @@ impl Group {
         let cycles_geomean = math::mean::geometric(cycles_factors.as_slice());
         let cycles_total = (cycles_total_candidate as f64) / (cycles_total_reference as f64);
 
+        let ergs_geomean = math::mean::geometric(ergs_factors.as_slice());
+        let ergs_total = (ergs_total_candidate as f64) / (ergs_total_reference as f64);
+
         Results::new(
             size_geomean,
             size_min,
@@ -113,6 +141,12 @@ impl Group {
             cycles_total,
             cycles_negatives,
             cycles_positives,
+            ergs_geomean,
+            ergs_min,
+            ergs_max,
+            ergs_total,
+            ergs_negatives,
+            ergs_positives,
         )
     }
 }

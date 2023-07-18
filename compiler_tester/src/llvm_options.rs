@@ -4,8 +4,6 @@
 
 use std::sync::Mutex;
 
-use once_cell::sync::OnceCell;
-
 ///
 /// The compiler tester LLVM options.
 ///
@@ -18,7 +16,7 @@ pub struct LLVMOptions {
 }
 
 /// The one-time initialization cell for the global variable.
-static LLVM_OPTIONS: OnceCell<LLVMOptions> = OnceCell::new();
+static LLVM_OPTIONS: once_cell::sync::OnceCell<LLVMOptions> = once_cell::sync::OnceCell::new();
 
 /// The mutex to allow simultaneous access to only one target machine.
 static LLVM_OPTIONS_LOCK: Mutex<()> = Mutex::new(());

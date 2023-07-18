@@ -64,6 +64,16 @@ pub struct Arguments {
     #[structopt(long = "disable-value-simulator")]
     pub disable_value_simulator: bool,
 
+    /// Path to the `zksolc` binary.
+    /// Is set to `zksolc` by default.
+    #[structopt(long = "zksolc")]
+    pub zksolc: Option<PathBuf>,
+
+    /// Path to the `zkvyper` binary.
+    /// Is set to `zkvyper` by default.
+    #[structopt(long = "zkvyper")]
+    pub zkvyper: Option<PathBuf>,
+
     /// Path to the default `solc` binaries download configuration file.
     #[structopt(long = "solc-bin-config-path")]
     pub solc_bin_config_path: Option<PathBuf>,

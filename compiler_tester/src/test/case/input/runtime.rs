@@ -88,7 +88,7 @@ impl Runtime {
             }
         };
         if result.output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, result.cycles);
+            Summary::passed_runtime(summary, mode, name, test_group, result.cycles, result.ergs);
         } else {
             Summary::failed(
                 summary,

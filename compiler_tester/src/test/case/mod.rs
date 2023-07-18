@@ -4,12 +4,12 @@
 
 pub mod input;
 
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::Compiler;
 use crate::deployers::Deployer;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
 use crate::summary::Summary;
@@ -40,20 +40,17 @@ impl Case {
     ///
     /// Try convert from Matter Labs compiler test metadata case.
     ///
-    pub fn from_matter_labs<C>(
+    pub fn try_from_matter_labs(
         case: &MatterLabsTestCase,
         mode: &Mode,
         instances: &HashMap<String, Instance>,
-        compiler: &C,
-    ) -> anyhow::Result<Self>
-    where
-        C: Compiler,
-    {
+        method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
+    ) -> anyhow::Result<Self> {
         let mut inputs = Vec::with_capacity(case.inputs.capacity());
 
         for (index, input) in case.inputs.iter().enumerate() {
-            let input =
-                Input::try_from_matter_labs(input, mode, instances, compiler).map_err(|error| {
+            let input = Input::try_from_matter_labs(input, mode, instances, method_identifiers)
+                .map_err(|error| {
                     anyhow::anyhow!(
                         "Input {}(After adding deployer calls) is invalid: {}",
                         index,
@@ -69,15 +66,12 @@ impl Case {
     ///
     /// Try convert from Ethereum compiler test metadata case.
     ///
-    pub fn from_ethereum<C>(
+    pub fn try_from_ethereum(
         case: &[solidity_adapter::FunctionCall],
         main_contract_instance: &Instance,
         libraries_instances: &HashMap<String, Instance>,
         last_source: &str,
-    ) -> anyhow::Result<Self>
-    where
-        C: Compiler,
-    {
+    ) -> anyhow::Result<Self> {
         let mut inputs = Vec::new();
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);
 

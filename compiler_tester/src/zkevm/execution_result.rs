@@ -13,14 +13,20 @@ pub struct ExecutionResult {
     pub output: Output,
     /// The number of executed cycles.
     pub cycles: usize,
+    /// The number of used ergs.
+    pub ergs: u32,
 }
 
 impl ExecutionResult {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(output: Output, cycles: usize) -> Self {
-        Self { output, cycles }
+    pub fn new(output: Output, cycles: usize, ergs: u32) -> Self {
+        Self {
+            output,
+            cycles,
+            ergs,
+        }
     }
 }
 
@@ -29,6 +35,7 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for ExecutionResul
         Self {
             output: Output::from(snapshot),
             cycles: snapshot.num_cycles_used,
+            ergs: snapshot.num_ergs_used,
         }
     }
 }

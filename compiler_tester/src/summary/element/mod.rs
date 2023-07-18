@@ -63,8 +63,10 @@ impl Element {
                     details.push(format!("size {size}").bright_white().to_string())
                 };
                 match variant {
-                    PassedVariant::Deploy { cycles, .. } | PassedVariant::Runtime { cycles } => {
-                        details.push(format!("cycles {cycles}").bright_white().to_string())
+                    PassedVariant::Deploy { cycles, ergs, .. }
+                    | PassedVariant::Runtime { cycles, ergs } => {
+                        details.push(format!("cycles {cycles}").bright_white().to_string());
+                        details.push(format!("ergs {ergs}").bright_white().to_string())
                     }
                     _ => {}
                 };
@@ -96,7 +98,7 @@ impl Element {
         };
 
         Some(format!(
-            "{:24} {:>7} {} {}",
+            "{:16} {:>7} {} {}",
             self.mode
                 .as_ref()
                 .map(|mode| mode.to_string())

@@ -1,33 +1,31 @@
 //!
-//! The cache of compiled tests.
+//! The thread-safe cache implementation.
 //!
 
 pub mod value;
 
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::sync::Arc;
-use std::sync::Condvar;
-use std::sync::Mutex;
 use std::sync::RwLock;
-use std::sync::RwLockReadGuard;
 
 use self::value::Value;
 
 ///
-/// The cache of compiled tests.
+/// The thread-safe cache implementation.
 ///
 pub struct Cache<K, V>
 where
-    K: Eq + Hash,
+    K: Eq + Hash + Clone,
+    V: Clone,
 {
     /// The cache inner data structure.
-    inner: RwLock<HashMap<K, Value<V>>>,
+    inner: RwLock<HashMap<K, Value<anyhow::Result<V>>>>,
 }
 
 impl<K, V> Cache<K, V>
 where
-    K: Eq + Hash,
+    K: Eq + Hash + Clone,
+    V: Clone,
 {
     ///
     /// Creates an empty cache instance.
@@ -39,55 +37,37 @@ where
     }
 
     ///
-    /// Start computing the cache value, returns a write lock.
+    /// Compute and save the cache value, if a value already started computing will do nothing.
     ///
-    pub fn start(&self, key: K) -> Option<Arc<(Mutex<()>, Condvar)>> {
-        let mut inner = self.inner.write().expect("Sync");
+    pub fn compute<F>(&self, key: K, f: F)
+    where
+        F: FnOnce() -> anyhow::Result<V>,
+    {
+        let waiter = Value::<V>::waiter();
+        let _lock = waiter.lock().expect("Sync");
+        {
+            let mut inner = self.inner.write().expect("Sync");
 
-        if inner.contains_key(&key) {
-            return None;
+            if inner.contains_key(&key) {
+                return;
+            }
+
+            inner.insert(key.clone(), Value::Waiter(waiter.clone()));
         }
 
-        let waiter = Value::<V>::waiter();
+        let value = f();
 
-        inner.insert(key, Value::Waiter(waiter.clone()));
-
-        Some(waiter)
-    }
-
-    ///
-    /// Waits until value will be computed.
-    ///
-    pub fn wait(&self, key: &K) {
-        let waiter = if let Value::Waiter(waiter) = self.read().get(key).expect("Always valid") {
-            waiter.clone()
-        } else {
-            return;
-        };
-        let _guard = waiter.1.wait(waiter.0.lock().expect("Sync"));
-    }
-
-    ///
-    /// Finishes computing the cache value, returns a write lock.
-    ///
-    /// # Panics
-    ///
-    /// If the value is not being computed.
-    ///
-    pub fn finish(&self, key: K, value: V, waiter: Arc<(Mutex<()>, Condvar)>) {
         let mut inner = self.inner.write().expect("Sync");
+        let entry_value = inner
+            .get_mut(&key)
+            .expect("The value is not being computed");
 
         assert!(
-            matches!(
-                inner
-                    .insert(key, Value::Value(value))
-                    .expect("The value is not being computed"),
-                Value::Waiter(_)
-            ),
+            matches!(entry_value, Value::Waiter(_)),
             "The value is already computed"
         );
 
-        waiter.1.notify_all();
+        *entry_value = Value::Value(value);
     }
 
     ///
@@ -98,9 +78,45 @@ where
     }
 
     ///
-    /// Locks the cache for reading.
+    /// Get the cloned value by the key.
+    /// Will wait if the value is computing.
     ///
-    pub fn read(&self) -> RwLockReadGuard<HashMap<K, Value<V>>> {
-        self.inner.read().expect("Sync")
+    /// # Panics
+    ///
+    /// If the value is not being computed.
+    ///
+    pub fn get_cloned(&self, key: &K) -> anyhow::Result<V> {
+        self.wait(key);
+        self.inner
+            .read()
+            .expect("Sync")
+            .get(key)
+            .expect("The value is not being computed")
+            .unwrap_value()
+            .as_ref()
+            .map(|value| value.clone())
+            .map_err(|error| anyhow::anyhow!("{}", error))
+    }
+
+    ///
+    /// Waits until value will be computed if needed.
+    ///
+    /// # Panics
+    ///
+    /// If the value is not being computed.
+    ///
+    fn wait(&self, key: &K) {
+        let waiter = if let Value::Waiter(waiter) = self
+            .inner
+            .read()
+            .expect("Sync")
+            .get(key)
+            .expect("The value is not being computed")
+        {
+            waiter.clone()
+        } else {
+            return;
+        };
+        let _lock = waiter.lock().expect("Sync");
     }
 }
