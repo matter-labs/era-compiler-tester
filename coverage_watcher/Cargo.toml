@@ -1,8 +1,8 @@
 [package]
 name = "coverage-watcher"
-version = "1.3.2"
+version = "1.3.3"
 authors = [
-    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+    "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
     "Anton Dyadyuk <a.dyadyuk@matterlabs.dev>",
 ]
 license = "MIT OR Apache-2.0"

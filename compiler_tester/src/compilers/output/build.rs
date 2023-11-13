@@ -1,5 +1,5 @@
 //!
-//! The zkEVM contract build.
+//! The EraVM contract build.
 //!
 
 use std::str::FromStr;
@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 ///
-/// The zkEVM contract build.
+/// The EraVM contract build.
 ///
 #[derive(Debug, Clone)]
 pub struct Build {

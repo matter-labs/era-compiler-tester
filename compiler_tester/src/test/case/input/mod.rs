@@ -20,9 +20,9 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::deployers::Deployer;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
+use crate::eravm::EraVM;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
-use crate::zkevm::zkEVM;
 
 use self::balance::Balance;
 use self::calldata::Calldata;
@@ -302,7 +302,7 @@ impl Input {
     pub fn run<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut zkEVM,
+        vm: &mut EraVM,
         mode: Mode,
         deployer: &mut D,
         test_group: Option<String>,

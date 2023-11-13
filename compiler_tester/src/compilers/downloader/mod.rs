@@ -43,11 +43,19 @@ impl Downloader {
     ///
     pub fn download(mut self, config_path: &Path) -> anyhow::Result<Config> {
         let config_file = std::fs::File::open(config_path).map_err(|error| {
-            anyhow::anyhow!("Binaries download config opening error: {}", error)
+            anyhow::anyhow!(
+                "Binaries download config {:?} opening error: {}",
+                config_path,
+                error
+            )
         })?;
         let config_reader = std::io::BufReader::new(config_file);
         let config: Config = serde_json::from_reader(config_reader).map_err(|error| {
-            anyhow::anyhow!("Binaries download config parsing error: {}", error)
+            anyhow::anyhow!(
+                "Binaries download config {:?} parsing error: {}",
+                config_path,
+                error
+            )
         })?;
 
         let platform_directory = config.get_remote_platform_directory()?;
@@ -77,8 +85,15 @@ impl Downloader {
                         binary.destination,
                     );
 
-                    std::fs::copy(source_path.as_str(), binary.destination.as_str())
-                        .map_err(|error| anyhow::anyhow!("Binary copying error: {}", error))?;
+                    std::fs::copy(source_path.as_str(), binary.destination.as_str()).map_err(
+                        |error| {
+                            anyhow::anyhow!(
+                                "Binary {:?} copying error: {}",
+                                source_path.as_str(),
+                                error
+                            )
+                        },
+                    )?;
                     continue;
                 }
                 Protocol::HTTPS => {

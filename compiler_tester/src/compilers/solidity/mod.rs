@@ -13,7 +13,7 @@ use itertools::Itertools;
 use super::cache::Cache;
 use super::mode::solidity::Mode as SolidityMode;
 use super::mode::Mode;
-use super::output::build::Build as zkEVMContractBuild;
+use super::output::build::Build as EraVMContractBuild;
 use super::output::Output;
 use super::Compiler;
 
@@ -173,10 +173,12 @@ impl SolidityCompiler {
         let solc_input = compiler_solidity::SolcStandardJsonInput::try_from_sources(
             sources.iter().cloned().collect(),
             libraries.clone(),
+            None,
             output_selection,
             optimizer,
             None,
             mode.via_ir,
+            None,
         )
         .map_err(|error| anyhow::anyhow!("Failed to build solc input standard json: {}", error))?;
 
@@ -233,7 +235,7 @@ impl SolidityCompiler {
         mode: &SolidityMode,
         is_system_mode: bool,
         debug_config: Option<compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<HashMap<String, zkEVMContractBuild>> {
+    ) -> anyhow::Result<HashMap<String, EraVMContractBuild>> {
         let project = solc_output.try_to_project(
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
@@ -270,16 +272,16 @@ impl SolidityCompiler {
                         let assembly =
                             zkevm_assembly::Assembly::from_string(evm.assembly_text?, None)
                                 .expect("Always valid");
-                        Some((
-                            name,
-                            zkEVMContractBuild::new_with_hash(
-                                assembly,
-                                contract.hash.expect("Always exists"),
-                            )
-                            .expect("Always valid"),
-                        ))
+                        let build = match contract.hash {
+                            Some(bytecode_hash) => {
+                                EraVMContractBuild::new_with_hash(assembly, bytecode_hash)
+                                    .expect("Always valid")
+                            }
+                            None => EraVMContractBuild::new(assembly).expect("Always valid"),
+                        };
+                        Some((name, build))
                     })
-                    .collect::<HashMap<String, zkEVMContractBuild>>()
+                    .collect::<HashMap<String, EraVMContractBuild>>()
             })
             .collect())
     }

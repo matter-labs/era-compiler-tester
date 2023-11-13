@@ -12,7 +12,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "compiler-tester",
-    about = "zkEVM Compiler Integration Testing Framework"
+    about = "EraVM Compiler Integration Testing Framework"
 )]
 pub struct Arguments {
     /// The logging level.
@@ -28,7 +28,7 @@ pub struct Arguments {
     pub debug: bool,
 
     /// Saves all JSON traces produced by VM to `./trace/` directory.
-    /// If passed twice, dumps zkEVM instructions and registers to the terminal.
+    /// If passed twice, dumps EraVM instructions and registers to the terminal.
     #[structopt(short = "T", long = "trace", parse(from_occurrences))]
     pub trace: usize,
 

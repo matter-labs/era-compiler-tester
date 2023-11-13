@@ -15,7 +15,7 @@ use itertools::Itertools;
 use super::cache::Cache;
 use super::mode::vyper::Mode as VyperMode;
 use super::mode::Mode;
-use super::output::build::Build as zkEVMContractBuild;
+use super::output::build::Build as EraVMContractBuild;
 use super::output::Output;
 use super::Compiler;
 
@@ -151,11 +151,12 @@ impl VyperCompiler {
         project: compiler_vyper::Project,
         mode: &VyperMode,
         debug_config: Option<compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<HashMap<String, zkEVMContractBuild>> {
+    ) -> anyhow::Result<HashMap<String, EraVMContractBuild>> {
         let build = project.compile(
             mode.llvm_optimizer_settings.to_owned(),
             true,
             zkevm_assembly::get_encoding_mode(),
+            vec![],
             debug_config,
         )?;
         build
@@ -169,7 +170,7 @@ impl VyperCompiler {
                 .expect("Always valid");
                 Ok((
                     path,
-                    zkEVMContractBuild::new_with_hash(assembly, contract.build.bytecode_hash)?,
+                    EraVMContractBuild::new_with_hash(assembly, contract.build.bytecode_hash)?,
                 ))
             })
             .collect()

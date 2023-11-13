@@ -5,3 +5,4 @@ members = [
     "coverage_watcher",
     "benchmark_analyzer",
 ]
+resolver = "2"

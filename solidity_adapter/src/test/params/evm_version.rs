@@ -56,7 +56,7 @@ impl TryFrom<&str> for EVMVersion {
     type Error = anyhow::Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let regex = Regex::new(r#"^(=|>|<|>=|<=)(\w*)$"#).expect("Always valid");
+        let regex = Regex::new(r"^(=|>|<|>=|<=)(\w*)$").expect("Always valid");
 
         let captures = regex
             .captures(value)

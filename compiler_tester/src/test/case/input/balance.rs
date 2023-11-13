@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::zkevm::zkEVM;
+use crate::eravm::EraVM;
 use crate::Summary;
 
 ///
@@ -36,7 +36,7 @@ impl Balance {
     pub fn run(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &zkEVM,
+        vm: &EraVM,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,

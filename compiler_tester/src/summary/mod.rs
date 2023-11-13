@@ -78,9 +78,22 @@ impl Summary {
     pub fn benchmark(&self) -> benchmark_analyzer::Benchmark {
         let mut benchmark = benchmark_analyzer::Benchmark::default();
         benchmark.groups.insert(
-            benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME.to_string(),
+            format!(
+                "{} {}",
+                benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
+                compiler_llvm_context::OptimizerSettings::cycles(),
+            ),
             benchmark_analyzer::BenchmarkGroup::default(),
         );
+        benchmark.groups.insert(
+            format!(
+                "{} {}",
+                benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
+                compiler_llvm_context::OptimizerSettings::size(),
+            ),
+            benchmark_analyzer::BenchmarkGroup::default(),
+        );
+
         for element in self.elements.iter() {
             let (size, cycles, ergs, group) = match &element.outcome {
                 Outcome::Passed {
@@ -93,6 +106,7 @@ impl Summary {
                 } => (None, *cycles, *ergs, group.clone()),
                 _ => continue,
             };
+
             let key = format!(
                 "{:24} {}",
                 element
@@ -102,18 +116,27 @@ impl Summary {
                     .unwrap_or_default(),
                 element.name
             );
+            let mode = element
+                .mode
+                .as_ref()
+                .and_then(|mode| mode.llvm_optimizer_settings().cloned())
+                .unwrap_or(compiler_llvm_context::OptimizerSettings::none());
+
             let benchmark_element = benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs);
             if let Some(group) = group {
                 benchmark
                     .groups
-                    .entry(group)
+                    .entry(format!("{} {}", group, mode))
                     .or_default()
                     .elements
                     .insert(key.clone(), benchmark_element.clone());
             }
+
             benchmark
                 .groups
-                .get_mut(benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME)
+                .get_mut(
+                    format!("{} {}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME, mode).as_str(),
+                )
                 .expect("Always exists")
                 .elements
                 .insert(key, benchmark_element);

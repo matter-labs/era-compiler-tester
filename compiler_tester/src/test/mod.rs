@@ -11,7 +11,7 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::deployers::Deployer;
-use crate::zkevm::zkEVM;
+use crate::eravm::EraVM;
 use crate::Summary;
 
 use self::case::Case;
@@ -55,12 +55,12 @@ impl Test {
     ///
     /// Run the test.
     ///
-    pub fn run<D, const M: bool>(self, summary: Arc<Mutex<Summary>>, initial_vm: Arc<zkEVM>)
+    pub fn run<D, const M: bool>(self, summary: Arc<Mutex<Summary>>, initial_vm: Arc<EraVM>)
     where
         D: Deployer,
     {
         for case in self.cases {
-            let vm = zkEVM::clone_with_contracts(initial_vm.clone(), self.builds.clone());
+            let vm = EraVM::clone_with_contracts(initial_vm.clone(), self.builds.clone());
             case.run::<D, M>(
                 summary.clone(),
                 vm,

@@ -1,9 +1,9 @@
 //!
-//! The compiler tester zkEVM mode.
+//! The compiler tester EraVM mode.
 //!
 
 ///
-/// The compiler tester zkEVM mode.
+/// The compiler tester EraVM mode.
 ///
 #[derive(Debug, Default, Clone)]
 pub struct Mode {}

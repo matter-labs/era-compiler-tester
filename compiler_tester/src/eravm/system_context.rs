@@ -33,11 +33,14 @@ impl SystemContext {
     /// The system context base fee value position in the storage.
     const SYSTEM_CONTEXT_BASE_FEE_POSITION: u64 = 6;
 
-    /// The system context current block info value position in the storage.
-    const SYSTEM_CONTEXT_BLOCK_INFO_POSITION: u64 = 7;
-
     /// The system context block hashes mapping position in the storage.
     const SYSTEM_CONTEXT_BLOCK_HASH_POSITION: u64 = 8;
+
+    /// The system context current virtual l2 block info value position in the storage.
+    const SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION: u64 = 268;
+
+    /// The system context virtual blocks upgrade info position in the storage.
+    const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
 
     /// The zkSync chain ID.
     const CHAIND_ID: u64 = 280;
@@ -106,6 +109,12 @@ impl SystemContext {
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
                 web3::types::H256::from_low_u64_be(Self::BASE_FEE),
             ),
+            (
+                web3::types::H256::from_low_u64_be(
+                    Self::SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION,
+                ),
+                web3::types::H256::from_low_u64_be(Self::CURRENT_BLOCK_NUMBER as u64),
+            ),
         ];
 
         let block_info_bytes = [
@@ -115,7 +124,7 @@ impl SystemContext {
         .concat();
 
         system_context_values.push((
-            web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BLOCK_INFO_POSITION),
+            web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION),
             web3::types::H256::from_slice(block_info_bytes.as_slice()),
         ));
 

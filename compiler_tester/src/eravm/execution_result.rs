@@ -1,11 +1,11 @@
 //!
-//! The zkEVM execution result.
+//! The EraVM execution result.
 //!
 
 use crate::test::case::input::output::Output;
 
 ///
-/// The zkEVM execution result.
+/// The EraVM execution result.
 ///
 #[derive(Debug, Clone)]
 pub struct ExecutionResult {

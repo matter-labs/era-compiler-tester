@@ -2,8 +2,8 @@
 //! The system contract deployer implementation.
 //!
 
-use crate::zkevm::execution_result::ExecutionResult;
-use crate::zkevm::zkEVM;
+use crate::eravm::execution_result::ExecutionResult;
+use crate::eravm::EraVM;
 
 use super::Deployer;
 
@@ -30,7 +30,7 @@ impl Deployer for SystemContractDeployer {
         bytecode_hash: web3::types::U256,
         constructor_calldata: Vec<u8>,
         value: Option<u128>,
-        vm: &mut zkEVM,
+        vm: &mut EraVM,
     ) -> anyhow::Result<ExecutionResult> {
         let context_u128_value;
         let vm_launch_option;
@@ -53,7 +53,7 @@ impl Deployer for SystemContractDeployer {
                     zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER,
                 ));
                 r5 = Some(web3::types::U256::from(u8::from(
-                    compiler_llvm_context::SYSTEM_CALL_BIT,
+                    compiler_llvm_context::eravm_const::SYSTEM_CALL_BIT,
                 )));
 
                 entry_address = web3::types::Address::from_low_u64_be(

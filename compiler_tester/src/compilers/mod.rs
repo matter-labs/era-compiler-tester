@@ -4,13 +4,13 @@
 
 pub mod cache;
 pub mod downloader;
+pub mod eravm;
 pub mod llvm;
 pub mod mode;
 pub mod output;
 pub mod solidity;
 pub mod vyper;
 pub mod yul;
-pub mod zkevm;
 
 use std::collections::BTreeMap;
 

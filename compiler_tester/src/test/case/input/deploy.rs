@@ -7,7 +7,7 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::deployers::Deployer;
-use crate::zkevm::zkEVM;
+use crate::eravm::EraVM;
 use crate::Summary;
 
 use super::calldata::Calldata;
@@ -67,7 +67,7 @@ impl Deploy {
     pub fn run<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut zkEVM,
+        vm: &mut EraVM,
         mode: Mode,
         deployer: &mut D,
         test_group: Option<String>,

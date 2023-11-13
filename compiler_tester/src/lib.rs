@@ -5,12 +5,12 @@
 pub(crate) mod compilers;
 pub(crate) mod deployers;
 pub(crate) mod directories;
+pub(crate) mod eravm;
 pub(crate) mod filters;
 pub(crate) mod llvm_options;
 pub(crate) mod summary;
 pub(crate) mod test;
 pub(crate) mod utils;
-pub(crate) mod zkevm;
 
 pub use self::deployers::native_deployer::NativeDeployer;
 pub use self::deployers::system_contract_deployer::SystemContractDeployer;
@@ -31,19 +31,19 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
 use crate::compilers::downloader::Downloader as CompilerDownloader;
+use crate::compilers::eravm::EraVMCompiler;
 use crate::compilers::llvm::LLVMCompiler;
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::vyper::VyperCompiler;
 use crate::compilers::yul::YulCompiler;
-use crate::compilers::zkevm::zkEVMCompiler;
 use crate::compilers::Compiler;
 use crate::deployers::Deployer;
 use crate::directories::ethereum::EthereumDirectory;
 use crate::directories::matter_labs::MatterLabsDirectory;
 use crate::directories::Buildable;
 use crate::directories::TestsDirectory;
-use crate::zkevm::zkEVM;
+use crate::eravm::EraVM;
 
 /// The debug directory path.
 pub const DEBUG_DIRECTORY: &str = "./debug/";
@@ -66,8 +66,8 @@ pub struct CompilerTester {
     filters: Filters,
     /// The debug config.
     debug_config: Option<compiler_llvm_context::DebugConfig>,
-    /// The initial zkEVM.
-    initial_vm: Arc<zkEVM>,
+    /// The initial EraVM.
+    initial_vm: Arc<EraVM>,
 }
 
 impl CompilerTester {
@@ -91,8 +91,8 @@ impl CompilerTester {
     /// The LLVM simple tests directory.
     const LLVM_SIMPLE: &'static str = "tests/llvm";
 
-    /// The zkEVM simple tests directory.
-    const ZKEVM_SIMPLE: &'static str = "tests/zkevm";
+    /// The EraVM simple tests directory.
+    const ERAVM_SIMPLE: &'static str = "tests/zkevm";
 }
 
 impl CompilerTester {
@@ -132,7 +132,7 @@ impl CompilerTester {
             download_time_start.elapsed().as_secs() % 60,
         );
 
-        let initial_vm = Arc::new(zkEVM::initialize(
+        let initial_vm = Arc::new(EraVM::initialize(
             system_contracts_solc_downloader_config,
             system_contracts_debug_config,
             system_contracts_path,
@@ -160,7 +160,7 @@ impl CompilerTester {
         let vyper_compiler = Arc::new(VyperCompiler::new());
         let yul_compiler = Arc::new(YulCompiler::new());
         let llvm_compiler = Arc::new(LLVMCompiler::new());
-        let zkevm_compiler = Arc::new(zkEVMCompiler::new());
+        let eravm_compiler = Arc::new(EraVMCompiler::new());
 
         let mut tests = Vec::new();
         tests.extend(self.directory::<MatterLabsDirectory>(
@@ -184,9 +184,9 @@ impl CompilerTester {
             llvm_compiler,
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::ZKEVM_SIMPLE,
-            compiler_common::EXTENSION_ZKEVM_ASSEMBLY,
-            zkevm_compiler,
+            Self::ERAVM_SIMPLE,
+            compiler_common::EXTENSION_ERAVM_ASSEMBLY,
+            eravm_compiler,
         )?);
 
         tests.extend(self.directory::<MatterLabsDirectory>(

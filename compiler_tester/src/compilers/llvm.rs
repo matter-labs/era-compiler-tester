@@ -9,7 +9,7 @@ use sha3::Digest;
 
 use super::mode::llvm::Mode as LLVMMode;
 use super::mode::Mode;
-use super::output::build::Build as zkEVMContractBuild;
+use super::output::build::Build as EraVMContractBuild;
 use super::output::Output;
 use super::Compiler;
 
@@ -46,7 +46,7 @@ impl LLVMCompiler {
         name: &str,
         mode: &LLVMMode,
         debug_config: Option<compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<zkEVMContractBuild> {
+    ) -> anyhow::Result<EraVMContractBuild> {
         let llvm = inkwell::context::Context::create();
         let memory_buffer = inkwell::memory_buffer::MemoryBuffer::create_from_memory_range_copy(
             source_code.as_bytes(),
@@ -58,19 +58,14 @@ impl LLVMCompiler {
         let optimizer = compiler_llvm_context::Optimizer::new(mode.llvm_optimizer_settings.clone());
         let source_hash = sha3::Keccak256::digest(source_code.as_bytes()).into();
 
-        let context = compiler_llvm_context::Context::<compiler_llvm_context::DummyDependency>::new(
-            &llvm,
-            module,
-            optimizer,
-            None,
-            true,
-            debug_config,
-        );
+        let context = compiler_llvm_context::EraVMContext::<
+            compiler_llvm_context::EraVMDummyDependency,
+        >::new(&llvm, module, optimizer, None, true, debug_config);
         let build = context.build(name, Some(source_hash))?;
         let assembly =
             zkevm_assembly::Assembly::from_string(build.assembly_text, build.metadata_hash)?;
 
-        zkEVMContractBuild::new(assembly)
+        EraVMContractBuild::new(assembly)
     }
 }
 
@@ -97,7 +92,7 @@ impl Compiler for LLVMCompiler {
                 Self::compile_source(source, path, mode, debug_config.clone())
                     .map(|build| (path.to_owned(), build))
             })
-            .collect::<anyhow::Result<HashMap<String, zkEVMContractBuild>>>()?;
+            .collect::<anyhow::Result<HashMap<String, EraVMContractBuild>>>()?;
 
         let last_contract = sources
             .last()

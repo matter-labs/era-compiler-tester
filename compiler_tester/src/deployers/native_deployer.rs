@@ -6,10 +6,10 @@ use std::collections::HashMap;
 
 use web3::contract::tokens::Tokenizable;
 
+use crate::eravm::execution_result::ExecutionResult;
+use crate::eravm::EraVM;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::value::Value;
-use crate::zkevm::execution_result::ExecutionResult;
-use crate::zkevm::zkEVM;
 
 use super::address_predictor::AddressPredictor;
 use super::Deployer;
@@ -42,7 +42,7 @@ impl Deployer for NativeDeployer {
         bytecode_hash: web3::types::U256,
         constructor_calldata: Vec<u8>,
         value: Option<u128>,
-        vm: &mut zkEVM,
+        vm: &mut EraVM,
     ) -> anyhow::Result<ExecutionResult> {
         let address = self.address_predictor.advance_next_address(&caller);
 
@@ -95,7 +95,7 @@ impl NativeDeployer {
     fn set_immutables(
         address: web3::types::Address,
         encoded_data: &[Value],
-        vm: &mut zkEVM,
+        vm: &mut EraVM,
     ) -> anyhow::Result<()> {
         let return_data = encoded_data
             .iter()

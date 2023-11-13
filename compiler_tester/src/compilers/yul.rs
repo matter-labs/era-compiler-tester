@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 use super::mode::yul::Mode as YulMode;
 use super::mode::Mode;
-use super::output::build::Build as zkEVMContractBuild;
+use super::output::build::Build as EraVMContractBuild;
 use super::output::Output;
 use super::solidity::SolidityCompiler;
 use super::Compiler;
@@ -59,9 +59,7 @@ impl Compiler for YulCompiler {
         let solc_validator = if is_system_mode {
             None
         } else {
-            Some(SolidityCompiler::get_solc_by_version(
-                &compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-            ))
+            Some(SolidityCompiler::get_system_contract_solc())
         };
 
         let builds = sources
@@ -93,10 +91,10 @@ impl Compiler for YulCompiler {
                 .expect("Always valid");
 
                 let build =
-                    zkEVMContractBuild::new_with_hash(assembly, contract.build.bytecode_hash)?;
+                    EraVMContractBuild::new_with_hash(assembly, contract.build.bytecode_hash)?;
                 Ok((path.to_owned(), build))
             })
-            .collect::<anyhow::Result<HashMap<String, zkEVMContractBuild>>>()?;
+            .collect::<anyhow::Result<HashMap<String, EraVMContractBuild>>>()?;
 
         let last_contract = sources
             .last()

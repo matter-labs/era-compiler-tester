@@ -6,8 +6,8 @@ pub mod address_predictor;
 pub mod native_deployer;
 pub mod system_contract_deployer;
 
-use crate::zkevm::execution_result::ExecutionResult;
-use crate::zkevm::zkEVM;
+use crate::eravm::execution_result::ExecutionResult;
+use crate::eravm::EraVM;
 
 ///
 /// The deployer trait.
@@ -28,6 +28,6 @@ pub trait Deployer {
         bytecode_hash: web3::types::U256,
         constructor_calldata: Vec<u8>,
         value: Option<u128>,
-        vm: &mut zkEVM,
+        vm: &mut EraVM,
     ) -> anyhow::Result<ExecutionResult>;
 }

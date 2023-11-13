@@ -2,17 +2,17 @@
 //! The compiler mode.
 //!
 
+pub mod eravm;
 pub mod llvm;
 pub mod solidity;
 pub mod vyper;
 pub mod yul;
-pub mod zkevm;
 
+use self::eravm::Mode as EraVMMode;
 use self::llvm::Mode as LLVMMode;
 use self::solidity::Mode as SolidityMode;
 use self::vyper::Mode as VyperMode;
 use self::yul::Mode as YulMode;
-use self::zkevm::Mode as zkEVMMode;
 
 ///
 /// The compiler mode.
@@ -27,8 +27,8 @@ pub enum Mode {
     Solidity(SolidityMode),
     /// The `LLVM` mode.
     LLVM(LLVMMode),
-    /// The `zkEVM` mode.
-    zkEVM(zkEVMMode),
+    /// The `EraVM` mode.
+    EraVM(EraVMMode),
     /// The `Vyper` mode.
     Vyper(VyperMode),
 }
@@ -107,6 +107,19 @@ impl Mode {
     }
 
     ///
+    /// Returns the LLVM optimizer settings.
+    ///
+    pub fn llvm_optimizer_settings(&self) -> Option<&compiler_llvm_context::OptimizerSettings> {
+        match self {
+            Mode::Solidity(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::Yul(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::Vyper(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::LLVM(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::EraVM(_mode) => None,
+        }
+    }
+
+    ///
     /// Normalizes the mode according to the filter.
     ///
     fn normalize(&self, filter: &str) -> String {
@@ -153,6 +166,25 @@ impl Mode {
                 .replace_all(current.as_str(), "B*")
                 .to_string();
         }
+
+        if filter.starts_with('^') {
+            match self {
+                Self::Solidity(_) | Self::Vyper(_) => {
+                    current = regex::Regex::new("[+]")
+                        .expect("Always valid")
+                        .replace_all(current.as_str(), "^")
+                        .to_string();
+                }
+                Self::Yul(_) | Self::LLVM(_) => {
+                    current = regex::Regex::new(".*M")
+                        .expect("Always valid")
+                        .replace_all(current.as_str(), "^M")
+                        .to_string();
+                }
+                Self::EraVM(_) => {}
+            }
+        }
+
         current
     }
 }
@@ -175,9 +207,9 @@ impl From<LLVMMode> for Mode {
     }
 }
 
-impl From<zkEVMMode> for Mode {
-    fn from(inner: zkEVMMode) -> Self {
-        Self::zkEVM(inner)
+impl From<EraVMMode> for Mode {
+    fn from(inner: EraVMMode) -> Self {
+        Self::EraVM(inner)
     }
 }
 
@@ -193,7 +225,7 @@ impl std::fmt::Display for Mode {
             Self::Yul(inner) => write!(f, "{inner}"),
             Self::Solidity(inner) => write!(f, "{inner}"),
             Self::LLVM(inner) => write!(f, "{inner}"),
-            Self::zkEVM(inner) => write!(f, "{inner}"),
+            Self::EraVM(inner) => write!(f, "{inner}"),
             Self::Vyper(inner) => write!(f, "{inner}"),
         }
     }

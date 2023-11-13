@@ -16,7 +16,7 @@ use serde::Serialize;
 use crate::compilers::mode::solidity::Mode as SolidityMode;
 use crate::compilers::mode::yul::Mode as YulMode;
 use crate::compilers::mode::Mode;
-use crate::compilers::output::build::Build as zkEVMContractBuild;
+use crate::compilers::output::build::Build as EraVMContractBuild;
 use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
@@ -27,9 +27,9 @@ use crate::compilers::Compiler;
 #[derive(Serialize, Deserialize)]
 pub struct SystemContracts {
     /// The deployed system contracts builds.
-    pub deployed_contracts: Vec<(web3::types::Address, zkEVMContractBuild)>,
+    pub deployed_contracts: Vec<(web3::types::Address, EraVMContractBuild)>,
     /// The default account abstraction contract build.
-    pub default_aa: zkEVMContractBuild,
+    pub default_aa: EraVMContractBuild,
 }
 
 impl SystemContracts {
@@ -306,7 +306,7 @@ impl SystemContracts {
         mode: &Mode,
         paths: Vec<String>,
         debug_config: Option<compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<HashMap<String, zkEVMContractBuild>>
+    ) -> anyhow::Result<HashMap<String, EraVMContractBuild>>
     where
         C: Compiler,
     {

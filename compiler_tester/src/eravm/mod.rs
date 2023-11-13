@@ -1,5 +1,5 @@
 //!
-//! The zkEVM wrapper.
+//! The EraVM wrapper.
 //!
 
 pub mod execution_result;
@@ -18,11 +18,11 @@ use self::system_context::SystemContext;
 use self::system_contracts::SystemContracts;
 
 ///
-/// The zkEVM wrapper.
+/// The EraVM wrapper.
 ///
 #[derive(Clone)]
 #[allow(non_camel_case_types)]
-pub struct zkEVM {
+pub struct EraVM {
     /// The storage state.
     storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
     /// The deployed contracts.
@@ -33,9 +33,9 @@ pub struct zkEVM {
     known_contracts: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
 }
 
-impl zkEVM {
+impl EraVM {
     ///
-    /// Creates and initializes new zkEVM instance.
+    /// Creates and initializes new EraVM instance.
     ///
     pub fn initialize(
         system_contracts_solc_downloader_config: DownloaderConfig,
@@ -49,7 +49,7 @@ impl zkEVM {
             .next()
             .ok_or_else(|| {
                 anyhow::anyhow!(
-                    "zkEVM initializer could find the `solc` version for system contracts"
+                    "EraVM initializer could find the `solc` version for system contracts"
                 )
             })?;
         let solc_version = semver::Version::parse(solc_version.as_str())?;
@@ -133,7 +133,7 @@ impl zkEVM {
                 let r3 = Some(web3::types::U256::from(value));
                 let r4 = Some(web3::types::U256::from_big_endian(entry_address.as_bytes()));
                 let r5 = Some(web3::types::U256::from(u8::from(
-                    compiler_llvm_context::SYSTEM_CALL_BIT,
+                    compiler_llvm_context::eravm_const::SYSTEM_CALL_BIT,
                 )));
 
                 entry_address = web3::types::Address::from_low_u64_be(
@@ -394,7 +394,7 @@ impl zkEVM {
         key_preimage.extend_from_slice(address.as_bytes());
         key_preimage.extend(vec![0u8; compiler_common::BYTE_LENGTH_FIELD]);
 
-        let key_string = compiler_llvm_context::keccak256(key_preimage.as_slice());
+        let key_string = compiler_llvm_context::eravm_utils::keccak256(key_preimage.as_slice());
         let key = web3::types::U256::from_str(key_string.as_str()).expect("Always valid");
         zkevm_tester::runners::compiler_tests::StorageKey {
             address: web3::types::Address::from_low_u64_be(
