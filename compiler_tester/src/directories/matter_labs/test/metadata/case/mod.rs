@@ -11,7 +11,7 @@ use std::str::FromStr;
 use serde::Deserialize;
 
 use crate::compilers::mode::Mode;
-use crate::deployers::address_predictor::AddressPredictor;
+use crate::vm::AddressPredictorIterator;
 
 use self::input::expected::Expected;
 use self::input::Input;
@@ -98,12 +98,15 @@ impl Case {
     ///
     /// Returns all the instances addresses, except libraries.
     ///
-    pub fn instances_addresses(
+    pub fn instance_addresses<API>(
         &self,
         libraries: &BTreeSet<String>,
-        address_predictor: &mut AddressPredictor,
+        address_predictor: &mut API,
         mode: &Mode,
-    ) -> anyhow::Result<HashMap<String, web3::types::Address>> {
+    ) -> anyhow::Result<HashMap<String, web3::types::Address>>
+    where
+        API: AddressPredictorIterator,
+    {
         let mut instances_addresses = HashMap::new();
         for (index, input) in self.inputs.iter().enumerate() {
             if !input.method.eq("#deployer") {
@@ -114,24 +117,17 @@ impl Case {
                 continue;
             }
             let exception = match input.expected.as_ref() {
-                Some(expected) => expected.exception(mode).map_err(|error| {
-                    anyhow::anyhow!("Input {}(After adding deployer calls): {}", index, error)
-                })?,
+                Some(expected) => expected
+                    .exception(mode)
+                    .map_err(|error| anyhow::anyhow!("Input #{}: {}", index, error))?,
                 None => false,
             };
             if exception {
                 continue;
             }
-            let caller =
-                web3::types::Address::from_str(input.caller.as_str()).map_err(|error| {
-                    anyhow::anyhow!(
-                        "Input {}(After adding deployer calls): Invalid caller: {}",
-                        index,
-                        error
-                    )
-                })?;
-            instances_addresses
-                .insert(instance.to_string(), address_predictor.next_address(caller));
+            let caller = web3::types::Address::from_str(input.caller.as_str())
+                .map_err(|error| anyhow::anyhow!("Input #{}: invalid caller: {}", index, error))?;
+            instances_addresses.insert(instance.to_string(), address_predictor.next(&caller, true));
         }
         Ok(instances_addresses)
     }

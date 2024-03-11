@@ -67,10 +67,13 @@ impl Downloader {
 
             let source_path = binary
                 .source
-                .replace("${PLATFORM}", platform_directory.as_str());
+                .replace("${PLATFORM}", platform_directory.as_str())
+                .replace("${VERSION}", version.as_str());
 
-            let destination_path = PathBuf::from_str(binary.destination.as_str())
-                .map_err(|_| anyhow::anyhow!("Binary `{}` destination is invalid", source_path))?;
+            let destination_path = binary.destination.replace("${VERSION}", version.as_str());
+            let destination_path = PathBuf::from_str(destination_path.as_str()).map_err(|_| {
+                anyhow::anyhow!("Binary `{}` destination is invalid", destination_path)
+            })?;
 
             let data = match binary.protocol {
                 Protocol::File => {
@@ -79,10 +82,10 @@ impl Downloader {
                     }
 
                     println!(
-                        "     {} binary `{}` => `{}`",
+                        "     {} binary `{}` => {:?}",
                         "Copying".bright_green().bold(),
                         source_path,
-                        binary.destination,
+                        destination_path,
                     );
 
                     std::fs::copy(source_path.as_str(), binary.destination.as_str()).map_err(
@@ -104,10 +107,10 @@ impl Downloader {
                     let source_url =
                         reqwest::Url::from_str(source_path.as_str()).expect("Always valid");
                     println!(
-                        " {} binary `{}` => `{}`",
+                        " {} binary `{}` => {:?}",
                         "Downloading".bright_green().bold(),
                         source_url,
-                        binary.destination,
+                        destination_path,
                     );
                     self.http_client.get(source_url).send()?.bytes()?
                 }
@@ -141,10 +144,10 @@ impl Downloader {
                         reqwest::Url::from_str(source_path.to_str().expect("Always valid"))
                             .expect("Always valid");
                     println!(
-                        " {} binary `{}` => `{}`",
+                        " {} binary `{}` => {:?}",
                         "Downloading".bright_green().bold(),
                         source_url,
-                        binary.destination,
+                        destination_path,
                     );
                     self.http_client.get(source_url).send()?.bytes()?
                 }

@@ -40,32 +40,37 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         inkwell::support::get_commit_id().to_string(),
     );
 
+    let target = match arguments.target {
+        Some(target) => era_compiler_llvm_context::Target::from_str(target.as_str())?,
+        None => era_compiler_llvm_context::Target::EraVM,
+    };
+
     inkwell::support::enable_llvm_pretty_stack_trace();
-    compiler_llvm_context::initialize_target(compiler_llvm_context::Target::EraVM);
+    era_compiler_llvm_context::initialize_target(target);
     compiler_tester::LLVMOptions::initialize(
         arguments.llvm_verify_each,
         arguments.llvm_debug_logging,
     )?;
-    compiler_solidity::EXECUTABLE
+    era_compiler_solidity::EXECUTABLE
         .set(
             arguments
                 .zksolc
-                .unwrap_or_else(|| PathBuf::from(compiler_solidity::DEFAULT_EXECUTABLE_NAME)),
+                .unwrap_or_else(|| PathBuf::from(era_compiler_solidity::DEFAULT_EXECUTABLE_NAME)),
         )
         .expect("Always valid");
-    compiler_vyper::EXECUTABLE
+    era_compiler_vyper::EXECUTABLE
         .set(
             arguments
                 .zkvyper
-                .unwrap_or_else(|| PathBuf::from(compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+                .unwrap_or_else(|| PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
         )
         .expect("Always valid");
 
     let debug_config = if arguments.debug {
         std::fs::create_dir_all(compiler_tester::DEBUG_DIRECTORY)?;
-        Some(compiler_llvm_context::DebugConfig::new(PathBuf::from_str(
-            compiler_tester::DEBUG_DIRECTORY,
-        )?))
+        Some(era_compiler_llvm_context::DebugConfig::new(
+            PathBuf::from_str(compiler_tester::DEBUG_DIRECTORY)?,
+        ))
     } else {
         None
     };
@@ -73,10 +78,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     if arguments.trace > 0 {
         std::fs::create_dir_all(compiler_tester::TRACE_DIRECTORY)?;
     }
-    zkevm_tester::runners::compiler_tests::set_tracing_mode(
-        zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(arguments.trace as u64),
-    );
-    zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
 
     let mut thread_pool_builder = rayon::ThreadPoolBuilder::new();
     if let Some(threads) = arguments.threads {
@@ -90,29 +91,18 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     let summary = compiler_tester::Summary::new(arguments.verbosity, arguments.quiet).wrap();
 
     let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
-    let system_contract_debug_config = if arguments.dump_system {
-        debug_config.clone()
-    } else {
-        None
-    };
 
-    let compiler_tester = compiler_tester::CompilerTester::new(
-        summary.clone(),
-        filters,
-        debug_config,
-        vec![
-            arguments
-                .solc_bin_config_path
-                .unwrap_or_else(|| PathBuf::from("./configs/solc-bin-default.json")),
-            arguments
-                .vyper_bin_config_path
-                .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
-        ],
-        PathBuf::from("./configs/solc-bin-system-contracts.json"),
-        system_contract_debug_config,
-        arguments.load_system_contracts,
-        arguments.save_system_contracts,
-    )?;
+    let compiler_tester =
+        compiler_tester::CompilerTester::new(summary.clone(), filters, debug_config.clone())?;
+
+    let binary_download_config_paths = vec![
+        arguments
+            .solc_bin_config_path
+            .unwrap_or_else(|| PathBuf::from("./configs/solc-bin-default.json")),
+        arguments
+            .vyper_bin_config_path
+            .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
+    ];
 
     let run_time_start = Instant::now();
     println!(
@@ -121,14 +111,48 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         rayon::current_num_threads(),
     );
 
-    match (
-        arguments.disable_deployer,
-        arguments.disable_value_simulator,
-    ) {
-        (true, true) => compiler_tester.run::<compiler_tester::NativeDeployer, false>()?,
-        (true, false) => compiler_tester.run::<compiler_tester::NativeDeployer, true>()?,
-        (false, true) => compiler_tester.run::<compiler_tester::SystemContractDeployer, false>()?,
-        (false, false) => compiler_tester.run::<compiler_tester::SystemContractDeployer, true>()?,
+    match target {
+        era_compiler_llvm_context::Target::EraVM => {
+            zkevm_tester::runners::compiler_tests::set_tracing_mode(
+                zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(
+                    arguments.trace as u64,
+                ),
+            );
+            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
+
+            let system_contract_debug_config = if arguments.dump_system {
+                debug_config
+            } else {
+                None
+            };
+            let vm = compiler_tester::EraVM::new(
+                binary_download_config_paths,
+                PathBuf::from("./configs/solc-bin-system-contracts.json"),
+                system_contract_debug_config,
+                arguments.system_contracts_load_path,
+                arguments.system_contracts_save_path,
+            )?;
+
+            match (
+                arguments.disable_deployer,
+                arguments.disable_value_simulator,
+            ) {
+                (true, true) => {
+                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm)?
+                }
+                (true, false) => {
+                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm)?
+                }
+                (false, true) => compiler_tester
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(vm)?,
+                (false, false) => compiler_tester
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm)?,
+            }
+        }
+        era_compiler_llvm_context::Target::EVM => {
+            compiler_tester::EVM::download(binary_download_config_paths)?;
+            compiler_tester.run_evm()?;
+        }
     }
 
     let summary = compiler_tester::Summary::unwrap_arc(summary);
@@ -175,12 +199,15 @@ mod tests {
             dump_system: false,
             disable_deployer: false,
             disable_value_simulator: false,
-            zksolc: Some(PathBuf::from(compiler_solidity::DEFAULT_EXECUTABLE_NAME)),
-            zkvyper: Some(PathBuf::from(compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+            zksolc: Some(PathBuf::from(
+                era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
+            )),
+            zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+            target: Some(era_compiler_llvm_context::Target::EraVM.to_string()),
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),
             vyper_bin_config_path: Some(PathBuf::from("./configs/vyper-bin-default.json")),
-            load_system_contracts: None,
-            save_system_contracts: None,
+            system_contracts_load_path: None,
+            system_contracts_save_path: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
         };

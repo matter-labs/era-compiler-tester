@@ -41,7 +41,7 @@ impl TryFrom<&Path> for Test {
         let comment_start = if path
             .extension()
             .ok_or_else(|| anyhow::anyhow!("Failed to get file extension"))?
-            == compiler_common::EXTENSION_VYPER
+            == era_compiler_common::EXTENSION_VYPER
         {
             "# ".to_owned()
         } else {
@@ -123,13 +123,10 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
                 let (name, relative_path) = match regex.captures(data) {
                     Some(captures) => (
                         captures.get(1).expect("Always exists").as_str().to_owned(),
-                        PathBuf::try_from(captures.get(2).expect("Always exists").as_str()),
+                        PathBuf::from(captures.get(2).expect("Always exists").as_str()),
                     ),
-                    None => (data.to_owned(), PathBuf::try_from(data)),
+                    None => (data.to_owned(), PathBuf::from(data)),
                 };
-                let relative_path = relative_path.map_err(|err| {
-                    anyhow::anyhow!("Invalid path on line {}: {}", index + 1, err)
-                })?;
 
                 let path = path
                     .parent()

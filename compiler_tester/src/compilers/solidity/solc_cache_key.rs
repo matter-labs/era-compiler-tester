@@ -12,7 +12,7 @@ pub struct SolcCacheKey {
     /// The Solidity compiler version.
     pub version: semver::Version,
     /// The Solidity compiler output type.
-    pub pipeline: compiler_solidity::SolcPipeline,
+    pub pipeline: era_compiler_solidity::SolcPipeline,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
     /// Whether to run the Solidity compiler optimizer.
@@ -26,7 +26,7 @@ impl SolcCacheKey {
     pub fn new(
         test_path: String,
         version: semver::Version,
-        pipeline: compiler_solidity::SolcPipeline,
+        pipeline: era_compiler_solidity::SolcPipeline,
         via_ir: bool,
         optimize: bool,
     ) -> Self {

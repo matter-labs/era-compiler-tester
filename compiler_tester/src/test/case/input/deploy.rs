@@ -6,8 +6,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::deployers::Deployer;
-use crate::eravm::EraVM;
+use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+use crate::vm::eravm::EraVM;
+use crate::vm::evm::EVM;
 use crate::Summary;
 
 use super::calldata::Calldata;
@@ -62,9 +63,9 @@ impl Deploy {
 
 impl Deploy {
     ///
-    /// Run the deploy input.
+    /// Runs the deploy on EraVM.
     ///
-    pub fn run<D, const M: bool>(
+    pub fn run_eravm<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
@@ -73,9 +74,9 @@ impl Deploy {
         test_group: Option<String>,
         name_prefix: String,
     ) where
-        D: Deployer,
+        D: EraVMDeployer,
     {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.path,);
+        let name = format!("{}[#deployer:{}]", name_prefix, self.path);
 
         vm.populate_storage(self.storage.inner);
         let result = match deployer.deploy::<M>(
@@ -107,8 +108,48 @@ impl Deploy {
                 test_group,
                 build_size,
                 result.cycles,
-                result.ergs,
+                result.gas,
             );
+        } else {
+            Summary::failed(
+                summary,
+                mode,
+                name,
+                self.expected,
+                result.output,
+                self.calldata.inner,
+            );
+        }
+    }
+
+    ///
+    /// Runs the deploy on EVM.
+    ///
+    pub fn run_evm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut EVM,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+    ) {
+        let name = format!("{}[#deployer:{}]", name_prefix, self.path);
+
+        vm.populate_storage(self.storage.inner);
+        let result = match vm.execute_deploy_code(
+            name.clone(),
+            self.caller,
+            self.value,
+            self.calldata.inner.clone(),
+        ) {
+            Ok(execution_result) => execution_result,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), name, error);
+                return;
+            }
+        };
+        if result.output == self.expected {
+            Summary::passed_runtime(summary, mode, name, test_group, result.cycles, result.gas);
         } else {
             Summary::failed(
                 summary,

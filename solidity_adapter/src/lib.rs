@@ -43,9 +43,10 @@ pub fn account_address(index: usize) -> web3::types::Address {
     let address = web3::types::U256::from_str(ZERO_ADDRESS).expect("Default address");
     let address = address.add(index * ADDRESS_INDEX_MULTIPLIER);
 
-    let mut bytes = [0u8; compiler_common::BYTE_LENGTH_FIELD];
+    let mut bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
     address.to_big_endian(&mut bytes);
     web3::types::Address::from_slice(
-        &bytes[compiler_common::BYTE_LENGTH_FIELD - compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
+        &bytes[era_compiler_common::BYTE_LENGTH_FIELD
+            - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
     )
 }

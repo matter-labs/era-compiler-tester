@@ -32,18 +32,29 @@ impl Config {
             None => anyhow::bail!("Platforms are not defined"),
         };
 
-        Ok(if cfg!(target_os = "linux") {
-            platforms
-                .get("linux")
-                .cloned()
-                .ok_or_else(|| anyhow::anyhow!("Linux platform directory is not defined"))?
-        } else if cfg!(target_os = "macos") {
-            platforms
-                .get("macos")
-                .cloned()
-                .ok_or_else(|| anyhow::anyhow!("MacOS platform directory is not defined"))?
+        let platform = if cfg!(target_arch = "x86_64") {
+            if cfg!(target_os = "linux") {
+                "linux-amd64"
+            } else if cfg!(target_os = "macos") {
+                "macos-amd64"
+            } else {
+                anyhow::bail!("This platform is not supported in `solc`!");
+            }
+        } else if cfg!(target_arch = "aarch64") {
+            if cfg!(target_os = "linux") {
+                "linux-arm64"
+            } else if cfg!(target_os = "macos") {
+                "macos-arm64"
+            } else {
+                anyhow::bail!("This platform is not supported in `solc`!");
+            }
         } else {
-            anyhow::bail!("Unsupported platform!")
-        })
+            anyhow::bail!("This platform is not supported in `solc`!");
+        };
+
+        platforms
+            .get(platform)
+            .cloned()
+            .ok_or_else(|| anyhow::anyhow!("Directory for platform `{}` is not defined", platform))
     }
 }

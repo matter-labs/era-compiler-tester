@@ -137,11 +137,14 @@ impl From<&zkevm_tester::runners::events::SolidityLikeEvent> for Event {
 
         let values: Vec<Value> = event
             .data
-            .chunks(compiler_common::BYTE_LENGTH_FIELD)
+            .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
             .map(|word| {
-                let value = if word.len() != compiler_common::BYTE_LENGTH_FIELD {
+                let value = if word.len() != era_compiler_common::BYTE_LENGTH_FIELD {
                     let mut word_padded = word.to_vec();
-                    word_padded.extend(vec![0u8; compiler_common::BYTE_LENGTH_FIELD - word.len()]);
+                    word_padded.extend(vec![
+                        0u8;
+                        era_compiler_common::BYTE_LENGTH_FIELD - word.len()
+                    ]);
                     web3::types::U256::from_big_endian(word_padded.as_slice())
                 } else {
                     web3::types::U256::from_big_endian(word)
@@ -152,6 +155,39 @@ impl From<&zkevm_tester::runners::events::SolidityLikeEvent> for Event {
 
         Self {
             address: Some(address),
+            topics,
+            values,
+        }
+    }
+}
+
+impl From<evm::Log> for Event {
+    fn from(log: evm::Log) -> Self {
+        let address = log.address;
+        let topics = log
+            .topics
+            .into_iter()
+            .map(|topic| Value::Certain(crate::utils::h256_to_u256(&topic)))
+            .collect();
+        let values: Vec<Value> = log
+            .data
+            .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
+            .map(|word| {
+                let value = if word.len() != era_compiler_common::BYTE_LENGTH_FIELD {
+                    let mut word_padded = word.to_vec();
+                    word_padded.extend(vec![
+                        0u8;
+                        era_compiler_common::BYTE_LENGTH_FIELD - word.len()
+                    ]);
+                    web3::types::U256::from_big_endian(word_padded.as_slice())
+                } else {
+                    web3::types::U256::from_big_endian(word)
+                };
+                Value::Certain(value)
+            })
+            .collect();
+        Self {
+            address: None,
             topics,
             values,
         }

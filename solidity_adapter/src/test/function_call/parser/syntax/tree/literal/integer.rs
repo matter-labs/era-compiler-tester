@@ -39,7 +39,7 @@ impl Literal {
     /// Converts literal to bytes.
     ///
     pub fn as_bytes_be(&self) -> Vec<u8> {
-        let mut result = vec![0u8; compiler_common::BYTE_LENGTH_FIELD];
+        let mut result = vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD];
         match &self.inner {
             LexicalIntegerLiteral::Decimal { inner, negative } => {
                 let mut number =
@@ -63,9 +63,12 @@ impl Literal {
             }
         }
         if self.alignment == Alignment::Left {
-            result.extend(vec![0; compiler_common::BYTE_LENGTH_FIELD - result.len()]);
+            result.extend(vec![
+                0;
+                era_compiler_common::BYTE_LENGTH_FIELD - result.len()
+            ]);
         } else {
-            let mut zeroes = vec![0; compiler_common::BYTE_LENGTH_FIELD - result.len()];
+            let mut zeroes = vec![0; era_compiler_common::BYTE_LENGTH_FIELD - result.len()];
             zeroes.extend(result);
             result = zeroes;
         }

@@ -37,7 +37,7 @@ impl Literal {
     /// Converts literal to bytes.
     ///
     pub fn as_bytes_be(&self) -> Vec<u8> {
-        let mut result = vec![0u8; compiler_common::BYTE_LENGTH_FIELD];
+        let mut result = vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD];
         web3::types::U256::from_str(self.inner.inner.as_str())
             .expect("Always valid")
             .to_big_endian(&mut result);

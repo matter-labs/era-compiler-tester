@@ -13,23 +13,36 @@ use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::test::Test;
+use crate::test::eravm::Test as EraVMTest;
+use crate::test::evm::Test as EVMTest;
 
 ///
 /// The buildable compiler test trait.
 ///
 pub trait Buildable: Send + Sync + 'static {
     ///
-    /// Builds the test.
+    /// Builds the test for EraVM.
     ///
-    fn build(
+    fn build_for_eravm(
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
-    ) -> Option<Test>;
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    ) -> Option<EraVMTest>;
+
+    ///
+    /// Builds the test for EVM.
+    ///
+    fn build_for_evm(
+        &self,
+        mode: Mode,
+        compiler: Arc<dyn Compiler>,
+        summary: Arc<Mutex<Summary>>,
+        filters: &Filters,
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    ) -> Option<EVMTest>;
 }
 
 ///

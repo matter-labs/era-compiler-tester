@@ -6,8 +6,8 @@ pub mod address_predictor;
 pub mod native_deployer;
 pub mod system_contract_deployer;
 
-use crate::eravm::execution_result::ExecutionResult;
-use crate::eravm::EraVM;
+use crate::vm::eravm::EraVM;
+use crate::vm::execution_result::ExecutionResult;
 
 ///
 /// The deployer trait.

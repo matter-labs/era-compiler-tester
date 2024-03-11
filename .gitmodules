@@ -6,7 +6,7 @@
 	path = solidity
 	url = https://github.com/ethereum/solidity
 	branch = develop
-[submodule "system-contracts"]
-	path = system-contracts
-	url = https://github.com/matter-labs/era-system-contracts
-	branch = main
+[submodule "era-contracts"]
+	path = era-contracts
+	url = https://github.com/matter-labs/era-contracts
+	branch = release-v20-1.4.1-short-term-fee-model

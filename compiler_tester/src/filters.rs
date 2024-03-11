@@ -1,5 +1,5 @@
 //!
-//! The compiler tests filters.
+//! The compiler tester filters.
 //!
 
 use std::collections::HashSet;
@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use crate::compilers::mode::Mode;
 
 ///
-/// The compiler tests filters.
+/// The compiler tester filters.
 ///
 pub struct Filters {
     /// The path filters.

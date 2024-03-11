@@ -75,11 +75,11 @@ pub enum Keyword {
 impl Keyword {
     /// The range including the minimal and maximal integer bit-lengths.
     pub const INTEGER_BIT_LENGTH_RANGE: RangeInclusive<usize> =
-        compiler_common::BIT_LENGTH_BYTE..=compiler_common::BIT_LENGTH_FIELD;
+        era_compiler_common::BIT_LENGTH_BYTE..=era_compiler_common::BIT_LENGTH_FIELD;
 
     /// The range including the minimal and maximal bytes byte-lengths.
     pub const BYTES_BYTE_LENGTH_RANGE: RangeInclusive<usize> =
-        compiler_common::BYTE_LENGTH_BYTE..=compiler_common::BYTE_LENGTH_FIELD;
+        era_compiler_common::BYTE_LENGTH_BYTE..=era_compiler_common::BYTE_LENGTH_FIELD;
 
     ///
     /// Creates a `uint{N}` keyword.
@@ -180,10 +180,10 @@ impl TryFrom<&str> for Keyword {
                     Self::INTEGER_BIT_LENGTH_RANGE,
                 ));
             }
-            if bit_length % compiler_common::BIT_LENGTH_BYTE != 0 {
+            if bit_length % era_compiler_common::BIT_LENGTH_BYTE != 0 {
                 return Err(Error::IntegerBitLengthNotMultipleOfEight(
                     bit_length,
-                    compiler_common::BIT_LENGTH_BYTE,
+                    era_compiler_common::BIT_LENGTH_BYTE,
                 ));
             }
             return Ok(Self::new_integer_unsigned(bit_length));
@@ -203,10 +203,10 @@ impl TryFrom<&str> for Keyword {
                     Self::INTEGER_BIT_LENGTH_RANGE,
                 ));
             }
-            if bit_length % compiler_common::BIT_LENGTH_BYTE != 0 {
+            if bit_length % era_compiler_common::BIT_LENGTH_BYTE != 0 {
                 return Err(Error::IntegerBitLengthNotMultipleOfEight(
                     bit_length,
-                    compiler_common::BIT_LENGTH_BYTE,
+                    era_compiler_common::BIT_LENGTH_BYTE,
                 ));
             }
             return Ok(Self::new_integer_signed(bit_length));

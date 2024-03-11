@@ -1,12 +1,12 @@
 [package]
 name = "benchmark-analyzer"
-version = "1.3.2"
+version = "1.4.1"
 authors = [
-    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+    "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
 ]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-description = "The zkEVM benchmarks analyzer"
+description = "The analyzer of benchmark reports"
 
 [[bin]]
 name = "benchmark-analyzer"

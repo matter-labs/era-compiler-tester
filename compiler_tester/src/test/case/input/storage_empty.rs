@@ -6,7 +6,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::eravm::EraVM;
+use crate::vm::eravm::EraVM;
+use crate::vm::evm::EVM;
 use crate::Summary;
 
 ///
@@ -29,9 +30,9 @@ impl StorageEmpty {
 
 impl StorageEmpty {
     ///
-    /// Run the storage empty check input.
+    /// Runs the storage empty check on EraVM.
     ///
-    pub fn run(
+    pub fn run_eravm(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &EraVM,
@@ -54,5 +55,29 @@ impl StorageEmpty {
                 vec![],
             );
         }
+    }
+
+    ///
+    /// Runs the storage empty check on EVM.
+    ///
+    pub fn run_evm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        _vm: &EVM,
+        mode: Mode,
+        _test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+    ) {
+        // TODO: check storage in EVM
+        let name = format!("{name_prefix}[#storage_empty_check:{index}]");
+        Summary::failed(
+            summary,
+            mode,
+            name,
+            self.is_empty.into(),
+            self.is_empty.into(),
+            vec![],
+        );
     }
 }

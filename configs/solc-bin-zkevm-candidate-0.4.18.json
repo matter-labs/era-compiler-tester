@@ -3,12 +3,14 @@
     "0.4.18": {
       "is_enabled": true,
       "protocol": "file",
-      "source": "./solc-bin/solc-0.4.18",
-      "destination": "./solc-bin/solc-0.4.18"
+      "source": "./solc-bin/solc-${VERSION}",
+      "destination": "./solc-bin/solc-${VERSION}"
     }
   },
   "platforms": {
-    "linux": "linux-amd64",
-    "macos": "macosx-amd64"
+    "linux-amd64": "linux-amd64",
+    "linux-arm64": "linux-arm64",
+    "macos-amd64": "macosx-amd64",
+    "macos-arm64": "macosx-arm64"
   }
 }

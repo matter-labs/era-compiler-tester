@@ -1,21 +1,22 @@
 //!
-//! The native deployer implementation.
+//! The EraVM native deployer implementation.
 //!
 
 use std::collections::HashMap;
 
 use web3::contract::tokens::Tokenizable;
 
-use crate::eravm::execution_result::ExecutionResult;
-use crate::eravm::EraVM;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::value::Value;
+use crate::vm::eravm::EraVM;
+use crate::vm::execution_result::ExecutionResult;
+use crate::vm::AddressPredictorIterator;
 
 use super::address_predictor::AddressPredictor;
 use super::Deployer;
 
 ///
-/// The native deployer implementation.
+/// The EraVM native deployer implementation.
 ///
 #[derive(Debug, Clone)]
 pub struct NativeDeployer {
@@ -44,7 +45,7 @@ impl Deployer for NativeDeployer {
         value: Option<u128>,
         vm: &mut EraVM,
     ) -> anyhow::Result<ExecutionResult> {
-        let address = self.address_predictor.advance_next_address(&caller);
+        let address = self.address_predictor.next(&caller, false);
 
         vm.add_deployed_contract(address, bytecode_hash, None);
 
@@ -55,13 +56,13 @@ impl Deployer for NativeDeployer {
             0
         };
 
-        let result = vm.run(
+        let result = vm.execute::<M>(
             test_name,
             address,
             caller,
-            context_u128_value,
+            Some(context_u128_value),
             constructor_calldata,
-            zkevm_tester::runners::compiler_tests::VmLaunchOption::Constructor,
+            Some(zkevm_tester::runners::compiler_tests::VmLaunchOption::Constructor),
         )?;
 
         if result.output.exception {
@@ -72,7 +73,7 @@ impl Deployer for NativeDeployer {
             return Ok(result);
         }
 
-        self.address_predictor.increment_nonce(caller);
+        self.address_predictor.increment_nonce(&caller);
 
         Self::set_immutables(address, &result.output.return_data, vm)?;
 
@@ -83,7 +84,7 @@ impl Deployer for NativeDeployer {
         Ok(ExecutionResult::new(
             Output::new(return_data, false, result.output.events),
             result.cycles,
-            result.ergs,
+            result.gas,
         ))
     }
 }
@@ -100,7 +101,7 @@ impl NativeDeployer {
         let return_data = encoded_data
             .iter()
             .flat_map(|value| {
-                let mut bytes = [0u8; compiler_common::BYTE_LENGTH_FIELD];
+                let mut bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
                 value.unwrap_certain_as_ref().to_big_endian(&mut bytes);
                 bytes
             })
@@ -141,14 +142,12 @@ impl NativeDeployer {
 
             let immutable_position = Self::get_position_of_immutable(address, immutable_index);
 
-            let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_IMMUTABLE_SIMULATOR.into(),
-                ),
-                key: immutable_position,
-            };
+            let address = web3::types::Address::from_low_u64_be(
+                zkevm_opcode_defs::ADDRESS_IMMUTABLE_SIMULATOR.into(),
+            );
+            let key = immutable_position;
 
-            immutables_storage.insert(storage_key, immutable_value);
+            immutables_storage.insert((address, key), immutable_value);
         }
 
         vm.populate_storage(immutables_storage);
@@ -164,12 +163,12 @@ impl NativeDeployer {
         index: web3::types::U256,
     ) -> web3::types::U256 {
         let mut key = web3::types::H256::from(address).to_fixed_bytes().to_vec();
-        key.extend([0u8; compiler_common::BYTE_LENGTH_FIELD]);
+        key.extend([0u8; era_compiler_common::BYTE_LENGTH_FIELD]);
         Self::IMMUTABLES_MAPPING_POSITION
-            .to_big_endian(&mut key[compiler_common::BYTE_LENGTH_FIELD..]);
+            .to_big_endian(&mut key[era_compiler_common::BYTE_LENGTH_FIELD..]);
         let key = web3::signing::keccak256(key.as_slice()).to_vec();
 
-        let mut nested_key = vec![0u8; compiler_common::BYTE_LENGTH_FIELD];
+        let mut nested_key = vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD];
         index.to_big_endian(&mut nested_key[..]);
         nested_key.extend(key);
         let nested_key = web3::signing::keccak256(nested_key.as_slice());

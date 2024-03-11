@@ -15,7 +15,7 @@ use crate::test::instance::Instance;
 #[derive(Debug, Clone, Default)]
 pub struct Storage {
     /// The inner storage hashmap data.
-    pub inner: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
+    pub inner: HashMap<(web3::types::Address, web3::types::U256), web3::types::H256>,
 }
 
 impl Storage {
@@ -58,7 +58,6 @@ impl Storage {
                     Value::Certain(value) => value,
                     Value::Any => anyhow::bail!("Storage key can not be `*`"),
                 };
-                let key = zkevm_tester::runners::compiler_tests::StorageKey { address, key };
 
                 let value = match Value::try_from_matter_labs(value.as_str(), instances)
                     .map_err(|error| anyhow::anyhow!("Invalid storage value: {}", error))?
@@ -67,11 +66,11 @@ impl Storage {
                     Value::Any => anyhow::bail!("Storage value can not be `*`"),
                 };
 
-                let mut value_bytes = [0u8; compiler_common::BYTE_LENGTH_FIELD];
+                let mut value_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
                 value.to_big_endian(value_bytes.as_mut_slice());
                 let value = web3::types::H256::from(value_bytes);
 
-                result_storage.insert(key, value);
+                result_storage.insert((address, key), value);
             }
         }
 

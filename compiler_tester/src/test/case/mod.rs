@@ -10,11 +10,12 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::deployers::Deployer;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
-use crate::eravm::EraVM;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
+use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+use crate::vm::eravm::EraVM;
+use crate::vm::evm::EVM;
 
 use self::input::Input;
 
@@ -50,13 +51,7 @@ impl Case {
 
         for (index, input) in case.inputs.iter().enumerate() {
             let input = Input::try_from_matter_labs(input, mode, instances, method_identifiers)
-                .map_err(|error| {
-                    anyhow::anyhow!(
-                        "Input {}(After adding deployer calls) is invalid: {}",
-                        index,
-                        error
-                    )
-                })?;
+                .map_err(|error| anyhow::anyhow!("Input #{} is invalid: {}", index, error))?;
             inputs.push(input);
         }
 
@@ -101,31 +96,58 @@ impl Case {
     }
 
     ///
-    /// Run the case.
+    /// Runs the case on EraVM.
     ///
-    pub fn run<D, const M: bool>(
+    pub fn run_eravm<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
-        initial_vm: EraVM,
+        mut vm: EraVM,
         mode: &Mode,
         test_name: String,
         test_group: Option<String>,
     ) where
-        D: Deployer,
+        D: EraVMDeployer,
     {
         let name = if let Some(case_name) = self.name {
             format!("{test_name}::{case_name}")
         } else {
             test_name
         };
-        let mut vm = initial_vm;
         let mut deployer = D::new();
         for (index, input) in self.inputs.into_iter().enumerate() {
-            input.run::<_, M>(
+            input.run_eravm::<_, M>(
                 summary.clone(),
                 &mut vm,
                 mode.clone(),
                 &mut deployer,
+                test_group.clone(),
+                name.clone(),
+                index,
+            )
+        }
+    }
+
+    ///
+    /// Runs the case on EVM.
+    ///
+    pub fn run_evm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        mut vm: EVM,
+        mode: &Mode,
+        test_name: String,
+        test_group: Option<String>,
+    ) {
+        let name = if let Some(case_name) = self.name {
+            format!("{test_name}::{case_name}")
+        } else {
+            test_name
+        };
+        for (index, input) in self.inputs.into_iter().enumerate() {
+            input.run_evm(
+                summary.clone(),
+                &mut vm,
+                mode.clone(),
                 test_group.clone(),
                 name.clone(),
                 index,

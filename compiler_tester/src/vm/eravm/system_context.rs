@@ -1,5 +1,5 @@
 //!
-//! The system context.
+//! The EraVM system context.
 //!
 
 use std::collections::HashMap;
@@ -7,7 +7,7 @@ use std::ops::Add;
 use std::str::FromStr;
 
 ///
-/// The system context.
+/// The EraVM system context.
 ///
 pub struct SystemContext;
 
@@ -139,7 +139,7 @@ impl SystemContext {
             let mut hash = web3::types::U256::from_str(Self::ZERO_BLOCK_HASH)
                 .expect("Invalid zero block hash const");
             hash = hash.add(web3::types::U256::from(index));
-            let mut hash_bytes = [0u8; compiler_common::BYTE_LENGTH_FIELD];
+            let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
             hash.to_big_endian(&mut hash_bytes);
 
             system_context_values.push((

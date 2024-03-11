@@ -63,10 +63,10 @@ impl Element {
                     details.push(format!("size {size}").bright_white().to_string())
                 };
                 match variant {
-                    PassedVariant::Deploy { cycles, ergs, .. }
-                    | PassedVariant::Runtime { cycles, ergs } => {
+                    PassedVariant::Deploy { cycles, gas, .. }
+                    | PassedVariant::Runtime { cycles, gas } => {
                         details.push(format!("cycles {cycles}").bright_white().to_string());
-                        details.push(format!("ergs {ergs}").bright_white().to_string())
+                        details.push(format!("gas {gas}").bright_white().to_string())
                     }
                     _ => {}
                 };

@@ -20,7 +20,8 @@
     }
   },
   "platforms": {
-    "linux": "linux",
-    "macos": "darwin"
+    "linux-amd64": "linux",
+    "macos-amd64": "darwin",
+    "macos-arm64": "darwin"
   }
 }
