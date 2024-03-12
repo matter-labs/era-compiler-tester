@@ -1,7 +1,10 @@
-name: Testing
+name: Test
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -12,31 +15,19 @@ jobs:
     runs-on: [self-hosted, ci-runner-compiler]
     timeout-minutes: 720
     container:
-      image: matterlabs/llvm_runner:latest
-      credentials:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      image: matterlabs/llvm_runner:ubuntu22-llvm15-latest
       options: -m 110g
     steps:
-      # Add safe.directory per https://github.com/actions/checkout/issues/766
-      - name: Setting all dirs as safe safe.directory
-        run: |
-          git config --system --add safe.directory '*'
-          git config --global --add safe.directory '*'
-
-      - name: Preparing workspace. Checkout compiler-tester repository.
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: compiler-tester
           submodules: recursive
 
-      - name: Testing. Building and running compiler tester.
-        id: compiler_tester_run
-        run: |
-          cd compiler-tester
-          cargo install compiler-llvm-builder
-          /usr/local/cargo/bin/zkevm-llvm clone && /usr/local/cargo/bin/zkevm-llvm build --targets 'EVM'
+      - name: Build LLVM
+        uses: ./.github/actions/build-llvm
 
+      - name: Run tests
+        run: |
           export RUST_BACKTRACE='full'
           export LLVM_SYS_150_PREFIX="$(pwd)/target-llvm/target-final/"
           cargo build --verbose --release --bin 'compiler-tester'
@@ -47,10 +38,11 @@ jobs:
             --zksolc './target-zksolc/release/zksolc' \
             --zkvyper './target-zkvyper/release/zkvyper'
 
-      - uses: 8398a7/action-slack@v3
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        if: ${{ failure() || success() }} # Skip canceled jobs
         with:
           status: ${{ job.status }}
-          fields: repo,commit,author,action,eventName,ref,workflow,job,took,pullRequest # selectable (default: repo,message)
+          fields: repo,commit,author,action,eventName,ref,workflow,job,took,pullRequest
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.COMPILER_CI_MATTERMOST_WEBHOOK }} # required
-        if: ${{ failure() || success() }} # Skip canceled jobs
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
