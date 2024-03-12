@@ -1,4 +1,4 @@
-name: Compiler benchmarking
+name: Benchmarks
 
 on:
   pull_request:
@@ -50,9 +50,6 @@ jobs:
           else
             echo "COMPILER_TESTER_BRANCH_NAME=${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}" >> $GITHUB_ENV
           fi
-          
-          # Just for one-time test, remove after
-          echo "COMPILER_TESTER_BRANCH_NAME=${{ github.head_ref}}" >> $GITHUB_ENV
 
       - name: Checkout compiler-tester
         uses: actions/checkout@v4
