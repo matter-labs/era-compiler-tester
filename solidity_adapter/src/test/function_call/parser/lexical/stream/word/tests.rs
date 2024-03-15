@@ -76,7 +76,7 @@ fn ok_keyword_unsigned_integer_max() {
     let expected = Output::new(
         input.len(),
         Lexeme::Keyword(Keyword::new_integer_unsigned(
-            compiler_common::BIT_LENGTH_FIELD,
+            era_compiler_common::BIT_LENGTH_FIELD,
         )),
     );
     let result = parse(input);

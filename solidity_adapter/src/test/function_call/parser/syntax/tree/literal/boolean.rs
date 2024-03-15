@@ -35,7 +35,7 @@ impl Literal {
     /// Converts literal to bytes.
     ///
     pub fn as_bytes_be(&self) -> Vec<u8> {
-        let mut result = vec![0u8; compiler_common::BYTE_LENGTH_FIELD];
+        let mut result = vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD];
         if self.inner == LexicalBooleanLiteral::True {
             if self.alignment == Alignment::Left {
                 result[0] = 1;

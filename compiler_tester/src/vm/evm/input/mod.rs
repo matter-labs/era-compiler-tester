@@ -1,5 +1,5 @@
 //!
-//! The compiler output.
+//! The EVM compiler input.
 //!
 
 pub mod build;
@@ -10,10 +10,10 @@ use std::collections::HashMap;
 use self::build::Build;
 
 ///
-/// The compiler output.
+/// The EraVM compiler input.
 ///
-#[derive(Debug, Clone)]
-pub struct Output {
+#[derive(Debug)]
+pub struct Input {
     /// The contract builds.
     pub builds: HashMap<String, Build>,
     /// The contracts method identifiers.
@@ -22,7 +22,7 @@ pub struct Output {
     pub last_contract: String,
 }
 
-impl Output {
+impl Input {
     ///
     /// A shortcut constructor.
     ///

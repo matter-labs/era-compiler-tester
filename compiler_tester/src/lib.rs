@@ -3,34 +3,30 @@
 //!
 
 pub(crate) mod compilers;
-pub(crate) mod deployers;
 pub(crate) mod directories;
-pub(crate) mod eravm;
 pub(crate) mod filters;
 pub(crate) mod llvm_options;
 pub(crate) mod summary;
 pub(crate) mod test;
 pub(crate) mod utils;
+pub(crate) mod vm;
 
-pub use self::deployers::native_deployer::NativeDeployer;
-pub use self::deployers::system_contract_deployer::SystemContractDeployer;
 pub use self::filters::Filters;
 pub use self::llvm_options::LLVMOptions;
 pub use self::summary::Summary;
+pub use crate::vm::eravm::deployers::native_deployer::NativeDeployer as EraVMNativeDeployer;
+pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
+pub use crate::vm::eravm::EraVM;
+pub use crate::vm::evm::EVM;
 
 use std::path::Path;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::time::Duration;
-use std::time::Instant;
 
-use colored::Colorize;
 use itertools::Itertools;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
-use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::compilers::eravm::EraVMCompiler;
 use crate::compilers::llvm::LLVMCompiler;
 use crate::compilers::mode::Mode;
@@ -38,12 +34,11 @@ use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::vyper::VyperCompiler;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
-use crate::deployers::Deployer;
 use crate::directories::ethereum::EthereumDirectory;
 use crate::directories::matter_labs::MatterLabsDirectory;
 use crate::directories::Buildable;
 use crate::directories::TestsDirectory;
-use crate::eravm::EraVM;
+use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
 
 /// The debug directory path.
 pub const DEBUG_DIRECTORY: &str = "./debug/";
@@ -57,7 +52,7 @@ pub const TRACE_DIRECTORY: &str = "./trace/";
 type Test = (Arc<dyn Buildable>, Arc<dyn Compiler>, Mode);
 
 ///
-/// The compiler-tester.
+/// The compiler tester.
 ///
 pub struct CompilerTester {
     /// The summary.
@@ -65,9 +60,7 @@ pub struct CompilerTester {
     /// The filters.
     filters: Filters,
     /// The debug config.
-    debug_config: Option<compiler_llvm_context::DebugConfig>,
-    /// The initial EraVM.
-    initial_vm: Arc<EraVM>,
+    debug_config: Option<era_compiler_llvm_context::DebugConfig>,
 }
 
 impl CompilerTester {
@@ -99,129 +92,39 @@ impl CompilerTester {
     ///
     /// A shortcut constructor.
     ///
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         summary: Arc<Mutex<Summary>>,
         filters: Filters,
-
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
-
-        binary_download_config_paths: Vec<PathBuf>,
-        system_contracts_download_config_path: PathBuf,
-        system_contracts_debug_config: Option<compiler_llvm_context::DebugConfig>,
-        system_contracts_path: Option<PathBuf>,
-        system_contracts_save_path: Option<PathBuf>,
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<Self> {
-        let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
-        http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
-        http_client_builder = http_client_builder.pool_idle_timeout(Duration::from_secs(60));
-        http_client_builder = http_client_builder.timeout(Duration::from_secs(60));
-        let http_client = http_client_builder.build()?;
-
-        let download_time_start = Instant::now();
-        println!(" {} compiler binaries", "Downloading".bright_green().bold());
-        let system_contracts_solc_downloader_config = CompilerDownloader::new(http_client.clone())
-            .download(system_contracts_download_config_path.as_path())?;
-        for config_path in binary_download_config_paths.into_iter() {
-            CompilerDownloader::new(http_client.clone()).download(config_path.as_path())?;
-        }
-        println!(
-            "    {} downloading compiler binaries in {}m{:02}s",
-            "Finished".bright_green().bold(),
-            download_time_start.elapsed().as_secs() / 60,
-            download_time_start.elapsed().as_secs() % 60,
-        );
-
-        let initial_vm = Arc::new(EraVM::initialize(
-            system_contracts_solc_downloader_config,
-            system_contracts_debug_config,
-            system_contracts_path,
-            system_contracts_save_path,
-        )?);
-
         Ok(Self {
             summary,
             filters,
-
             debug_config,
-
-            initial_vm,
         })
     }
 
     ///
-    /// Runs all the tests.
+    /// Runs all tests on EraVM.
     ///
-    pub fn run<D, const M: bool>(self) -> anyhow::Result<()>
+    pub fn run_eravm<D, const M: bool>(self, vm: EraVM) -> anyhow::Result<()>
     where
-        D: Deployer,
+        D: EraVMDeployer,
     {
-        let solidity_compiler = Arc::new(SolidityCompiler::new());
-        let vyper_compiler = Arc::new(VyperCompiler::new());
-        let yul_compiler = Arc::new(YulCompiler::new());
-        let llvm_compiler = Arc::new(LLVMCompiler::new());
-        let eravm_compiler = Arc::new(EraVMCompiler::new());
-
-        let mut tests = Vec::new();
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::SOLIDITY_SIMPLE,
-            compiler_common::EXTENSION_SOLIDITY,
-            solidity_compiler.clone(),
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_SIMPLE,
-            compiler_common::EXTENSION_VYPER,
-            vyper_compiler.clone(),
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::YUL_SIMPLE,
-            compiler_common::EXTENSION_YUL,
-            yul_compiler,
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::LLVM_SIMPLE,
-            compiler_common::EXTENSION_LLVM_SOURCE,
-            llvm_compiler,
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::ERAVM_SIMPLE,
-            compiler_common::EXTENSION_ERAVM_ASSEMBLY,
-            eravm_compiler,
-        )?);
-
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::SOLIDITY_COMPLEX,
-            compiler_common::EXTENSION_JSON,
-            solidity_compiler.clone(),
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_COMPLEX,
-            compiler_common::EXTENSION_JSON,
-            vyper_compiler.clone(),
-        )?);
-
-        tests.extend(self.directory::<EthereumDirectory>(
-            Self::SOLIDITY_ETHEREUM,
-            compiler_common::EXTENSION_SOLIDITY,
-            solidity_compiler,
-        )?);
-        tests.extend(self.directory::<EthereumDirectory>(
-            Self::VYPER_ETHEREUM,
-            compiler_common::EXTENSION_VYPER,
-            vyper_compiler,
-        )?);
+        let tests = self.all_tests()?;
+        let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
-                if let Some(test) = test.build(
+                if let Some(test) = test.build_for_eravm(
                     mode,
                     compiler,
                     self.summary.clone(),
                     &self.filters,
                     self.debug_config.clone(),
                 ) {
-                    test.run::<D, M>(self.summary.clone(), self.initial_vm.clone());
+                    test.run::<D, M>(self.summary.clone(), vm.clone());
                 }
             })
             .collect();
@@ -230,7 +133,31 @@ impl CompilerTester {
     }
 
     ///
-    /// Returns all test from the specified directory with the specified compiler.
+    /// Runs all tests on EraVM.
+    ///
+    pub fn run_evm(self) -> anyhow::Result<()> {
+        let tests = self.all_tests()?;
+
+        let _: Vec<()> = tests
+            .into_par_iter()
+            .map(|(test, compiler, mode)| {
+                if let Some(test) = test.build_for_evm(
+                    mode,
+                    compiler,
+                    self.summary.clone(),
+                    &self.filters,
+                    self.debug_config.clone(),
+                ) {
+                    test.run(self.summary.clone());
+                }
+            })
+            .collect();
+
+        Ok(())
+    }
+
+    ///
+    /// Returns all tests from the specified directory for the specified compiler.
     ///
     fn directory<T>(
         &self,
@@ -255,5 +182,68 @@ impl CompilerTester {
         .cartesian_product(compiler.modes())
         .map(|(test, mode)| (test, compiler.clone() as Arc<dyn Compiler>, mode))
         .collect())
+    }
+
+    ///
+    /// Returns all tests from all directories.
+    ///
+    fn all_tests(&self) -> anyhow::Result<Vec<Test>> {
+        let solidity_compiler = Arc::new(SolidityCompiler::new());
+        let vyper_compiler = Arc::new(VyperCompiler::new());
+        let yul_compiler = Arc::new(YulCompiler);
+        let llvm_compiler = Arc::new(LLVMCompiler);
+        let eravm_compiler = Arc::new(EraVMCompiler);
+
+        let mut tests = Vec::with_capacity(16384);
+
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::SOLIDITY_SIMPLE,
+            era_compiler_common::EXTENSION_SOLIDITY,
+            solidity_compiler.clone(),
+        )?);
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::VYPER_SIMPLE,
+            era_compiler_common::EXTENSION_VYPER,
+            vyper_compiler.clone(),
+        )?);
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::YUL_SIMPLE,
+            era_compiler_common::EXTENSION_YUL,
+            yul_compiler,
+        )?);
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::LLVM_SIMPLE,
+            era_compiler_common::EXTENSION_LLVM_SOURCE,
+            llvm_compiler,
+        )?);
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::ERAVM_SIMPLE,
+            era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
+            eravm_compiler,
+        )?);
+
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::SOLIDITY_COMPLEX,
+            era_compiler_common::EXTENSION_JSON,
+            solidity_compiler.clone(),
+        )?);
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            Self::VYPER_COMPLEX,
+            era_compiler_common::EXTENSION_JSON,
+            vyper_compiler.clone(),
+        )?);
+
+        tests.extend(self.directory::<EthereumDirectory>(
+            Self::SOLIDITY_ETHEREUM,
+            era_compiler_common::EXTENSION_SOLIDITY,
+            solidity_compiler,
+        )?);
+        tests.extend(self.directory::<EthereumDirectory>(
+            Self::VYPER_ETHEREUM,
+            era_compiler_common::EXTENSION_VYPER,
+            vyper_compiler,
+        )?);
+
+        Ok(tests)
     }
 }

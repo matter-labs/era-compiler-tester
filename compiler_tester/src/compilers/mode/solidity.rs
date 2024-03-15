@@ -16,13 +16,13 @@ pub struct Mode {
     /// The Solidity compiler version.
     pub solc_version: semver::Version,
     /// The Solidity compiler output type.
-    pub solc_pipeline: compiler_solidity::SolcPipeline,
+    pub solc_pipeline: era_compiler_solidity::SolcPipeline,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
     /// Whether to run the Solidity compiler optimizer.
     pub solc_optimize: bool,
     /// The optimizer settings.
-    pub llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+    pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
 }
 
 impl Mode {
@@ -31,10 +31,10 @@ impl Mode {
     ///
     pub fn new(
         solc_version: semver::Version,
-        solc_pipeline: compiler_solidity::SolcPipeline,
+        solc_pipeline: era_compiler_solidity::SolcPipeline,
         via_ir: bool,
         solc_optimize: bool,
-        mut llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+        mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
     ) -> Self {
         let llvm_options = LLVMOptions::get();
         llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
@@ -98,20 +98,21 @@ impl Mode {
             solidity_adapter::EVM::London,
             solidity_adapter::EVM::Paris,
             solidity_adapter::EVM::Shanghai,
+            solidity_adapter::EVM::Cancun,
         ]) {
             return false;
         }
 
         match self.solc_pipeline {
-            compiler_solidity::SolcPipeline::Yul => {
+            era_compiler_solidity::SolcPipeline::Yul => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::False
                     && params.abi_encoder_v1_only != solidity_adapter::ABIEncoderV1Only::True
             }
-            compiler_solidity::SolcPipeline::EVMLA if self.via_ir => {
+            era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::False
                     && params.abi_encoder_v1_only != solidity_adapter::ABIEncoderV1Only::True
             }
-            compiler_solidity::SolcPipeline::EVMLA => {
+            era_compiler_solidity::SolcPipeline::EVMLA => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::True
             }
         }
@@ -124,9 +125,9 @@ impl std::fmt::Display for Mode {
             f,
             "{}{}{} {}",
             match self.solc_pipeline {
-                compiler_solidity::SolcPipeline::Yul => "Y",
-                compiler_solidity::SolcPipeline::EVMLA if self.via_ir => "y",
-                compiler_solidity::SolcPipeline::EVMLA => "E",
+                era_compiler_solidity::SolcPipeline::Yul => "Y",
+                era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => "y",
+                era_compiler_solidity::SolcPipeline::EVMLA => "E",
             },
             if self.solc_optimize { '+' } else { '-' },
             self.llvm_optimizer_settings,

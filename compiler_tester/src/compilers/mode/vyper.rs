@@ -16,7 +16,7 @@ pub struct Mode {
     /// Whether to run the Vyper compiler optimizer.
     pub vyper_optimize: bool,
     /// The optimizer settings.
-    pub llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+    pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
 }
 
 impl Mode {
@@ -26,7 +26,7 @@ impl Mode {
     pub fn new(
         vyper_version: semver::Version,
         vyper_optimize: bool,
-        mut llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+        mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
     ) -> Self {
         let llvm_options = LLVMOptions::get();
         llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();

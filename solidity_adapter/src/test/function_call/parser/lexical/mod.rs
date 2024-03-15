@@ -11,7 +11,6 @@ mod token;
 
 pub use self::error::Error;
 pub use self::stream::TokenStream;
-pub use self::token::lexeme::identifier::Identifier;
 pub use self::token::lexeme::keyword::Keyword;
 pub use self::token::lexeme::literal::boolean::Boolean as BooleanLiteral;
 pub use self::token::lexeme::literal::hex::Hex as HexLiteral;

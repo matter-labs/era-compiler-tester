@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
                     name: "solidity/simple".to_string(),
                     directories: vec![TestsDirectory {
                         path: PathBuf::from("tests/solidity/simple"),
-                        extension: compiler_common::EXTENSION_SOLIDITY.to_string(),
+                        extension: era_compiler_common::EXTENSION_SOLIDITY.to_string(),
                         flatten: false,
                     }],
                 },
@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
                     name: "vyper/simple".to_string(),
                     directories: vec![TestsDirectory {
                         path: PathBuf::from("tests/vyper/simple"),
-                        extension: compiler_common::EXTENSION_VYPER.to_string(),
+                        extension: era_compiler_common::EXTENSION_VYPER.to_string(),
                         flatten: false,
                     }],
                 },
@@ -54,7 +54,7 @@ fn main() -> anyhow::Result<()> {
                     name: "solidity/complex".to_string(),
                     directories: vec![TestsDirectory {
                         path: PathBuf::from("tests/solidity/complex"),
-                        extension: compiler_common::EXTENSION_JSON.to_string(),
+                        extension: era_compiler_common::EXTENSION_JSON.to_string(),
                         flatten: false,
                     }],
                 },
@@ -62,7 +62,7 @@ fn main() -> anyhow::Result<()> {
                     name: "vyper/complex".to_string(),
                     directories: vec![TestsDirectory {
                         path: PathBuf::from("tests/vyper/complex"),
-                        extension: compiler_common::EXTENSION_JSON.to_string(),
+                        extension: era_compiler_common::EXTENSION_JSON.to_string(),
                         flatten: false,
                     }],
                 },
@@ -72,7 +72,7 @@ fn main() -> anyhow::Result<()> {
                     name: "solidity/external".to_string(),
                     directories: vec![TestsDirectory {
                         path: PathBuf::from("solidity/test/libsolidity/semanticTests"),
-                        extension: compiler_common::EXTENSION_SOLIDITY.to_string(),
+                        extension: era_compiler_common::EXTENSION_SOLIDITY.to_string(),
                         flatten: false,
                     }],
                 },
@@ -81,12 +81,12 @@ fn main() -> anyhow::Result<()> {
                     directories: vec![
                         TestsDirectory {
                             path: PathBuf::from("tests/vyper/external"),
-                            extension: compiler_common::EXTENSION_VYPER.to_string(),
+                            extension: era_compiler_common::EXTENSION_VYPER.to_string(),
                             flatten: false,
                         },
                         TestsDirectory {
                             path: PathBuf::from("tests/vyper/complex/external"),
-                            extension: compiler_common::EXTENSION_JSON.to_string(),
+                            extension: era_compiler_common::EXTENSION_JSON.to_string(),
                             flatten: true,
                         },
                     ],

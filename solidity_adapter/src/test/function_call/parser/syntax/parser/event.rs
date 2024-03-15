@@ -339,9 +339,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::test::function_call::parser::lexical::Identifier as LexicalIdentifier;
-
     use crate::test::function_call::parser::lexical::Lexeme;
 
     use crate::test::function_call::parser::lexical::Location;

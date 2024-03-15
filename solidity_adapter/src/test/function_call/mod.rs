@@ -201,7 +201,7 @@ impl TryFrom<parser::Call> for FunctionCall {
                         Ok(Self::IsoltestSideEffectsTest { input, expected })
                     }
                     "balance" => {
-                        if input.len() > compiler_common::BYTE_LENGTH_FIELD {
+                        if input.len() > era_compiler_common::BYTE_LENGTH_FIELD {
                             anyhow::bail!("balance function expect one or zero element");
                         }
                         if expected.len() != 1 {
@@ -214,8 +214,8 @@ impl TryFrom<parser::Call> for FunctionCall {
                                 if !input
                                     .iter()
                                     .take(
-                                        compiler_common::BYTE_LENGTH_FIELD
-                                            - compiler_common::BYTE_LENGTH_ETH_ADDRESS,
+                                        era_compiler_common::BYTE_LENGTH_FIELD
+                                            - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS,
                                     )
                                     .all(|byte| byte.eq(&0))
                                 {
@@ -224,8 +224,8 @@ impl TryFrom<parser::Call> for FunctionCall {
                                     );
                                 }
                                 Some(web3::types::Address::from_slice(
-                                    &input[compiler_common::BYTE_LENGTH_FIELD
-                                        - compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
+                                    &input[era_compiler_common::BYTE_LENGTH_FIELD
+                                        - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
                                 ))
                             },
                             expected: expected.into_iter().next().expect("Always valid"),
@@ -251,7 +251,7 @@ impl TryFrom<parser::Call> for FunctionCall {
                         })
                     }
                     "account" => {
-                        if input.len() != compiler_common::BYTE_LENGTH_FIELD {
+                        if input.len() != era_compiler_common::BYTE_LENGTH_FIELD {
                             anyhow::bail!("account function expect one element");
                         }
                         if expected.len() != 1 {
@@ -265,13 +265,13 @@ impl TryFrom<parser::Call> for FunctionCall {
                         }
                         let input = web3::types::U256::from_big_endian(input.as_slice());
                         let expected = expected.into_iter().next().expect("Always valid");
-                        let mut expected_bytes = [0u8; compiler_common::BYTE_LENGTH_FIELD];
+                        let mut expected_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
                         expected.to_big_endian(&mut expected_bytes);
                         Ok(Self::Account {
                             input: input.as_usize(),
                             expected: web3::types::Address::from_slice(
                                 &expected_bytes[expected_bytes.len()
-                                    - compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
+                                    - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
                             ),
                         })
                     }
@@ -347,9 +347,9 @@ fn signature(identifier: Option<Identifier>, types: Option<Vec<Type>>) -> String
 ///
 fn bytes_as_u256(bytes: &[u8]) -> Vec<web3::types::U256> {
     let mut result = Vec::new();
-    for value in bytes.chunks(compiler_common::BYTE_LENGTH_FIELD) {
+    for value in bytes.chunks(era_compiler_common::BYTE_LENGTH_FIELD) {
         let mut value = value.to_owned();
-        while value.len() < compiler_common::BYTE_LENGTH_FIELD {
+        while value.len() < era_compiler_common::BYTE_LENGTH_FIELD {
             value.push(0);
         }
         result.push(web3::types::U256::from_big_endian(value.as_slice()));

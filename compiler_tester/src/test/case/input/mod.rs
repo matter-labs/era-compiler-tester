@@ -18,11 +18,12 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::deployers::Deployer;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
-use crate::eravm::EraVM;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
+use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+use crate::vm::eravm::EraVM;
+use crate::vm::evm::EVM;
 
 use self::balance::Balance;
 use self::calldata::Calldata;
@@ -144,7 +145,7 @@ impl Input {
                         .ok_or_else(|| {
                             anyhow::anyhow!("Selector of the method `{}` not found", entry)
                         })?,
-                    None => u32::from_str_radix(entry, compiler_common::BASE_HEXADECIMAL)
+                    None => u32::from_str_radix(entry, era_compiler_common::BASE_HEXADECIMAL)
                         .map_err(|err| anyhow::anyhow!("Invalid entry value: {}", err))?,
                 };
 
@@ -296,10 +297,10 @@ impl Input {
     }
 
     ///
-    /// Run the input.
+    /// Runs the input on EraVM.
     ///
     #[allow(clippy::too_many_arguments)]
-    pub fn run<D, const M: bool>(
+    pub fn run_eravm<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
@@ -309,20 +310,46 @@ impl Input {
         name_prefix: String,
         index: usize,
     ) where
-        D: Deployer,
+        D: EraVMDeployer,
     {
         match self {
             Self::Runtime(runtime) => {
-                runtime.run::<M>(summary, vm, mode, test_group, name_prefix, index)
+                runtime.run_eravm::<M>(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Deploy(deploy) => {
-                deploy.run::<_, M>(summary, vm, mode, deployer, test_group, name_prefix)
+                deploy.run_eravm::<_, M>(summary, vm, mode, deployer, test_group, name_prefix)
             }
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_eravm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Balance(balance_check) => {
-                balance_check.run(summary, vm, mode, test_group, name_prefix, index)
+                balance_check.run_eravm(summary, vm, mode, test_group, name_prefix, index)
+            }
+        };
+    }
+
+    ///
+    /// Runs the input on EVM.
+    ///
+    pub fn run_evm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut EVM,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+    ) {
+        match self {
+            Self::Runtime(runtime) => {
+                runtime.run_evm(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::Deploy(deploy) => deploy.run_evm(summary, vm, mode, test_group, name_prefix),
+            Self::StorageEmpty(storage_empty) => {
+                storage_empty.run_evm(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::Balance(balance_check) => {
+                balance_check.run_evm(summary, vm, mode, test_group, name_prefix, index)
             }
         };
     }

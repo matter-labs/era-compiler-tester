@@ -23,7 +23,7 @@ impl Build {
     /// A shortcut constructor.
     ///
     pub fn new(assembly: zkevm_assembly::Assembly) -> anyhow::Result<Self> {
-        let bytecode: Vec<[u8; compiler_common::BYTE_LENGTH_FIELD]> = assembly
+        let bytecode: Vec<[u8; era_compiler_common::BYTE_LENGTH_FIELD]> = assembly
             .clone()
             .compile_to_bytecode()
             .map_err(|error| anyhow::anyhow!("Compiling to bytecode error: {}", error))?;
@@ -67,7 +67,7 @@ struct BuildHelper {
     /// The contract assembly string.
     assembly: String,
     /// The contract metadata hash.
-    metadata_hash: Option<[u8; compiler_common::BYTE_LENGTH_FIELD]>,
+    metadata_hash: Option<[u8; era_compiler_common::BYTE_LENGTH_FIELD]>,
 }
 
 impl Serialize for Build {

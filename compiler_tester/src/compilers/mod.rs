@@ -7,7 +7,6 @@ pub mod downloader;
 pub mod eravm;
 pub mod llvm;
 pub mod mode;
-pub mod output;
 pub mod solidity;
 pub mod vyper;
 pub mod yul;
@@ -15,22 +14,19 @@ pub mod yul;
 use std::collections::BTreeMap;
 
 use self::mode::Mode;
-use self::output::Output;
+
+use crate::vm::eravm::input::Input as EraVMInput;
+use crate::vm::evm::input::Input as EVMInput;
 
 ///
 /// The compiler trait.
 ///
 pub trait Compiler: Send + Sync + 'static {
     ///
-    /// Returns supported compiler modes.
-    ///
-    fn modes(&self) -> Vec<Mode>;
-
-    ///
-    /// Compile all the sources.
+    /// Compile all sources for EraVM.
     ///
     #[allow(clippy::too_many_arguments)]
-    fn compile(
+    fn compile_for_eravm(
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
@@ -38,11 +34,28 @@ pub trait Compiler: Send + Sync + 'static {
         mode: &Mode,
         is_system_mode: bool,
         is_system_contracts_mode: bool,
-        debug_config: Option<compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<Output>;
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    ) -> anyhow::Result<EraVMInput>;
 
     ///
-    /// Returns true if the one source file can contains many contracts, false otherwise.
+    /// Compile all sources for EVM.
     ///
-    fn has_many_contracts(&self) -> bool;
+    fn compile_for_evm(
+        &self,
+        test_path: String,
+        sources: Vec<(String, String)>,
+        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        mode: &Mode,
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    ) -> anyhow::Result<EVMInput>;
+
+    ///
+    /// Returns supported compiler modes.
+    ///
+    fn modes(&self) -> Vec<Mode>;
+
+    ///
+    /// Whether one source file can contains multiple contracts.
+    ///
+    fn has_multiple_contracts(&self) -> bool;
 }

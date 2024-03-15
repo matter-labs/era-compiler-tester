@@ -109,7 +109,7 @@ impl Mode {
     ///
     /// Returns the LLVM optimizer settings.
     ///
-    pub fn llvm_optimizer_settings(&self) -> Option<&compiler_llvm_context::OptimizerSettings> {
+    pub fn llvm_optimizer_settings(&self) -> Option<&era_compiler_llvm_context::OptimizerSettings> {
         match self {
             Mode::Solidity(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::Yul(mode) => Some(&mode.llvm_optimizer_settings),

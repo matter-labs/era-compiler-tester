@@ -81,7 +81,7 @@ impl Summary {
             format!(
                 "{} {}",
                 benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                compiler_llvm_context::OptimizerSettings::cycles(),
+                era_compiler_llvm_context::OptimizerSettings::cycles(),
             ),
             benchmark_analyzer::BenchmarkGroup::default(),
         );
@@ -89,21 +89,21 @@ impl Summary {
             format!(
                 "{} {}",
                 benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                compiler_llvm_context::OptimizerSettings::size(),
+                era_compiler_llvm_context::OptimizerSettings::size(),
             ),
             benchmark_analyzer::BenchmarkGroup::default(),
         );
 
         for element in self.elements.iter() {
-            let (size, cycles, ergs, group) = match &element.outcome {
+            let (size, cycles, gas, group) = match &element.outcome {
                 Outcome::Passed {
-                    variant: PassedVariant::Deploy { size, cycles, ergs },
+                    variant: PassedVariant::Deploy { size, cycles, gas },
                     group,
-                } => (Some(*size), *cycles, *ergs, group.clone()),
+                } => (Some(*size), *cycles, *gas, group.clone()),
                 Outcome::Passed {
-                    variant: PassedVariant::Runtime { cycles, ergs },
+                    variant: PassedVariant::Runtime { cycles, gas },
                     group,
-                } => (None, *cycles, *ergs, group.clone()),
+                } => (None, *cycles, *gas, group.clone()),
                 _ => continue,
             };
 
@@ -120,9 +120,9 @@ impl Summary {
                 .mode
                 .as_ref()
                 .and_then(|mode| mode.llvm_optimizer_settings().cloned())
-                .unwrap_or(compiler_llvm_context::OptimizerSettings::none());
+                .unwrap_or(era_compiler_llvm_context::OptimizerSettings::none());
 
-            let benchmark_element = benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs);
+            let benchmark_element = benchmark_analyzer::BenchmarkElement::new(size, cycles, gas);
             if let Some(group) = group {
                 benchmark
                     .groups
@@ -205,9 +205,9 @@ impl Summary {
         group: Option<String>,
         size: usize,
         cycles: usize,
-        ergs: u32,
+        gas: u32,
     ) {
-        let passed_variant = PassedVariant::Deploy { size, cycles, ergs };
+        let passed_variant = PassedVariant::Deploy { size, cycles, gas };
         Self::passed(summary, mode, name, group, passed_variant);
     }
 
@@ -220,9 +220,9 @@ impl Summary {
         name: String,
         group: Option<String>,
         cycles: usize,
-        ergs: u32,
+        gas: u32,
     ) {
-        let passed_variant = PassedVariant::Runtime { cycles, ergs };
+        let passed_variant = PassedVariant::Runtime { cycles, gas };
         Self::passed(summary, mode, name, group, passed_variant);
     }
 

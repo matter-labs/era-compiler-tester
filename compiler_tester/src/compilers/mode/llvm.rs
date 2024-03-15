@@ -12,14 +12,14 @@ use super::Mode as ModeWrapper;
 #[derive(Debug, Clone)]
 pub struct Mode {
     /// The optimizer settings.
-    pub llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings,
+    pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
 }
 
 impl Mode {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(mut llvm_optimizer_settings: compiler_llvm_context::OptimizerSettings) -> Self {
+    pub fn new(mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings) -> Self {
         let llvm_options = LLVMOptions::get();
         llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
         llvm_optimizer_settings.is_debug_logging_enabled = llvm_options.is_debug_logging_enabled();

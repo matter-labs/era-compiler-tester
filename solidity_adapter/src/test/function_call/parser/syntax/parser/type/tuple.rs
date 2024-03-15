@@ -163,7 +163,7 @@ mod tests {
                 TypeVariant::tuple(vec![
                     Type::new(
                         Location::test(1, 2),
-                        TypeVariant::integer_unsigned(compiler_common::BIT_LENGTH_FIELD),
+                        TypeVariant::integer_unsigned(era_compiler_common::BIT_LENGTH_FIELD),
                     ),
                     Type::new(Location::test(1, 11), TypeVariant::tuple(Vec::new())),
                     Type::new(

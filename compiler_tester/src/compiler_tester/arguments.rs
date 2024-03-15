@@ -74,6 +74,12 @@ pub struct Arguments {
     #[structopt(long = "zkvyper")]
     pub zkvyper: Option<PathBuf>,
 
+    /// Specify the target machine.
+    /// Available arguments: `eravm`, `evm`.
+    /// The default is `eravm`.
+    #[structopt(long = "target")]
+    pub target: Option<String>,
+
     /// Path to the default `solc` binaries download configuration file.
     #[structopt(long = "solc-bin-config-path")]
     pub solc_bin_config_path: Option<PathBuf>,
@@ -84,11 +90,11 @@ pub struct Arguments {
 
     /// Whether to load the system contracts builds from the specified file.
     #[structopt(long = "load-system-contracts")]
-    pub load_system_contracts: Option<PathBuf>,
+    pub system_contracts_load_path: Option<PathBuf>,
 
     /// Whether to save the system contracts builds to the specified file.
     #[structopt(long = "save-system-contracts")]
-    pub save_system_contracts: Option<PathBuf>,
+    pub system_contracts_save_path: Option<PathBuf>,
 
     /// Sets the `verify each` option in LLVM.
     #[structopt(long = "llvm-verify-each")]

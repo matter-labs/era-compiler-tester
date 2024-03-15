@@ -14,6 +14,7 @@ use crate::directories::matter_labs::test::metadata::case::input::expected::vari
 use crate::directories::matter_labs::test::metadata::case::input::expected::Expected as MatterLabsTestExpected;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
+use crate::vm::evm::output::Output as EVMOutput;
 
 use self::event::Event;
 
@@ -178,12 +179,15 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
         match &snapshot.execution_result {
             zkevm_tester::runners::compiler_tests::VmExecutionResult::Ok(return_data) => {
                 let return_data = return_data
-                    .chunks(compiler_common::BYTE_LENGTH_FIELD)
+                    .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| {
-                        let value = if word.len() != compiler_common::BYTE_LENGTH_FIELD {
+                        let value = if word.len() != era_compiler_common::BYTE_LENGTH_FIELD {
                             let mut word_padded = word.to_vec();
-                            word_padded
-                                .extend(vec![0u8; compiler_common::BYTE_LENGTH_FIELD - word.len()]);
+                            word_padded.extend(vec![
+                                0u8;
+                                era_compiler_common::BYTE_LENGTH_FIELD
+                                    - word.len()
+                            ]);
                             web3::types::U256::from_big_endian(word_padded.as_slice())
                         } else {
                             web3::types::U256::from_big_endian(word)
@@ -199,12 +203,15 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
             }
             zkevm_tester::runners::compiler_tests::VmExecutionResult::Revert(return_data) => {
                 let return_data = return_data
-                    .chunks(compiler_common::BYTE_LENGTH_FIELD)
+                    .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| {
-                        let value = if word.len() != compiler_common::BYTE_LENGTH_FIELD {
+                        let value = if word.len() != era_compiler_common::BYTE_LENGTH_FIELD {
                             let mut word_padded = word.to_vec();
-                            word_padded
-                                .extend(vec![0u8; compiler_common::BYTE_LENGTH_FIELD - word.len()]);
+                            word_padded.extend(vec![
+                                0u8;
+                                era_compiler_common::BYTE_LENGTH_FIELD
+                                    - word.len()
+                            ]);
                             web3::types::U256::from_big_endian(word_padded.as_slice())
                         } else {
                             web3::types::U256::from_big_endian(word)
@@ -230,6 +237,36 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
                 exception: true,
                 events,
             },
+        }
+    }
+}
+
+impl From<EVMOutput> for Output {
+    fn from(output: EVMOutput) -> Self {
+        let return_data = output
+            .return_data
+            .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
+            .map(|word| {
+                let value = if word.len() != era_compiler_common::BYTE_LENGTH_FIELD {
+                    let mut word_padded = word.to_vec();
+                    word_padded.extend(vec![
+                        0u8;
+                        era_compiler_common::BYTE_LENGTH_FIELD - word.len()
+                    ]);
+                    web3::types::U256::from_big_endian(word_padded.as_slice())
+                } else {
+                    web3::types::U256::from_big_endian(word)
+                };
+                Value::Certain(value)
+            })
+            .collect();
+
+        let events = output.logs.into_iter().map(Event::from).collect();
+
+        Self {
+            return_data,
+            exception: output.exception,
+            events,
         }
     }
 }

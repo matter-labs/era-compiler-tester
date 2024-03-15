@@ -93,9 +93,9 @@ impl Literal {
             anyhow::bail!("Unterminated escape sequence");
         }
         let mut pad_len = 0;
-        if result.len() % compiler_common::BYTE_LENGTH_FIELD != 0 || result.is_empty() {
-            pad_len = compiler_common::BYTE_LENGTH_FIELD
-                - result.len() % compiler_common::BYTE_LENGTH_FIELD;
+        if result.len() % era_compiler_common::BYTE_LENGTH_FIELD != 0 || result.is_empty() {
+            pad_len = era_compiler_common::BYTE_LENGTH_FIELD
+                - result.len() % era_compiler_common::BYTE_LENGTH_FIELD;
         }
         if self.alignment == Alignment::Right {
             let mut zeroes = vec![0; pad_len];

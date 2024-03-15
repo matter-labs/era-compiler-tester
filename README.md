@@ -28,27 +28,39 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 2. [Install Rust](https://www.rust-lang.org/tools/install).
 
-3. Check out or clone the appropriate branch of this repository using the `--recursive` option.
-
-4. Install the LLVM building tool: `cargo install compiler-llvm-builder`.
-
-5. Pull and build the LLVM framework:  
-   5.a. If you have not cloned the LLVM repository yet:
+3. Check out or clone the appropriate branch of this repository:  
+   3.a. If you have not cloned this repository yet:  
    ```
+   git clone <THIS_REPO_URL> --recursive
+   ```
+   3.b. If you have already cloned this repository:  
+   ```
+   git submodule update --init --recursive --remote
+   ```
+
+4. Pull, build, or specify the path to your LLVM framework build:  
+   4.a. If you have not cloned the LLVM repository yet:  
+   ```
+   cargo install compiler-llvm-builder
    zkevm-llvm clone && zkevm-llvm build
    ```
-   5.b. If you have already cloned the LLVM repository:  
+   4.b. If you have already cloned the LLVM repository:  
    ```
+   cargo install compiler-llvm-builder
    zkevm-llvm checkout
    git -C './llvm/' pull
    zkevm-llvm build
    ```
+   4.c. If you would like to use your local LLVM build:
+   ```
+   export LLVM_SYS_150_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
+   ```
 
-6. Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
+5. Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
 
-7. Build the Tester with `cargo build --release`.
+6. Build the Tester with `cargo build --release`.
 
-8. Run the tests using the examples below under “Usage”.
+7. Run the tests using [the examples below](#usage).
 
 ## What is supported
 
@@ -62,8 +74,8 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 ### Optimizers
 
-- LLVM middle-end optimizer (levels 0 to 3, s, z, e.g. `M0`, `M1` etc.)
-- LLVM back-end optimizer (levels 0 to 3, e.g. `B0`, `B1` etc.)
+- LLVM middle-end optimizer (levels 0 to 3, s, z, e.g. `M0`, `Mz` etc.)
+- LLVM back-end optimizer (levels 0 and 3, i.e. `B0` and `B3`)
 - `solc` optimizer (`-` or `+`)
 - `vyper` optimizer (`-` or `+`)
 
@@ -71,7 +83,8 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 - Yul pure (`Y`)
 - EVM assembly from Yul (`y`)
-- EVM assembly (`E`)
+- EVM assembly pure (`E`)
+- Vyper LLL (`V`)
 
 ### Compiler versions
 
@@ -116,7 +129,7 @@ Use:
 - Yul optimizations enabled (`+`)
 - level 3 optimizations in LLVM middle-end (`M3`)
 - level 3 optimizations in LLVM back-end (`B3`)
-- Solidity compiler version (`0.8.20`)
+- Solidity compiler version (`0.8.24`)
 
 Output:
 
@@ -127,8 +140,8 @@ Output:
 ```bash
 cargo run --release --bin compiler-tester -- -DT \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M3B3 0.8.20' \
-	--zksolc '../compiler-solidity/target/release/zksolc'
+	--mode='Y+M3B3 0.8.24' \
+	--zksolc '../era-compiler-solidity/target/release/zksolc'
 ```
 
 ### Example 2
@@ -158,8 +171,8 @@ This takes a few hours on the CI server, and probably much longer on your person
 
 ```bash
 cargo run --release --bin compiler-tester -- \
-	--zksolc '../compiler-solidity/target/release/zksolc' \
-	--zkvyper '../compiler-vyper/target/release/zkvyper'
+	--zksolc '../era-compiler-solidity/target/release/zksolc' \
+	--zkvyper '../era-compiler-vyper/target/release/zkvyper'
 ```
 
 ## Tracing
@@ -178,7 +191,7 @@ zkevm-llvm checkout && zkevm-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.20' \
+	--mode='Y+M^B3 0.8.24' \
 	--benchmark='reference.json'
 ```
 
@@ -191,7 +204,7 @@ zkevm-llvm checkout && zkevm-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.20' \
+	--mode='Y+M^B3 0.8.24' \
 	--benchmark='candidate.json'
 ```
 
@@ -212,7 +225,7 @@ may help.
 
 ## License
 
-The Solidity compiler is distributed under the terms of either
+The Compiler Tester is distributed under the terms of either
 
 - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)

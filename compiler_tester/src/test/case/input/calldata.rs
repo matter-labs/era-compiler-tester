@@ -43,7 +43,7 @@ impl Calldata {
                         Value::Certain(value) => value,
                         Value::Any => anyhow::bail!("* not allowed in calldata"),
                     };
-                    let mut bytes = [0u8; compiler_common::BYTE_LENGTH_FIELD];
+                    let mut bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
                     value.to_big_endian(&mut bytes);
                     calldata.extend(bytes);
                 }

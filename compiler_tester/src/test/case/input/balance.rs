@@ -6,7 +6,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::eravm::EraVM;
+use crate::vm::eravm::EraVM;
+use crate::vm::evm::EVM;
 use crate::Summary;
 
 ///
@@ -31,9 +32,9 @@ impl Balance {
 
 impl Balance {
     ///
-    /// Run the balance check input.
+    /// Runs the balance check on EraVM.
     ///
-    pub fn run(
+    pub fn run_eravm(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &EraVM,
@@ -56,5 +57,29 @@ impl Balance {
                 self.address.to_fixed_bytes().to_vec(),
             );
         }
+    }
+
+    ///
+    /// Runs the balance check on EVM.
+    ///
+    pub fn run_evm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        _vm: &EVM,
+        mode: Mode,
+        _test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+    ) {
+        // TODO: get balance from EVM
+        let name = format!("{name_prefix}[#balance_check:{index}]");
+        Summary::failed(
+            summary,
+            mode,
+            name,
+            self.balance.into(),
+            self.balance.into(),
+            self.address.to_fixed_bytes().to_vec(),
+        );
     }
 }

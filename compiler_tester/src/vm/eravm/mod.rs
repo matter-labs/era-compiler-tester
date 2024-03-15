@@ -2,7 +2,8 @@
 //! The EraVM wrapper.
 //!
 
-pub mod execution_result;
+pub mod deployers;
+pub mod input;
 pub mod system_context;
 pub mod system_contracts;
 
@@ -10,10 +11,14 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
+use std::time::Instant;
 
-use crate::compilers::downloader::config::Config as DownloaderConfig;
+use colored::Colorize;
 
-use self::execution_result::ExecutionResult;
+use crate::compilers::downloader::Downloader as CompilerDownloader;
+use crate::vm::execution_result::ExecutionResult;
+
 use self::system_context::SystemContext;
 use self::system_contracts::SystemContracts;
 
@@ -35,14 +40,35 @@ pub struct EraVM {
 
 impl EraVM {
     ///
-    /// Creates and initializes new EraVM instance.
+    /// Creates and initializes a new EraVM instance.
     ///
-    pub fn initialize(
-        system_contracts_solc_downloader_config: DownloaderConfig,
-        system_contracts_debug_config: Option<compiler_llvm_context::DebugConfig>,
-        system_contracts_path: Option<PathBuf>,
+    pub fn new(
+        binary_download_config_paths: Vec<PathBuf>,
+        system_contracts_solc_downloader_config_path: PathBuf,
+        system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
     ) -> anyhow::Result<Self> {
+        let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
+        http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
+        http_client_builder = http_client_builder.pool_idle_timeout(Duration::from_secs(60));
+        http_client_builder = http_client_builder.timeout(Duration::from_secs(60));
+        let http_client = http_client_builder.build()?;
+
+        let download_time_start = Instant::now();
+        println!(" {} compiler binaries", "Downloading".bright_green().bold());
+        let system_contracts_solc_downloader_config = CompilerDownloader::new(http_client.clone())
+            .download(system_contracts_solc_downloader_config_path.as_path())?;
+        for config_path in binary_download_config_paths.into_iter() {
+            CompilerDownloader::new(http_client.clone()).download(config_path.as_path())?;
+        }
+        println!(
+            "    {} downloading compiler binaries in {}m{:02}s",
+            "Finished".bright_green().bold(),
+            download_time_start.elapsed().as_secs() / 60,
+            download_time_start.elapsed().as_secs() % 60,
+        );
+
         let solc_version = system_contracts_solc_downloader_config
             .binaries
             .keys()
@@ -57,7 +83,7 @@ impl EraVM {
         let system_contracts = SystemContracts::load_or_build(
             solc_version,
             system_contracts_debug_config,
-            system_contracts_path,
+            system_contracts_load_path,
             system_contracts_save_path,
         )?;
 
@@ -76,13 +102,13 @@ impl EraVM {
         );
         vm.add_known_contract(
             zkevm_assembly::Assembly::from_string(
-                compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.to_owned(),
+                era_compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.to_owned(),
                 None,
             )
             .expect("Always valid"),
             web3::types::U256::from_str_radix(
-                compiler_vyper::FORWARDER_CONTRACT_HASH.as_str(),
-                compiler_common::BASE_HEXADECIMAL,
+                era_compiler_vyper::FORWARDER_CONTRACT_HASH.as_str(),
+                era_compiler_common::BASE_HEXADECIMAL,
             )
             .expect("Always valid"),
         );
@@ -95,9 +121,9 @@ impl EraVM {
     }
 
     ///
-    /// Clones the vm instance from arc and adds known contracts.
+    /// Clones the VM instance from and adds known contracts for a single test run.
     ///
-    /// TODO: check if can be made copyless
+    /// TODO: make copyless when VM supports it.
     ///
     pub fn clone_with_contracts(
         vm: Arc<Self>,
@@ -111,80 +137,63 @@ impl EraVM {
     }
 
     ///
-    /// Runs a contract call transaction.
+    /// Runs a test transaction.
     ///
-    pub fn contract_call<const M: bool>(
+    pub fn execute<const M: bool>(
         &mut self,
         test_name: String,
-        entry_address: web3::types::Address,
+        mut entry_address: web3::types::Address,
         caller: web3::types::Address,
         value: Option<u128>,
         calldata: Vec<u8>,
+        vm_launch_option: Option<zkevm_tester::runners::compiler_tests::VmLaunchOption>,
     ) -> anyhow::Result<ExecutionResult> {
-        let context_u128_value;
-        let mut entry_address = entry_address;
-        let vm_launch_option;
+        let (vm_launch_option, context_u128_value) =
+            if let Some(vm_launch_option) = vm_launch_option {
+                (vm_launch_option, value)
+            } else if M {
+                match value {
+                    Some(value) => {
+                        self.mint_ether(caller, web3::types::U256::from(value));
 
-        if M {
-            context_u128_value = 0;
-            if let Some(value) = value {
-                self.mint_ether(caller, web3::types::U256::from(value));
+                        let r3 = Some(web3::types::U256::from(value));
+                        let r4 = Some(web3::types::U256::from_big_endian(entry_address.as_bytes()));
+                        let r5 = Some(web3::types::U256::from(u8::from(
+                            era_compiler_llvm_context::eravm_const::SYSTEM_CALL_BIT,
+                        )));
 
-                let r3 = Some(web3::types::U256::from(value));
-                let r4 = Some(web3::types::U256::from_big_endian(entry_address.as_bytes()));
-                let r5 = Some(web3::types::U256::from(u8::from(
-                    compiler_llvm_context::eravm_const::SYSTEM_CALL_BIT,
-                )));
+                        entry_address = web3::types::Address::from_low_u64_be(
+                            zkevm_opcode_defs::ADDRESS_MSG_VALUE.into(),
+                        );
 
-                entry_address = web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_MSG_VALUE.into(),
-                );
-
-                vm_launch_option =
-                    zkevm_tester::runners::compiler_tests::VmLaunchOption::ManualCallABI(
-                        zkevm_tester::runners::compiler_tests::FullABIParams {
-                            is_constructor: false,
-                            is_system_call: true,
-                            r3_value: r3,
-                            r4_value: r4,
-                            r5_value: r5,
-                        },
-                    );
+                        let vm_launch_option =
+                            zkevm_tester::runners::compiler_tests::VmLaunchOption::ManualCallABI(
+                                zkevm_tester::runners::compiler_tests::FullABIParams {
+                                    is_constructor: false,
+                                    is_system_call: true,
+                                    r3_value: r3,
+                                    r4_value: r4,
+                                    r5_value: r5,
+                                },
+                            );
+                        (vm_launch_option, None)
+                    }
+                    None => (
+                        zkevm_tester::runners::compiler_tests::VmLaunchOption::Call,
+                        None,
+                    ),
+                }
             } else {
-                vm_launch_option = zkevm_tester::runners::compiler_tests::VmLaunchOption::Call;
-            }
-        } else {
-            vm_launch_option = zkevm_tester::runners::compiler_tests::VmLaunchOption::Call;
-            if let Some(value) = value {
-                self.mint_ether(entry_address, web3::types::U256::from(value));
-                context_u128_value = value;
-            } else {
-                context_u128_value = 0;
-            }
-        }
+                if let Some(value) = value {
+                    self.mint_ether(entry_address, web3::types::U256::from(value));
+                }
 
-        self.run(
-            test_name,
-            entry_address,
-            caller,
-            context_u128_value,
-            calldata,
-            vm_launch_option,
-        )
-    }
+                (
+                    zkevm_tester::runners::compiler_tests::VmLaunchOption::Call,
+                    value,
+                )
+            };
 
-    ///
-    /// Runs the several contracts on the VM with the specified data and returns the result.
-    ///
-    pub fn run(
-        &mut self,
-        test_name: String,
-        entry_address: web3::types::Address,
-        caller: web3::types::Address,
-        u128_value: u128,
-        calldata: Vec<u8>,
-        vm_launch_option: zkevm_tester::runners::compiler_tests::VmLaunchOption,
-    ) -> anyhow::Result<ExecutionResult> {
         let mut trace_file_path = PathBuf::from_str("./trace/").expect("Always valid");
         let trace_file_name = regex::Regex::new("[^A-Za-z0-9]+")
             .expect("Always valid")
@@ -195,27 +204,23 @@ impl EraVM {
         let context = zkevm_tester::runners::compiler_tests::VmExecutionContext::new(
             entry_address,
             caller,
-            u128_value,
+            context_u128_value.unwrap_or_default(),
             0,
         );
 
-        let snapshot = tokio::runtime::Runtime::new()
-            .expect("Tokio error")
-            .block_on(
-                zkevm_tester::runners::compiler_tests::run_vm_multi_contracts(
-                    trace_file_path.to_string_lossy().to_string(),
-                    self.deployed_contracts.clone(),
-                    calldata,
-                    self.storage.clone(),
-                    entry_address,
-                    Some(context),
-                    vm_launch_option,
-                    <usize>::MAX,
-                    self.known_contracts.clone(),
-                    self.default_aa_code_hash,
-                ),
-            )
-            .map_err(|error| anyhow::anyhow!("Internal error: failed to run vm: {}", error))?;
+        let snapshot = zkevm_tester::runners::compiler_tests::run_vm_multi_contracts(
+            trace_file_path.to_string_lossy().to_string(),
+            self.deployed_contracts.clone(),
+            calldata.as_slice(),
+            self.storage.clone(),
+            entry_address,
+            Some(context),
+            vm_launch_option,
+            <usize>::MAX,
+            self.known_contracts.clone(),
+            self.default_aa_code_hash,
+        )
+        .map_err(|error| anyhow::anyhow!("Internal error: failed to run vm: {}", error))?;
 
         let result = ExecutionResult::from(&snapshot);
         self.storage = snapshot.storage;
@@ -255,7 +260,7 @@ impl EraVM {
     }
 
     ///
-    /// Mints some Ether value for the specified caller.
+    /// Mints some Ether value at the specified address.
     /// Is needed for payable calls simulation.
     ///
     pub fn mint_ether(&mut self, address: web3::types::Address, amount: web3::types::U256) {
@@ -273,7 +278,7 @@ impl EraVM {
     }
 
     ///
-    /// Burns some Ether value for the specified caller.
+    /// Burns some Ether value for at specified address.
     ///
     pub fn burn_ether(&mut self, address: web3::types::Address, amount: web3::types::U256) {
         let key = Self::balance_storage_key(address);
@@ -361,9 +366,15 @@ impl EraVM {
     ///
     pub fn populate_storage(
         &mut self,
-        values: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
+        values: HashMap<(web3::types::Address, web3::types::U256), web3::types::H256>,
     ) {
-        self.storage.extend(values);
+        self.storage.extend(values.into_iter().map(
+            |((address, key), value)| (zkevm_tester::runners::compiler_tests::StorageKey {
+                address,
+                key,
+            },
+            value),
+        ).collect::<HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>>());
     }
 
     ///
@@ -376,7 +387,7 @@ impl EraVM {
             .cloned()
             .expect("Always exists");
         Ok(assembly
-            .compile_to_bytecode_for_mode::<16, zkevm_opcode_defs::decoding::encoding_mode_testing::EncodingModeTesting>()?.into_iter().flatten().count())
+            .compile_to_bytecode_for_mode::<16, zkevm_assembly::zkevm_opcode_defs::decoding::encoding_mode_testing::EncodingModeTesting>()?.into_iter().flatten().count())
     }
 
     ///
@@ -385,16 +396,16 @@ impl EraVM {
     fn balance_storage_key(
         address: web3::types::Address,
     ) -> zkevm_tester::runners::compiler_tests::StorageKey {
-        let mut key_preimage = Vec::with_capacity(compiler_common::BYTE_LENGTH_FIELD * 2);
+        let mut key_preimage = Vec::with_capacity(era_compiler_common::BYTE_LENGTH_FIELD * 2);
         key_preimage.extend(vec![
             0u8;
-            compiler_common::BYTE_LENGTH_FIELD
-                - compiler_common::BYTE_LENGTH_ETH_ADDRESS
+            era_compiler_common::BYTE_LENGTH_FIELD
+                - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS
         ]);
         key_preimage.extend_from_slice(address.as_bytes());
-        key_preimage.extend(vec![0u8; compiler_common::BYTE_LENGTH_FIELD]);
+        key_preimage.extend(vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD]);
 
-        let key_string = compiler_llvm_context::eravm_utils::keccak256(key_preimage.as_slice());
+        let key_string = era_compiler_llvm_context::eravm_utils::keccak256(key_preimage.as_slice());
         let key = web3::types::U256::from_str(key_string.as_str()).expect("Always valid");
         zkevm_tester::runners::compiler_tests::StorageKey {
             address: web3::types::Address::from_low_u64_be(
