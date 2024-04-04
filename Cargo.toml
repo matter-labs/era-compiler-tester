@@ -4,6 +4,6 @@ members = [
     "solidity_adapter",
     "coverage_watcher",
     "benchmark_analyzer",
-    "fuzz"
+    "fuzzer"
 ]
 resolver = "2"

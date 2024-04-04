@@ -18,7 +18,7 @@ rustflags = [
 
 [env]
 LLVM_SYS_150_PREFIX = { value = "./target-llvm/target-final/", relative = true, force = false }
-RUST_BACKTRACE = { value = "full" }
+RUST_BACKTRACE = { value = "0" }
 RUST_LOG = { value = "vm=trace" }
 
 [tools.clippy]
