@@ -46,9 +46,9 @@ jobs:
       - name: Define branches
         run: |
           if [ "${{ matrix.type }}" = "candidate" ]; then
-            echo "COMPILER_TESTER_BRANCH_NAME=${{ github.event.inputs.compiler_tester_candidate_branch || 'main' }}" >> $GITHUB_ENV
+            echo "COMPILER_TESTER_BRANCH_NAME=${{ github.event.inputs.compiler_tester_candidate_branch || github.head_ref }}" >> $GITHUB_ENV
           else
-            echo "COMPILER_TESTER_BRANCH_NAME=${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}" >> $GITHUB_ENV
+            echo "COMPILER_TESTER_BRANCH_NAME=${{ github.event.inputs.compiler_tester_reference_branch || github.event.repository.default_branch }}" >> $GITHUB_ENV
           fi
 
       - name: Checkout compiler-tester
@@ -64,10 +64,7 @@ jobs:
           debug: ${{ github.event.inputs.llvm_build_type || 'release' }}
 
       - name: Benchmark
-        env:
-          RUST_BACKTRACE: full
         run: |
-          export LLVM_SYS_150_PREFIX="$(pwd)/target-llvm/target-final/"
           cargo build --verbose --release --bin 'compiler-tester'
           cargo build --verbose --release --manifest-path /usr/local/cargo/git/checkouts/era-compiler-solidity-*/*/Cargo.toml --target-dir './target-zksolc/'
           cargo build --verbose --release --manifest-path /usr/local/cargo/git/checkouts/era-compiler-vyper-*/*/Cargo.toml --target-dir './target-zkvyper/'
