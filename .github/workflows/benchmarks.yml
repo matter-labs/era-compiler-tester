@@ -86,6 +86,8 @@ jobs:
   analysis:
     name: "Benchmark comparison"
     runs-on: matterlabs-ci-runner
+    permissions:
+      pull-requests: write
     container:
       image: matterlabs/llvm_runner:ubuntu22-llvm15-latest
     needs: benchmarks
@@ -117,7 +119,5 @@ jobs:
       - name: Posting the LLVM benchmark results to a PR comment
         if: github.event_name == 'pull_request'
         uses: mshick/add-pr-comment@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.ZKSYNC_ADMIN_BOT_ORG_REPO_WRITE }}
         with:
           message-path: result.txt
