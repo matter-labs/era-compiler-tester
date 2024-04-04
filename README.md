@@ -129,11 +129,7 @@ Use:
 - Yul optimizations enabled (`+`)
 - level 3 optimizations in LLVM middle-end (`M3`)
 - level 3 optimizations in LLVM back-end (`B3`)
-<<<<<<< HEAD
-- Solidity compiler version (`0.8.24`)
-=======
-- Solidity compiler version (`0.8.23`)
->>>>>>> d020375 (Final sync with the private repo)
+- Solidity compiler version (`0.8.25`)
 
 Output:
 
@@ -144,11 +140,7 @@ Output:
 ```bash
 cargo run --release --bin compiler-tester -- -DT \
 	--path='tests/solidity/simple/default.sol' \
-<<<<<<< HEAD
-	--mode='Y+M3B3 0.8.24' \
-=======
-	--mode='Y+M3B3 0.8.23' \
->>>>>>> d020375 (Final sync with the private repo)
+	--mode='Y+M3B3 0.8.25' \
 	--zksolc '../era-compiler-solidity/target/release/zksolc'
 ```
 
@@ -199,11 +191,7 @@ zkevm-llvm checkout && zkevm-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-<<<<<<< HEAD
-	--mode='Y+M^B3 0.8.24' \
-=======
-	--mode='Y+M^B3 0.8.23' \
->>>>>>> d020375 (Final sync with the private repo)
+	--mode='Y+M^B3 0.8.25' \
 	--benchmark='reference.json'
 ```
 
@@ -216,11 +204,7 @@ zkevm-llvm checkout && zkevm-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-<<<<<<< HEAD
-	--mode='Y+M^B3 0.8.24' \
-=======
-	--mode='Y+M^B3 0.8.23' \
->>>>>>> d020375 (Final sync with the private repo)
+	--mode='Y+M^B3 0.8.25' \
 	--benchmark='candidate.json'
 ```
 
