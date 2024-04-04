@@ -2,7 +2,7 @@
 //! The compiler test outcome event.
 //!
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use serde::Serialize;
@@ -44,31 +44,34 @@ impl Event {
     /// Try convert from Matter Labs compiler test metadata expected event.
     ///
     pub fn try_from_matter_labs(
-        event: &MatterLabsTestExpectedEvent,
-        instances: &HashMap<String, Instance>,
+        event: MatterLabsTestExpectedEvent,
+        instances: &BTreeMap<String, Instance>,
     ) -> anyhow::Result<Self> {
-        let topics = Value::try_from_vec_matter_labs(&event.topics, instances)
+        let topics = Value::try_from_vec_matter_labs(event.topics, instances)
             .map_err(|error| anyhow::anyhow!("Invalid topics: {}", error))?;
-        let values = Value::try_from_vec_matter_labs(&event.values, instances)
+        let values = Value::try_from_vec_matter_labs(event.values, instances)
             .map_err(|error| anyhow::anyhow!("Invalid values: {}", error))?;
-        let address = match event.address.as_ref() {
+
+        let address = match event.address {
             Some(address) => Some(
                 if let Some(instance) = address.strip_suffix(".address") {
                     instances
                         .get(instance)
                         .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
-                        .address
+                        .address()
+                        .copied()
                         .ok_or_else(|| {
-                            anyhow::anyhow!("Instance `{}` is not successfully deployed", instance)
+                            anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
                         })
                 } else {
-                    web3::types::Address::from_str(address)
+                    web3::types::Address::from_str(address.as_str())
                         .map_err(|error| anyhow::anyhow!("Invalid address literal: {}", error))
                 }
-                .map_err(|error| anyhow::anyhow!("Invalid event address: {}", error))?,
+                .map_err(|error| anyhow::anyhow!("Invalid event address `{address}`: {error}"))?,
             ),
             None => None,
         };
+
         Ok(Self {
             address,
             topics,
@@ -79,7 +82,7 @@ impl Event {
     ///
     /// Convert from Ethereum compiler test metadata expected event.
     ///
-    pub fn from_ethereum_expected(
+    pub fn from_ethereum(
         event: &solidity_adapter::Event,
         contract_address: &web3::types::Address,
     ) -> Self {
@@ -124,15 +127,15 @@ impl Event {
     }
 }
 
-impl From<&zkevm_tester::runners::events::SolidityLikeEvent> for Event {
-    fn from(event: &zkevm_tester::runners::events::SolidityLikeEvent) -> Self {
+impl From<zkevm_tester::runners::events::SolidityLikeEvent> for Event {
+    fn from(event: zkevm_tester::runners::events::SolidityLikeEvent) -> Self {
         let mut topics: Vec<Value> = event
             .topics
-            .iter()
+            .into_iter()
             .map(|topic| Value::Certain(web3::types::U256::from_big_endian(topic.as_slice())))
             .collect();
 
-        // Event are written by the system contract, and the first topic is the actual msg.sender
+        // Event are written by the system contract, and the first topic is the `msg.sender`
         let address = crate::utils::u256_to_address(topics.remove(0).unwrap_certain_as_ref());
 
         let values: Vec<Value> = event

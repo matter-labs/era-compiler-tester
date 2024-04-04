@@ -15,6 +15,12 @@ pub enum Alignment {
     Default,
 }
 
+impl Default for Alignment {
+    fn default() -> Self {
+        Self::Default
+    }
+}
+
 impl Alignment {
     ///
     /// A shortcut constructor.
@@ -28,12 +34,5 @@ impl Alignment {
     ///
     pub fn right() -> Self {
         Self::Right
-    }
-
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn default() -> Self {
-        Self::Default
     }
 }

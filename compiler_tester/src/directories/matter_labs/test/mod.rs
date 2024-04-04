@@ -5,7 +5,6 @@
 pub mod metadata;
 
 use std::collections::BTreeMap;
-use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::path::PathBuf;
@@ -18,14 +17,18 @@ use crate::compilers::Compiler;
 use crate::directories::Buildable;
 use crate::filters::Filters;
 use crate::summary::Summary;
+use crate::target::Target;
 use crate::test::case::Case;
-use crate::test::eravm::Test as EraVMTest;
-use crate::test::evm::Test as EVMTest;
 use crate::test::instance::Instance;
-use crate::vm::eravm::deployers::address_predictor::AddressPredictor as EraVMAddressPredictor;
-use crate::vm::evm::address_predictor::AddressPredictor as EVMAddressPredictor;
-use crate::vm::AddressPredictorIterator;
+use crate::test::Test;
+use crate::vm::address_iterator::AddressIterator;
+use crate::vm::eravm::address_iterator::EraVMAddressIterator;
+use crate::vm::evm::address_iterator::EVMAddressIterator;
 
+use self::metadata::case::input::calldata::Calldata as MatterLabsCaseInputCalldata;
+use self::metadata::case::input::expected::Expected as MatterLabsCaseInputExpected;
+use self::metadata::case::input::Input as MatterLabsCaseInput;
+use self::metadata::case::Case as MatterLabsCase;
 use self::metadata::Metadata;
 
 /// The default simple contract name.
@@ -54,9 +57,12 @@ pub fn default_caller_address() -> String {
 ///
 /// The Matter Labs compiler test.
 ///
+#[derive(Debug)]
 pub struct MatterLabsTest {
     /// The test path.
     path: PathBuf,
+    /// The test identifier.
+    identifier: String,
     /// The test metadata.
     metadata: Metadata,
     /// The test sources.
@@ -68,32 +74,32 @@ impl MatterLabsTest {
     /// Try to create new test.
     ///
     pub fn new(path: PathBuf, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Self> {
-        let test_path = path.to_string_lossy().to_string();
+        let identifier = path.to_string_lossy().to_string();
 
-        if !filters.check_test_path(&test_path) {
+        if !filters.check_test_path(identifier.as_str()) {
             return None;
         }
 
-        let metadata_file_string = match std::fs::read_to_string(path.as_path()) {
-            Ok(metadata_file_string) => metadata_file_string,
+        let main_file_string = match std::fs::read_to_string(path.as_path()) {
+            Ok(data) => data,
             Err(error) => {
-                Summary::invalid(summary, None, test_path, error);
+                Summary::invalid(summary, None, identifier.clone(), error);
                 return None;
             }
         };
 
-        let mut metadata = match Metadata::from_str(metadata_file_string.as_str())
-            .map_err(|err| anyhow::anyhow!("Invalid metadata json: {}", err))
+        let mut metadata = match Metadata::from_str(main_file_string.as_str())
+            .map_err(|error| anyhow::anyhow!("Invalid metadata JSON: {}", error))
         {
             Ok(metadata) => metadata,
             Err(error) => {
-                Summary::invalid(summary, None, test_path, error);
+                Summary::invalid(summary, None, identifier.clone(), error);
                 return None;
             }
         };
 
         if metadata.ignore {
-            Summary::ignored(summary, test_path);
+            Summary::ignored(summary, identifier.clone());
             return None;
         }
 
@@ -102,7 +108,7 @@ impl MatterLabsTest {
         }
 
         let sources = if metadata.contracts.is_empty() {
-            vec![(path.to_string_lossy().to_string(), metadata_file_string)]
+            vec![(path.to_string_lossy().to_string(), main_file_string)]
         } else {
             let mut sources = HashMap::new();
             let mut paths = HashSet::with_capacity(metadata.contracts.len());
@@ -120,6 +126,7 @@ impl MatterLabsTest {
                 };
                 paths.insert(file_path.to_string_lossy().to_string());
             }
+
             let mut test_directory_path = path.clone();
             test_directory_path.pop();
             for entry in
@@ -132,11 +139,11 @@ impl MatterLabsTest {
 
             for path in paths.into_iter() {
                 let source_code = match std::fs::read_to_string(path.as_str())
-                    .map_err(|err| anyhow::anyhow!("Failed to read source code file: {}", err))
+                    .map_err(|err| anyhow::anyhow!("Reading source file error: {}", err))
                 {
                     Ok(source) => source,
                     Err(error) => {
-                        Summary::invalid(summary, None, test_path, error);
+                        Summary::invalid(summary, None, identifier.clone(), error);
                         return None;
                     }
                 };
@@ -146,7 +153,7 @@ impl MatterLabsTest {
         };
 
         metadata.cases.retain(|case| {
-            let case_name = format!("{}::{}", test_path, case.name);
+            let case_name = format!("{}::{}", identifier, case.name);
             if case.ignore {
                 Summary::ignored(summary.clone(), case_name);
                 return false;
@@ -160,168 +167,341 @@ impl MatterLabsTest {
 
         Some(Self {
             path,
+            identifier,
             metadata,
             sources,
         })
     }
-}
 
-impl Buildable for MatterLabsTest {
-    fn build_for_eravm(
-        &self,
-        mode: Mode,
-        compiler: Arc<dyn Compiler>,
-        summary: Arc<Mutex<Summary>>,
-        filters: &Filters,
-        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> Option<EraVMTest> {
-        let test_path = self.path.to_string_lossy().to_string();
-        if !filters.check_mode(&mode) {
+    ///
+    /// Checks if the test is not filtered out.
+    ///
+    fn check_filters(&self, filters: &Filters, mode: &Mode) -> Option<()> {
+        if !filters.check_mode(mode) {
             return None;
         }
-
         if let Some(filters) = self.metadata.modes.as_ref() {
             if !mode.check_extended_filters(filters.as_slice()) {
                 return None;
             }
         }
-
         if !mode.check_pragmas(&self.sources) {
             return None;
         }
+        Some(())
+    }
 
-        let mut contracts = self.metadata.contracts.clone();
+    ///
+    /// Adds the default contract to the list of contracts if it is empty.
+    ///
+    fn push_default_contract(
+        &self,
+        contracts: &mut BTreeMap<String, String>,
+        is_multi_contract: bool,
+    ) {
         if contracts.is_empty() {
-            let contract_name = if compiler.has_multiple_contracts() {
-                format!("{}:{}", test_path, SIMPLE_TESTS_CONTRACT_NAME)
+            let contract_name = if is_multi_contract {
+                format!("{}:{}", self.identifier, SIMPLE_TESTS_CONTRACT_NAME)
             } else {
-                test_path.clone()
+                self.identifier.to_owned()
             };
             contracts.insert(SIMPLE_TESTS_INSTANCE.to_owned(), contract_name);
         }
+    }
 
-        let mut address_predictor = EraVMAddressPredictor::new();
+    ///
+    /// Adds the BenchmarkCaller contract as a proxy for the EVM interpreter.
+    ///
+    fn push_benchmark_caller(
+        &self,
+        sources: &mut Vec<(String, String)>,
+        contracts: &mut BTreeMap<String, String>,
+    ) -> anyhow::Result<()> {
+        let benchmark_caller_string = std::fs::read_to_string(PathBuf::from(
+            "tests/solidity/complex/interpreter/BenchmarkCaller.sol",
+        ))?;
+        sources.push((
+            "tests/solidity/complex/interpreter/BenchmarkCaller.sol".to_owned(),
+            benchmark_caller_string,
+        )); // TODO
+        contracts.insert(
+            "BenchmarkCaller".to_owned(),
+            "tests/solidity/complex/interpreter/BenchmarkCaller.sol:BenchmarkCaller".to_owned(),
+        );
+        Ok(())
+    }
 
-        let mut libraries_instances_names = Vec::new();
-        let mut libraries_for_compiler = BTreeMap::new();
-        let mut libraries_instances_addresses = HashMap::new();
+    ///
+    /// Returns library information.
+    ///
+    fn get_libraries<API>(
+        &self,
+        address_iterator: &mut API,
+    ) -> (
+        BTreeMap<String, BTreeMap<String, String>>,
+        BTreeMap<String, web3::types::Address>,
+    )
+    where
+        API: AddressIterator,
+    {
+        let mut libraries = BTreeMap::new();
+        let mut library_addresses = BTreeMap::new();
 
         for (file, metadata_file_libraries) in self.metadata.libraries.iter() {
             let mut file_path = self.path.clone();
             file_path.pop();
             file_path.push(file);
+
             let mut file_libraries = BTreeMap::new();
-            for (name, instance) in metadata_file_libraries.iter() {
-                let address = address_predictor.next(
-                    &web3::types::Address::from_str(DEFAULT_CALLER_ADDRESS)
-                        .expect("Invalid default caller address constant"),
+            for name in metadata_file_libraries.keys() {
+                let address = address_iterator.next(
+                    &web3::types::Address::from_str(DEFAULT_CALLER_ADDRESS).expect("Always valid"),
                     true,
                 );
                 file_libraries.insert(
                     name.to_owned(),
                     format!("0x{}", crate::utils::address_as_string(&address)),
                 );
-                libraries_instances_addresses.insert(instance.to_owned(), address);
-                libraries_instances_names.push(instance.to_owned());
+                library_addresses.insert(
+                    format!("{}:{}", file_path.to_string_lossy().as_ref(), name),
+                    address,
+                );
             }
-            libraries_for_compiler.insert(file_path.to_string_lossy().to_string(), file_libraries);
+            libraries.insert(file_path.to_string_lossy().to_string(), file_libraries);
         }
 
-        let vm_input = match compiler
+        (libraries, library_addresses)
+    }
+
+    ///
+    /// Returns precompiled EVM contract instances.
+    ///
+    fn get_evm_instances(&self) -> anyhow::Result<BTreeMap<String, Instance>> {
+        let mut instances = BTreeMap::new();
+
+        for (instance, evm_contract) in self.metadata.evm_contracts.iter() {
+            let mut bytecode = evm_contract.init_code();
+            bytecode.push_str(evm_contract.runtime_code().as_str());
+
+            let bytecode = hex::decode(bytecode.as_str()).map_err(|error| {
+                anyhow::anyhow!("Invalid bytecode of EVM instance `{}`: {}", instance, error)
+            })?;
+            instances.insert(
+                instance.to_owned(),
+                Instance::evm(instance.to_owned(), None, false, false, bytecode.to_owned()),
+            );
+        }
+
+        Ok(instances)
+    }
+
+    ///
+    /// Returns cases needed for running benchmarks on the EVM interpreter.
+    ///
+    fn evm_interpreter_benchmark_cases(&self) -> Vec<MatterLabsCase> {
+        if self.metadata.group.as_deref()
+            != Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME)
+        {
+            return vec![];
+        }
+
+        let mut evm_contracts: Vec<String> = self
+            .metadata
+            .evm_contracts
+            .keys()
+            .filter(|name| name.contains("Template") || name.contains("Full"))
+            .cloned()
+            .collect();
+        evm_contracts.sort();
+
+        let mut metadata_cases = Vec::with_capacity(evm_contracts.len() / 2);
+        for pair_of_bytecodes in evm_contracts.chunks(2) {
+            let full = &pair_of_bytecodes[0];
+            let template = &pair_of_bytecodes[1];
+
+            metadata_cases.push(MatterLabsCase {
+                comment: None,
+                name: template
+                    .strip_suffix("_Template")
+                    .expect("Always exists")
+                    .to_owned(),
+                modes: None,
+                inputs: vec![
+                    MatterLabsCaseInput {
+                        comment: None,
+                        instance: "Proxy".to_owned(),
+                        caller: default_caller_address(),
+                        method: "benchmark".to_owned(),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![
+                            "BenchmarkCaller.address".to_owned(),
+                            format!("{template}.address"),
+                        ]),
+                        value: None,
+                        storage: HashMap::new(),
+                        expected: Some(
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                        ),
+                    },
+                    MatterLabsCaseInput {
+                        comment: None,
+                        instance: "Proxy".to_owned(),
+                        caller: default_caller_address(),
+                        method: "benchmark".to_owned(),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![
+                            "BenchmarkCaller.address".to_owned(),
+                            format!("{full}.address"),
+                        ]),
+                        value: None,
+                        storage: HashMap::new(),
+                        expected: Some(
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                        ),
+                    },
+                    MatterLabsCaseInput {
+                        comment: None,
+                        instance: "Proxy".to_owned(),
+                        caller: default_caller_address(),
+                        method: "benchmark".to_owned(),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![
+                            "BenchmarkCaller.address".to_owned(),
+                            format!("{template}.address"),
+                        ]),
+                        value: None,
+                        storage: HashMap::new(),
+                        expected: Some(
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                        ),
+                    },
+                    MatterLabsCaseInput {
+                        comment: None,
+                        instance: "Proxy".to_owned(),
+                        caller: default_caller_address(),
+                        method: "benchmark".to_owned(),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![
+                            "BenchmarkCaller.address".to_owned(),
+                            format!("{full}.address"),
+                        ]),
+                        value: None,
+                        storage: HashMap::new(),
+                        expected: Some(
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                        ),
+                    },
+                ],
+                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                ignore: false,
+                cycles: None,
+            })
+        }
+        metadata_cases
+    }
+}
+
+impl Buildable for MatterLabsTest {
+    fn build_for_eravm(
+        &self,
+        mut mode: Mode,
+        compiler: Arc<dyn Compiler>,
+        target: Target,
+        summary: Arc<Mutex<Summary>>,
+        filters: &Filters,
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    ) -> Option<Test> {
+        mode.set_system_mode(self.metadata.system_mode);
+
+        self.check_filters(filters, &mode)?;
+
+        let mut contracts = self.metadata.contracts.clone();
+        self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
+
+        let mut eravm_address_iterator = EraVMAddressIterator::new();
+        let evm_address_iterator =
+            EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
+
+        let (libraries, library_addresses) = self.get_libraries(&mut eravm_address_iterator);
+
+        let eravm_input = match compiler
             .compile_for_eravm(
-                test_path.clone(),
+                self.identifier.to_owned(),
                 self.sources.clone(),
-                libraries_for_compiler,
+                libraries,
                 &mode,
-                self.metadata.system_mode,
-                false,
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
         {
-            Ok(output) => output,
+            Ok(vm_input) => vm_input,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), test_path, error);
+                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
                 return None;
             }
         };
 
-        let instances_names = contracts.keys().cloned().collect::<BTreeSet<String>>();
-        let mut instances = HashMap::new();
+        let mut instances = match eravm_input.get_instances(
+            &contracts,
+            library_addresses,
+            web3::types::Address::zero(),
+        ) {
+            Ok(instances) => instances,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                return None;
+            }
+        };
 
-        for (instance, path) in contracts.into_iter() {
-            let build = match vm_input.builds.get(&path).ok_or_else(|| {
-                anyhow::anyhow!("{} not found in the compiler build artifacts", path)
-            }) {
-                Ok(build) => build,
-                Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
-                    return None;
-                }
-            };
-            let hash = build.bytecode_hash;
-            let address = libraries_instances_addresses.get(&instance).cloned();
-            instances.insert(instance, Instance::new(path, address, hash));
-        }
+        let evm_instances = match self.get_evm_instances() {
+            Ok(evm_instances) => evm_instances,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                return None;
+            }
+        };
+        instances.extend(evm_instances);
 
-        let mut cases = Vec::with_capacity(self.metadata.cases.len());
-        for case in self.metadata.cases.iter() {
+        let mut metadata_cases = self.metadata.cases.to_owned();
+        metadata_cases.extend(self.evm_interpreter_benchmark_cases());
+
+        let mut cases = Vec::with_capacity(metadata_cases.len());
+        for case in metadata_cases.into_iter() {
             if let Some(filters) = case.modes.as_ref() {
                 if !mode.check_extended_filters(filters.as_slice()) {
                     continue;
                 }
             }
 
-            let mut case = case.clone();
-            match case.normalize_deployer_calls(&instances_names, &libraries_instances_names) {
-                Ok(_) => {}
+            let case = match case.normalize(&contracts, &instances, target) {
+                Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
-                    return None;
-                }
-            }
-            case.normalize_expected();
-
-            let mut address_predictor = address_predictor.clone();
-
-            let instances_addresses = match case
-                .instance_addresses(
-                    &libraries_instances_names.clone().into_iter().collect(),
-                    &mut address_predictor,
-                    &mode,
-                )
-                .map_err(|error| {
-                    anyhow::anyhow!(
-                        "Case `{}` is invalid: Failed to compute instances addresses: {}",
-                        case.name,
-                        error
-                    )
-                }) {
-                Ok(addresses) => addresses,
-                Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
+                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
                     return None;
                 }
             };
-            let mut instances = instances.clone();
-            for (instance, address) in instances_addresses {
-                let instance = instances
-                    .get_mut(&instance)
-                    .expect("Redundant instance from the instances_addresses case method");
-                instance.address = Some(address);
+
+            match case.set_instance_addresses(
+                &mut instances,
+                eravm_address_iterator.clone(),
+                evm_address_iterator.clone(),
+                &mode,
+            ) {
+                Ok(_) => {}
+                Err(error) => {
+                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    return None;
+                }
             }
 
+            let case_name = case.name.to_owned();
             let case = match Case::try_from_matter_labs(
-                &case,
+                case,
                 &mode,
                 &instances,
-                &vm_input.method_identifiers,
+                &eravm_input.method_identifiers,
             )
-            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case.name, error))
+            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
+                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
                     return None;
                 }
             };
@@ -329,17 +509,18 @@ impl Buildable for MatterLabsTest {
             cases.push(case);
         }
 
-        let builds = vm_input
+        let builds = eravm_input
             .builds
             .into_values()
             .map(|build| (build.bytecode_hash, build.assembly))
             .collect();
 
-        Some(EraVMTest::new(
-            test_path,
+        Some(Test::new(
+            self.identifier.to_owned(),
             self.metadata.group.clone(),
             mode,
             builds,
+            HashMap::new(),
             cases,
         ))
     }
@@ -348,67 +529,36 @@ impl Buildable for MatterLabsTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
+        target: Target,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> Option<EVMTest> {
-        let test_path = self.path.to_string_lossy().to_string();
-        if !filters.check_mode(&mode) {
-            return None;
-        }
-
-        if let Some(filters) = self.metadata.modes.as_ref() {
-            if !mode.check_extended_filters(filters.as_slice()) {
-                return None;
-            }
-        }
-
-        if !mode.check_pragmas(&self.sources) {
-            return None;
-        }
+    ) -> Option<Test> {
+        self.check_filters(filters, &mode)?;
 
         let mut contracts = self.metadata.contracts.clone();
-        if contracts.is_empty() {
-            let contract_name = if compiler.has_multiple_contracts() {
-                format!("{}:{}", test_path, SIMPLE_TESTS_CONTRACT_NAME)
-            } else {
-                test_path.clone()
-            };
-            contracts.insert(SIMPLE_TESTS_INSTANCE.to_owned(), contract_name);
-        }
-
-        let mut address_predictor = EVMAddressPredictor::new();
-
-        let mut libraries_instances_names = Vec::new();
-        let mut libraries_for_compiler = BTreeMap::new();
-        let mut libraries_instances_addresses = HashMap::new();
-
-        for (file, metadata_file_libraries) in self.metadata.libraries.iter() {
-            let mut file_path = self.path.clone();
-            file_path.pop();
-            file_path.push(file);
-            let mut file_libraries = BTreeMap::new();
-            for (name, instance) in metadata_file_libraries.iter() {
-                let address = address_predictor.next(
-                    &web3::types::Address::from_str(DEFAULT_CALLER_ADDRESS)
-                        .expect("Invalid default caller address constant"),
-                    true,
-                );
-                file_libraries.insert(
-                    name.to_owned(),
-                    format!("0x{}", crate::utils::address_as_string(&address)),
-                );
-                libraries_instances_addresses.insert(instance.to_owned(), address);
-                libraries_instances_names.push(instance.to_owned());
+        self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
+        let sources = if let Target::EVMInterpreter = target {
+            let mut sources = self.sources.to_owned();
+            if let Err(error) = self.push_benchmark_caller(&mut sources, &mut contracts) {
+                Summary::invalid(summary, None, self.identifier.to_owned(), error);
+                return None;
             }
-            libraries_for_compiler.insert(file_path.to_string_lossy().to_string(), file_libraries);
-        }
+            sources
+        } else {
+            self.sources.to_owned()
+        };
 
-        let mut vm_input = match compiler
+        let mut evm_address_iterator =
+            EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
+
+        let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
+
+        let evm_input = match compiler
             .compile_for_evm(
-                test_path.clone(),
-                self.sources.clone(),
-                BTreeMap::new(),
+                self.identifier.to_owned(),
+                sources,
+                libraries,
                 &mode,
                 debug_config,
             )
@@ -416,30 +566,18 @@ impl Buildable for MatterLabsTest {
         {
             Ok(output) => output,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), test_path, error);
+                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
                 return None;
             }
         };
 
-        let instances_names = contracts.keys().cloned().collect::<BTreeSet<String>>();
-        let mut instances = HashMap::new();
-
-        for (instance, path) in contracts.into_iter() {
-            let build = match vm_input.builds.get_mut(&path).ok_or_else(|| {
-                anyhow::anyhow!("{} not found in the compiler build artifacts", path)
-            }) {
-                Ok(build) => build,
-                Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
-                    return None;
-                }
-            };
-            let address = libraries_instances_addresses.get(&instance).cloned();
-            instances.insert(
-                instance,
-                Instance::new(path, address, web3::types::U256::zero()),
-            );
-        }
+        let mut instances = match evm_input.get_instances(&contracts, library_addresses, None) {
+            Ok(instances) => instances,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                return None;
+            }
+        };
 
         let mut cases = Vec::with_capacity(self.metadata.cases.len());
         for case in self.metadata.cases.iter() {
@@ -449,56 +587,39 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let mut case = case.clone();
-            match case.normalize_deployer_calls(&instances_names, &libraries_instances_names) {
-                Ok(_) => {}
+            let case = match case.to_owned().normalize(&contracts, &instances, target) {
+                Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
-                    return None;
-                }
-            }
-            case.normalize_expected();
-
-            let mut address_predictor = address_predictor.clone();
-
-            let instances_addresses = match case
-                .instance_addresses(
-                    &libraries_instances_names.clone().into_iter().collect(),
-                    &mut address_predictor,
-                    &mode,
-                )
-                .map_err(|error| {
-                    anyhow::anyhow!(
-                        "Case `{}` is invalid: Failed to compute instances addresses: {}",
-                        case.name,
-                        error
-                    )
-                }) {
-                Ok(addresses) => addresses,
-                Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
+                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
                     return None;
                 }
             };
-            let mut instances = instances.clone();
-            for (instance, address) in instances_addresses {
-                let instance = instances
-                    .get_mut(&instance)
-                    .expect("Redundant instance from the instances_addresses case method");
-                instance.address = Some(address);
+
+            match case.set_instance_addresses(
+                &mut instances,
+                EraVMAddressIterator::new(),
+                evm_address_iterator.clone(),
+                &mode,
+            ) {
+                Ok(_) => {}
+                Err(error) => {
+                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    return None;
+                }
             }
 
+            let case_name = case.name.to_owned();
             let case = match Case::try_from_matter_labs(
-                &case,
+                case,
                 &mode,
                 &instances,
-                &vm_input.method_identifiers,
+                &evm_input.method_identifiers,
             )
-            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case.name, error))
+            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), test_path, error);
+                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
                     return None;
                 }
             };
@@ -506,17 +627,12 @@ impl Buildable for MatterLabsTest {
             cases.push(case);
         }
 
-        let builds = vm_input
-            .builds
-            .into_values()
-            .map(|build| (web3::types::Address::zero(), build))
-            .collect();
-
-        Some(EVMTest::new(
-            test_path,
+        Some(Test::new(
+            self.identifier.to_owned(),
             self.metadata.group.clone(),
             mode,
-            builds,
+            HashMap::new(),
+            evm_input.builds,
             cases,
         ))
     }

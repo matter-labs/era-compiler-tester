@@ -14,7 +14,7 @@ use serde::Deserialize;
 ///
 #[derive(Debug, Deserialize)]
 pub struct SolcList {
-    /// The compiler releases.
+    /// The collection of compiler releases.
     pub releases: BTreeMap<String, String>,
 }
 

@@ -2,17 +2,19 @@
 //! The contract call input variant.
 //!
 
+use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use era_compiler_common::BYTE_LENGTH_ETH_ADDRESS;
+
 use crate::compilers::mode::Mode;
+use crate::summary::Summary;
+use crate::test::case::input::calldata::Calldata;
+use crate::test::case::input::output::Output;
+use crate::test::case::input::storage::Storage;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
-use crate::Summary;
-
-use super::calldata::Calldata;
-use super::output::Output;
-use super::storage::Storage;
 
 ///
 /// The contract call input variant.
@@ -88,8 +90,35 @@ impl Runtime {
                 return;
             }
         };
+        let gas = if let Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) =
+            test_group.as_deref()
+        {
+            match result.output.return_data.first() {
+                Some(gas) => gas.unwrap_certain_as_ref().as_u64(),
+                None => {
+                    Summary::invalid(
+                        summary,
+                        Some(mode),
+                        name,
+                        "EVM interpreter gas usage value not found",
+                    );
+                    return;
+                }
+            }
+        } else {
+            0
+        };
+
         if result.output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, result.cycles, result.gas);
+            Summary::passed_runtime(
+                summary,
+                mode,
+                name,
+                test_group,
+                result.cycles,
+                result.ergs,
+                gas,
+            );
         } else {
             Summary::failed(
                 summary,
@@ -118,6 +147,7 @@ impl Runtime {
         vm.populate_storage(self.storage.inner);
         let result = match vm.execute_runtime_code(
             name.clone(),
+            self.address,
             self.caller,
             self.value,
             self.calldata.inner.clone(),
@@ -129,7 +159,15 @@ impl Runtime {
             }
         };
         if result.output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, result.cycles, result.gas);
+            Summary::passed_runtime(
+                summary,
+                mode,
+                name,
+                test_group,
+                result.cycles,
+                result.ergs,
+                result.gas,
+            );
         } else {
             Summary::failed(
                 summary,
@@ -139,6 +177,75 @@ impl Runtime {
                 result.output,
                 self.calldata.inner,
             );
+        }
+    }
+    ///
+    /// Runs the call on EVM interpreter.
+    ///
+    pub fn run_evm_interpreter<const M: bool>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut EraVM,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+    ) {
+        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+        vm.populate_storage(self.storage.inner);
+
+        let benchmark_caller_address =
+            web3::types::Address::from_str(EraVM::DEFAULT_BENCHMARK_CALLER_ADDRESS)
+                .expect("Always valid");
+
+        let mut calldata =
+            Vec::with_capacity(era_compiler_common::BYTE_LENGTH_FIELD + self.calldata.inner.len());
+        calldata.extend([0u8; era_compiler_common::BYTE_LENGTH_FIELD - BYTE_LENGTH_ETH_ADDRESS]);
+        calldata.extend(self.address.as_bytes());
+        calldata.extend(self.calldata.inner);
+
+        let mut result = match vm.execute::<M>(
+            name.clone(),
+            benchmark_caller_address,
+            self.caller,
+            self.value,
+            calldata.clone(),
+            None,
+        ) {
+            Ok(result) => result,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), name, error);
+                return;
+            }
+        };
+        if result.output.return_data.is_empty() {
+            Summary::invalid(
+                summary,
+                Some(mode),
+                name,
+                "EVM interpreter gas usage value not found",
+            );
+            return;
+        }
+        let gas = result
+            .output
+            .return_data
+            .remove(0)
+            .unwrap_certain_as_ref()
+            .as_u64();
+
+        if result.output == self.expected {
+            Summary::passed_runtime(
+                summary,
+                mode,
+                name,
+                test_group,
+                result.cycles,
+                result.ergs,
+                gas,
+            );
+        } else {
+            Summary::failed(summary, mode, name, self.expected, result.output, calldata);
         }
     }
 }

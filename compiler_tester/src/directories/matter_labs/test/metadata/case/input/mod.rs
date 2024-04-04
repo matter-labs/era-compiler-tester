@@ -8,8 +8,6 @@ pub mod storage;
 
 use std::collections::HashMap;
 
-use serde::Deserialize;
-
 use crate::directories::matter_labs::test::default_caller_address;
 use crate::directories::matter_labs::test::simple_tests_instance;
 
@@ -20,7 +18,7 @@ use self::storage::Storage;
 ///
 /// The Matter Labs compiler test metadata case input.
 ///
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct Input {
     /// The comment to an entry.
     pub comment: Option<String>,

@@ -6,9 +6,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
+use crate::summary::Summary;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
-use crate::Summary;
 
 ///
 /// The balance check input variant.
@@ -64,22 +64,28 @@ impl Balance {
     ///
     pub fn run_evm(
         self,
-        summary: Arc<Mutex<Summary>>,
+        _summary: Arc<Mutex<Summary>>,
         _vm: &EVM,
-        mode: Mode,
+        _mode: Mode,
         _test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        _name_prefix: String,
+        _index: usize,
     ) {
-        // TODO: get balance from EVM
-        let name = format!("{name_prefix}[#balance_check:{index}]");
-        Summary::failed(
-            summary,
-            mode,
-            name,
-            self.balance.into(),
-            self.balance.into(),
-            self.address.to_fixed_bytes().to_vec(),
-        );
+        todo!()
+    }
+
+    ///
+    /// Runs the balance check on EVM interpreter.
+    ///
+    pub fn run_evm_interpreter(
+        self,
+        _summary: Arc<Mutex<Summary>>,
+        _vm: &EraVM,
+        _mode: Mode,
+        _test_group: Option<String>,
+        _name_prefix: String,
+        _index: usize,
+    ) {
+        todo!()
     }
 }

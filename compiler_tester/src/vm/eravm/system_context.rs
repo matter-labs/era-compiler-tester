@@ -12,7 +12,7 @@ use std::str::FromStr;
 pub struct SystemContext;
 
 impl SystemContext {
-    /// The system context chain id value position in the storage.
+    /// The system context chain ID value position in the storage.
     const SYSTEM_CONTEXT_CHAIN_ID_POSITION: u64 = 0;
 
     /// The system context origin value position in the storage.
@@ -36,7 +36,7 @@ impl SystemContext {
     /// The system context block hashes mapping position in the storage.
     const SYSTEM_CONTEXT_BLOCK_HASH_POSITION: u64 = 8;
 
-    /// The system context current virtual l2 block info value position in the storage.
+    /// The system context current virtual L2 block info value position in the storage.
     const SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION: u64 = 268;
 
     /// The system context virtual blocks upgrade info position in the storage.
@@ -55,7 +55,7 @@ impl SystemContext {
     /// The default block gas limit for tests.
     const BLOCK_GAS_LIMIT: u64 = (1 << 30);
 
-    /// The default coin base for tests.
+    /// The default coinbase for tests.
     const COIN_BASE: &'static str =
         "0x0000000000000000000000000000000000000000000000000000000000008001";
 
@@ -76,7 +76,7 @@ impl SystemContext {
         "0x3737373737373737373737373737373737373737373737373737373737373737";
 
     ///
-    /// Returns storage values for system context.
+    /// Returns the storage values for the system context.
     ///
     pub fn create_storage(
     ) -> HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256> {

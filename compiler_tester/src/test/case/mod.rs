@@ -5,7 +5,6 @@
 pub mod input;
 
 use std::collections::BTreeMap;
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -13,7 +12,7 @@ use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
-use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
 
@@ -42,20 +41,20 @@ impl Case {
     /// Try convert from Matter Labs compiler test metadata case.
     ///
     pub fn try_from_matter_labs(
-        case: &MatterLabsTestCase,
+        case: MatterLabsTestCase,
         mode: &Mode,
-        instances: &HashMap<String, Instance>,
+        instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
     ) -> anyhow::Result<Self> {
-        let mut inputs = Vec::with_capacity(case.inputs.capacity());
+        let mut inputs = Vec::with_capacity(case.inputs.len());
 
-        for (index, input) in case.inputs.iter().enumerate() {
+        for (index, input) in case.inputs.into_iter().enumerate() {
             let input = Input::try_from_matter_labs(input, mode, instances, method_identifiers)
                 .map_err(|error| anyhow::anyhow!("Input #{} is invalid: {}", index, error))?;
             inputs.push(input);
         }
 
-        Ok(Self::new(Some(case.name.clone()), inputs))
+        Ok(Self::new(Some(case.name), inputs))
     }
 
     ///
@@ -63,11 +62,10 @@ impl Case {
     ///
     pub fn try_from_ethereum(
         case: &[solidity_adapter::FunctionCall],
-        main_contract_instance: &Instance,
-        libraries_instances: &HashMap<String, Instance>,
+        instances: BTreeMap<String, Instance>,
         last_source: &str,
     ) -> anyhow::Result<Self> {
-        let mut inputs = Vec::new();
+        let mut inputs = Vec::with_capacity(case.len());
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);
 
         for (index, input) in case.iter().enumerate() {
@@ -76,23 +74,18 @@ impl Case {
                     caller = solidity_adapter::account_address(*input);
                 }
                 input => {
-                    if let Some(input) = Input::try_from_ethereum(
-                        input,
-                        main_contract_instance,
-                        libraries_instances,
-                        last_source,
-                        &caller,
-                    )
-                    .map_err(|error| {
-                        anyhow::anyhow!("Failed to proccess {} input: {}", index, error)
-                    })? {
-                        inputs.push(input)
+                    if let Some(input) =
+                        Input::try_from_ethereum(input, &instances, last_source, &caller).map_err(
+                            |error| anyhow::anyhow!("Failed to proccess input #{index}: {error}"),
+                        )?
+                    {
+                        inputs.push(input);
                     }
                 }
             }
         }
 
-        Ok(Self { name: None, inputs })
+        Ok(Self::new(None, inputs))
     }
 
     ///
@@ -113,13 +106,13 @@ impl Case {
         } else {
             test_name
         };
-        let mut deployer = D::new();
+
         for (index, input) in self.inputs.into_iter().enumerate() {
             input.run_eravm::<_, M>(
                 summary.clone(),
                 &mut vm,
-                mode.clone(),
-                &mut deployer,
+                mode.to_owned(),
+                &mut D::new(),
                 test_group.clone(),
                 name.clone(),
                 index,
@@ -143,11 +136,44 @@ impl Case {
         } else {
             test_name
         };
+
         for (index, input) in self.inputs.into_iter().enumerate() {
             input.run_evm(
                 summary.clone(),
                 &mut vm,
                 mode.clone(),
+                test_group.clone(),
+                name.clone(),
+                index,
+            )
+        }
+    }
+
+    ///
+    /// Runs the case on EVM interpreter.
+    ///
+    pub fn run_evm_interpreter<D, const M: bool>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        mut vm: EraVM,
+        mode: &Mode,
+        test_name: String,
+        test_group: Option<String>,
+    ) where
+        D: EraVMDeployer,
+    {
+        let name = if let Some(case_name) = self.name {
+            format!("{test_name}::{case_name}")
+        } else {
+            test_name
+        };
+
+        for (index, input) in self.inputs.into_iter().enumerate() {
+            input.run_evm_interpreter::<_, M>(
+                summary.clone(),
+                &mut vm,
+                mode.clone(),
+                &mut D::new(),
                 test_group.clone(),
                 name.clone(),
                 index,

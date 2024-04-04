@@ -4,14 +4,17 @@
 
 pub mod input;
 
-use std::collections::BTreeSet;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use serde::Deserialize;
 
 use crate::compilers::mode::Mode;
-use crate::vm::AddressPredictorIterator;
+use crate::target::Target;
+use crate::test::instance::Instance;
+use crate::vm::address_iterator::AddressIterator;
+use crate::vm::eravm::address_iterator::EraVMAddressIterator;
+use crate::vm::evm::address_iterator::EVMAddressIterator;
 
 use self::input::expected::Expected;
 use self::input::Input;
@@ -40,25 +43,35 @@ pub struct Case {
 
 impl Case {
     ///
+    /// Normalizes the case.
+    ///
+    pub fn normalize(
+        mut self,
+        contracts: &BTreeMap<String, String>,
+        instances: &BTreeMap<String, Instance>,
+        target: Target,
+    ) -> anyhow::Result<Self> {
+        self.normalize_deployer_calls(contracts, instances, target)?;
+        self.normalize_expected();
+        Ok(self)
+    }
+
+    ///
     /// Validates deployer calls, adds libraries deployer calls, contracts deployer calls if they are not present.
     ///
     pub fn normalize_deployer_calls(
         &mut self,
-        instances: &BTreeSet<String>,
-        libraries: &[String],
+        contracts: &BTreeMap<String, String>,
+        instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<()> {
-        let mut instances = instances.clone();
+        let mut contracts = contracts.clone();
         for (index, input) in self.inputs.iter().enumerate() {
-            let instance = &input.instance;
-            if !input.method.eq("#deployer") {
+            if input.method.as_str() != "#deployer" {
                 continue;
             };
 
-            if libraries.contains(instance) {
-                anyhow::bail!("Deployer call {} for library, note: libraries deployer calls generating automatically", index);
-            }
-
-            if !instances.remove(instance) {
+            if contracts.remove(input.instance.as_str()).is_none() {
                 anyhow::bail!(
                     "Input {} is a second deployer call for the same instance or instance is invalid",
                     index
@@ -66,15 +79,42 @@ impl Case {
             }
         }
 
-        let mut inputs = Vec::with_capacity(libraries.len() + instances.len() + self.inputs.len());
+        let mut inputs = Vec::with_capacity(instances.len() + self.inputs.len());
 
-        for instance in libraries.iter() {
-            inputs.push(Input::empty_deployer_call(instance.clone()));
+        for (name, instance) in instances.iter() {
+            if instance.is_library() {
+                inputs.push(Input::empty_deployer_call(name.to_owned()));
+            }
         }
 
-        for instance in instances {
-            if !libraries.contains(&instance) {
-                inputs.push(Input::empty_deployer_call(instance.clone()));
+        for contract in contracts.keys() {
+            if !instances
+                .iter()
+                .any(|(filter_name, instance)| filter_name == contract && instance.is_library())
+            {
+                inputs.push(Input::empty_deployer_call(contract.clone()));
+            }
+        }
+
+        if let Target::EraVM = target {
+            for (name, instance) in instances.iter() {
+                if let Instance::EraVM { .. } = instance {
+                    continue;
+                }
+
+                if name != "BenchmarkCaller"
+                    && name.split('_').next().unwrap_or_default()
+                        != self.name.split('_').next().unwrap_or_default()
+                {
+                    continue;
+                }
+
+                if !instances
+                    .iter()
+                    .any(|(filter_name, instance)| filter_name == name && instance.is_library())
+                {
+                    inputs.push(Input::empty_deployer_call(name.to_owned()));
+                }
             }
         }
 
@@ -98,24 +138,22 @@ impl Case {
     ///
     /// Returns all the instances addresses, except libraries.
     ///
-    pub fn instance_addresses<API>(
+    pub fn set_instance_addresses(
         &self,
-        libraries: &BTreeSet<String>,
-        address_predictor: &mut API,
+        instances: &mut BTreeMap<String, Instance>,
+        mut eravm_address_iterator: EraVMAddressIterator,
+        mut evm_address_iterator: EVMAddressIterator,
         mode: &Mode,
-    ) -> anyhow::Result<HashMap<String, web3::types::Address>>
-    where
-        API: AddressPredictorIterator,
-    {
-        let mut instances_addresses = HashMap::new();
+    ) -> anyhow::Result<()> {
         for (index, input) in self.inputs.iter().enumerate() {
-            if !input.method.eq("#deployer") {
+            if input.method.as_str() != "#deployer"
+                || instances.iter().any(|(name, instance)| {
+                    name.as_str() == input.instance.as_str() && instance.is_library()
+                })
+            {
                 continue;
             }
-            let instance = &input.instance;
-            if libraries.contains(instance) {
-                continue;
-            }
+
             let exception = match input.expected.as_ref() {
                 Some(expected) => expected
                     .exception(mode)
@@ -125,10 +163,27 @@ impl Case {
             if exception {
                 continue;
             }
-            let caller = web3::types::Address::from_str(input.caller.as_str())
-                .map_err(|error| anyhow::anyhow!("Input #{}: invalid caller: {}", index, error))?;
-            instances_addresses.insert(instance.to_string(), address_predictor.next(&caller, true));
+
+            let caller =
+                web3::types::Address::from_str(input.caller.as_str()).map_err(|error| {
+                    anyhow::anyhow!(
+                        "Input #{} has invalid caller `{}`: {}",
+                        index,
+                        input.caller.as_str(),
+                        error
+                    )
+                })?;
+
+            match instances.get_mut(input.instance.as_str()) {
+                Some(instance @ Instance::EraVM(_)) => {
+                    instance.set_address(eravm_address_iterator.next(&caller, true));
+                }
+                Some(instance @ Instance::EVM(_)) => {
+                    instance.set_address(evm_address_iterator.next(&caller, true));
+                }
+                _ => unreachable!(),
+            }
         }
-        Ok(instances_addresses)
+        Ok(())
     }
 }

@@ -121,7 +121,7 @@ impl evm::RuntimeBaseBackend for Runtime {
             .get(&address)
             .and_then(|storage| storage.get(&index))
             .cloned()
-            .unwrap_or(web3::types::H256::zero())
+            .unwrap_or_default()
     }
 
     fn exists(&self, address: web3::types::H160) -> bool {
@@ -129,10 +129,7 @@ impl evm::RuntimeBaseBackend for Runtime {
     }
 
     fn nonce(&self, address: web3::types::H160) -> web3::types::U256 {
-        self.nonces
-            .get(&address)
-            .cloned()
-            .unwrap_or(web3::types::U256::zero())
+        self.nonces.get(&address).copied().unwrap_or_default()
     }
 }
 
@@ -230,10 +227,10 @@ impl evm::RuntimeBackend for Runtime {
     }
 
     fn inc_nonce(&mut self, address: web3::types::H160) -> Result<(), evm::ExitError> {
-        self.nonces
+        *self
+            .nonces
             .entry(address)
-            .and_modify(|nonce| *nonce += web3::types::U256::one())
-            .or_insert(web3::types::U256::one());
+            .or_insert_with(web3::types::U256::zero) += web3::types::U256::one();
         Ok(())
     }
 }

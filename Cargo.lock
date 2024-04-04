@@ -37,6 +37,9 @@ name = "arbitrary"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d5a26814d8dcb93b0e5a0ff3c6d80a8843bafb21b39e8e18a6f05471870e110"
+dependencies = [
+ "derive_arbitrary",
+]
 
 [[package]]
 name = "arrayvec"
@@ -107,7 +110,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "benchmark-analyzer"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "colored",
@@ -234,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "compiler-tester"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "benchmark-analyzer",
@@ -255,6 +258,7 @@ dependencies = [
  "rayon",
  "regex",
  "reqwest",
+ "rlp",
  "ron",
  "semver",
  "serde",
@@ -263,7 +267,9 @@ dependencies = [
  "sha3",
  "solidity-adapter",
  "structopt",
+ "vm2",
  "web3",
+ "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
  "zkevm_tester",
@@ -271,7 +277,7 @@ dependencies = [
 
 [[package]]
 name = "compiler-tester-fuzz"
-version = "0.0.0"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "compiler-tester",
@@ -314,7 +320,7 @@ checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
 
 [[package]]
 name = "coverage-watcher"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -392,7 +398,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f55bf8e7b65898637379c1b74eb1551107c8294ed26d855ceb9fd1a09cfc9bc0"
 dependencies = [
  "const-oid",
+ "pem-rfc7468",
  "zeroize",
+]
+
+[[package]]
+name = "derive_arbitrary"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67e77553c4162a157adbf834ebae5b415acbecbeafc7a74b0e886657506a7611"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -452,6 +470,7 @@ dependencies = [
  "ff",
  "generic-array",
  "group",
+ "pem-rfc7468",
  "pkcs8",
  "rand_core 0.6.4",
  "sec1",
@@ -466,6 +485,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "enum_dispatch"
+version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa18ce2bc66555b3218614519ac839ddb759a7d6720732f979ef8d13be147ecd"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -500,8 +531,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-llvm-context"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#7a7d7f8d1772c558c9dc6543148176700a6d9d51"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=v1.5.0#b63448f92a3f8fff7f1ea21cbbaa31c4c817543e"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -522,8 +553,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-solidity"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#6a2861cc6fb7557bee9a2aa29075c950e9020b34"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=v1.5.0#dcc04dbccf56cf114ae874a26a6c841ff079a848"
 dependencies = [
  "anyhow",
  "colored",
@@ -551,8 +582,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-vyper"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#8c58782c8bb18cbd5abaf0c5bf0ce8f79f3d6444"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=v1.5.0#cdfa9f1a8e3b9b646a0591262e291cb6e6f3f31d"
 dependencies = [
  "anyhow",
  "colored",
@@ -1431,6 +1462,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
+name = "p256"
+version = "0.13.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9863ad85fa8f4460f9c48cb909d38a0d689dba1f6f6988a5e3e0d31071bcd4b"
+dependencies = [
+ "ecdsa",
+ "elliptic-curve",
+ "primeorder",
+ "sha2",
+]
+
+[[package]]
 name = "parity-scale-codec"
 version = "3.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1486,6 +1529,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e91099d4268b0e11973f036e885d652fb0b21fedcf69738c627f94db6a44f42"
 
 [[package]]
+name = "pem-rfc7468"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88b39c9bfcfc231068454382784bb460aae594343fb030d46e9f50a645418412"
+dependencies = [
+ "base64ct",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1538,6 +1590,15 @@ name = "ppv-lite86"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
+
+[[package]]
+name = "primeorder"
+version = "0.13.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "353e1ca18966c16d9deb1c69278edbc5f194139612772bd9537af60ac231e1e6"
+dependencies = [
+ "elliptic-curve",
+]
 
 [[package]]
 name = "primitive-types"
@@ -2140,7 +2201,7 @@ dependencies = [
 
 [[package]]
 name = "solidity-adapter"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "colored",
@@ -2533,6 +2594,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 
 [[package]]
+name = "vm2"
+version = "0.1.0"
+source = "git+https://github.com/matter-labs/vm2#dbcb1e2efcdf05621c9d4dc1a3846689da2e8667"
+dependencies = [
+ "arbitrary",
+ "enum_dispatch",
+ "primitive-types",
+ "zk_evm_abstractions",
+ "zkevm_opcode_defs",
+]
+
+[[package]]
 name = "want"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2872,8 +2945,8 @@ checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
 
 [[package]]
 name = "zk_evm"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-zk_evm?branch=v1.4.1#6250dbf64b2d14ced87a127735da559f27a432d5"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/zk_evm?branch=v1.5.0#8ed110284f48dd30d869b09f2f74e6d5106eb2db"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -2882,13 +2955,12 @@ dependencies = [
  "serde_json",
  "static_assertions",
  "zk_evm_abstractions",
- "zkevm_opcode_defs",
 ]
 
 [[package]]
 name = "zk_evm_abstractions"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-zk_evm_abstractions?branch=v1.4.1#0aac08c3b097ee8147e748475117ac46bddcdcef"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-zk_evm_abstractions.git?branch=v1.5.0#e464b2cf2b146d883be80e7d690c752bf670ff05"
 dependencies = [
  "anyhow",
  "num_enum",
@@ -2899,8 +2971,8 @@ dependencies = [
 
 [[package]]
 name = "zkevm-assembly"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-zkEVM-assembly?branch=v1.4.1#e59d5da67f18f8829c3cfaebb967265d73c168ed"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-zkEVM-assembly?branch=v1.5.0#2faea98303377cad71f4c7d8dacb9c6546874602"
 dependencies = [
  "env_logger",
  "hex",
@@ -2918,22 +2990,24 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.4.1#ba8228ff0582d21f64d6a319d50d0aec48e9e7b6"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#2aaab121eaff01e8224d8d113e446f700d88aba5"
 dependencies = [
  "bitflags 2.5.0",
  "blake2",
  "ethereum-types",
  "k256",
  "lazy_static",
+ "p256",
+ "serde",
  "sha2",
  "sha3",
 ]
 
 [[package]]
 name = "zkevm_tester"
-version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.4.1#aab8cdc167402558e8eb47c2b2701057eee4c33d"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#6097d4bdc67474747e437b023354cc06bba767d5"
 dependencies = [
  "anyhow",
  "futures",
@@ -2946,6 +3020,5 @@ dependencies = [
  "tracing",
  "vlog",
  "zk_evm",
- "zk_evm_abstractions",
  "zkevm-assembly",
 ]

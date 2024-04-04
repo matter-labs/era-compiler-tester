@@ -1,11 +1,15 @@
 //!
-//! The EraVM wrapper.
+//! The EraVM interface.
 //!
 
+pub mod address_iterator;
 pub mod deployers;
 pub mod input;
 pub mod system_context;
 pub mod system_contracts;
+
+#[cfg(feature = "vm2")]
+mod vm2_adapter;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -23,22 +27,27 @@ use self::system_context::SystemContext;
 use self::system_contracts::SystemContracts;
 
 ///
-/// The EraVM wrapper.
+/// The EraVM interface.
 ///
 #[derive(Clone)]
-#[allow(non_camel_case_types)]
 pub struct EraVM {
-    /// The storage state.
-    storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
-    /// The deployed contracts.
-    deployed_contracts: HashMap<web3::types::Address, zkevm_assembly::Assembly>,
-    /// The default account abstraction contract code hash.
-    default_aa_code_hash: web3::types::U256,
     /// The known contracts.
     known_contracts: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
+    /// The default account abstraction contract code hash.
+    default_aa_code_hash: web3::types::U256,
+    /// The EVM interpreter contract code hash.
+    evm_interpreter_code_hash: web3::types::U256,
+    /// The deployed contracts.
+    deployed_contracts: HashMap<web3::types::Address, zkevm_assembly::Assembly>,
+    /// The storage state.
+    storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
 }
 
 impl EraVM {
+    /// The default address of the benchmark caller.
+    pub const DEFAULT_BENCHMARK_CALLER_ADDRESS: &'static str =
+        "eeaffc9ff130f15d470945fd04b9017779c95dbf";
+
     ///
     /// Creates and initializes a new EraVM instance.
     ///
@@ -90,15 +99,20 @@ impl EraVM {
         let storage = SystemContext::create_storage();
 
         let mut vm = Self {
-            storage,
-            deployed_contracts: HashMap::new(),
-            default_aa_code_hash: system_contracts.default_aa.bytecode_hash,
             known_contracts: HashMap::new(),
+            default_aa_code_hash: system_contracts.default_aa.bytecode_hash,
+            evm_interpreter_code_hash: system_contracts.evm_interpreter.bytecode_hash,
+            deployed_contracts: HashMap::new(),
+            storage,
         };
 
         vm.add_known_contract(
             system_contracts.default_aa.assembly,
             system_contracts.default_aa.bytecode_hash,
+        );
+        vm.add_known_contract(
+            system_contracts.evm_interpreter.assembly,
+            system_contracts.evm_interpreter.bytecode_hash,
         );
         vm.add_known_contract(
             zkevm_assembly::Assembly::from_string(
@@ -123,7 +137,7 @@ impl EraVM {
     ///
     /// Clones the VM instance from and adds known contracts for a single test run.
     ///
-    /// TODO: make copyless when VM supports it.
+    /// TODO: make copyless when the VM supports it.
     ///
     pub fn clone_with_contracts(
         vm: Arc<Self>,
@@ -208,31 +222,62 @@ impl EraVM {
             0,
         );
 
-        let snapshot = zkevm_tester::runners::compiler_tests::run_vm_multi_contracts(
-            trace_file_path.to_string_lossy().to_string(),
-            self.deployed_contracts.clone(),
-            calldata.as_slice(),
-            self.storage.clone(),
-            entry_address,
-            Some(context),
-            vm_launch_option,
-            <usize>::MAX,
-            self.known_contracts.clone(),
-            self.default_aa_code_hash,
-        )
-        .map_err(|error| anyhow::anyhow!("Internal error: failed to run vm: {}", error))?;
+        #[cfg(not(feature = "vm2"))]
+        {
+            let snapshot = zkevm_tester::runners::compiler_tests::run_vm_multi_contracts(
+                trace_file_path.to_string_lossy().to_string(),
+                self.deployed_contracts.clone(),
+                &calldata,
+                self.storage.clone(),
+                entry_address,
+                Some(context),
+                vm_launch_option,
+                usize::MAX,
+                self.known_contracts.clone(),
+                self.default_aa_code_hash,
+                self.evm_interpreter_code_hash,
+            )?;
 
-        let result = ExecutionResult::from(&snapshot);
-        self.storage = snapshot.storage;
-        for (address, assembly) in snapshot.deployed_contracts.into_iter() {
-            if self.deployed_contracts.contains_key(&address) {
-                continue;
+            for (address, assembly) in snapshot.deployed_contracts.iter() {
+                if self.deployed_contracts.contains_key(address) {
+                    continue;
+                }
+
+                self.deployed_contracts
+                    .insert(*address, assembly.to_owned());
+            }
+            self.storage = snapshot.storage.clone();
+
+            Ok(snapshot.into())
+        }
+        #[cfg(feature = "vm2")]
+        {
+            let (result, storage_changes, deployed_contracts) = vm2_adapter::run_vm(
+                self.deployed_contracts.clone(),
+                &calldata,
+                self.storage.clone(),
+                entry_address,
+                Some(context),
+                vm_launch_option,
+                self.known_contracts.clone(),
+                self.default_aa_code_hash,
+                self.evm_interpreter_code_hash,
+            )
+            .map_err(|error| anyhow::anyhow!("EraVM failure: {}", error))?;
+
+            for (key, value) in storage_changes.into_iter() {
+                self.storage.insert(key, value);
+            }
+            for (address, assembly) in deployed_contracts.into_iter() {
+                if self.deployed_contracts.contains_key(&address) {
+                    continue;
+                }
+
+                self.deployed_contracts.insert(address, assembly);
             }
 
-            self.deployed_contracts.insert(address, assembly);
+            Ok(result)
         }
-
-        Ok(result)
     }
 
     ///
@@ -301,6 +346,26 @@ impl EraVM {
         let key = Self::balance_storage_key(address);
         let balance = self.storage.get(&key).copied().unwrap_or_default();
         web3::types::U256::from_big_endian(balance.as_bytes())
+    }
+
+    ///
+    /// Adds a known contract.
+    ///
+    fn add_known_contract(
+        &mut self,
+        assembly: zkevm_assembly::Assembly,
+        bytecode_hash: web3::types::U256,
+    ) {
+        self.storage.insert(
+            zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_KNOWN_CODES_STORAGE.into(),
+                ),
+                key: bytecode_hash,
+            },
+            web3::types::H256::from_low_u64_be(1),
+        );
+        self.known_contracts.insert(bytecode_hash, assembly);
     }
 
     ///
@@ -413,25 +478,5 @@ impl EraVM {
             ),
             key,
         }
-    }
-
-    ///
-    /// Adds known contract.
-    ///
-    fn add_known_contract(
-        &mut self,
-        assembly: zkevm_assembly::Assembly,
-        bytecode_hash: web3::types::U256,
-    ) {
-        self.storage.insert(
-            zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_KNOWN_CODES_STORAGE.into(),
-                ),
-                key: bytecode_hash,
-            },
-            web3::types::H256::from_low_u64_be(1),
-        );
-        self.known_contracts.insert(bytecode_hash, assembly);
     }
 }

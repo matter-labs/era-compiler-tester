@@ -31,6 +31,13 @@ impl Expected {
     }
 
     ///
+    /// Creates EVM interpreter benchmark expected data.
+    ///
+    pub fn successful_evm_interpreter_benchmark() -> Self {
+        Self::Single(Variant::Simple(vec!["*".to_owned()]))
+    }
+
+    ///
     /// Returns exception flag for specified mode.
     ///
     pub fn exception(&self, mode: &Mode) -> anyhow::Result<bool> {
@@ -50,7 +57,7 @@ impl Expected {
                     None => true,
                 }
             })
-            .ok_or_else(|| anyhow::anyhow!("Version not covered"))?;
+            .ok_or_else(|| anyhow::anyhow!("Version is not covered"))?;
         Ok(match variant {
             Variant::Simple(_) => false,
             Variant::Extended(inner) => inner.exception,

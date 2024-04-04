@@ -37,9 +37,11 @@ where
     }
 
     ///
-    /// Compute and save the cache value, if a value already started computing will do nothing.
+    /// Evaluates and saves a cache value.
     ///
-    pub fn compute<F>(&self, key: K, f: F)
+    /// If the value is already being evaluated, does nothing.
+    ///
+    pub fn evaluate<F>(&self, key: K, f: F)
     where
         F: FnOnce() -> anyhow::Result<V>,
     {
@@ -60,30 +62,30 @@ where
         let mut inner = self.inner.write().expect("Sync");
         let entry_value = inner
             .get_mut(&key)
-            .expect("The value is not being computed");
+            .expect("The value is not being evaluated");
 
         assert!(
             matches!(entry_value, Value::Waiter(_)),
-            "The value is already computed"
+            "The value is already evaluated"
         );
 
         *entry_value = Value::Value(value);
     }
 
     ///
-    /// Checks if value for the key is cached.
+    /// Checks if the value for the key is present in the cache.
     ///
     pub fn contains(&self, key: &K) -> bool {
         self.inner.read().expect("Sync").contains_key(key)
     }
 
     ///
-    /// Get the cloned value by the key.
-    /// Will wait if the value is computing.
+    /// Get a cloned value by the key.
+    /// Will wait if the value is being evaluated.
     ///
     /// # Panics
     ///
-    /// If the value is not being computed.
+    /// If the value is not being evaluated.
     ///
     pub fn get_cloned(&self, key: &K) -> anyhow::Result<V> {
         self.wait(key);
@@ -91,7 +93,7 @@ where
             .read()
             .expect("Sync")
             .get(key)
-            .expect("The value is not being computed")
+            .expect("The value is not being evaluated")
             .unwrap_value()
             .as_ref()
             .map(|value| value.clone())
@@ -99,11 +101,11 @@ where
     }
 
     ///
-    /// Waits until value will be computed if needed.
+    /// Waits until value will be evaluated if needed.
     ///
     /// # Panics
     ///
-    /// If the value is not being computed.
+    /// If the value is not being evaluated.
     ///
     fn wait(&self, key: &K) {
         let waiter = if let Value::Waiter(waiter) = self
@@ -111,7 +113,7 @@ where
             .read()
             .expect("Sync")
             .get(key)
-            .expect("The value is not being computed")
+            .expect("The value is not being evaluated")
         {
             waiter.clone()
         } else {

@@ -1,13 +1,9 @@
-//!
-//! The fuzzer demo.
-//!
-
 #![no_main]
 
 /// This module contains the fuzzing target for the simple contract.
 use libfuzzer_sys::fuzz_target;
 
-pub(crate) mod common;
+mod common;
 
 fuzz_target!(|data: u8| {
     // Fuzzing case definition

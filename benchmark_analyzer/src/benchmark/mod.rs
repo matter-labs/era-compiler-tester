@@ -23,19 +23,101 @@ pub struct Benchmark {
 }
 
 impl Benchmark {
+    /// The EVM interpreter group identifier.
+    pub const EVM_INTERPRETER_GROUP_NAME: &'static str = "EVMInterpreter";
+
+    /// The EVM interpreter group identifier prefix.
+    pub const EVM_INTERPRETER_GROUP_PREFIX: &'static str = "EVMInterpreter M3B3";
+
+    /// The EVM opcodes to test.
+    pub const EVM_OPCODES: [&'static str; 58] = [
+        "ADD",
+        "MUL",
+        "SUB",
+        "DIV",
+        "SDIV",
+        "MOD",
+        "SMOD",
+        "ADDMOD",
+        "MULMOD",
+        "EXP",
+        "SIGNEXTEND",
+        "LT",
+        "GT",
+        "SLT",
+        "SGT",
+        "EQ",
+        "ISZERO",
+        "AND",
+        "OR",
+        "XOR",
+        "NOT",
+        "BYTE",
+        "SHL",
+        "SHR",
+        "SAR",
+        "SGT",
+        "SHA3",
+        "ADDRESS",
+        "BALANCE",
+        "ORIGIN",
+        "CALLER",
+        "CALLVALUE",
+        "BLOCKHASH",
+        "COINBASE",
+        "TIMESTAMP",
+        "NUMBER",
+        "PREVRANDAO",
+        "GASLIMIT",
+        "CHAINID",
+        "SELFBALANCE",
+        "BASEFEE",
+        "POP",
+        "MLOAD",
+        "MSTORE",
+        "MSTORE8",
+        "SLOAD",
+        "SSTORE",
+        "JUMP",
+        "JUMPI",
+        "PC",
+        "MSIZE",
+        "GAS",
+        "JUMPDEST",
+        "PUSH1",
+        "RETURN",
+        "REVERT",
+        "INVALID",
+        "SELFDESTRUCT",
+    ];
+
     ///
     /// Compares two benchmarks.
     ///
     pub fn compare<'a>(reference: &'a Self, candidate: &'a Self) -> BTreeMap<&'a str, Results<'a>> {
         let mut results = BTreeMap::new();
 
-        for (group_name, reference) in reference.groups.iter() {
-            let candidate = match candidate.groups.get(group_name) {
-                Some(candidate) => candidate,
+        for (group_name, reference_group) in reference.groups.iter() {
+            let candidate_group = match candidate.groups.get(group_name) {
+                Some(candidate_group) => candidate_group,
                 None => continue,
             };
 
-            let group_results = Group::compare(reference, candidate);
+            let mut group_results = Group::compare(reference_group, candidate_group);
+            if group_name.starts_with(Self::EVM_INTERPRETER_GROUP_PREFIX) {
+                if let (Some(reference_ratios), Some(candidate_ratios)) = (
+                    reference
+                        .groups
+                        .get(group_name.as_str())
+                        .map(|group| group.evm_interpreter_ratios()),
+                    candidate
+                        .groups
+                        .get(group_name.as_str())
+                        .map(|group| group.evm_interpreter_ratios()),
+                ) {
+                    group_results.set_evm_interpreter_ratios(reference_ratios, candidate_ratios);
+                }
+            }
             results.insert(group_name.as_str(), group_results);
         }
 
