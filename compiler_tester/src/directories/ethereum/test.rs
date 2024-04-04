@@ -25,9 +25,9 @@ use crate::vm::AddressPredictorIterator;
 ///
 pub struct EthereumTest {
     /// The index test entity.
-    index_entity: solidity_adapter::EnabledTest,
+    pub index_entity: solidity_adapter::EnabledTest,
     /// The test data.
-    test: solidity_adapter::Test,
+    pub test: solidity_adapter::Test,
 }
 
 impl EthereumTest {

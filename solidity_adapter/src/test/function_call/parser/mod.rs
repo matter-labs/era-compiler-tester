@@ -2,8 +2,8 @@
 //! The Solidity tests metadata parser.
 //!
 
-mod lexical;
-mod syntax;
+pub mod lexical;
+pub mod syntax;
 
 pub use syntax::Call;
 pub use syntax::CallVariant;

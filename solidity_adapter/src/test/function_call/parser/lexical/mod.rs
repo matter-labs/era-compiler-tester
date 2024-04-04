@@ -5,9 +5,9 @@
 #[cfg(test)]
 mod tests;
 
-mod error;
-mod stream;
-mod token;
+pub mod error;
+pub mod stream;
+pub mod token;
 
 pub use self::error::Error;
 pub use self::stream::TokenStream;

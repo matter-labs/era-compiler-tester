@@ -19,6 +19,15 @@ use crate::vm::evm::input::Input as EVMInput;
 #[allow(non_camel_case_types)]
 pub struct EraVMCompiler;
 
+impl EraVMCompiler {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 impl Compiler for EraVMCompiler {
     fn compile_for_eravm(
         &self,

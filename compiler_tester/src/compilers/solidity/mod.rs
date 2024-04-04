@@ -178,6 +178,7 @@ impl SolidityCompiler {
             &mode.solc_version,
             false,
             false,
+            None,
         );
 
         let evm_version = if mode.solc_version == semver::Version::new(0, 8, 24) {

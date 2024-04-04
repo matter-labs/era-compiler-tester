@@ -339,25 +339,23 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use crate::test::function_call::parser::lexical::Lexeme;
-
-    use crate::test::function_call::parser::lexical::Location;
-
+    use crate::test::function_call::parser::lexical::token::lexeme::identifier::Identifier as LexicalIdentifier;
     use crate::test::function_call::parser::lexical::IntegerLiteral as LexicalIntegerLiteral;
+    use crate::test::function_call::parser::lexical::Lexeme;
+    use crate::test::function_call::parser::lexical::Location;
     use crate::test::function_call::parser::lexical::Token;
     use crate::test::function_call::parser::lexical::TokenStream;
-
-    use super::Parser;
     use crate::test::function_call::parser::syntax::error::Error as SyntaxError;
     use crate::test::function_call::parser::syntax::error::ParsingError;
+    use crate::test::function_call::parser::syntax::parser::event::Parser;
     use crate::test::function_call::parser::syntax::tree::event::literal::EventLiteral;
     use crate::test::function_call::parser::syntax::tree::event::variant::Variant;
     use crate::test::function_call::parser::syntax::tree::event::Event;
     use crate::test::function_call::parser::syntax::tree::literal::alignment::Alignment;
+    use crate::test::function_call::parser::syntax::tree::literal::integer::Literal as IntegerLiteral;
     use crate::test::function_call::parser::syntax::tree::literal::Literal;
     use crate::test::function_call::parser::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::test::function_call::parser::syntax::Identifier;
-    use crate::test::function_call::parser::syntax::IntegerLiteral;
     use crate::test::function_call::parser::syntax::Type;
 
     #[test]

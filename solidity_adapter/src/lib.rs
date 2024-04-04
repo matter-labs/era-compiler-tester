@@ -2,8 +2,8 @@
 //! The Solidity adapter library.
 //!
 
-pub(crate) mod index;
-mod test;
+pub mod index;
+pub mod test;
 
 use std::ops::Add;
 use std::str::FromStr;

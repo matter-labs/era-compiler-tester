@@ -33,6 +33,15 @@ lazy_static::lazy_static! {
     };
 }
 
+impl LLVMCompiler {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 impl Compiler for LLVMCompiler {
     fn compile_for_eravm(
         &self,

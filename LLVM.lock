@@ -1,2 +1,6 @@
 url = "https://github.com/matter-labs/era-compiler-llvm"
+<<<<<<< HEAD
 branch = "v1.4.1"
+=======
+branch = "main"
+>>>>>>> d020375 (Final sync with the private repo)

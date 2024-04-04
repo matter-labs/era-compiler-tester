@@ -4,7 +4,7 @@
 
 mod error;
 mod parser;
-mod tree;
+pub mod tree;
 
 pub use self::parser::Parser;
 pub use self::tree::call::variant::Variant as CallVariant;

@@ -33,6 +33,15 @@ lazy_static::lazy_static! {
     };
 }
 
+impl YulCompiler {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 impl Compiler for YulCompiler {
     fn compile_for_eravm(
         &self,

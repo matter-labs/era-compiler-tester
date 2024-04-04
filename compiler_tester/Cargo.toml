@@ -47,6 +47,11 @@ era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler
 era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
 era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
 
+# era-compiler-common = { path = "../../era-compiler-common" }
+# era-compiler-llvm-context = { path = "../../era-compiler-llvm-context" }
+# era-compiler-solidity = { path = "../../era-compiler-solidity" }
+# era-compiler-vyper = { path = "../../era-compiler-vyper" }
+
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
 

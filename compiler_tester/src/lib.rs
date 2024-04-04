@@ -27,18 +27,20 @@ use itertools::Itertools;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
-use crate::compilers::eravm::EraVMCompiler;
-use crate::compilers::llvm::LLVMCompiler;
-use crate::compilers::mode::Mode;
-use crate::compilers::solidity::SolidityCompiler;
-use crate::compilers::vyper::VyperCompiler;
-use crate::compilers::yul::YulCompiler;
-use crate::compilers::Compiler;
-use crate::directories::ethereum::EthereumDirectory;
-use crate::directories::matter_labs::MatterLabsDirectory;
-use crate::directories::Buildable;
-use crate::directories::TestsDirectory;
-use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+pub use crate::compilers::eravm::EraVMCompiler;
+pub use crate::compilers::llvm::LLVMCompiler;
+pub use crate::compilers::mode::solidity::Mode as SolidityMode;
+pub use crate::compilers::mode::Mode;
+pub use crate::compilers::solidity::SolidityCompiler;
+pub use crate::compilers::vyper::VyperCompiler;
+pub use crate::compilers::yul::YulCompiler;
+pub use crate::compilers::Compiler;
+pub use crate::directories::ethereum::test::EthereumTest;
+pub use crate::directories::ethereum::EthereumDirectory;
+pub use crate::directories::matter_labs::MatterLabsDirectory;
+pub use crate::directories::Buildable;
+pub use crate::directories::TestsDirectory;
+pub use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
 
 /// The debug directory path.
 pub const DEBUG_DIRECTORY: &str = "./debug/";
@@ -56,11 +58,11 @@ type Test = (Arc<dyn Buildable>, Arc<dyn Compiler>, Mode);
 ///
 pub struct CompilerTester {
     /// The summary.
-    summary: Arc<Mutex<Summary>>,
+    pub summary: Arc<Mutex<Summary>>,
     /// The filters.
-    filters: Filters,
+    pub filters: Filters,
     /// The debug config.
-    debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    pub debug_config: Option<era_compiler_llvm_context::DebugConfig>,
 }
 
 impl CompilerTester {
@@ -190,9 +192,9 @@ impl CompilerTester {
     fn all_tests(&self) -> anyhow::Result<Vec<Test>> {
         let solidity_compiler = Arc::new(SolidityCompiler::new());
         let vyper_compiler = Arc::new(VyperCompiler::new());
-        let yul_compiler = Arc::new(YulCompiler);
-        let llvm_compiler = Arc::new(LLVMCompiler);
-        let eravm_compiler = Arc::new(EraVMCompiler);
+        let yul_compiler = Arc::new(YulCompiler::new());
+        let llvm_compiler = Arc::new(LLVMCompiler::new());
+        let eravm_compiler = Arc::new(EraVMCompiler::new());
 
         let mut tests = Vec::with_capacity(16384);
 

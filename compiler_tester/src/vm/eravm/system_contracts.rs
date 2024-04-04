@@ -230,12 +230,8 @@ impl SystemContracts {
             yul_file_paths.push(file_path.to_owned());
         }
         let yul_mode = YulMode::new(era_compiler_llvm_context::OptimizerSettings::cycles()).into();
-        let mut builds = Self::compile(
-            YulCompiler,
-            &yul_mode,
-            yul_file_paths,
-            debug_config.clone(),
-        )?;
+        let mut builds =
+            Self::compile(YulCompiler, &yul_mode, yul_file_paths, debug_config.clone())?;
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
         for (_, path) in solidity_system_contracts.iter() {

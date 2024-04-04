@@ -1,0 +1,38 @@
+[package]
+name = "compiler-tester-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+zkevm-assembly = { git = "https://github.com/matter-labs/era-zkEVM-assembly", branch = "v1.4.1" }
+zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.4.1" }
+anyhow = "1.0"
+semver = { version = "1.0", features = ["serde"] }
+
+[dependencies.compiler-tester]
+path = "../compiler_tester"
+
+[dependencies.solidity-adapter]
+path = "../solidity_adapter"
+
+
+[[bin]]
+name = "demo"
+path = "fuzz_targets/demo.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "optimizer_bug"
+path = "fuzz_targets/optimizer_bug.rs"
+test = false
+doc = false
+bench = false
