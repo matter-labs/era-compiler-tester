@@ -501,7 +501,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1307-update-to-llvm-17#b08544e78d0a077641813ecf6ac890776735dc3a"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1307-update-to-llvm-17#3d2bb7f4140d90a2715f404c2b7ef4a0855cb3c3"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -523,7 +523,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1307-update-to-llvm-17#0b869e9bd6ce00f9953f174c6eb6a025ef5d8e51"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1307-update-to-llvm-17#1560a5cf149573c6dcb023b31de832759a0c66ba"
 dependencies = [
  "anyhow",
  "colored",
@@ -552,7 +552,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1307-update-to-llvm-17#6eacc5dd75c9c575affccfa0b215fff4d2426cab"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1307-update-to-llvm-17#7e51ee8517df509f5677c4b0ec1726d02b17ea4a"
 dependencies = [
  "anyhow",
  "colored",
