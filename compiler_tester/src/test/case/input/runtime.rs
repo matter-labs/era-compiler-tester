@@ -197,16 +197,21 @@ impl Runtime {
         let benchmark_caller_address =
             web3::types::Address::from_str(EraVM::DEFAULT_BENCHMARK_CALLER_ADDRESS)
                 .expect("Always valid");
+            let evm_proxy_address =
+            web3::types::Address::from_low_u64_be(0x10000);
 
         let mut calldata =
-            Vec::with_capacity(era_compiler_common::BYTE_LENGTH_FIELD + self.calldata.inner.len());
+            Vec::with_capacity(era_compiler_common::BYTE_LENGTH_X32 + (era_compiler_common::BYTE_LENGTH_FIELD * 2) + self.calldata.inner.len());
+        calldata.extend(crate::utils::selector("benchmark(address,address)"));
+        calldata.extend([0u8; era_compiler_common::BYTE_LENGTH_FIELD - BYTE_LENGTH_ETH_ADDRESS]);
+        calldata.extend(benchmark_caller_address.as_bytes());
         calldata.extend([0u8; era_compiler_common::BYTE_LENGTH_FIELD - BYTE_LENGTH_ETH_ADDRESS]);
         calldata.extend(self.address.as_bytes());
         calldata.extend(self.calldata.inner);
 
         let mut result = match vm.execute::<M>(
             name.clone(),
-            benchmark_caller_address,
+            evm_proxy_address,
             self.caller,
             self.value,
             calldata.clone(),

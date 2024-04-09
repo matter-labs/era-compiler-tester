@@ -210,7 +210,7 @@ impl MatterLabsTest {
     }
 
     ///
-    /// Adds the BenchmarkCaller contract as a proxy for the EVM interpreter.
+    /// Adds the Benchmark contract as a proxy for the EVM interpreter.
     ///
     fn push_benchmark_caller(
         &self,
@@ -218,15 +218,15 @@ impl MatterLabsTest {
         contracts: &mut BTreeMap<String, String>,
     ) -> anyhow::Result<()> {
         let benchmark_caller_string = std::fs::read_to_string(PathBuf::from(
-            "tests/solidity/complex/interpreter/BenchmarkCaller.sol",
+            "tests/solidity/complex/interpreter/Benchmark.sol",
         ))?;
         sources.push((
-            "tests/solidity/complex/interpreter/BenchmarkCaller.sol".to_owned(),
+            "tests/solidity/complex/interpreter/Benchmark.sol".to_owned(),
             benchmark_caller_string,
         )); // TODO
         contracts.insert(
-            "BenchmarkCaller".to_owned(),
-            "tests/solidity/complex/interpreter/BenchmarkCaller.sol:BenchmarkCaller".to_owned(),
+            "Benchmark".to_owned(),
+            "tests/solidity/complex/interpreter/Benchmark.sol:Benchmark".to_owned(),
         );
         Ok(())
     }
@@ -333,7 +333,7 @@ impl MatterLabsTest {
                         caller: default_caller_address(),
                         method: "benchmark".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "BenchmarkCaller.address".to_owned(),
+                            "Benchmark.address".to_owned(),
                             format!("{template}.address"),
                         ]),
                         value: None,
@@ -348,7 +348,7 @@ impl MatterLabsTest {
                         caller: default_caller_address(),
                         method: "benchmark".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "BenchmarkCaller.address".to_owned(),
+                            "Benchmark.address".to_owned(),
                             format!("{full}.address"),
                         ]),
                         value: None,
@@ -363,7 +363,7 @@ impl MatterLabsTest {
                         caller: default_caller_address(),
                         method: "benchmark".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "BenchmarkCaller.address".to_owned(),
+                            "Benchmark.address".to_owned(),
                             format!("{template}.address"),
                         ]),
                         value: None,
@@ -378,7 +378,7 @@ impl MatterLabsTest {
                         caller: default_caller_address(),
                         method: "benchmark".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "BenchmarkCaller.address".to_owned(),
+                            "Benchmark.address".to_owned(),
                             format!("{full}.address"),
                         ]),
                         value: None,

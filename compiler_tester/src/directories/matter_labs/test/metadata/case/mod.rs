@@ -102,7 +102,7 @@ impl Case {
                     continue;
                 }
 
-                if name != "BenchmarkCaller"
+                if name != "Benchmark"
                     && name.split('_').next().unwrap_or_default()
                         != self.name.split('_').next().unwrap_or_default()
                 {

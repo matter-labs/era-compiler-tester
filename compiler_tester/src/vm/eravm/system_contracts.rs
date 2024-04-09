@@ -109,6 +109,10 @@ impl SystemContracts {
     const PATH_EVM_GAS_MANAGER: &'static str =
         "era-contracts/system-contracts/contracts/EvmGasManager.sol:EvmGasManager";
 
+    /// The EVM proxy temporary system contract implementation path.
+    const PATH_EVM_PROXY: &'static str =
+        "tests/solidity/complex/interpreter/Proxy.sol:Proxy";
+
     ///
     /// Loads or builds the system contracts.
     ///
@@ -234,6 +238,10 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(0x8012),
                 Self::PATH_EVM_GAS_MANAGER,
             ),
+            (
+                web3::types::Address::from_low_u64_be(0x10000),
+                Self::PATH_EVM_PROXY,
+            ),
         ];
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
@@ -252,12 +260,15 @@ impl SystemContracts {
             let file_path = path.split(':').next().expect("Always valid");
             solidity_file_paths.push(file_path.to_owned());
         }
-        for path in glob::glob("era-contracts/system-contracts/**/*.sol")?.filter_map(Result::ok) {
-            let path = path.to_string_lossy().to_string();
-            if !solidity_file_paths.contains(&path) {
-                solidity_file_paths.push(path);
+        for pattern in ["era-contracts/system-contracts/**/*.sol", "tests/solidity/complex/interpreter/*.sol"] {
+            for path in glob::glob(pattern)?.filter_map(Result::ok) {
+                let path = path.to_string_lossy().to_string();
+                if !solidity_file_paths.contains(&path) {
+                    solidity_file_paths.push(path);
+                }
             }
         }
+        
         let solidity_optimizer_settings =
             era_compiler_llvm_context::OptimizerSettings::evm_interpreter();
         let solidity_mode = SolidityMode::new(
