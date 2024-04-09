@@ -6,11 +6,12 @@
 
 use std::collections::HashMap;
 
-use web3::ethabi::Address;
-
+use crate::vm::execution_result::ExecutionResult;
+use anyhow::anyhow;
 use vm2::ExecutionEnd;
+use vm2::Program;
 use vm2::World;
-use zkevm_assembly::zkevm_opcode_defs::Assembly;
+use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{BigEndianHash, H256, U256};
 use zkevm_tester::runners::compiler_tests::FullABIParams;
 use zkevm_tester::runners::compiler_tests::StorageKey;
@@ -21,7 +22,6 @@ use crate::test::case::input::{
     output::{event::Event, Output},
     value::Value,
 };
-use crate::vm::eravm::execution_result::ExecutionResult;
 
 pub fn run_vm(
     contracts: HashMap<web3::ethabi::Address, Assembly>,
@@ -54,12 +54,13 @@ pub fn run_vm(
             r5_value: None,
         },
         VmLaunchOption::ManualCallABI(abiparams) => abiparams,
-        x => return Err(anyhow::anyhow!("Unsupported launch option {x:?}")),
+        x => return Err(anyhow!("Unsupported launch option {x:?}")),
     };
 
     for (_, contract) in contracts {
         let bytecode = contract.clone().compile_to_bytecode()?;
-        let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)?;
+        let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)
+            .map_err(|()| anyhow!("Failed to hash bytecode"))?;
         known_contracts.insert(U256::from_big_endian(&hash), contract);
     }
 
@@ -73,9 +74,11 @@ pub fn run_vm(
         entry_address,
         context.msg_sender,
         calldata.to_vec(),
-        u32::MAX,
+        // zkevm_tester subtracts this constant, I don't know why
+        u32::MAX - 0x80000000,
         vm2::Settings {
-            default_aa_code_hash,
+            default_aa_code_hash: default_aa_code_hash.into(),
+            evm_interpreter_code_hash: evm_interpreter_code_hash.into(),
             hook_address: 0,
         },
     );
@@ -101,7 +104,7 @@ pub fn run_vm(
             exception: true,
             events: vec![],
         },
-        _panic => Output {
+        ExecutionEnd::Panicked => Output {
             return_data: vec![],
             exception: true,
             events: vec![],
@@ -150,10 +153,7 @@ struct TestWorld {
 }
 
 impl World for TestWorld {
-    fn decommit(
-        &mut self,
-        hash: U256,
-    ) -> (std::sync::Arc<[vm2::Instruction]>, std::sync::Arc<[U256]>) {
+    fn decommit(&mut self, hash: U256) -> Program {
         let bytecode = self
             .contracts
             .get(&hash)
@@ -169,13 +169,12 @@ impl World for TestWorld {
             })
             .collect::<Vec<_>>();
 
-        (
-            vm2::decode::decode_program(&instructions, false).into(),
+        Program::new(
+            vm2::decode::decode_program(&instructions, false),
             bytecode
                 .iter()
                 .map(|x| U256::from_big_endian(x))
-                .collect::<Vec<_>>()
-                .into(),
+                .collect::<Vec<_>>(),
         )
     }
 
@@ -193,7 +192,7 @@ impl World for TestWorld {
             .unwrap_or(U256::zero())
     }
 
-    fn handle_hook(&mut self, _: u32) {
+    fn handle_hook(&mut self, _: u32, _: &mut vm2::State) {
         unreachable!() // There is no bootloader
     }
 }

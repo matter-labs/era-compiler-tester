@@ -2576,6 +2576,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 
 [[package]]
+name = "vm2"
+version = "0.1.0"
+source = "git+https://github.com/matter-labs/vm2#6b21528af947ebd71b9a4403a77fbb1d9d770ee3"
+dependencies = [
+ "arbitrary",
+ "enum_dispatch",
+ "primitive-types",
+ "zk_evm_abstractions",
+ "zkevm_opcode_defs",
+]
+
+[[package]]
 name = "want"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
