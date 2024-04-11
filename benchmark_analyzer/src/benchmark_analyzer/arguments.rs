@@ -23,6 +23,10 @@ pub struct Arguments {
     /// The output file. If unset, the result is printed to `stdout`.
     #[structopt(short = "o", long = "output-file")]
     pub output_path: Option<PathBuf>,
+
+    /// Maximum number of results displayed in a group.
+    #[structopt(short = "gm", long = "group-max", default_value = "100")]
+    pub group_max: usize,
 }
 
 impl Arguments {
