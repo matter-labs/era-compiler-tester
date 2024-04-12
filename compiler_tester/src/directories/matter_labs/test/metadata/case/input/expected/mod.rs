@@ -34,7 +34,7 @@ impl Expected {
     /// Creates EVM interpreter benchmark expected data.
     ///
     pub fn successful_evm_interpreter_benchmark() -> Self {
-        Self::Single(Variant::Simple(vec!["*".to_owned()]))
+        Self::Single(Variant::Simple(vec![]))
     }
 
     ///

@@ -331,7 +331,7 @@ impl MatterLabsTest {
                         comment: None,
                         instance: "Proxy".to_owned(),
                         caller: default_caller_address(),
-                        method: "benchmark".to_owned(),
+                        method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
                             "Benchmark.address".to_owned(),
                             format!("{template}.address"),
@@ -346,7 +346,7 @@ impl MatterLabsTest {
                         comment: None,
                         instance: "Proxy".to_owned(),
                         caller: default_caller_address(),
-                        method: "benchmark".to_owned(),
+                        method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
                             "Benchmark.address".to_owned(),
                             format!("{full}.address"),
@@ -361,7 +361,7 @@ impl MatterLabsTest {
                         comment: None,
                         instance: "Proxy".to_owned(),
                         caller: default_caller_address(),
-                        method: "benchmark".to_owned(),
+                        method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
                             "Benchmark.address".to_owned(),
                             format!("{template}.address"),
@@ -376,7 +376,7 @@ impl MatterLabsTest {
                         comment: None,
                         instance: "Proxy".to_owned(),
                         caller: default_caller_address(),
-                        method: "benchmark".to_owned(),
+                        method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
                             "Benchmark.address".to_owned(),
                             format!("{full}.address"),
