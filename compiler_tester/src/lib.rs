@@ -122,7 +122,7 @@ impl CompilerTester {
                 let mode_string = mode.clone().to_string();
                 let specialized_debug_config = self
                     .debug_config
-                    .clone()
+                    .as_ref()
                     .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
                 if let Some(test) = test.build_for_eravm(
                     mode,
@@ -151,7 +151,7 @@ impl CompilerTester {
                 let mode_string = mode.clone().to_string();
                 let specialized_debug_config = self
                     .debug_config
-                    .clone()
+                    .as_ref()
                     .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
                 if let Some(test) = test.build_for_evm(
                     mode,
