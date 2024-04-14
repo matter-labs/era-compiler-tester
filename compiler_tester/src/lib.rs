@@ -119,7 +119,7 @@ impl CompilerTester {
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
-                let mode_string = mode.clone().to_string();
+                let mode_string = mode.to_string();
                 let specialized_debug_config = self
                     .debug_config
                     .as_ref()
@@ -148,7 +148,7 @@ impl CompilerTester {
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
-                let mode_string = mode.clone().to_string();
+                let mode_string = mode.to_string();
                 let specialized_debug_config = self
                     .debug_config
                     .as_ref()
