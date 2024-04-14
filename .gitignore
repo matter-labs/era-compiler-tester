@@ -15,7 +15,7 @@
 /llvm/
 
 # External compilers
-/solc-bin/*
+/solc-bin*/*
 /vyper-bin/*
 
 # The debug and trace artifacts
