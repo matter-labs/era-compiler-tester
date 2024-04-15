@@ -501,7 +501,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#94d110f5061e8ef9b14db964ed32ee974cceacb2"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#4ae31ed6286da78869dc76a2ff851590443a81da"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -523,7 +523,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#fab586681524407644c155dd22e36cd65b9fdee2"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#e6486e75696ad5e1b0c3eba8e6345f4c0943d3a0"
 dependencies = [
  "anyhow",
  "colored",
@@ -1600,9 +1600,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.81"
+version = "1.0.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d1597b0c024618f09a9c3b8655b7e430397a36d23fdafec26d6965e9eec3eba"
+checksum = "a56dea16b0a29e94408b9aa5e2940a4eedbd128a1ba20e8f7ae60fd3d465af0e"
 dependencies = [
  "unicode-ident",
 ]
