@@ -103,6 +103,10 @@ pub struct Arguments {
     /// Sets the `debug logging` option in LLVM.
     #[structopt(long = "llvm-debug-logging")]
     pub llvm_debug_logging: bool,
+
+    /// Builds the test code but does not run tests.
+    #[structopt(long = "build-only")]
+    pub build_only: bool,
 }
 
 impl Arguments {

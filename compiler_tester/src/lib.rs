@@ -54,6 +54,16 @@ pub const TRACE_DIRECTORY: &str = "./trace/";
 type Test = (Arc<dyn Buildable>, Arc<dyn Compiler>, Mode);
 
 ///
+/// Describes sets of actions that compiler tester is able to perform.
+///
+pub enum Workflow {
+    /// Only build tests but not execute them.
+    BuildOnly,
+    /// Build and execute tests.
+    BuildAndRun,
+}
+
+///
 /// The compiler tester.
 ///
 pub struct CompilerTester {
@@ -63,6 +73,8 @@ pub struct CompilerTester {
     pub filters: Filters,
     /// The debug config.
     pub debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    /// Actions to perform.
+    pub workflow: Workflow,
 }
 
 impl CompilerTester {
@@ -98,11 +110,13 @@ impl CompilerTester {
         summary: Arc<Mutex<Summary>>,
         filters: Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        workflow: Workflow,
     ) -> anyhow::Result<Self> {
         Ok(Self {
             summary,
             filters,
             debug_config,
+            workflow,
         })
     }
 
@@ -131,7 +145,9 @@ impl CompilerTester {
                     &self.filters,
                     specialized_debug_config,
                 ) {
-                    test.run::<D, M>(self.summary.clone(), vm.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run::<D, M>(self.summary.clone(), vm.clone())
+                    };
                 }
             })
             .collect();
@@ -160,7 +176,9 @@ impl CompilerTester {
                     &self.filters,
                     specialized_debug_config,
                 ) {
-                    test.run(self.summary.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run(self.summary.clone())
+                    };
                 }
             })
             .collect();
