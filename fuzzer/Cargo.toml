@@ -30,8 +30,8 @@ libfuzzer-sys = "0.4"
 zkevm-assembly = { git = "https://github.com/matter-labs/era-zkEVM-assembly", branch = "v1.4.1" }
 zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.4.1" }
 
-era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-cpr-1307-update-to-llvm-17" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1307-update-to-llvm-17" }
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
 
 compiler-tester = { path = "../compiler_tester" }
 solidity-adapter = { path = "../solidity_adapter" }
