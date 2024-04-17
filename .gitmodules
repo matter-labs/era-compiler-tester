@@ -9,4 +9,4 @@
 [submodule "era-contracts"]
 	path = era-contracts
 	url = https://github.com/matter-labs/era-contracts
-	branch = main
+	branch = sb-1-5-0-evm-eq-integration
