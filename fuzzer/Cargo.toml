@@ -3,6 +3,9 @@ name = "compiler-tester-fuzz"
 version = "1.5.0"
 edition = "2021"
 
+[package.metadata]
+cargo-fuzz = true
+
 [[bin]]
 name = "demo"
 path = "fuzz_targets/demo.rs"
@@ -16,9 +19,6 @@ path = "fuzz_targets/optimizer_bug.rs"
 test = false
 doc = false
 bench = false
-
-[package.metadata]
-cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"

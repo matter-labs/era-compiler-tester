@@ -96,7 +96,7 @@ where
             .expect("The value is not being evaluated")
             .unwrap_value()
             .as_ref()
-            .map(|value| value.clone())
+            .map(|value| value.to_owned())
             .map_err(|error| anyhow::anyhow!("{}", error))
     }
 

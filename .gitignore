@@ -8,7 +8,6 @@
 /llvm/
 
 # External compilers
-/solc-bin/*
 /solc-bin*/*
 /vyper-bin/*
 
