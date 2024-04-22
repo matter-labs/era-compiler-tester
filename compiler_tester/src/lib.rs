@@ -10,11 +10,12 @@ pub(crate) mod summary;
 pub(crate) mod test;
 pub(crate) mod utils;
 pub(crate) mod vm;
-pub mod workflow;
+pub(crate) mod workflow;
 
 pub use self::filters::Filters;
 pub use self::llvm_options::LLVMOptions;
 pub use self::summary::Summary;
+pub use self::workflow::Workflow;
 pub use crate::vm::eravm::deployers::native_deployer::NativeDeployer as EraVMNativeDeployer;
 pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
 pub use crate::vm::eravm::EraVM;
@@ -27,7 +28,6 @@ use std::sync::Mutex;
 use itertools::Itertools;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
-use workflow::Workflow;
 
 pub use crate::compilers::eravm::EraVMCompiler;
 pub use crate::compilers::llvm::LLVMCompiler;

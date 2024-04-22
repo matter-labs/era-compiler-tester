@@ -3,8 +3,8 @@ use std::{
     sync::Arc,
 };
 
+use compiler_tester::Workflow;
 use compiler_tester::{Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary};
-use compiler_tester::workflow::Workflow;
 pub use solidity_adapter::{
     test::function_call::parser::{
         lexical::token::{
@@ -174,7 +174,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
         compiler_tester::Summary::new(true, false).wrap(),
         compiler_tester::Filters::new(vec![], vec![], vec![]),
         None,
-        Workflow::BuildAndRun
+        Workflow::BuildAndRun,
     )?;
     zkevm_tester::runners::compiler_tests::set_tracing_mode(
         zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(0),

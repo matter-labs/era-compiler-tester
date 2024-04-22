@@ -15,12 +15,9 @@ pub enum Workflow {
     BuildAndRun,
 }
 
-// any error type implementing Display is acceptable.
-type ParseError = &'static str;
-
 impl FromStr for Workflow {
-    type Err = ParseError;
-    
+    type Err = &'static str;
+
     fn from_str(day: &str) -> Result<Self, Self::Err> {
         match day {
             "build" => Ok(Workflow::BuildOnly),

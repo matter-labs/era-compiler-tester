@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use compiler_tester::workflow::Workflow;
+use compiler_tester::Workflow;
 
 ///
 /// The compiler tester arguments.
