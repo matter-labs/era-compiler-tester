@@ -119,12 +119,17 @@ impl CompilerTester {
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
                 if let Some(test) = test.build_for_eravm(
                     mode,
                     compiler,
                     self.summary.clone(),
                     &self.filters,
-                    self.debug_config.clone(),
+                    specialized_debug_config,
                 ) {
                     test.run::<D, M>(self.summary.clone(), vm.clone());
                 }
@@ -143,12 +148,17 @@ impl CompilerTester {
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
                     self.summary.clone(),
                     &self.filters,
-                    self.debug_config.clone(),
+                    specialized_debug_config,
                 ) {
                     test.run(self.summary.clone());
                 }
