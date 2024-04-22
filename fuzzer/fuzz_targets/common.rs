@@ -3,7 +3,8 @@ use std::{
     sync::Arc,
 };
 
-use compiler_tester::{Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow};
+use compiler_tester::{Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary};
+use compiler_tester::workflow::Workflow;
 pub use solidity_adapter::{
     test::function_call::parser::{
         lexical::token::{

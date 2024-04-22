@@ -11,7 +11,6 @@ use std::time::Instant;
 use colored::Colorize;
 
 use self::arguments::Arguments;
-use compiler_tester::Workflow;
 
 /// The rayon worker stack size.
 const RAYON_WORKER_STACK_SIZE: usize = 16 * 1024 * 1024;
@@ -93,16 +92,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
 
-    let workflow = if arguments.build_only {
-        Workflow::BuildOnly
-    } else {
-        Workflow::BuildAndRun
-    };
     let compiler_tester = compiler_tester::CompilerTester::new(
         summary.clone(),
         filters,
         debug_config.clone(),
-        workflow,
+        arguments.workflow,
     )?;
 
     let binary_download_config_paths = vec![

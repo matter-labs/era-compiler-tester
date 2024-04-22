@@ -10,6 +10,7 @@ pub(crate) mod summary;
 pub(crate) mod test;
 pub(crate) mod utils;
 pub(crate) mod vm;
+pub mod workflow;
 
 pub use self::filters::Filters;
 pub use self::llvm_options::LLVMOptions;
@@ -26,6 +27,7 @@ use std::sync::Mutex;
 use itertools::Itertools;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
+use workflow::Workflow;
 
 pub use crate::compilers::eravm::EraVMCompiler;
 pub use crate::compilers::llvm::LLVMCompiler;
@@ -52,16 +54,6 @@ pub const TRACE_DIRECTORY: &str = "./trace/";
 /// The compiler test generic representation.
 ///
 type Test = (Arc<dyn Buildable>, Arc<dyn Compiler>, Mode);
-
-///
-/// Describes sets of actions that compiler tester is able to perform.
-///
-pub enum Workflow {
-    /// Only build tests but not execute them.
-    BuildOnly,
-    /// Build and execute tests.
-    BuildAndRun,
-}
 
 ///
 /// The compiler tester.
