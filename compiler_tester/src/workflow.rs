@@ -1,6 +1,8 @@
 //!
-//! Compiler tester workflows
+//! The compiler tester workflows.
 //!
+
+use std::str::FromStr;
 
 ///
 /// Describes sets of actions that compiler tester is able to perform.
@@ -12,13 +14,13 @@ pub enum Workflow {
     /// Build and execute tests.
     BuildAndRun,
 }
-use std::str::FromStr;
 
 // any error type implementing Display is acceptable.
 type ParseError = &'static str;
 
 impl FromStr for Workflow {
     type Err = ParseError;
+    
     fn from_str(day: &str) -> Result<Self, Self::Err> {
         match day {
             "build" => Ok(Workflow::BuildOnly),
