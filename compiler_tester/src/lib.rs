@@ -10,10 +10,12 @@ pub(crate) mod summary;
 pub(crate) mod test;
 pub(crate) mod utils;
 pub(crate) mod vm;
+pub(crate) mod workflow;
 
 pub use self::filters::Filters;
 pub use self::llvm_options::LLVMOptions;
 pub use self::summary::Summary;
+pub use self::workflow::Workflow;
 pub use crate::vm::eravm::deployers::native_deployer::NativeDeployer as EraVMNativeDeployer;
 pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
 pub use crate::vm::eravm::EraVM;
@@ -63,6 +65,8 @@ pub struct CompilerTester {
     pub filters: Filters,
     /// The debug config.
     pub debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    /// Actions to perform.
+    pub workflow: Workflow,
 }
 
 impl CompilerTester {
@@ -98,11 +102,13 @@ impl CompilerTester {
         summary: Arc<Mutex<Summary>>,
         filters: Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        workflow: Workflow,
     ) -> anyhow::Result<Self> {
         Ok(Self {
             summary,
             filters,
             debug_config,
+            workflow,
         })
     }
 
@@ -131,7 +137,9 @@ impl CompilerTester {
                     &self.filters,
                     specialized_debug_config,
                 ) {
-                    test.run::<D, M>(self.summary.clone(), vm.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run::<D, M>(self.summary.clone(), vm.clone())
+                    };
                 }
             })
             .collect();
@@ -160,7 +168,9 @@ impl CompilerTester {
                     &self.filters,
                     specialized_debug_config,
                 ) {
-                    test.run(self.summary.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run(self.summary.clone())
+                    };
                 }
             })
             .collect();

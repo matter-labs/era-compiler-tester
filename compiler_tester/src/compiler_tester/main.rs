@@ -92,8 +92,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
 
-    let compiler_tester =
-        compiler_tester::CompilerTester::new(summary.clone(), filters, debug_config.clone())?;
+    let compiler_tester = compiler_tester::CompilerTester::new(
+        summary.clone(),
+        filters,
+        debug_config.clone(),
+        arguments.workflow,
+    )?;
 
     let binary_download_config_paths = vec![
         arguments

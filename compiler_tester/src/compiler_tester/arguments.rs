@@ -6,6 +6,8 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
+use compiler_tester::Workflow;
+
 ///
 /// The compiler tester arguments.
 ///
@@ -103,6 +105,10 @@ pub struct Arguments {
     /// Sets the `debug logging` option in LLVM.
     #[structopt(long = "llvm-debug-logging")]
     pub llvm_debug_logging: bool,
+
+    /// Choose between `build` to compile tests only without running them, and `run` to compile and run them.
+    #[structopt(long = "workflow", default_value = "run")]
+    pub workflow: Workflow,
 }
 
 impl Arguments {
