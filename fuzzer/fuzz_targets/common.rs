@@ -1,4 +1,11 @@
-use compiler_tester::{Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+
+use compiler_tester::{
+    Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow,
+};
 use era_compiler_solidity::SolcPipeline;
 
 pub use solidity_adapter::{
@@ -19,8 +26,6 @@ pub use solidity_adapter::{
     },
     EnabledTest, FunctionCall,
 };
-
-use std::{path::PathBuf, sync::Arc};
 
 ///
 /// Fuzzing case definition
@@ -173,6 +178,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
         compiler_tester::Summary::new(true, false).wrap(),
         compiler_tester::Filters::new(vec![], vec![], vec![]),
         None,
+        Workflow::BuildAndRun,
     )?;
     zkevm_tester::runners::compiler_tests::set_tracing_mode(
         zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(0),

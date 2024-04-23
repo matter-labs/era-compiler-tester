@@ -75,7 +75,7 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self) -> benchmark_analyzer::Benchmark {
+    pub fn benchmark(&self) -> anyhow::Result<benchmark_analyzer::Benchmark> {
         let mut benchmark = benchmark_analyzer::Benchmark::default();
         benchmark.groups.insert(
             format!(
@@ -139,16 +139,17 @@ impl Summary {
                     .insert(key.clone(), benchmark_element.clone());
             }
 
+            let group_key = format!("{} {}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME, mode);
             benchmark
                 .groups
                 .get_mut(
-                    format!("{} {}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME, mode).as_str(),
+                    group_key.as_str(),
                 )
-                .expect("Always exists")
+                .ok_or_else(|| anyhow::anyhow!("Group `{group_key}` not found. Only M3 and Mz groups are allowed in benchmarking"))?
                 .elements
                 .insert(key, benchmark_element);
         }
-        benchmark
+        Ok(benchmark)
     }
 
     ///

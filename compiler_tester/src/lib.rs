@@ -14,6 +14,7 @@ pub(crate) mod target;
 pub(crate) mod test;
 pub(crate) mod utils;
 pub(crate) mod vm;
+pub(crate) mod workflow;
 
 use std::path::Path;
 use std::sync::Arc;
@@ -46,6 +47,7 @@ pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDep
 pub use crate::vm::eravm::deployers::EraVMDeployer;
 pub use crate::vm::eravm::EraVM;
 pub use crate::vm::evm::EVM;
+pub use crate::workflow::Workflow;
 
 /// The debug directory path.
 pub const DEBUG_DIRECTORY: &str = "./debug/";
@@ -68,6 +70,8 @@ pub struct CompilerTester {
     pub filters: Filters,
     /// The debug config.
     pub debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+    /// Actions to perform.
+    pub workflow: Workflow,
 }
 
 impl CompilerTester {
@@ -103,11 +107,13 @@ impl CompilerTester {
         summary: Arc<Mutex<Summary>>,
         filters: Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        workflow: Workflow,
     ) -> anyhow::Result<Self> {
         Ok(Self {
             summary,
             filters,
             debug_config,
+            workflow,
         })
     }
 
@@ -124,15 +130,22 @@ impl CompilerTester {
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
                 if let Some(test) = test.build_for_eravm(
                     mode,
                     compiler,
                     Target::EraVM,
                     self.summary.clone(),
                     &self.filters,
-                    self.debug_config.clone(),
+                    specialized_debug_config,
                 ) {
-                    test.run_eravm::<D, M>(self.summary.clone(), vm.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_eravm::<D, M>(self.summary.clone(), vm.clone())
+                    };
                 }
             })
             .collect();
@@ -149,15 +162,22 @@ impl CompilerTester {
         let _: Vec<()> = tests
             .into_par_iter()
             .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
                     Target::EVM,
                     self.summary.clone(),
                     &self.filters,
-                    self.debug_config.clone(),
+                    specialized_debug_config,
                 ) {
-                    test.run_evm(self.summary.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_evm(self.summary.clone())
+                    };
                 }
             })
             .collect();
@@ -190,7 +210,9 @@ impl CompilerTester {
                     &self.filters,
                     self.debug_config.clone(),
                 ) {
-                    test.run_evm_interpreter::<D, M>(self.summary.clone(), vm.clone());
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_evm_interpreter::<D, M>(self.summary.clone(), vm.clone());
+                    }
                 }
             })
             .collect();

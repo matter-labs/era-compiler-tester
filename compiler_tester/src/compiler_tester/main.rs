@@ -95,8 +95,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
 
-    let compiler_tester =
-        compiler_tester::CompilerTester::new(summary.clone(), filters, debug_config.clone())?;
+    let compiler_tester = compiler_tester::CompilerTester::new(
+        summary.clone(),
+        filters,
+        debug_config.clone(),
+        arguments.workflow,
+    )?;
 
     let binary_download_config_paths = vec![
         arguments.solc_bin_config_path.unwrap_or_else(|| {
@@ -208,7 +212,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
 
     if let Some(path) = arguments.benchmark {
-        let benchmark = summary.benchmark();
+        let benchmark = summary.benchmark()?;
         benchmark.write_to_file(path)?;
     }
 
@@ -258,6 +262,7 @@ mod tests {
             system_contracts_save_path: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
+            workflow: compiler_tester::Workflow::BuildAndRun,
         };
 
         crate::main_inner(arguments).expect("Manual testing failed");
