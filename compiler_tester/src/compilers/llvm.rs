@@ -120,7 +120,6 @@ impl Compiler for LLVMCompiler {
                     .map_err(|error| anyhow::anyhow!(error.to_string()))?;
                 let optimizer =
                     era_compiler_llvm_context::Optimizer::new(mode.llvm_optimizer_settings.clone());
-                let source_hash = sha3::Keccak256::digest(source.as_bytes()).into();
 
                 let context = era_compiler_llvm_context::EVMContext::<
                     era_compiler_llvm_context::EVMDummyDependency,
@@ -133,8 +132,8 @@ impl Compiler for LLVMCompiler {
                     true,
                     debug_config.clone(),
                 );
-                let build = context.build(path, Some(source_hash))?;
-                let build = EVMBuild::new(era_compiler_llvm_context::EVMBuild::default(), build);
+                let build = context.build(path, None)?;
+                let build = EVMBuild::new(build.as_slice().to_vec(), vec![]);
 
                 Ok((path.to_owned(), build))
             })

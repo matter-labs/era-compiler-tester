@@ -502,7 +502,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#94d110f5061e8ef9b14db964ed32ee974cceacb2"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1664-support-linking-deploy-and-runtime-code#a69572aebd84d05c02a0e1b9076eca6fbd20939b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -524,7 +524,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#fab586681524407644c155dd22e36cd65b9fdee2"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1664-support-linking-deploy-and-runtime-code#9d68410b376284cec67c34d8e35fc7924463eec3"
 dependencies = [
  "anyhow",
  "colored",
@@ -553,7 +553,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.4.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#8fc8c76e4592f7b16619ab9b76a8f38521f54e4b"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1664-support-linking-deploy-and-runtime-code#f36982cf74ae7306e040efb3fdb270e145fbb2f9"
 dependencies = [
  "anyhow",
  "colored",
@@ -1083,7 +1083,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c0821d7234b867b79baf29b87a3fb0c751eccad2"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-cpr-1664-support-linking-deploy-and-runtime-code#d15077482dc344bfb38037b304b58d1c79b132da"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1098,7 +1098,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c0821d7234b867b79baf29b87a3fb0c751eccad2"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-cpr-1664-support-linking-deploy-and-runtime-code#d15077482dc344bfb38037b304b58d1c79b132da"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1233,7 +1233,7 @@ checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#d165991787fe71259076aeabe25019f2e94c2a4b"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=az-cpr-1664-support-linking-deploy-and-runtime-code#d26f2ce4190126ffb25e96008f129ccd99937b2b"
 dependencies = [
  "anyhow",
  "cc",

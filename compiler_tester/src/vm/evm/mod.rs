@@ -89,9 +89,9 @@ impl<'evm> EVM<'evm> {
         constructor_args: Vec<u8>,
     ) -> anyhow::Result<ExecutionResult> {
         let bytecode = self.known_contracts.values().next().unwrap();
-        let mut deploy_code = bytecode.deploy_build.bytecode.to_owned();
+        let mut deploy_code = bytecode.deploy_build.to_owned();
         deploy_code.extend(constructor_args);
-        let runtime_code = bytecode.runtime_build.bytecode.to_owned();
+        let runtime_code = bytecode.runtime_build.to_owned();
 
         self.runtime
             .balances

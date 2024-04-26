@@ -8,19 +8,16 @@
 #[derive(Debug, Clone)]
 pub struct Build {
     /// The contract deploy build.
-    pub deploy_build: era_compiler_llvm_context::EVMBuild,
+    pub deploy_build: Vec<u8>,
     /// The contract runtime build.
-    pub runtime_build: era_compiler_llvm_context::EVMBuild,
+    pub runtime_build: Vec<u8>,
 }
 
 impl Build {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(
-        deploy_build: era_compiler_llvm_context::EVMBuild,
-        runtime_build: era_compiler_llvm_context::EVMBuild,
-    ) -> Self {
+    pub fn new(deploy_build: Vec<u8>, runtime_build: Vec<u8>) -> Self {
         Self {
             deploy_build,
             runtime_build,
