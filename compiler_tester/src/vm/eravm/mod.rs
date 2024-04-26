@@ -19,7 +19,6 @@ use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
-use web3::ethabi::Hash;
 
 use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::vm::execution_result::ExecutionResult;
