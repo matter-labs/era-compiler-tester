@@ -39,6 +39,8 @@ pub struct EraVM {
     evm_interpreter_code_hash: web3::types::U256,
     /// The deployed contracts.
     deployed_contracts: HashMap<web3::types::Address, zkevm_assembly::Assembly>,
+    /// The published EVM bytecodes
+    published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,
     /// The storage state.
     storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
 }
@@ -104,6 +106,7 @@ impl EraVM {
             evm_interpreter_code_hash: system_contracts.evm_interpreter.bytecode_hash,
             deployed_contracts: HashMap::new(),
             storage,
+            published_evm_bytecodes: HashMap::new(),
         };
 
         vm.add_known_contract(
@@ -234,6 +237,7 @@ impl EraVM {
                 vm_launch_option,
                 usize::MAX,
                 self.known_contracts.clone(),
+                self.published_evm_bytecodes.clone(),
                 self.default_aa_code_hash,
                 self.evm_interpreter_code_hash,
             )?;
@@ -246,6 +250,15 @@ impl EraVM {
                 self.deployed_contracts
                     .insert(*address, assembly.to_owned());
             }
+
+            for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
+                if self.published_evm_bytecodes.contains_key(&hash) {
+                    continue;
+                }
+
+                self.published_evm_bytecodes.insert(*hash, preimage.clone());
+            }
+
             self.storage = snapshot.storage.clone();
 
             Ok(snapshot.into())

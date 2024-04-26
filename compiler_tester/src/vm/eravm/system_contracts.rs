@@ -101,6 +101,10 @@ impl SystemContracts {
     const PATH_EVENT_WRITER: &'static str =
         "era-contracts/system-contracts/contracts/EventWriter.yul";
 
+    /// The code oracle system contract implementation path.
+    const PATH_CODE_ORACLE: &'static str =
+        "era-contracts/system-contracts/contracts/precompiles/CodeOracle.yul";
+
     /// The ETH token system contract implementation path.
     const PATH_ETH_TOKEN: &'static str =
         "era-contracts/system-contracts/contracts/L2EthToken.sol:L2EthToken";
@@ -179,6 +183,10 @@ impl SystemContracts {
                 ),
                 Self::PATH_EVENT_WRITER,
             ),
+            (
+                web3::types::Address::from_low_u64_be(0x8012),
+                Self::PATH_CODE_ORACLE,
+            ),
         ];
 
         let solidity_system_contracts = vec![
@@ -234,7 +242,7 @@ impl SystemContracts {
                 Self::PATH_ETH_TOKEN,
             ),
             (
-                web3::types::Address::from_low_u64_be(0x8012),
+                web3::types::Address::from_low_u64_be(0x8013),
                 Self::PATH_EVM_GAS_MANAGER,
             ),
             (
