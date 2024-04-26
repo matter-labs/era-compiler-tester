@@ -211,13 +211,15 @@ impl EraVMDeployer for SystemContractDeployer {
         calldata.extend(init_code);
         calldata.extend(constructor_calldata);
 
-        vm.execute::<M>(
+        let result = vm.execute::<M>(
             test_name,
             entry_address,
             caller,
             Some(context_u128_value),
             calldata,
             Some(vm_launch_option),
-        )
+        );
+
+        result
     }
 }

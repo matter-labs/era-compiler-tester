@@ -2947,7 +2947,6 @@ checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
 [[package]]
 name = "zk_evm"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/zk_evm?branch=v1.5.0#54fd09c8777b2c3b06ab088f96bbd6bd968f6737"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -3008,9 +3007,9 @@ dependencies = [
 [[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#6097d4bdc67474747e437b023354cc06bba767d5"
 dependencies = [
  "anyhow",
+ "ethabi",
  "futures",
  "hex",
  "num-bigint",
