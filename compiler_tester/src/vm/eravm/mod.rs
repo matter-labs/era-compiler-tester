@@ -41,7 +41,7 @@ pub struct EraVM {
     /// The deployed contracts.
     deployed_contracts: HashMap<web3::types::Address, zkevm_assembly::Assembly>,
     /// The published EVM bytecodes
-    published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,  
+    published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,
     /// The storage state.
     storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
 }
