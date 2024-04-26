@@ -42,8 +42,8 @@ evm = { git = "https://github.com/rust-ethereum/evm", branch = "master" }
 
 zkevm-assembly = { git = "https://github.com/matter-labs/era-zkEVM-assembly", branch = "v1.5.0" }
 zkevm_opcode_defs = { git = "https://github.com/matter-labs/era-zkevm_opcode_defs", branch = "v1.5.0" }
-#zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
-zkevm_tester = { path = "../../era-zkevm_tester" }
+zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
+#zkevm_tester = { path = "../../era-zkevm_tester" }
 
 vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
