@@ -102,7 +102,7 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/EventWriter.yul";
 
     /// The code oracle system contract implementation path.
-    const CODE_ORACLE: &'static str =
+    const PATH_CODE_ORACLE: &'static str =
         "era-contracts/system-contracts/contracts/precompiles/CodeOracle.yul";
 
     /// The ETH token system contract implementation path.
@@ -185,7 +185,7 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(0x8012),
-                Self::CODE_ORACLE,
+                Self::PATH_CODE_ORACLE,
             ),
         ];
 
