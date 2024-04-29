@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 use crate::vm::execution_result::ExecutionResult;
 use anyhow::anyhow;
+use vm2::initial_decommit;
 use vm2::ExecutionEnd;
 use vm2::Program;
 use vm2::World;
@@ -66,12 +67,16 @@ pub fn run_vm(
 
     let context = context.unwrap_or_default();
 
+    let mut world = TestWorld {
+        storage,
+        contracts: known_contracts.clone(),
+    };
+    let initial_program = initial_decommit(&mut world, entry_address);
+
     let mut vm = vm2::VirtualMachine::new(
-        Box::new(TestWorld {
-            storage,
-            contracts: known_contracts.clone(),
-        }),
+        Box::new(world),
         entry_address,
+        initial_program,
         context.msg_sender,
         calldata.to_vec(),
         // zkevm_tester subtracts this constant, I don't know why
@@ -109,18 +114,21 @@ pub fn run_vm(
             exception: true,
             events: vec![],
         },
+        ExecutionEnd::SuspendedOnHook { .. } => unreachable!(),
     };
 
     let storage_changes = vm
         .world
         .get_storage_changes()
-        .map(|((address, key), value)| (StorageKey { address, key }, H256::from_uint(&value)))
+        .iter()
+        .map(|(&(address, key), value)| (StorageKey { address, key }, H256::from_uint(value)))
         .collect::<HashMap<_, _>>();
     let deployed_contracts = vm
         .world
         .get_storage_changes()
+        .iter()
         .filter_map(|((address, key), value)| {
-            if address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
+            if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
                 let mut buffer = [0u8; 32];
                 key.to_big_endian(&mut buffer);
                 let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
@@ -191,10 +199,6 @@ impl World for TestWorld {
             .map(|h| h.into_uint())
             .unwrap_or(U256::zero())
     }
-
-    fn handle_hook(&mut self, _: u32, _: &mut vm2::State) {
-        unreachable!() // There is no bootloader
-    }
 }
 
 fn chunk_return_data(bytes: &[u8]) -> Vec<Value> {
@@ -230,6 +234,7 @@ fn merge_events(events: &[vm2::Event]) -> Vec<Event> {
             key,
             value,
         } = *message;
+        let tx_number = tx_number.into();
 
         if !is_first {
             if let Some((mut remaining_data_length, mut remaining_topics, mut event)) =
