@@ -50,6 +50,9 @@ impl EraVM {
     pub const DEFAULT_BENCHMARK_CALLER_ADDRESS: &'static str =
         "eeaffc9ff130f15d470945fd04b9017779c95dbf";
 
+    /// The extra amount of gas consumed by every call to the EVM interpreter.
+    pub const EVM_INTERPRETER_GAS_OVERHEAD: u64 = 2500;
+
     ///
     /// Creates and initializes a new EraVM instance.
     ///

@@ -318,6 +318,7 @@ impl MatterLabsTest {
         for pair_of_bytecodes in evm_contracts.chunks(2) {
             let full = &pair_of_bytecodes[0];
             let template = &pair_of_bytecodes[1];
+            let exception = full.contains("REVERT");
 
             metadata_cases.push(MatterLabsCase {
                 comment: None,
@@ -339,7 +340,7 @@ impl MatterLabsTest {
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(
-                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(false),
                         ),
                     },
                     MatterLabsCaseInput {
@@ -354,41 +355,11 @@ impl MatterLabsTest {
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(
-                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
-                        ),
-                    },
-                    MatterLabsCaseInput {
-                        comment: None,
-                        instance: "Proxy".to_owned(),
-                        caller: default_caller_address(),
-                        method: "#fallback".to_owned(),
-                        calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "Benchmark.address".to_owned(),
-                            format!("{template}.address"),
-                        ]),
-                        value: None,
-                        storage: HashMap::new(),
-                        expected: Some(
-                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
-                        ),
-                    },
-                    MatterLabsCaseInput {
-                        comment: None,
-                        instance: "Proxy".to_owned(),
-                        caller: default_caller_address(),
-                        method: "#fallback".to_owned(),
-                        calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "Benchmark.address".to_owned(),
-                            format!("{full}.address"),
-                        ]),
-                        value: None,
-                        storage: HashMap::new(),
-                        expected: Some(
-                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(exception),
                         ),
                     },
                 ],
-                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(),
+                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(exception),
                 ignore: false,
                 cycles: None,
             })

@@ -9,6 +9,7 @@ use serde::Deserialize;
 use crate::compilers::mode::Mode;
 
 use self::variant::Variant;
+use self::variant::extended::Extended;
 
 ///
 /// The Matter Labs compiler test metadata expected data variant.
@@ -33,8 +34,13 @@ impl Expected {
     ///
     /// Creates EVM interpreter benchmark expected data.
     ///
-    pub fn successful_evm_interpreter_benchmark() -> Self {
-        Self::Single(Variant::Simple(vec![]))
+    pub fn successful_evm_interpreter_benchmark(exception: bool) -> Self {
+        Self::Single(Variant::Extended(Extended {
+            return_data: vec![],
+            events: vec![],
+            exception,
+            compiler_version: None,
+        }))
     }
 
     ///
