@@ -43,7 +43,7 @@ impl SystemContracts {
 
     /// The EVM interpreter system contract implementation path.
     const PATH_EVM_INTERPRETER: &'static str =
-        "era-contracts/system-contracts/contracts/EvmInterpreter.sol:EvmInterpreter";
+        "era-contracts/system-contracts/contracts/EvmInterpreterPreprocessed.yul";
 
     /// The `keccak256` system contract implementation path.
     const PATH_KECCAK256: &'static str =
@@ -252,10 +252,10 @@ impl SystemContracts {
         ];
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
-        for (_, path) in yul_system_contracts.iter() {
-            let file_path = path.split(':').next().expect("Always valid");
-            yul_file_paths.push(file_path.to_owned());
+        for (_, path) in yul_system_contracts.into_iter() {
+            yul_file_paths.push(path.to_owned());
         }
+        yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
         let yul_optimizer_settings =
             era_compiler_llvm_context::OptimizerSettings::evm_interpreter();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
@@ -263,10 +263,6 @@ impl SystemContracts {
             Self::compile(YulCompiler, &yul_mode, yul_file_paths, debug_config.clone())?;
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
-        for (_, path) in solidity_system_contracts.iter() {
-            let file_path = path.split(':').next().expect("Always valid");
-            solidity_file_paths.push(file_path.to_owned());
-        }
         for pattern in [
             "era-contracts/system-contracts/**/*.sol",
             "tests/solidity/complex/interpreter/*.sol",
@@ -298,6 +294,13 @@ impl SystemContracts {
             debug_config,
         )?);
 
+        let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
+            anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
+        })?;
+        let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
+            anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
+        })?;
+
         let mut system_contracts =
             Vec::with_capacity(solidity_system_contracts.len() + yul_system_contracts.len());
         system_contracts.extend(solidity_system_contracts);
@@ -310,13 +313,6 @@ impl SystemContracts {
                 .unwrap_or_else(|| panic!("System contract `{path}` not found in the builds"));
             deployed_contracts.push((address, build));
         }
-
-        let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
-            anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
-        })?;
-        let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
-            anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
-        })?;
 
         println!(
             "    {} building system contracts in {}.{:03}s",
