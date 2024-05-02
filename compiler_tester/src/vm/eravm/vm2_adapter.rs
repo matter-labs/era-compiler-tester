@@ -98,12 +98,49 @@ pub fn run_vm(
     vm.state.registers[4] = abi_params.r4_value.unwrap_or_default();
     vm.state.registers[5] = abi_params.r5_value.unwrap_or_default();
 
+    let mut storage_changes = HashMap::new();
+    let mut deployed_contracts = HashMap::new();
+
     let output = match vm.run() {
-        ExecutionEnd::ProgramFinished(return_value) => Output {
-            return_data: chunk_return_data(&return_value),
-            exception: false,
-            events: merge_events(vm.world.events()),
-        },
+        ExecutionEnd::ProgramFinished(return_value) => {
+            // Only successful transactions can have side effects
+            // The VM doesn't undo side effects done in the initial frame
+            // because that would mess with the bootloader.
+
+            storage_changes = vm
+                .world
+                .get_storage_changes()
+                .iter()
+                .map(|(&(address, key), value)| {
+                    (StorageKey { address, key }, H256::from_uint(value))
+                })
+                .collect::<HashMap<_, _>>();
+            deployed_contracts = vm
+            .world
+            .get_storage_changes()
+            .iter()
+            .filter_map(|((address, key), value)| {
+                if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
+                    let mut buffer = [0u8; 32];
+                    key.to_big_endian(&mut buffer);
+                    let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
+                    if let Some(code) = known_contracts.get(&value) {
+                        Some((deployed_address, code.clone()))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<HashMap<_, _>>();
+
+            Output {
+                return_data: chunk_return_data(&return_value),
+                exception: false,
+                events: merge_events(vm.world.events()),
+            }
+        }
         ExecutionEnd::Reverted(return_value) => Output {
             return_data: chunk_return_data(&return_value),
             exception: true,
@@ -116,32 +153,6 @@ pub fn run_vm(
         },
         ExecutionEnd::SuspendedOnHook { .. } => unreachable!(),
     };
-
-    let storage_changes = vm
-        .world
-        .get_storage_changes()
-        .iter()
-        .map(|(&(address, key), value)| (StorageKey { address, key }, H256::from_uint(value)))
-        .collect::<HashMap<_, _>>();
-    let deployed_contracts = vm
-        .world
-        .get_storage_changes()
-        .iter()
-        .filter_map(|((address, key), value)| {
-            if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
-                let mut buffer = [0u8; 32];
-                key.to_big_endian(&mut buffer);
-                let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
-                if let Some(code) = known_contracts.get(&value) {
-                    Some((deployed_address, code.clone()))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .collect::<HashMap<_, _>>();
 
     Ok((
         ExecutionResult {
@@ -162,13 +173,14 @@ struct TestWorld {
 
 impl World for TestWorld {
     fn decommit(&mut self, hash: U256) -> Program {
-        let bytecode = self
+        let Some(bytecode) = self
             .contracts
             .get(&hash)
-            .unwrap()
-            .clone()
-            .compile_to_bytecode()
-            .unwrap();
+            .map(|assembly| assembly.clone().compile_to_bytecode().unwrap())
+        else {
+            // This case only happens when a contract fails to deploy but the assumes it did deploy
+            return Program::new(vec![vm2::Instruction::from_invalid()], vec![]);
+        };
         let instructions = bytecode
             .iter()
             .flat_map(|x| {
