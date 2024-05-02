@@ -32,12 +32,13 @@ concurrency:
 jobs:
   benchmarks:
     strategy:
+      fail-fast: false
       matrix:
         type: ["reference", "candidate"]
     name: ${{ matrix.type }}
     runs-on: matterlabs-ci-runner
     container:
-      image: matterlabs/llvm_runner:ubuntu22-llvm15-latest
+      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
       options: -m 110g
     env:
       LLVM_BENCHMARK_MODE: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3' }}
@@ -61,7 +62,7 @@ jobs:
       - name: Build LLVM
         uses: ./.github/actions/build-llvm
         with:
-          debug: ${{ github.event.inputs.llvm_build_type || 'release' }}
+          build-type: ${{ github.event.inputs.llvm_build_type || 'release' }}
 
       - name: Benchmark
         run: |
@@ -86,7 +87,7 @@ jobs:
     permissions:
       pull-requests: write
     container:
-      image: matterlabs/llvm_runner:ubuntu22-llvm15-latest
+      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
     needs: benchmarks
     steps:
       - name: Checking out the compiler-tester repository
