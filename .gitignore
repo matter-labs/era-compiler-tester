@@ -14,6 +14,8 @@
 # The debug, trace, benchmark artifacts
 /debug/
 /trace/
+/**/*.json
+/**/*.txt
 
 # The dependency locks
 # /Cargo.lock
