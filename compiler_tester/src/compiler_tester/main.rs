@@ -195,7 +195,7 @@ mod tests {
             quiet: false,
             debug: false,
             trace: 2,
-            modes: vec!["Y+M3B3 0.8.21".to_owned()],
+            modes: vec!["Y+M3B3 0.8.25".to_owned()],
             paths: vec!["./tests/solidity/simple/default.sol".to_owned()],
             groups: vec![],
             benchmark: None,
@@ -214,6 +214,7 @@ mod tests {
             system_contracts_save_path: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
+            workflow: compiler_tester::Workflow::BuildAndRun,
         };
 
         main_inner(arguments).expect("Manual testing failed");
