@@ -107,7 +107,8 @@ impl Runtime {
                 .return_data
                 .remove(0)
                 .unwrap_certain_as_ref()
-                .as_u64() - EraVM::EVM_INTERPRETER_GAS_OVERHEAD
+                .as_u64()
+                - EraVM::EVM_INTERPRETER_GAS_OVERHEAD
         } else {
             0
         };

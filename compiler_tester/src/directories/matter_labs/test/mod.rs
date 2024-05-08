@@ -340,7 +340,9 @@ impl MatterLabsTest {
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(
-                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(false),
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(
+                                false,
+                            ),
                         ),
                     },
                     MatterLabsCaseInput {
@@ -355,11 +357,15 @@ impl MatterLabsTest {
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(
-                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(exception),
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(
+                                exception,
+                            ),
                         ),
                     },
                 ],
-                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(exception),
+                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(
+                    exception,
+                ),
                 ignore: false,
                 cycles: None,
             })
