@@ -15,7 +15,7 @@ jobs:
     runs-on: [self-hosted, ci-runner-compiler]
     timeout-minutes: 720
     container:
-      image: matterlabs/llvm_runner:ubuntu22-llvm15-latest
+      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
       options: -m 110g
     steps:
       - name: Checkout
