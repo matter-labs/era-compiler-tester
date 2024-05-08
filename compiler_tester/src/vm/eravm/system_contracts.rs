@@ -105,9 +105,9 @@ impl SystemContracts {
     const PATH_CODE_ORACLE: &'static str =
         "era-contracts/system-contracts/contracts/precompiles/CodeOracle.yul";
 
-    /// The ETH token system contract implementation path.
-    const PATH_ETH_TOKEN: &'static str =
-        "era-contracts/system-contracts/contracts/L2EthToken.sol:L2EthToken";
+    /// The base token system contract implementation path.
+    const PATH_BASE_TOKEN: &'static str =
+        "era-contracts/system-contracts/contracts/L2BaseToken.sol:L2BaseToken";
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
@@ -239,7 +239,7 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
-                Self::PATH_ETH_TOKEN,
+                Self::PATH_BASE_TOKEN,
             ),
             (
                 web3::types::Address::from_low_u64_be(0x8013),

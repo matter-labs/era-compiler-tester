@@ -44,7 +44,7 @@ zkevm-assembly = { git = "https://github.com/matter-labs/era-zkEVM-assembly", br
 zkevm_opcode_defs = { git = "https://github.com/matter-labs/era-zkevm_opcode_defs", branch = "v1.5.0" }
 zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
 
-vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
+# vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
