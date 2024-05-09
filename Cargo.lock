@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d7fa9204eaee6ba5e0eebe978be3a99eb06fec70"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=aba-fix-crt-links#106c0ebaf565fdf410da9e87c971bc3dfd4d2a6e"
 dependencies = [
  "anyhow",
  "colored",
@@ -557,7 +557,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#d039f9a753d7a6a204128e8712a5390aeb2c7cba"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=aba-fix-crt-linkage#b2576496fa9f7fc59129f06f2ccc5c81b68579b2"
 dependencies = [
  "anyhow",
  "colored",
