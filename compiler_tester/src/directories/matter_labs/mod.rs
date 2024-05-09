@@ -9,10 +9,9 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::directories::Collection;
 use crate::filters::Filters;
 use crate::summary::Summary;
-
-use super::TestsDirectory;
 
 use self::test::MatterLabsTest;
 
@@ -21,10 +20,10 @@ use self::test::MatterLabsTest;
 ///
 pub struct MatterLabsDirectory;
 
-impl TestsDirectory for MatterLabsDirectory {
+impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
-    fn all_tests(
+    fn read_all(
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
@@ -37,17 +36,17 @@ impl TestsDirectory for MatterLabsDirectory {
             let path = entry.path();
             let entry_type = entry.file_type().map_err(|error| {
                 anyhow::anyhow!(
-                    "Failed to get file(`{}`) type: {}",
+                    "Failed to get the type of file `{}`: {}",
                     path.to_string_lossy(),
                     error
                 )
             })?;
 
             if entry_type.is_dir() {
-                tests.extend(Self::all_tests(&path, extension, summary.clone(), filters)?);
+                tests.extend(Self::read_all(&path, extension, summary.clone(), filters)?);
                 continue;
             } else if !entry_type.is_file() {
-                anyhow::bail!("Invalid file type: {}", path.to_string_lossy());
+                anyhow::bail!("Invalid type of file `{}`", path.to_string_lossy());
             }
 
             if entry.file_name().to_string_lossy().starts_with('.') {
@@ -55,7 +54,10 @@ impl TestsDirectory for MatterLabsDirectory {
             }
 
             let file_extension = path.extension().ok_or_else(|| {
-                anyhow::anyhow!("Failed to get file extension: {}", path.to_string_lossy())
+                anyhow::anyhow!(
+                    "Failed to get the extension of file `{}`",
+                    path.to_string_lossy()
+                )
             })?;
             if file_extension != extension {
                 continue;
@@ -67,28 +69,5 @@ impl TestsDirectory for MatterLabsDirectory {
         }
 
         Ok(tests)
-    }
-
-    fn single_test(
-        directory_path: &Path,
-        test_path: &Path,
-        extension: &'static str,
-        summary: Arc<Mutex<Summary>>,
-        filters: &Filters,
-    ) -> anyhow::Result<Option<Self::Test>> {
-        let file_extension = test_path.extension().ok_or_else(|| {
-            anyhow::anyhow!(
-                "Failed to get file extension: {}",
-                test_path.to_string_lossy()
-            )
-        })?;
-        if file_extension != extension {
-            anyhow::bail!("Invalid file extension");
-        }
-
-        let mut path = directory_path.to_path_buf();
-        path.push(test_path);
-
-        Ok(MatterLabsTest::new(path, summary, filters))
     }
 }

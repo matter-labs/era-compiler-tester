@@ -3,8 +3,11 @@ use std::{
     sync::Arc,
 };
 
-use compiler_tester::Workflow;
-use compiler_tester::{Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary};
+use compiler_tester::{
+    Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow,
+};
+use era_compiler_solidity::SolcPipeline;
+
 pub use solidity_adapter::{
     test::function_call::parser::{
         lexical::token::{
@@ -23,8 +26,6 @@ pub use solidity_adapter::{
     },
     EnabledTest, FunctionCall,
 };
-
-use era_compiler_solidity::SolcPipeline;
 
 ///
 /// Fuzzing case definition
@@ -128,14 +129,15 @@ pub fn build_function_call(case: FuzzingCase) -> anyhow::Result<FunctionCall> {
 ///
 /// * `EthereumTest` - The Ethereum test
 pub fn gen_fuzzing_test(case: FuzzingCase) -> anyhow::Result<EthereumTest> {
-    let test_path = Path::new(&case.contract_path);
+    let test_path = PathBuf::from(case.contract_path.as_str());
 
     // Generate Test objects for the fuzzing contract
     let enabled_test = EnabledTest::new(test_path.to_path_buf(), None, None, None);
-    let mut test = solidity_adapter::Test::try_from(test_path)?;
+    let mut test = solidity_adapter::Test::try_from(test_path.as_path())?;
     let fcall = build_function_call(case)?;
     test.calls.push(fcall);
     Ok(EthereumTest {
+        identifier: test_path.to_string_lossy().to_string(),
         index_entity: enabled_test,
         test,
     })
@@ -160,6 +162,8 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
         true,
         era_compiler_llvm_context::OptimizerSettings::try_from_cli('3')
             .expect("Error: optimization settings incorrect!"),
+        false,
+        false,
     ));
 
     // Initialization
@@ -185,11 +189,12 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     if let Some(test) = test.build_for_eravm(
         mode,
         Arc::new(SolidityCompiler::new()),
+        compiler_tester::Target::EraVM,
         compiler_tester.summary.clone(),
         &compiler_tester.filters,
         compiler_tester.debug_config.clone(),
     ) {
-        test.run::<compiler_tester::EraVMSystemContractDeployer, true>(
+        test.run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(
             compiler_tester.summary.clone(),
             Arc::new(compiler_tester::EraVM::new(
                 vec![

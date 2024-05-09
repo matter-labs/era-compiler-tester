@@ -10,13 +10,15 @@ use std::collections::BTreeMap;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::benchmark::Benchmark;
+
 use self::element::Element;
 use self::results::Results;
 
 ///
 /// The benchmark group representation.
 ///
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Group {
     /// The group elements.
     pub elements: BTreeMap<String, Element>,
@@ -76,8 +78,8 @@ impl Group {
             }
             cycles_factors.push(cycles_factor);
 
-            ergs_total_reference += reference.ergs as u64;
-            ergs_total_candidate += candidate.ergs as u64;
+            ergs_total_reference += reference.ergs;
+            ergs_total_candidate += candidate.ergs;
             let ergs_factor = (candidate.ergs as f64) / (reference.ergs as f64);
             if ergs_factor > 1.0 {
                 ergs_negatives.push((ergs_factor, path.as_str()));
@@ -148,5 +150,31 @@ impl Group {
             ergs_negatives,
             ergs_positives,
         )
+    }
+
+    ///
+    /// Returns the EVM interpreter ergs/gas ratio.
+    ///
+    pub fn evm_interpreter_ratios(&self) -> Vec<(String, f64)> {
+        #[allow(clippy::unnecessary_to_owned)]
+        let elements: Vec<(String, Element)> = self.elements.to_owned().into_iter().collect();
+        let mut results = Vec::with_capacity(Benchmark::EVM_OPCODES.len());
+        for evm_opcode in Benchmark::EVM_OPCODES.into_iter() {
+            let name_substring = format!("test.json::{evm_opcode}[");
+            let mut template_and_full: Vec<(String, Element)> = elements
+                .iter()
+                .filter(|element| element.0.contains(name_substring.as_str()))
+                .rev()
+                .take(2)
+                .cloned()
+                .collect();
+            let (full, template) = (template_and_full.remove(0).1, template_and_full.remove(0).1);
+
+            let ergs_difference = full.ergs - template.ergs;
+            let gas_difference = full.gas - template.gas;
+            let ergs_gas_ratio = (ergs_difference as f64) / (gas_difference as f64);
+            results.push((evm_opcode.to_owned(), ergs_gas_ratio));
+        }
+        results
     }
 }

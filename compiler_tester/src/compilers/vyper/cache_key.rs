@@ -1,12 +1,12 @@
 //!
-//! The Vyper subprocess compiler cache key.
+//! The Vyper compiler cache key.
 //!
 
 ///
-/// The Vyper subprocess compiler cache key.
+/// The Vyper compiler cache key.
 ///
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct VyperCacheKey {
+pub struct CacheKey {
     /// The test path.
     pub test_path: String,
     /// The Vyper compiler version.
@@ -15,7 +15,7 @@ pub struct VyperCacheKey {
     pub optimize: bool,
 }
 
-impl VyperCacheKey {
+impl CacheKey {
     ///
     /// A shortcut constructor.
     ///

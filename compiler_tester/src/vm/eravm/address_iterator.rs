@@ -1,45 +1,45 @@
 //!
-//! The EraVM deploy address predictor.
+//! The EraVM deploy address iterator.
 //!
 
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::vm::AddressPredictorIterator;
+use crate::vm::address_iterator::AddressIterator;
 
 ///
-/// The EraVM deploy address predictor.
+/// The EraVM deploy address iterator.
 ///
 #[derive(Debug, Clone)]
-pub struct AddressPredictor {
+pub struct EraVMAddressIterator {
     /// The accounts create nonces.
-    nonces: HashMap<web3::types::Address, usize>,
+    pub nonces: HashMap<web3::types::Address, usize>,
 }
 
-impl AddressPredictor {
+impl EraVMAddressIterator {
     /// The create prefix, `keccak256("zksyncCreate")`.
     const CREATE_PREFIX: &'static str =
         "63bae3a9951d38e8a3fbb7b70909afc1200610fc5bc55ade242f815974674f23";
+}
 
+impl Default for EraVMAddressIterator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl EraVMAddressIterator {
     ///
-    /// Create new address predictor instance.
+    /// A shortcut constructor.
     ///
     pub fn new() -> Self {
         Self {
             nonces: HashMap::new(),
         }
     }
-
-    ///
-    /// Increments caller nonce.
-    ///
-    pub fn increment_nonce(&mut self, caller: &web3::types::Address) {
-        let nonce = self.nonces.entry(*caller).or_insert(0);
-        *nonce += 1;
-    }
 }
 
-impl AddressPredictorIterator for AddressPredictor {
+impl AddressIterator for EraVMAddressIterator {
     fn next(
         &mut self,
         caller: &web3::types::Address,
@@ -56,7 +56,9 @@ impl AddressPredictorIterator for AddressPredictor {
                 - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS],
         );
         bytes.extend(caller.to_fixed_bytes());
-        bytes.extend([0; era_compiler_common::BYTE_LENGTH_FIELD - std::mem::size_of::<usize>()]);
+        bytes.extend(
+            [0; era_compiler_common::BYTE_LENGTH_FIELD - era_compiler_common::BYTE_LENGTH_X64],
+        );
         bytes.extend(nonce.to_be_bytes());
 
         let address = web3::types::Address::from_slice(
@@ -69,5 +71,14 @@ impl AddressPredictorIterator for AddressPredictor {
         }
 
         address
+    }
+
+    fn increment_nonce(&mut self, caller: &web3::types::Address) {
+        let nonce = self.nonces.entry(*caller).or_insert(0);
+        *nonce += 1;
+    }
+
+    fn nonce(&mut self, caller: &web3::types::Address) -> usize {
+        *self.nonces.entry(*caller).or_default()
     }
 }

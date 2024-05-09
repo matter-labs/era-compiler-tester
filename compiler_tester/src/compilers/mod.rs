@@ -13,10 +13,10 @@ pub mod yul;
 
 use std::collections::BTreeMap;
 
-use self::mode::Mode;
-
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::Input as EVMInput;
+
+use self::mode::Mode;
 
 ///
 /// The compiler trait.
@@ -25,15 +25,12 @@ pub trait Compiler: Send + Sync + 'static {
     ///
     /// Compile all sources for EraVM.
     ///
-    #[allow(clippy::too_many_arguments)]
     fn compile_for_eravm(
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
-        is_system_mode: bool,
-        is_system_contracts_mode: bool,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput>;
 
@@ -50,12 +47,12 @@ pub trait Compiler: Send + Sync + 'static {
     ) -> anyhow::Result<EVMInput>;
 
     ///
-    /// Returns supported compiler modes.
+    /// Returns all supported combinations of compiler settings.
     ///
-    fn modes(&self) -> Vec<Mode>;
+    fn all_modes(&self) -> Vec<Mode>;
 
     ///
     /// Whether one source file can contains multiple contracts.
     ///
-    fn has_multiple_contracts(&self) -> bool;
+    fn allows_multi_contract_files(&self) -> bool;
 }

@@ -1,29 +1,28 @@
 //!
-//! The contract call input variant.
+//! The EVM deploy contract call input variant.
 //!
 
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
-use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+use crate::summary::Summary;
+use crate::test::case::input::calldata::Calldata;
+use crate::test::case::input::output::Output;
+use crate::test::case::input::storage::Storage;
+use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
-use crate::Summary;
-
-use super::calldata::Calldata;
-use super::output::Output;
-use super::storage::Storage;
 
 ///
-/// The contract call input variant.
+/// The EVM deploy contract call input variant.
 ///
 #[derive(Debug, Clone)]
-pub struct Deploy {
-    /// The contract path.
-    path: String,
-    /// The contract hash.
-    hash: web3::types::U256,
+pub struct DeployEVM {
+    /// The contract identifier.
+    identifier: String,
+    /// The contract init code.
+    init_code: Vec<u8>,
     /// The calldata.
     calldata: Calldata,
     /// The caller.
@@ -36,13 +35,13 @@ pub struct Deploy {
     expected: Output,
 }
 
-impl Deploy {
+impl DeployEVM {
     ///
     /// A shortcut constructor.
     ///
     pub fn new(
-        path: String,
-        hash: web3::types::U256,
+        identifier: String,
+        init_code: Vec<u8>,
         calldata: Calldata,
         caller: web3::types::Address,
         value: Option<u128>,
@@ -50,8 +49,8 @@ impl Deploy {
         expected: Output,
     ) -> Self {
         Self {
-            path,
-            hash,
+            identifier,
+            init_code,
             calldata,
             caller,
             value,
@@ -61,53 +60,42 @@ impl Deploy {
     }
 }
 
-impl Deploy {
+impl DeployEVM {
     ///
-    /// Runs the deploy on EraVM.
+    /// Runs the deploy transaction on native EVM.
     ///
-    pub fn run_eravm<D, const M: bool>(
+    pub fn run_evm(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut EraVM,
+        vm: &mut EVM,
         mode: Mode,
-        deployer: &mut D,
         test_group: Option<String>,
         name_prefix: String,
-    ) where
-        D: EraVMDeployer,
-    {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.path);
+    ) {
+        let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
         vm.populate_storage(self.storage.inner);
-        let result = match deployer.deploy::<M>(
+        let result = match vm.execute_deploy_code(
             name.clone(),
+            self.identifier.as_str(),
             self.caller,
-            self.hash,
-            self.calldata.inner.clone(),
             self.value,
-            vm,
+            self.calldata.inner.clone(),
         ) {
-            Ok(result) => result,
+            Ok(execution_result) => execution_result,
             Err(error) => {
                 Summary::invalid(summary, Some(mode), name, error);
                 return;
             }
         };
         if result.output == self.expected {
-            let build_size = match vm.get_contract_size(self.hash) {
-                Ok(size) => size,
-                Err(error) => {
-                    Summary::invalid(summary, Some(mode), name, error);
-                    return;
-                }
-            };
-            Summary::passed_deploy(
+            Summary::passed_runtime(
                 summary,
                 mode,
                 name,
                 test_group,
-                build_size,
                 result.cycles,
+                0,
                 result.gas,
             );
         } else {
@@ -123,33 +111,49 @@ impl Deploy {
     }
 
     ///
-    /// Runs the deploy on EVM.
+    /// Runs the deploy transaction on EVM interpreter.
     ///
-    pub fn run_evm(
+    pub fn run_evm_interpreter<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut EVM,
+        vm: &mut EraVM,
         mode: Mode,
+        deployer: &mut D,
         test_group: Option<String>,
         name_prefix: String,
-    ) {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.path);
+    ) where
+        D: EraVMDeployer,
+    {
+        let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
+
+        let size = self.init_code.len();
 
         vm.populate_storage(self.storage.inner);
-        let result = match vm.execute_deploy_code(
+        let result = match deployer.deploy_evm::<M>(
             name.clone(),
             self.caller,
-            self.value,
+            self.init_code,
             self.calldata.inner.clone(),
+            self.value,
+            vm,
         ) {
-            Ok(execution_result) => execution_result,
+            Ok(result) => result,
             Err(error) => {
                 Summary::invalid(summary, Some(mode), name, error);
                 return;
             }
         };
         if result.output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, result.cycles, result.gas);
+            Summary::passed_deploy(
+                summary,
+                mode,
+                name,
+                test_group,
+                size,
+                result.cycles,
+                result.ergs,
+                result.gas,
+            );
         } else {
             Summary::failed(
                 summary,

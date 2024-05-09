@@ -4,9 +4,7 @@
 
 use itertools::Itertools;
 
-use crate::llvm_options::LLVMOptions;
-
-use super::Mode as ModeWrapper;
+use crate::compilers::mode::Mode as ModeWrapper;
 
 ///
 /// The compiler tester Solidity mode.
@@ -21,8 +19,6 @@ pub struct Mode {
     pub via_ir: bool,
     /// Whether to run the Solidity compiler optimizer.
     pub solc_optimize: bool,
-    /// The optimizer settings.
-    pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
 }
 
 impl Mode {
@@ -34,18 +30,12 @@ impl Mode {
         solc_pipeline: era_compiler_solidity::SolcPipeline,
         via_ir: bool,
         solc_optimize: bool,
-        mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
     ) -> Self {
-        let llvm_options = LLVMOptions::get();
-        llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
-        llvm_optimizer_settings.is_debug_logging_enabled = llvm_options.is_debug_logging_enabled();
-
         Self {
             solc_version,
             solc_pipeline,
             via_ir,
             solc_optimize,
-            llvm_optimizer_settings,
         }
     }
 
@@ -58,8 +48,8 @@ impl Mode {
     ///
     pub fn unwrap(mode: &ModeWrapper) -> &Self {
         match mode {
-            ModeWrapper::Solidity(mode) => mode,
-            _ => panic!("Non-Solidity mode"),
+            ModeWrapper::SolidityUpstream(mode) => mode,
+            _ => panic!("Non-Solidity-upstream mode"),
         }
     }
 
@@ -123,14 +113,13 @@ impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}{}{} {}",
+            "{}{} {}",
             match self.solc_pipeline {
                 era_compiler_solidity::SolcPipeline::Yul => "Y",
                 era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => "y",
                 era_compiler_solidity::SolcPipeline::EVMLA => "E",
             },
             if self.solc_optimize { '+' } else { '-' },
-            self.llvm_optimizer_settings,
             self.solc_version,
         )
     }

@@ -1,12 +1,12 @@
 //!
-//! The Solidity subprocess compiler cache key.
+//! The Solidity compiler cache key.
 //!
 
 ///
-/// The Solidity subprocess compiler cache key.
+/// The Solidity compiler cache key.
 ///
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct SolcCacheKey {
+pub struct CacheKey {
     /// The test path.
     pub test_path: String,
     /// The Solidity compiler version.
@@ -19,7 +19,7 @@ pub struct SolcCacheKey {
     pub optimize: bool,
 }
 
-impl SolcCacheKey {
+impl CacheKey {
     ///
     /// A shortcut constructor.
     ///

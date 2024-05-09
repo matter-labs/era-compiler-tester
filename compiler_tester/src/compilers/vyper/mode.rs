@@ -2,9 +2,9 @@
 //! The compiler tester Vyper mode.
 //!
 
-use crate::llvm_options::LLVMOptions;
+use crate::compilers::mode::llvm_options::LLVMOptions;
 
-use super::Mode as ModeWrapper;
+use crate::compilers::mode::Mode as ModeWrapper;
 
 ///
 /// The compiler tester Vyper mode.

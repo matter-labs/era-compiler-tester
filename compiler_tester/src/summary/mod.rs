@@ -39,7 +39,7 @@ pub struct Summary {
 
 impl Summary {
     /// The elements vector default capacity.
-    pub const ELEMENTS_INITIAL_CAPACITY: usize = 65536;
+    pub const ELEMENTS_INITIAL_CAPACITY: usize = 1024 * 4096;
 
     ///
     /// A shortcut constructor.
@@ -95,15 +95,21 @@ impl Summary {
         );
 
         for element in self.elements.iter() {
-            let (size, cycles, gas, group) = match &element.outcome {
+            let (size, cycles, ergs, group, gas) = match &element.outcome {
                 Outcome::Passed {
-                    variant: PassedVariant::Deploy { size, cycles, gas },
+                    variant:
+                        PassedVariant::Deploy {
+                            size,
+                            cycles,
+                            ergs,
+                            gas,
+                        },
                     group,
-                } => (Some(*size), *cycles, *gas, group.clone()),
+                } => (Some(*size), *cycles, *ergs, group.clone(), *gas),
                 Outcome::Passed {
-                    variant: PassedVariant::Runtime { cycles, gas },
+                    variant: PassedVariant::Runtime { cycles, ergs, gas },
                     group,
-                } => (None, *cycles, *gas, group.clone()),
+                } => (None, *cycles, *ergs, group.clone(), *gas),
                 _ => continue,
             };
 
@@ -122,7 +128,8 @@ impl Summary {
                 .and_then(|mode| mode.llvm_optimizer_settings().cloned())
                 .unwrap_or(era_compiler_llvm_context::OptimizerSettings::none());
 
-            let benchmark_element = benchmark_analyzer::BenchmarkElement::new(size, cycles, gas);
+            let benchmark_element =
+                benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs, gas);
             if let Some(group) = group {
                 benchmark
                     .groups
@@ -146,14 +153,14 @@ impl Summary {
     }
 
     ///
-    /// Wraps data into a synchronized shared reference.
+    /// Wraps data into a thread-safe shared reference.
     ///
     pub fn wrap(self) -> Arc<Mutex<Self>> {
         Arc::new(Mutex::new(self))
     }
 
     ///
-    /// Extracts the data from the synchronized shared reference.
+    /// Extracts the data from the thread-safe shared reference.
     ///
     pub fn unwrap_arc(summary: Arc<Mutex<Self>>) -> Self {
         Arc::try_unwrap(summary)
@@ -163,14 +170,54 @@ impl Summary {
     }
 
     ///
-    /// Adds an invalid outcome.
+    /// Adds a passed outcome of a deploy call.
     ///
-    pub fn invalid<S>(summary: Arc<Mutex<Self>>, mode: Option<Mode>, name: String, error: S)
-    where
-        S: ToString,
-    {
-        let element = Element::new(mode, name, Outcome::invalid(error));
-        summary.lock().expect("Sync").push_element(element);
+    pub fn passed_deploy(
+        summary: Arc<Mutex<Self>>,
+        mode: Mode,
+        name: String,
+        group: Option<String>,
+        size: usize,
+        cycles: usize,
+        ergs: u64,
+        gas: u64,
+    ) {
+        let passed_variant = PassedVariant::Deploy {
+            size,
+            cycles,
+            ergs,
+            gas,
+        };
+        Self::passed(summary, mode, name, group, passed_variant);
+    }
+
+    ///
+    /// Adds a passed outcome of an ordinary call.
+    ///
+    pub fn passed_runtime(
+        summary: Arc<Mutex<Self>>,
+        mode: Mode,
+        name: String,
+        group: Option<String>,
+        cycles: usize,
+        ergs: u64,
+        gas: u64,
+    ) {
+        let passed_variant = PassedVariant::Runtime { cycles, ergs, gas };
+        Self::passed(summary, mode, name, group, passed_variant);
+    }
+
+    ///
+    /// Adds a passed outcome of a special call, like `storageEmpty` or `balance`.
+    ///
+    pub fn passed_special(
+        summary: Arc<Mutex<Self>>,
+        mode: Mode,
+        name: String,
+        group: Option<String>,
+    ) {
+        let passed_variant = PassedVariant::Special;
+        Self::passed(summary, mode, name, group, passed_variant);
     }
 
     ///
@@ -189,6 +236,17 @@ impl Summary {
     }
 
     ///
+    /// Adds an invalid outcome.
+    ///
+    pub fn invalid<S>(summary: Arc<Mutex<Self>>, mode: Option<Mode>, name: String, error: S)
+    where
+        S: ToString,
+    {
+        let element = Element::new(mode, name, Outcome::invalid(error));
+        summary.lock().expect("Sync").push_element(element);
+    }
+
+    ///
     /// Adds an ignored outcome.
     ///
     pub fn ignored(summary: Arc<Mutex<Self>>, name: String) {
@@ -197,51 +255,7 @@ impl Summary {
     }
 
     ///
-    /// Adds a passed contract deploy outcome.
-    ///
-    pub fn passed_deploy(
-        summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
-        size: usize,
-        cycles: usize,
-        gas: u32,
-    ) {
-        let passed_variant = PassedVariant::Deploy { size, cycles, gas };
-        Self::passed(summary, mode, name, group, passed_variant);
-    }
-
-    ///
-    /// Adds a passed contract call outcome.
-    ///
-    pub fn passed_runtime(
-        summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
-        cycles: usize,
-        gas: u32,
-    ) {
-        let passed_variant = PassedVariant::Runtime { cycles, gas };
-        Self::passed(summary, mode, name, group, passed_variant);
-    }
-
-    ///
-    /// Adds a passed special function call outcome.
-    ///
-    pub fn passed_special(
-        summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
-    ) {
-        let passed_variant = PassedVariant::Special;
-        Self::passed(summary, mode, name, group, passed_variant);
-    }
-
-    ///
-    /// Adds a passed outcome.
+    /// The unified function for passed outcomes.
     ///
     fn passed(
         summary: Arc<Mutex<Self>>,

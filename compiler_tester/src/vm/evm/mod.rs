@@ -1,8 +1,8 @@
 //!
-//! The EVM wrapper.
+//! The EVM emulator.
 //!
 
-pub mod address_predictor;
+pub mod address_iterator;
 pub mod input;
 pub mod invoker;
 pub mod output;
@@ -24,14 +24,13 @@ use self::output::Output as EVMOutput;
 use self::runtime::Runtime as EVMRuntime;
 
 ///
-/// The EVM wrapper.
+/// The EVM emulator.
 ///
-#[allow(non_camel_case_types)]
 pub struct EVM<'evm> {
     /// The EVM runtime.
     runtime: EVMRuntime,
-    /// The known contracts.
-    known_contracts: HashMap<web3::types::Address, EVMBuild>,
+    /// The builds to deploy.
+    builds: HashMap<String, EVMBuild>,
     /// The EVM invoker.
     invoker: EVMInvoker<'evm>,
 }
@@ -40,15 +39,12 @@ impl<'evm> EVM<'evm> {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(
-        known_contracts: HashMap<web3::types::Address, EVMBuild>,
-        invoker: EVMInvoker<'evm>,
-    ) -> Self {
+    pub fn new(builds: HashMap<String, EVMBuild>, invoker: EVMInvoker<'evm>) -> Self {
         let runtime = EVMRuntime::default();
 
         Self {
             runtime,
-            known_contracts,
+            builds,
             invoker,
         }
     }
@@ -84,14 +80,14 @@ impl<'evm> EVM<'evm> {
     pub fn execute_deploy_code(
         &mut self,
         test_name: String,
+        path: &str,
         caller: web3::types::Address,
         value: Option<u128>,
         constructor_args: Vec<u8>,
     ) -> anyhow::Result<ExecutionResult> {
-        let bytecode = self.known_contracts.values().next().unwrap();
-        let mut deploy_code = bytecode.deploy_build.bytecode.to_owned();
+        let build = self.builds.get(path).expect("Always valid");
+        let mut deploy_code = build.deploy_build.bytecode.to_owned();
         deploy_code.extend(constructor_args);
-        let runtime_code = bytecode.runtime_build.bytecode.to_owned();
 
         self.runtime
             .balances
@@ -120,14 +116,11 @@ impl<'evm> EVM<'evm> {
             &self.invoker,
         ) {
             Ok(evm::standard::TransactValue::Create { succeed, address }) => match succeed {
-                evm::ExitSucceed::Returned => {
-                    self.runtime.codes.insert(address, runtime_code.clone());
-                    (address, false)
-                }
+                evm::ExitSucceed::Returned => (address, false),
                 _ => (web3::types::Address::zero(), true),
             },
             Ok(evm::standard::TransactValue::Call { .. }) => {
-                panic!("Unreachable due to the `Create` transaction sent above")
+                unreachable!("The `Create` transaction must be executed above")
             }
             Err(error) => (web3::types::Address::zero(), true),
         };
@@ -151,15 +144,14 @@ impl<'evm> EVM<'evm> {
     pub fn execute_runtime_code(
         &mut self,
         test_name: String,
+        address: web3::types::Address,
         caller: web3::types::Address,
         value: Option<u128>,
         calldata: Vec<u8>,
     ) -> anyhow::Result<ExecutionResult> {
         self.runtime
             .balances
-            .insert(caller, web3::types::U256::max_value());
-
-        let address = self.runtime.codes.iter().next().unwrap().0.to_owned();
+            .insert(caller, web3::types::U256::max_value()); // TODO
 
         let (return_data, exception) = match evm::transact(
             evm::standard::TransactArgs::Call {
@@ -187,9 +179,9 @@ impl<'evm> EVM<'evm> {
                 (retval, succeed != evm::ExitSucceed::Returned)
             }
             Ok(evm::standard::TransactValue::Create { .. }) => {
-                panic!("Unreachable due to the `Call` transaction sent above")
+                unreachable!("The `Call` transaction must be executed above")
             }
-            Err(_error) => (vec![], true),
+            Err(error) => (vec![], true),
         };
 
         let events = self.runtime.logs.drain(..).collect();

@@ -2,7 +2,7 @@
 //! The compiler test value.
 //!
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use serde::Serialize;
@@ -32,7 +32,7 @@ impl Value {
     pub fn unwrap_certain_as_ref(&self) -> &web3::types::U256 {
         match self {
             Self::Certain(value) => value,
-            Self::Any => panic!("Value in any"),
+            Self::Any => panic!("Value is unknown"),
         }
     }
 
@@ -40,8 +40,8 @@ impl Value {
     /// Try convert from Matter Labs compiler test metadata value.
     ///
     pub fn try_from_matter_labs(
-        value: &str,
-        instances: &HashMap<String, Instance>,
+        value: String,
+        instances: &BTreeMap<String, Instance>,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -52,7 +52,7 @@ impl Value {
                 instances
                     .get(instance)
                     .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
-                    .address
+                    .address()
                     .ok_or_else(|| {
                         anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
                     })?
@@ -74,9 +74,10 @@ impl Value {
             web3::types::U256::from_str(value)
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
         } else {
-            web3::types::U256::from_dec_str(value)
+            web3::types::U256::from_dec_str(value.as_str())
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
         };
+
         Ok(Self::Certain(value))
     }
 
@@ -84,11 +85,11 @@ impl Value {
     /// Try convert into vec of self from vec of Matter Labs compiler test metadata values.
     ///
     pub fn try_from_vec_matter_labs(
-        values: &[String],
-        instances: &HashMap<String, Instance>,
+        values: Vec<String>,
+        instances: &BTreeMap<String, Instance>,
     ) -> anyhow::Result<Vec<Self>> {
         values
-            .iter()
+            .into_iter()
             .enumerate()
             .map(|(index, value)| {
                 Self::try_from_matter_labs(value, instances)

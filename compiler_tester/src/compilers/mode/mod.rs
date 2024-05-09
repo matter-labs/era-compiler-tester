@@ -2,42 +2,53 @@
 //! The compiler mode.
 //!
 
-pub mod eravm;
-pub mod llvm;
-pub mod solidity;
-pub mod vyper;
-pub mod yul;
+pub mod llvm_options;
 
-use self::eravm::Mode as EraVMMode;
-use self::llvm::Mode as LLVMMode;
-use self::solidity::Mode as SolidityMode;
-use self::vyper::Mode as VyperMode;
-use self::yul::Mode as YulMode;
+use std::collections::HashSet;
+
+use crate::compilers::eravm::mode::Mode as EraVMMode;
+use crate::compilers::llvm::mode::Mode as LLVMMode;
+use crate::compilers::solidity::mode::Mode as SolidityMode;
+use crate::compilers::solidity::upstream::mode::Mode as SolidityUpstreamMode;
+use crate::compilers::vyper::mode::Mode as VyperMode;
+use crate::compilers::yul::mode::Mode as YulMode;
 
 ///
 /// The compiler mode.
 ///
 #[derive(Debug, Clone)]
-#[allow(non_camel_case_types)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Mode {
-    /// The `Yul` mode.
-    Yul(YulMode),
     /// The `Solidity` mode.
     Solidity(SolidityMode),
+    /// The `Solidity` upstream mode.
+    SolidityUpstream(SolidityUpstreamMode),
+    /// The `Yul` mode.
+    Yul(YulMode),
+    /// The `Vyper` mode.
+    Vyper(VyperMode),
     /// The `LLVM` mode.
     LLVM(LLVMMode),
     /// The `EraVM` mode.
     EraVM(EraVMMode),
-    /// The `Vyper` mode.
-    Vyper(VyperMode),
 }
 
 impl Mode {
     ///
+    /// Sets the system mode if applicable.
+    ///
+    pub fn set_system_mode(&mut self, value: bool) {
+        match self {
+            Self::Solidity(mode) => mode.is_system_mode = value,
+            Self::Yul(mode) => mode.is_system_mode = value,
+            _ => {}
+        }
+    }
+
+    ///
     /// Checks if the mode is compatible with the filters.
     ///
-    pub fn check_filters(&self, filters: &[String]) -> bool {
+    pub fn check_filters(&self, filters: &HashSet<String>) -> bool {
         filters.is_empty()
             || filters
                 .iter()
@@ -79,6 +90,7 @@ impl Mode {
     pub fn check_version(&self, versions: &semver::VersionReq) -> bool {
         let version = match self {
             Mode::Solidity(mode) => &mode.solc_version,
+            Mode::SolidityUpstream(mode) => &mode.solc_version,
             Mode::Vyper(mode) => &mode.vyper_version,
             _ => return false,
         };
@@ -91,6 +103,7 @@ impl Mode {
     pub fn check_pragmas(&self, sources: &[(String, String)]) -> bool {
         match self {
             Mode::Solidity(mode) => mode.check_pragmas(sources),
+            Mode::SolidityUpstream(mode) => mode.check_pragmas(sources),
             Mode::Vyper(mode) => mode.check_pragmas(sources),
             _ => true,
         }
@@ -102,6 +115,7 @@ impl Mode {
     pub fn check_ethereum_tests_params(&self, params: &solidity_adapter::Params) -> bool {
         match self {
             Mode::Solidity(mode) => mode.check_ethereum_tests_params(params),
+            Mode::SolidityUpstream(mode) => mode.check_ethereum_tests_params(params),
             _ => true,
         }
     }
@@ -112,6 +126,7 @@ impl Mode {
     pub fn llvm_optimizer_settings(&self) -> Option<&era_compiler_llvm_context::OptimizerSettings> {
         match self {
             Mode::Solidity(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::SolidityUpstream(_mode) => None,
             Mode::Yul(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::Vyper(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::LLVM(mode) => Some(&mode.llvm_optimizer_settings),
@@ -169,7 +184,7 @@ impl Mode {
 
         if filter.starts_with('^') {
             match self {
-                Self::Solidity(_) | Self::Vyper(_) => {
+                Self::Solidity(_) | Self::SolidityUpstream(_) | Self::Vyper(_) => {
                     current = regex::Regex::new("[+]")
                         .expect("Always valid")
                         .replace_all(current.as_str(), "^")
@@ -189,15 +204,27 @@ impl Mode {
     }
 }
 
+impl From<SolidityMode> for Mode {
+    fn from(inner: SolidityMode) -> Self {
+        Self::Solidity(inner)
+    }
+}
+
+impl From<SolidityUpstreamMode> for Mode {
+    fn from(inner: SolidityUpstreamMode) -> Self {
+        Self::SolidityUpstream(inner)
+    }
+}
+
 impl From<YulMode> for Mode {
     fn from(inner: YulMode) -> Self {
         Self::Yul(inner)
     }
 }
 
-impl From<SolidityMode> for Mode {
-    fn from(inner: SolidityMode) -> Self {
-        Self::Solidity(inner)
+impl From<VyperMode> for Mode {
+    fn from(inner: VyperMode) -> Self {
+        Self::Vyper(inner)
     }
 }
 
@@ -213,20 +240,15 @@ impl From<EraVMMode> for Mode {
     }
 }
 
-impl From<VyperMode> for Mode {
-    fn from(inner: VyperMode) -> Self {
-        Self::Vyper(inner)
-    }
-}
-
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Yul(inner) => write!(f, "{inner}"),
             Self::Solidity(inner) => write!(f, "{inner}"),
+            Self::SolidityUpstream(inner) => write!(f, "{inner}"),
+            Self::Yul(inner) => write!(f, "{inner}"),
+            Self::Vyper(inner) => write!(f, "{inner}"),
             Self::LLVM(inner) => write!(f, "{inner}"),
             Self::EraVM(inner) => write!(f, "{inner}"),
-            Self::Vyper(inner) => write!(f, "{inner}"),
         }
     }
 }

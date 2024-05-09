@@ -77,10 +77,14 @@ pub struct Arguments {
     pub zkvyper: Option<PathBuf>,
 
     /// Specify the target machine.
-    /// Available arguments: `eravm`, `evm`.
-    /// The default is `eravm`.
+    /// Available arguments: `EraVM`, `EVM`, `EVMInterpreter`.
+    /// The default is `EraVM`.
     #[structopt(long = "target")]
     pub target: Option<String>,
+
+    /// Use the upstream `solc` compiler.
+    #[structopt(long = "use-upstream-solc")]
+    pub use_upstream_solc: bool,
 
     /// Path to the default `solc` binaries download configuration file.
     #[structopt(long = "solc-bin-config-path")]

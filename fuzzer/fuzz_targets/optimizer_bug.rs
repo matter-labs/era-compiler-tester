@@ -1,12 +1,8 @@
-//!
-//! The optimizer bug demo.
-//!
-
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
 
-pub(crate) mod common;
+mod common;
 
 fuzz_target!(|data: u8| {
     // Fuzzing case definition

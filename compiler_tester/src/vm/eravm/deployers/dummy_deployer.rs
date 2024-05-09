@@ -1,5 +1,5 @@
 //!
-//! The EraVM native deployer implementation.
+//! The EraVM dummy deployer implementation.
 //!
 
 use std::collections::HashMap;
@@ -8,35 +8,34 @@ use web3::contract::tokens::Tokenizable;
 
 use crate::test::case::input::output::Output;
 use crate::test::case::input::value::Value;
+use crate::vm::address_iterator::AddressIterator;
+use crate::vm::eravm::address_iterator::EraVMAddressIterator;
+use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::execution_result::ExecutionResult;
-use crate::vm::AddressPredictorIterator;
-
-use super::address_predictor::AddressPredictor;
-use super::Deployer;
 
 ///
-/// The EraVM native deployer implementation.
+/// The EraVM dummy deployer implementation.
 ///
 #[derive(Debug, Clone)]
-pub struct NativeDeployer {
-    /// The address predictor instance for computing the contracts addresses.
-    address_predictor: AddressPredictor,
+pub struct DummyDeployer {
+    /// The address iterator instance for computing the contracts addresses.
+    address_iterator: EraVMAddressIterator,
 }
 
-impl NativeDeployer {
+impl DummyDeployer {
     /// The immutables mapping position in contract.
     const IMMUTABLES_MAPPING_POSITION: web3::types::U256 = web3::types::U256::zero();
 }
 
-impl Deployer for NativeDeployer {
+impl EraVMDeployer for DummyDeployer {
     fn new() -> Self {
         Self {
-            address_predictor: AddressPredictor::new(),
+            address_iterator: EraVMAddressIterator::new(),
         }
     }
 
-    fn deploy<const M: bool>(
+    fn deploy_eravm<const M: bool>(
         &mut self,
         test_name: String,
         caller: web3::types::Address,
@@ -45,7 +44,7 @@ impl Deployer for NativeDeployer {
         value: Option<u128>,
         vm: &mut EraVM,
     ) -> anyhow::Result<ExecutionResult> {
-        let address = self.address_predictor.next(&caller, false);
+        let address = self.address_iterator.next(&caller, false);
 
         vm.add_deployed_contract(address, bytecode_hash, None);
 
@@ -73,7 +72,7 @@ impl Deployer for NativeDeployer {
             return Ok(result);
         }
 
-        self.address_predictor.increment_nonce(&caller);
+        self.address_iterator.increment_nonce(&caller);
 
         Self::set_immutables(address, &result.output.return_data, vm)?;
 
@@ -84,12 +83,25 @@ impl Deployer for NativeDeployer {
         Ok(ExecutionResult::new(
             Output::new(return_data, false, result.output.events),
             result.cycles,
+            result.ergs,
             result.gas,
         ))
     }
+
+    fn deploy_evm<const M: bool>(
+        &mut self,
+        _test_name: String,
+        _caller: web3::types::Address,
+        _init_code: Vec<u8>,
+        _constructor_calldata: Vec<u8>,
+        _value: Option<u128>,
+        _vm: &mut EraVM,
+    ) -> anyhow::Result<ExecutionResult> {
+        todo!()
+    }
 }
 
-impl NativeDeployer {
+impl DummyDeployer {
     ///
     /// Writes the contract immutables to a storage.
     ///

@@ -1,13 +1,13 @@
 //!
-//! The compiler tester Yul mode.
+//! The compiler tester LLVM mode.
 //!
 
-use crate::llvm_options::LLVMOptions;
+use crate::compilers::mode::llvm_options::LLVMOptions;
 
-use super::Mode as ModeWrapper;
+use crate::compilers::mode::Mode as ModeWrapper;
 
 ///
-/// The compiler tester Yul mode.
+/// The compiler tester LLVM mode.
 ///
 #[derive(Debug, Clone)]
 pub struct Mode {
@@ -34,18 +34,18 @@ impl Mode {
     ///
     /// # Panics
     ///
-    /// Will panic if the inner is non-Yul mode.
+    /// Will panic if the inner is non-LLVM mode.
     ///
     pub fn unwrap(mode: &ModeWrapper) -> &Self {
         match mode {
-            ModeWrapper::Yul(mode) => mode,
-            _ => panic!("Non-Yul mode"),
+            ModeWrapper::LLVM(mode) => mode,
+            _ => panic!("Non-llvm mode"),
         }
     }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.llvm_optimizer_settings)
+        write!(f, "{}", self.llvm_optimizer_settings,)
     }
 }

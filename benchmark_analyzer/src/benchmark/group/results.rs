@@ -48,6 +48,11 @@ pub struct Results<'a> {
     pub ergs_negatives: Vec<(f64, &'a str)>,
     /// The ergs positive result test names.
     pub ergs_positives: Vec<(f64, &'a str)>,
+
+    /// The EVM interpreter reference ratios.
+    pub evm_interpreter_reference_ratios: Option<Vec<(String, f64)>>,
+    /// The EVM interpreter candidate ratios.
+    pub evm_interpreter_candidate_ratios: Option<Vec<(String, f64)>>,
 }
 
 impl<'a> Results<'a> {
@@ -98,7 +103,22 @@ impl<'a> Results<'a> {
             ergs_total,
             ergs_negatives,
             ergs_positives,
+
+            evm_interpreter_reference_ratios: None,
+            evm_interpreter_candidate_ratios: None,
         }
+    }
+
+    ///
+    /// Sets the EVM interpreter ratios.
+    ///
+    pub fn set_evm_interpreter_ratios(
+        &mut self,
+        reference_ratios: Vec<(String, f64)>,
+        candidate_ratios: Vec<(String, f64)>,
+    ) {
+        self.evm_interpreter_reference_ratios = Some(reference_ratios);
+        self.evm_interpreter_candidate_ratios = Some(candidate_ratios);
     }
 
     ///
@@ -328,6 +348,98 @@ impl<'a> Results<'a> {
             "Total".bright_white(),
             Self::format_geomean(self.ergs_total)
         )?;
+        if let (Some(gas_reference_ratios), Some(gas_candidate_ratios)) = (
+            self.evm_interpreter_reference_ratios.as_deref(),
+            self.evm_interpreter_candidate_ratios.as_deref(),
+        ) {
+            writeln!(
+                w,
+                "╠═╡ {} ╞{}╡ {} ╞═╣",
+                "Ergs/gas".bright_white(),
+                "═".repeat(cmp::max(25 - group_name.len(), 0)),
+                group_name.bright_white()
+            )?;
+            for (opcode, reference_ratio) in gas_reference_ratios.iter() {
+                let reference_ratio = *reference_ratio;
+                let candidate_ratio = gas_candidate_ratios
+                    .iter()
+                    .find_map(|(key, value)| {
+                        if key.as_str() == opcode.as_str() {
+                            Some(*value)
+                        } else {
+                            None
+                        }
+                    })
+                    .expect("Always exists");
+                let is_positive = candidate_ratio < reference_ratio;
+                let is_negative = candidate_ratio > reference_ratio;
+
+                writeln!(
+                    w,
+                    "║ {:32} {} ║",
+                    if is_positive {
+                        opcode.green()
+                    } else if is_negative {
+                        opcode.bright_red()
+                    } else {
+                        opcode.bright_white()
+                    },
+                    if is_positive {
+                        format!("{candidate_ratio:8.3}").green()
+                    } else if is_negative {
+                        format!("{candidate_ratio:8.3}").bright_red()
+                    } else {
+                        format!("{candidate_ratio:8.3}").bright_white()
+                    },
+                )?;
+            }
+
+            writeln!(
+                w,
+                "╠═╡ {} ╞{}╡ {} ╞═╣",
+                "Ergs/gas (-%)".bright_white(),
+                "═".repeat(cmp::max(20 - group_name.len(), 0)),
+                group_name.bright_white()
+            )?;
+            for (opcode, reference_ratio) in gas_reference_ratios.iter() {
+                let reference_ratio = *reference_ratio;
+                let candidate_ratio = gas_candidate_ratios
+                    .iter()
+                    .find_map(|(key, value)| {
+                        if key.as_str() == opcode.as_str() {
+                            Some(*value)
+                        } else {
+                            None
+                        }
+                    })
+                    .expect("Always exists");
+
+                let reduction = 100.0 - (candidate_ratio * 100.0 / reference_ratio);
+                if reduction >= 0.001 {
+                    let is_positive = candidate_ratio < reference_ratio;
+                    let is_negative = candidate_ratio > reference_ratio;
+
+                    writeln!(
+                        w,
+                        "║ {:32} {} ║",
+                        if is_positive {
+                            opcode.green()
+                        } else if is_negative {
+                            opcode.bright_red()
+                        } else {
+                            opcode.bright_white()
+                        },
+                        if is_positive {
+                            format!("{reduction:8.3}").green()
+                        } else if is_negative {
+                            format!("{reduction:8.3}").bright_red()
+                        } else {
+                            format!("{reduction:8.3}").bright_white()
+                        },
+                    )?;
+                }
+            }
+        }
         writeln!(w, "╚═══════════════════════════════════════════╝")?;
 
         Ok(())
