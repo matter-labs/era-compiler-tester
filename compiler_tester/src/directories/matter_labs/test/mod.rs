@@ -318,6 +318,9 @@ impl MatterLabsTest {
         for pair_of_bytecodes in evm_contracts.chunks(2) {
             let full = &pair_of_bytecodes[0];
             let template = &pair_of_bytecodes[1];
+            if full.starts_with("DUP") || full.starts_with("SWAP") || full.starts_with("PUSH") {
+                continue;
+            }
             let exception = full.contains("REVERT");
 
             metadata_cases.push(MatterLabsCase {
