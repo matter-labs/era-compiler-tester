@@ -1,6 +1,11 @@
 [package]
 name = "compiler-tester-fuzz"
 version = "1.5.0"
+authors = [
+    "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
+    "Anton Baliasnikov <aba@matterlabs.dev>",
+]
+license = "MIT OR Apache-2.0"
 edition = "2021"
 
 [package.metadata]
