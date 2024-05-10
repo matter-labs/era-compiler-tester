@@ -42,7 +42,7 @@ impl SystemContext {
     /// The system context virtual blocks upgrade info position in the storage.
     const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
 
-    /// The zkSync chain ID.
+    /// The ZKsync chain ID.
     const CHAIND_ID: u64 = 280;
 
     /// The default origin for tests.

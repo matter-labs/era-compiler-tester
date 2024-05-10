@@ -1,18 +1,18 @@
-# zkSync Era: The EraVM Compiler Integration Test Framework
+# ZKsync Era: The EraVM Compiler Integration Test Framework
 
 [![Logo](eraLogo.svg)](https://zksync.io/)
 
-zkSync Era is a layer 2 rollup that uses zero-knowledge proofs to scale Ethereum without compromising on security
+ZKsync Era is a layer 2 rollup that uses zero-knowledge proofs to scale Ethereum without compromising on security
 or decentralization. As it's EVM-compatible (with Solidity/Vyper), 99% of Ethereum projects can redeploy without
-needing to refactor or re-audit any code. zkSync Era also uses an LLVM-based compiler that will eventually enable
+needing to refactor or re-audit any code. ZKsync Era also uses an LLVM-based compiler that will eventually enable
 developers to write smart contracts in popular languages such as C++ and Rust.
 
-The `compiler-tester` integration test framework runs tests for Matter Labs compilers which target the EraVM,
+The `era-compiler-tester` integration test framework runs tests for Matter Labs compilers which target the EraVM,
 for supported languages listed below. It compiles source code via external API calls,
 e.g. to [Inkwell](https://thedan64.github.io/inkwell/inkwell/index.html). In software quality assurance jargon,
 this makes it a whitebox testing framework.
 
-The `compiler-tester` repository includes the Compiler Tests Collection repository as a submodule.
+The `era-compiler-tester` repository includes the Compiler Tests Collection repository as a submodule.
 
 By default, the Tester SHOULD run the entire Collection in all possible combinations of compiler versions and settings,
 but it MAY omit some subset of the combinations for the sake of saving time, e.g. when only front-end changes have been
@@ -20,47 +20,108 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 ## Building
 
-1. Install some tools system-wide:  
-   1.a. `apt install cmake ninja-build clang-13 lld-13 parallel pkg-config` on a Debian-based Linux, with optional `musl-tools` if you need a `musl` build  
-   1.b. `pacman -S cmake ninja clang lld parallel` on an Arch-based Linux  
-   1.c. On MacOS, install the [HomeBrew](https://brew.sh) package manager (being careful to install it as the appropriate user), then `brew install cmake ninja coreutils parallel`. Install your choice of a recent LLVM/[Clang](https://clang.llvm.org) compiler, e.g. via [Xcode](https://developer.apple.com/xcode/), [Apple’s Command Line Tools](https://developer.apple.com/library/archive/technotes/tn2339/_index.html), or your preferred package manager.  
-   1.d. Their equivalents with other package managers  
+<details>
+<summary>1. Install the system prerequisites.</summary>
 
-2. [Install Rust](https://www.rust-lang.org/tools/install).
+   * Linux (Debian):
 
-3. Check out or clone the appropriate branch of this repository:  
-   3.a. If you have not cloned this repository yet:  
-   ```
-   git clone <THIS_REPO_URL> --recursive
-   ```
-   3.b. If you have already cloned this repository:  
-   ```
-   git submodule update --init --recursive --remote
-   ```
+      Install the following packages:
+      ```shell
+      apt install cmake ninja-build curl git libssl-dev pkg-config clang lld
+      ```
+   * Linux (Arch):
 
-4. Pull, build, or specify the path to your LLVM framework build:  
-   4.a. If you have not cloned the LLVM repository yet:  
-   ```
-   cargo install compiler-llvm-builder
-   zkevm-llvm clone && zkevm-llvm build
-   ```
-   4.b. If you have already cloned the LLVM repository:  
-   ```
-   cargo install compiler-llvm-builder
-   zkevm-llvm checkout
-   git -C './llvm/' pull
-   zkevm-llvm build
-   ```
-   4.c. If you would like to use your local LLVM build:
-   ```
-   export LLVM_SYS_150_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
-   ```
+      Install the following packages:
+      ```shell
+      pacman -Syu which cmake ninja curl git pkg-config clang lld
+      ```
 
-5. Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
+   * MacOS:
 
-6. Build the Tester with `cargo build --release`.
+      * Install the [HomeBrew](https://brew.sh) package manager.
+      * Install the following packages:
 
-7. Run the tests using [the examples below](#usage).
+         ```shell
+         brew install cmake ninja coreutils
+         ```
+
+      * Install your choice of a recent LLVM/[Clang](https://clang.llvm.org) compiler, e.g. via [Xcode](https://developer.apple.com/xcode/), [Apple’s Command Line Tools](https://developer.apple.com/library/archive/technotes/tn2339/_index.html), or your preferred package manager.
+</details>
+
+<details>
+<summary>2. Install Rust.</summary>
+
+   * Follow the latest [official instructions]((https://www.rust-lang.org/tools/install)):
+      ```shell
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+      . ${HOME}/.cargo/env
+      ```
+
+      > Currently we are not pinned to any specific version of Rust, so just install the latest stable build for your   platform.
+</details>
+
+<details>
+<summary>3. Checkout or clone the repository.</summary>
+
+   * If you have not cloned this repository yet:
+      ```shell
+      git clone https://github.com/matter-labs/era-compiler-tester.git --recursive
+      ```
+
+   * If you have already cloned this repository:
+      ```shell
+      git submodule update --init --recursive --remote
+      ```
+
+</details>
+
+<details>
+<summary>4. Build ZKsync LLVM framework.</summary>
+
+   * Install the builder using `cargo`:
+      ```shell
+      cargo install compiler-llvm-builder
+      ```
+
+      > The builder is not the ZKsync LLVM framework itself, but a tool that clones its repository and runs a sequence of build commands. By default it is installed in `~/.cargo/bin/`, which is recommended to be added to your `$PATH`.
+
+   * Clone and build the ZKsync LLVM framework using the `zksync-llvm` tool:
+      ```shell
+      zksync-llvm clone
+      zksync-llvm build
+      ```
+
+   * If you have already cloned the LLVM repository:
+      ```shell
+      zksync-llvm checkout
+      zksync-llvm build
+      ```
+
+   * If you would like to use your local LLVM build:
+      ```shell
+      export LLVM_SYS_170_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
+      ```
+
+</details>
+
+<details>
+<summary>5. Build zksolc and zkvyper compilers.</summary>
+
+   * Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
+
+</details>
+
+<details>
+<summary>6. Build era-compiler-tester.</summary>
+
+   * Build the Tester with `cargo`:
+      ```shell
+      cargo build --release
+      ```
+
+</details>
+
+When the build succeeds, you can run the tests using [the examples below](#usage).
 
 ## What is supported
 
@@ -178,13 +239,13 @@ cargo run --release --bin compiler-tester -- \
 ## Tracing
 
 If you run the tester with `-T` flag, JSON trace files will be written to the `./trace/` directory.
-The trace files can be used with our [custom zkSync EraVM assembly tracer](https://staging-scan-v2.zksync.dev/tools/debugger) for debugging and research purposes.
+The trace files can be used with our [custom ZKsync EraVM assembly tracer](https://staging-scan-v2.zksync.dev/tools/debugger) for debugging and research purposes.
 
 ## Benchmarking
 
 1. Change the LLVM branch to the base in the `LLVM.lock` file at the repository root, checkout and build it:
 ```
-zkevm-llvm checkout && zkevm-llvm build
+zksync-llvm checkout && zksync-llvm build
 ```
 
 2. Run the Tester with the desired filters and the output JSON path:
@@ -197,7 +258,7 @@ zkevm-llvm checkout && zkevm-llvm build
 
 3. Change the LLVM branch to your patch in the `LLVM.lock` file at the repository root, checkout and build it:
 ```
-zkevm-llvm checkout && zkevm-llvm build
+zksync-llvm checkout && zksync-llvm build
 ```
 
 4. Run the Tester with the desired filters and the output JSON path:
@@ -217,15 +278,11 @@ After you make any changes in LLVM, you only need to repeat steps 2-3 to update 
 
 ## Troubleshooting
 
-- If you get a “failed to authenticate when downloading repository… if the git CLI succeeds then net.git-fetch-with-cli may help here” error,
-then prepending the `cargo` command with `CARGO_NET_GIT_FETCH_WITH_CLI=true`
-may help.
-- On MacOS, `git config --global credential.helper osxkeychain` followed by cloning a repository manually with a personal access token may help.
 - Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`.
 
 ## License
 
-The Compiler Tester is distributed under the terms of either
+The Era Compiler Tester is distributed under the terms of either
 
 - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
@@ -234,7 +291,7 @@ at your option.
 
 ## Resources
 
-[zkSync Era compiler toolchain documentation](https://era.zksync.io/docs/api/compiler-toolchain)
+[ZKsync Era compiler toolchain documentation](https://era.zksync.io/docs/api/compiler-toolchain)
 
 ## Official Links
 
@@ -246,7 +303,7 @@ at your option.
 
 ## Disclaimer
 
-zkSync Era has been through extensive testing and audits, and although it is live, it is still in alpha state and
+ZKsync Era has been through extensive testing and audits, and although it is live, it is still in alpha state and
 will undergo further audits and bug bounty programs. We would love to hear our community's thoughts and suggestions
 about it!
 It's important to note that forking it now could potentially lead to missing important

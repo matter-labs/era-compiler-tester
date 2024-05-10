@@ -12,7 +12,7 @@ inputs:
   llvm-builder-version:
     description: 'Version of the LLVM builder to use.'
     required: false
-    default: '1.0.24'
+    default: '1.0.25'
 runs:
   using: "composite"
   steps:
@@ -25,7 +25,7 @@ runs:
       shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
       run: |
         cargo install compiler-llvm-builder@${{ inputs.llvm-builder-version }}
-        zkevm-llvm clone --target-env ${{ inputs.target-env }}
+        zksync-llvm clone --target-env ${{ inputs.target-env }}
 
     - name: Define ccache key
       shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
@@ -63,4 +63,4 @@ runs:
         LIBSTDCPP_SOURCE_PATH: "C:/a/_temp/msys64/mingw64/lib/libstdc++.a"
       run: |
         [ "${{ inputs.build-type }}" = "debug" ] && DEBUG_ARG="--debug"
-        zkevm-llvm build --use-ccache --target-env ${{ inputs.target-env }} ${DEBUG_ARG}
+        zksync-llvm build --use-ccache --target-env ${{ inputs.target-env }} ${DEBUG_ARG}
