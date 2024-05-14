@@ -387,7 +387,7 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        mode.set_system_mode(self.metadata.system_mode);
+        mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
 
         self.check_filters(filters, &mode)?;
 

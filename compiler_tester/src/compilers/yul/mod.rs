@@ -47,7 +47,7 @@ impl Compiler for YulCompiler {
     ) -> anyhow::Result<EraVMInput> {
         let mode = YulMode::unwrap(mode);
 
-        let solc_validator = if mode.is_system_mode {
+        let solc_validator = if mode.enable_eravm_extensions {
             None
         } else {
             Some(SolidityCompiler::executable(
@@ -73,7 +73,7 @@ impl Compiler for YulCompiler {
                 let contract = project
                     .compile_to_eravm(
                         mode.llvm_optimizer_settings.to_owned(),
-                        mode.is_system_mode,
+                        mode.enable_eravm_extensions,
                         true,
                         zkevm_assembly::get_encoding_mode(),
                         debug_config.clone(),

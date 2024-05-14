@@ -208,7 +208,10 @@ impl SolidityCompiler {
             output_selection,
             optimizer,
             None,
+            mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
             mode.via_ir,
+            mode.enable_eravm_extensions,
+            false,
             None,
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
@@ -383,7 +386,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_eravm(
             mode.llvm_optimizer_settings.to_owned(),
-            mode.is_system_mode,
+            mode.enable_eravm_extensions,
             false,
             zkevm_assembly::get_encoding_mode(),
             debug_config,
