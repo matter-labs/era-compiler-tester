@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc#003d8cd9082ba75d3f37db771d4d4f16e4407b57"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc#e6007464b907ee0916b6e85fd062410bb0583a17"
 dependencies = [
  "anyhow",
  "colored",
@@ -557,7 +557,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc#be50f7e2f7d95e7e44e31b409f6f434a6c57da19"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc#5c4ba4c58a3b42dec8137f12ad0a2edd93cf6cdb"
 dependencies = [
  "anyhow",
  "colored",

@@ -210,6 +210,7 @@ impl SolidityCompiler {
             None,
             mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
             mode.via_ir,
+            mode.solc_pipeline == era_compiler_solidity::SolcPipeline::Yul,
             mode.enable_eravm_extensions,
             false,
             None,
