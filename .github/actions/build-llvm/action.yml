@@ -1,6 +1,29 @@
+# The general action to build ZKsync LLVM framework.
+# It is universal for all platforms: Linux, MacOS and Windows.
+
 name: 'Build LLVM'
 description: 'Builds backend LLVM framework'
 inputs:
+  clone-llvm:
+    description: 'Whether to clone LLVM repository.'
+    required: false
+    default: 'true'
+  enable-tests:
+    description: "Enable tests."
+    required: false
+    default: 'false'
+  enable-assertions:
+    description: "Enable assertions."
+    required: false
+    default: 'true'
+  extra-args:
+    description: 'Extra CMake arguments to compile LLVM.'
+    required: false
+    default: ''
+  builder-extra-args:
+    description: 'Extra LLVM builder arguments to compile LLVM.'
+    required: false
+    default: ''
   build-type:
     description: 'LLVM build type: debug | release'
     required: true
@@ -13,21 +36,32 @@ inputs:
     description: 'Version of the LLVM builder to use.'
     required: false
     default: '1.0.25'
+  ccache-key:
+    description: 'Github Actions cache key for CCache.'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
-    - name: Prepare environment
-      if: runner.os == 'macOS'
-      run: brew install cmake ninja
+
+    # Ninja build tool is not available on MacOS x64 runners by default. See:
+    # https://github.com/actions/runner-images/issues/514
+    - name: Install Ninja on MacOS x64
+      if: runner.os == 'macOS' && runner.arch == 'X64'
+      shell: 'bash'
+      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install ninja
+
+    - name: Install LLVM builder
       shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
+      run: cargo install compiler-llvm-builder@${{ inputs.llvm-builder-version }}
 
     - name: Clone LLVM framework
+      if: inputs.clone-llvm == 'true'
       shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
-      run: |
-        cargo install compiler-llvm-builder@${{ inputs.llvm-builder-version }}
-        zksync-llvm clone --target-env ${{ inputs.target-env }}
+      run: zksync-llvm clone --target-env ${{ inputs.target-env }}
 
     - name: Define ccache key
+      if: inputs.ccache-key == ''
       shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
       id: ccache-key
       run: |
@@ -35,32 +69,39 @@ runs:
         LLVM_SHORT_SHA="$(git -C ./llvm rev-parse --short HEAD)"
         echo "key=llvm-${LLVM_BRANCH}-${LLVM_SHORT_SHA}-${{ runner.os }}-${{ runner.arch }}" | tee -a "${GITHUB_OUTPUT}"
 
+    # CCache action requires `apt update`
+    # to be executed before it for Linux Docker jobs. See:
+    # https://github.com/hendrikmuhs/ccache-action?tab=readme-ov-file#usage
     - name: Prepare ccache installation
       if: runner.os == 'Linux'
-      shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
+      shell: 'bash'
       run: apt update
 
     - name: Set up compiler cache
       uses: hendrikmuhs/ccache-action@v1.2
-      env:
-        CCACHE_BASEDIR: ${{ github.workspace }}
-        CCACHE_NOHASHDIR: "true"
-        CCACHE_COMPILERCHECK: "content"
       with:
-        key: ${{ steps.ccache-key.outputs.key }}
-        restore-keys: ${{ steps.ccache-key.outputs.key }}
+        key: ${{ inputs.ccache-key == '' && steps.ccache-key.outputs.key || inputs.ccache-key }}
+        restore-keys: ${{ inputs.ccache-key == '' && steps.ccache-key.outputs.key || inputs.ccache-key }}
         append-timestamp: false
         max-size: "2G"
         verbose: 2
-        save: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v') }}
+        save: 'true' # ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
 
+    # CCACHE_BASEDIR, CCACHE_NOHASHDIR, and CCACHE_COMPILERCHECK
+    # are allowing to cache compiler output across different
+    # directories and compiler versions. See:
+    # https://ccache.dev/manual/3.7.12.html#_compiling_in_different_directories
     - name: Build LLVM
       shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
       env:
         CCACHE_BASEDIR: ${{ github.workspace }}
         CCACHE_NOHASHDIR: "true"
         CCACHE_COMPILERCHECK: "content"
-        LIBSTDCPP_SOURCE_PATH: "C:/a/_temp/msys64/mingw64/lib/libstdc++.a"
+        LIBSTDCPP_SOURCE_PATH: "C:/a/_temp/msys64/mingw64/lib/libstdc++.a" # This should go to msys setup action
       run: |
         [ "${{ inputs.build-type }}" = "debug" ] && DEBUG_ARG="--debug"
-        zksync-llvm build --use-ccache --target-env ${{ inputs.target-env }} ${DEBUG_ARG}
+        [ "${{ inputs.enable-tests }}" != "" ] && ENABLE_TESTS="--enable-tests"
+        [ "${{ inputs.enable-assertions }}" != "" ] && ENABLE_ASSERTIONS="--enable-assertions"
+        [ "${{ inputs.extra-args }}" != "" ] && EXTRA_ARGS="--extra-args ${{ inputs.extra-args }}"
+        zksync-llvm build --target-env ${{ inputs.target-env }} \
+          --use-ccache ${{ inputs.builder-extra-args }} ${DEBUG_ARG} ${ENABLE_TESTS} ${ENABLE_ASSERTIONS} ${EXTRA_ARGS}
