@@ -7,16 +7,16 @@ runs:
     uses: msys2/setup-msys2@v2
     with:
       path-type: inherit # Important to correctly update PATH
-    install: >-
-      base-devel
-      git
-      ninja
-      mingw-w64-x86_64-clang
-      mingw-w64-x86_64-lld
-      mingw-w64-x86_64-rust
-      mingw-w64-x86_64-cmake
-      mingw-w64-x86_64-gcc
-      mingw-w64-x86_64-gcc-libs
+      install: >-
+        base-devel
+        git
+        ninja
+        mingw-w64-x86_64-clang
+        mingw-w64-x86_64-lld
+        mingw-w64-x86_64-rust
+        mingw-w64-x86_64-cmake
+        mingw-w64-x86_64-gcc
+        mingw-w64-x86_64-gcc-libs
 
   - name: Prepare env
     shell: 'msys2 {0}'
