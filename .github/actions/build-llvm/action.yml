@@ -26,7 +26,7 @@ inputs:
     default: ''
   build-type:
     description: 'LLVM build type: debug | release'
-    required: true
+    required: false
     default: 'release'
   target-env:
     description: 'Target environment (gnu or musl).'
@@ -79,13 +79,17 @@ runs:
 
     - name: Set up compiler cache
       uses: hendrikmuhs/ccache-action@v1.2
+      env:
+        CCACHE_BASEDIR: ${{ github.workspace }}
+        CCACHE_NOHASHDIR: "true"
+        CCACHE_COMPILERCHECK: "content"
       with:
         key: ${{ inputs.ccache-key == '' && steps.ccache-key.outputs.key || inputs.ccache-key }}
         restore-keys: ${{ inputs.ccache-key == '' && steps.ccache-key.outputs.key || inputs.ccache-key }}
         append-timestamp: false
         max-size: "2G"
         verbose: 2
-        save: 'true' # ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
+        save: true # ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
 
     # CCACHE_BASEDIR, CCACHE_NOHASHDIR, and CCACHE_COMPILERCHECK
     # are allowing to cache compiler output across different
@@ -97,11 +101,12 @@ runs:
         CCACHE_BASEDIR: ${{ github.workspace }}
         CCACHE_NOHASHDIR: "true"
         CCACHE_COMPILERCHECK: "content"
-        LIBSTDCPP_SOURCE_PATH: "C:/a/_temp/msys64/mingw64/lib/libstdc++.a" # This should go to msys setup action
+        LIBSTDCPP_SOURCE_PATH: "C:/a/_temp/msys64/mingw64/lib/libstdc++.a"
       run: |
+        set -x
         [ "${{ inputs.build-type }}" = "debug" ] && DEBUG_ARG="--debug"
-        [ "${{ inputs.enable-tests }}" != "" ] && ENABLE_TESTS="--enable-tests"
-        [ "${{ inputs.enable-assertions }}" != "" ] && ENABLE_ASSERTIONS="--enable-assertions"
+        [ "${{ inputs.enable-tests }}" = "true" ] && ENABLE_TESTS="--enable-tests"
+        [ "${{ inputs.enable-assertions }}" = "true" ] && ENABLE_ASSERTIONS="--enable-assertions"
         [ "${{ inputs.extra-args }}" != "" ] && EXTRA_ARGS="--extra-args ${{ inputs.extra-args }}"
         zksync-llvm build --target-env ${{ inputs.target-env }} \
           --use-ccache ${{ inputs.builder-extra-args }} ${DEBUG_ARG} ${ENABLE_TESTS} ${ENABLE_ASSERTIONS} ${EXTRA_ARGS}
