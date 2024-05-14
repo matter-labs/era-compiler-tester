@@ -280,8 +280,9 @@ impl MatterLabsTest {
         let mut instances = BTreeMap::new();
 
         for (instance, evm_contract) in self.metadata.evm_contracts.iter() {
-            let mut bytecode = evm_contract.init_code();
-            bytecode.push_str(evm_contract.runtime_code().as_str());
+            let runtime_code = evm_contract.runtime_code();
+            let mut bytecode = evm_contract.init_code(runtime_code.len());
+            bytecode.push_str(runtime_code.as_str());
 
             let bytecode = hex::decode(bytecode.as_str()).map_err(|error| {
                 anyhow::anyhow!("Invalid bytecode of EVM instance `{}`: {}", instance, error)

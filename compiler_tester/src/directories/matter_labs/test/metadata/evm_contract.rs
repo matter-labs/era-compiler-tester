@@ -17,16 +17,20 @@ impl EVMContract {
     ///
     /// Returns the init code.
     ///
-    pub fn init_code(&self) -> String {
-        "608060405234801561000f575f80fd5b5060c08061001c5f395ff3fe".to_owned()
+    pub fn init_code(&self, size: usize) -> String {
+        format!("608060405234801561000f575f80fd5b50{}8061001c5f395ff3fe", if size <= 0xff {
+            format!("60{:02x}", size)
+        } else if size <= 0xffff {
+            format!("61{:04x}", size)
+        } else {
+            panic!("The bytecode is too large");
+        })
     }
 
     ///
     /// Returns the runtime code.
     ///
     pub fn runtime_code(&self) -> String {
-        let mut runtime_code = self.runtime_code.repeat(16 /* TODO */).to_owned();
-        runtime_code.push_str("00");
-        runtime_code
+        format!("{}00", self.runtime_code)
     }
 }
