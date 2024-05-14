@@ -7,3 +7,6 @@ members = [
     "fuzzer"
 ]
 resolver = "2"
+
+[patch."https://github.com/matter-labs/vm2"]
+vm2 = {path = "../vm2"}

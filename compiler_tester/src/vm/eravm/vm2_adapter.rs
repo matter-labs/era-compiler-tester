@@ -109,7 +109,7 @@ pub fn run_vm(
 
             storage_changes = vm
                 .world
-                .get_storage_changes()
+                .get_storage_state()
                 .iter()
                 .map(|(&(address, key), value)| {
                     (StorageKey { address, key }, H256::from_uint(value))
@@ -117,7 +117,7 @@ pub fn run_vm(
                 .collect::<HashMap<_, _>>();
             deployed_contracts = vm
             .world
-            .get_storage_changes()
+            .get_storage_state()
             .iter()
             .filter_map(|((address, key), value)| {
                 if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
@@ -210,6 +210,22 @@ impl World for TestWorld {
             })
             .map(|h| h.into_uint())
             .unwrap_or(U256::zero())
+    }
+
+    fn cost_of_writing_storage(
+        &mut self,
+        contract: web3::types::H160,
+        key: U256,
+        new_value: U256,
+    ) -> u32 {
+        0
+    }
+
+    fn is_free_storage_slot(&self, contract: &web3::types::H160, key: &U256) -> bool {
+        self.storage.contains_key(&StorageKey {
+            address: *contract,
+            key: *key,
+        })
     }
 }
 
