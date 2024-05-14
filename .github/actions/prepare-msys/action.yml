@@ -25,6 +25,6 @@ runs:
         mingw-w64-x86_64-clang \
         mingw-w64-x86_64-lld \
         mingw-w64-x86_64-rust \
-        mingw-w64-x86_64-gcc-libs \
-        mingw-w64-x86_64-gcc
+        mingw-w64-x86_64-gcc-libs=13.2.0-6 \
+        mingw-w64-x86_64-gcc=13.2.0-6
       echo "/c/Users/runneradmin/.cargo/bin" >> "${GITHUB_PATH}"
