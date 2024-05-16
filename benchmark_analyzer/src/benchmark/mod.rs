@@ -30,7 +30,7 @@ impl Benchmark {
     pub const EVM_INTERPRETER_GROUP_PREFIX: &'static str = "EVMInterpreter M3B3";
 
     /// The EVM opcodes to test.
-    pub const EVM_OPCODES: [&'static str; 119] = [
+    pub const EVM_OPCODES: [&'static str; 140] = [
         "ADD",
         "MUL",
         "SUB",
@@ -63,6 +63,17 @@ impl Benchmark {
         "ORIGIN",
         "CALLER",
         "CALLVALUE",
+        "CALLDATALOAD",
+        "CALLDATASIZE",
+        "CALLDATACOPY",
+        "CODESIZE",
+        "CODECOPY",
+        "GASPRICE",
+        "EXTCODESIZE",
+        "EXTCODECOPY",
+        "RETURNDATASIZE",
+        "RETURNDATACOPY",
+        "EXTCODEHASH",
         "BLOCKHASH",
         "COINBASE",
         "TIMESTAMP",
@@ -148,7 +159,17 @@ impl Benchmark {
         "SWAP14",
         "SWAP15",
         "SWAP16",
+        "LOG0",
+        "LOG1",
+        "LOG2",
+        "LOG3",
+        "LOG4",
+        "CREATE",
+        "CALL",
         "RETURN",
+        "DELEGATECALL",
+        "STATICCALL",
+        "CREATE2",
         "REVERT",
     ];
 
@@ -165,6 +186,7 @@ impl Benchmark {
             };
 
             let mut group_results = Group::compare(reference_group, candidate_group);
+            println!("group geomin {}", group_results.ergs_mean);
             if group_name.starts_with(Self::EVM_INTERPRETER_GROUP_PREFIX) {
                 if let (Some(reference_ratios), Some(candidate_ratios)) = (
                     reference
