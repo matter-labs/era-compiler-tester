@@ -414,7 +414,10 @@ impl<'a> Results<'a> {
                     })
                     .expect("Always exists");
 
-                let reduction = 100.0 - (candidate_ratio * 100.0 / reference_ratio);
+                let mut reduction = 100.0 - (candidate_ratio * 100.0 / reference_ratio);
+                if reduction < 0.0 { // If candidate_ratio > reference_ratio then we still want to show how much worse it is
+                    reduction *= -1.0;
+                }
                 if reduction >= 0.001 {
                     let is_positive = candidate_ratio < reference_ratio;
                     let is_negative = candidate_ratio > reference_ratio;
