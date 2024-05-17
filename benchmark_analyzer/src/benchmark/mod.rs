@@ -30,7 +30,7 @@ impl Benchmark {
     pub const EVM_INTERPRETER_GROUP_PREFIX: &'static str = "EVMInterpreter M3B3";
 
     /// The EVM opcodes to test.
-    pub const EVM_OPCODES: [&'static str; 140] = [
+    pub const EVM_OPCODES: [&'static str; 135] = [
         "ADD",
         "MUL",
         "SUB",
@@ -159,11 +159,6 @@ impl Benchmark {
         "SWAP14",
         "SWAP15",
         "SWAP16",
-        "LOG0",
-        "LOG1",
-        "LOG2",
-        "LOG3",
-        "LOG4",
         "CREATE",
         "CALL",
         "RETURN",
