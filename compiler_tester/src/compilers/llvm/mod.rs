@@ -53,7 +53,9 @@ impl Compiler for LLVMCompiler {
             .0
             .clone();
 
-        let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(sources.into_iter().collect())?;
+        let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
+            sources.into_iter().collect(),
+        )?;
 
         let builds = project
             .compile_to_eravm(
@@ -96,7 +98,9 @@ impl Compiler for LLVMCompiler {
             .0
             .clone();
 
-        let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(sources.into_iter().collect())?;
+        let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
+            sources.into_iter().collect(),
+        )?;
 
         let builds = project
             .compile_to_evm(
@@ -107,7 +111,10 @@ impl Compiler for LLVMCompiler {
             .contracts
             .into_iter()
             .map(|(path, contract)| {
-                let build = EVMBuild::new(era_compiler_llvm_context::EVMBuild::default(), contract.runtime_build);
+                let build = EVMBuild::new(
+                    era_compiler_llvm_context::EVMBuild::default(),
+                    contract.runtime_build,
+                );
                 Ok((path, build))
             })
             .collect::<anyhow::Result<HashMap<String, EVMBuild>>>()?;
