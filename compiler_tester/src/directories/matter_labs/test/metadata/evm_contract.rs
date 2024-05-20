@@ -14,6 +14,9 @@ pub struct EVMContract {
 }
 
 impl EVMContract {
+    /// The number of pattern reruns to provide more accurate benchmarks.
+    pub const PATTERN_REPEATS: usize = 16;
+
     ///
     /// Returns the init code.
     ///
@@ -34,6 +37,6 @@ impl EVMContract {
     /// Returns the runtime code.
     ///
     pub fn runtime_code(&self) -> String {
-        format!("{}00", self.runtime_code)
+        format!("{}00", self.runtime_code.repeat(Self::PATTERN_REPEATS))
     }
 }
