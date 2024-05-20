@@ -7,7 +7,7 @@ authors = [
 ]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-description = "The integration tests coverage watcher"
+description = "Coverage watcher of ZKsync integration tests"
 
 [[bin]]
 name = "coverage-watcher"

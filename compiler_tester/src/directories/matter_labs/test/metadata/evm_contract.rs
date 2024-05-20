@@ -27,7 +27,10 @@ impl EVMContract {
             code_size = format!("61{:04x}", size);
             codecopy_index = "1d";
         }
-        format!("608060405234801561000f575f80fd5b50{}806100{}5f395ff3fe", code_size, codecopy_index)
+        format!(
+            "608060405234801561000f575f80fd5b50{}806100{}5f395ff3fe",
+            code_size, codecopy_index
+        )
     }
 
     ///
