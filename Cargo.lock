@@ -266,7 +266,7 @@ dependencies = [
  "solidity-adapter",
  "structopt",
  "web3",
- "which 6.0.1",
+ "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
  "zkevm_tester",
@@ -525,7 +525,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1704-support-the-yul-mode-in-standard-json#163050c31a882856d6ad15e61602db9cb9408345"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ab4d8d97ba42aa7e6f4cf26dd5cfbc845248b577"
 dependencies = [
  "anyhow",
  "colored",
@@ -547,14 +547,14 @@ dependencies = [
  "sha3",
  "structopt",
  "thiserror",
- "which 6.0.1",
+ "which",
  "zkevm-assembly",
 ]
 
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#89fa8b7ab6f321af58b12ac14d1c64948965c623"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#973230cde15e29eb91277c2cfcc86c7b3f33dde6"
 dependencies = [
  "anyhow",
  "colored",
@@ -572,7 +572,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "structopt",
- "which 5.0.0",
+ "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
 ]
@@ -2702,19 +2702,6 @@ name = "webpki-roots"
 version = "0.25.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
-
-[[package]]
-name = "which"
-version = "5.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bf3ea8596f3a0dd5980b46430f2058dfe2c36a27ccfbb1845d6fbfcd9ba6e14"
-dependencies = [
- "either",
- "home",
- "once_cell",
- "rustix",
- "windows-sys 0.48.0",
-]
 
 [[package]]
 name = "which"
