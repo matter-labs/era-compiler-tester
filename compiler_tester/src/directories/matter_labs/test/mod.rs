@@ -310,7 +310,9 @@ impl MatterLabsTest {
             .metadata
             .evm_contracts
             .keys()
-            .filter(|name| name.contains("Template") || name.contains("Full") || name.contains("Before"))
+            .filter(|name| {
+                name.contains("Template") || name.contains("Full") || name.contains("Before")
+            })
             .cloned()
             .collect();
         evm_contracts.sort();

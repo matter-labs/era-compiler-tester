@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#e214b99e6014a3e5a7d2d50d8581111a8e7dc646"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1704-support-the-yul-mode-in-standard-json#b1602e024c8e57bc969b1fbcea6e3c3084baff99"
 dependencies = [
  "anyhow",
  "colored",
