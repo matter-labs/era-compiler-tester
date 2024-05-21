@@ -525,7 +525,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ab4d8d97ba42aa7e6f4cf26dd5cfbc845248b577"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#dd81ee9c02d5fa5905d2461df1966215052f7923"
 dependencies = [
  "anyhow",
  "colored",
@@ -2928,7 +2928,7 @@ checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
 [[package]]
 name = "zk_evm"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zk_evm?branch=v1.5.0#c42da1512334c3d95869198e41ee4f0da68812b4"
+source = "git+https://github.com/matter-labs/era-zk_evm?branch=v1.5.0#9bbf7ffd2c38ee8b9667e96eaf0c111037fe976f"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -2973,7 +2973,7 @@ dependencies = [
 [[package]]
 name = "zkevm_opcode_defs"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#109d9f734804a8b9dc0531c0b576e2a0f55a40de"
+source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#28d2edabf902ea9b08f6a26a4506831fd89346b9"
 dependencies = [
  "bitflags 2.5.0",
  "blake2",
