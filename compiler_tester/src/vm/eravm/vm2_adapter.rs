@@ -74,7 +74,6 @@ pub fn run_vm(
     let initial_program = initial_decommit(&mut world, entry_address);
 
     let mut vm = vm2::VirtualMachine::new(
-        Box::new(world),
         entry_address,
         initial_program,
         context.msg_sender,
@@ -101,14 +100,14 @@ pub fn run_vm(
     let mut storage_changes = HashMap::new();
     let mut deployed_contracts = HashMap::new();
 
-    let output = match vm.run() {
+    let output = match vm.run(&mut world) {
         ExecutionEnd::ProgramFinished(return_value) => {
             // Only successful transactions can have side effects
             // The VM doesn't undo side effects done in the initial frame
             // because that would mess with the bootloader.
 
             storage_changes = vm
-                .world
+                .world_diff
                 .get_storage_state()
                 .iter()
                 .map(|(&(address, key), value)| {
@@ -116,29 +115,29 @@ pub fn run_vm(
                 })
                 .collect::<HashMap<_, _>>();
             deployed_contracts = vm
-            .world
-            .get_storage_state()
-            .iter()
-            .filter_map(|((address, key), value)| {
-                if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
-                    let mut buffer = [0u8; 32];
-                    key.to_big_endian(&mut buffer);
-                    let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
-                    if let Some(code) = known_contracts.get(&value) {
-                        Some((deployed_address, code.clone()))
+                .world_diff
+                .get_storage_state()
+                .iter()
+                .filter_map(|((address, key), value)| {
+                    if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
+                        let mut buffer = [0u8; 32];
+                        key.to_big_endian(&mut buffer);
+                        let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
+                        if let Some(code) = known_contracts.get(&value) {
+                            Some((deployed_address, code.clone()))
+                        } else {
+                            None
+                        }
                     } else {
                         None
                     }
-                } else {
-                    None
-                }
-            })
-            .collect::<HashMap<_, _>>();
+                })
+                .collect::<HashMap<_, _>>();
 
             Output {
                 return_data: chunk_return_data(&return_value),
                 exception: false,
-                events: merge_events(vm.world.events()),
+                events: merge_events(vm.world_diff.events()),
             }
         }
         ExecutionEnd::Reverted(return_value) => Output {
