@@ -373,7 +373,7 @@ impl Compiler for SolidityCompiler {
         let last_contract = Self::get_last_contract(&solc_output, &sources)
             .map_err(|error| anyhow::anyhow!("Failed to get the last contract: {}", error))?;
 
-        let mut solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
+        let mut solc_compiler = if mode.is_system_contracts_mode { SolidityCompiler::system_contract_executable() } else { SolidityCompiler::executable(&mode.solc_version) }?;
 
         let project = era_compiler_solidity::Project::try_from_solidity_sources(
             &mut solc_output,

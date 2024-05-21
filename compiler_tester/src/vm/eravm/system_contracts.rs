@@ -239,10 +239,10 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
                 Self::PATH_BASE_TOKEN,
             ),
-            (
-                web3::types::Address::from_low_u64_be(0x8013),
-                Self::PATH_EVM_GAS_MANAGER,
-            ),
+            // (
+            //     web3::types::Address::from_low_u64_be(0x8013),
+            //     Self::PATH_EVM_GAS_MANAGER,
+            // ),
             (
                 web3::types::Address::from_low_u64_be(0x10000),
                 Self::PATH_EVM_PROXY,
@@ -253,7 +253,7 @@ impl SystemContracts {
         for (_, path) in yul_system_contracts.into_iter() {
             yul_file_paths.push(path.to_owned());
         }
-        yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
+        // yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
         let yul_optimizer_settings =
             era_compiler_llvm_context::OptimizerSettings::evm_interpreter();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
@@ -295,9 +295,9 @@ impl SystemContracts {
         let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
             anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
         })?;
-        let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
-            anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
-        })?;
+        // let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
+        //     anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
+        // })?;
 
         let mut system_contracts =
             Vec::with_capacity(solidity_system_contracts.len() + yul_system_contracts.len());
@@ -321,8 +321,8 @@ impl SystemContracts {
 
         Ok(Self {
             deployed_contracts,
-            default_aa,
-            evm_interpreter,
+            default_aa: default_aa.clone(),
+            evm_interpreter: default_aa,
         })
     }
 
