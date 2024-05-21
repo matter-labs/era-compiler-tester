@@ -141,10 +141,10 @@ impl FSEntity {
         let (old_entities, new_entities) = match (self, new) {
             (Self::File(old_file), Self::File(new_file)) => {
                 new_file.enabled = old_file.enabled;
-                new_file.group = old_file.group.clone();
-                new_file.comment = old_file.comment.clone();
-                new_file.modes = old_file.modes.clone();
-                new_file.version = old_file.version.clone();
+                new_file.group.clone_from(&old_file.group);
+                new_file.comment.clone_from(&old_file.comment);
+                new_file.modes.clone_from(&old_file.modes);
+                new_file.version.clone_from(&old_file.version);
 
                 let new_hash = new_file
                     .hash
@@ -186,7 +186,7 @@ impl FSEntity {
                 }),
             ) => {
                 *new_enabled = *old_enabled;
-                *new_comment = old_comment.clone();
+                new_comment.clone_from(old_comment);
 
                 (old_entities, new_entities)
             }

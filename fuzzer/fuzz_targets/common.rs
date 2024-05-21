@@ -1,7 +1,4 @@
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{path::PathBuf, sync::Arc};
 
 use compiler_tester::{
     Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow,
@@ -43,24 +40,6 @@ pub struct FuzzingCase {
     pub expected_output: Literal,
 }
 
-/// Create an integer literal primitive from input data
-///
-/// # Arguments
-///
-/// * `data` - The input data
-///
-/// # Returns
-///
-/// * `Literal` - The integer literal
-///
-pub fn integer_literal<T: ToString>(data: T) -> Literal {
-    Literal::Integer(IntegerLiteral::new(
-        Location::new(),
-        Integer::new_decimal(data.to_string(), false),
-        Alignment::default(),
-    ))
-}
-
 /// Create a boolean literal primitive from input data
 ///
 /// # Arguments
@@ -79,6 +58,24 @@ pub fn boolean_literal(data: bool) -> Literal {
         } else {
             LexicalBooleanLiteral::False
         },
+        Alignment::default(),
+    ))
+}
+
+/// Create an integer literal primitive from input data
+///
+/// # Arguments
+///
+/// * `data` - The input data
+///
+/// # Returns
+///
+/// * `Literal` - The integer literal
+///
+pub fn integer_literal<T: ToString>(data: T) -> Literal {
+    Literal::Integer(IntegerLiteral::new(
+        Location::new(),
+        Integer::new_decimal(data.to_string(), false),
         Alignment::default(),
     ))
 }
