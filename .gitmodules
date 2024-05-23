@@ -1,7 +1,7 @@
 [submodule "tests"]
 	path = tests
 	url = https://github.com/matter-labs/era-compiler-tests
-	branch = az-cpr-1702-support-extcodecopy-codecopy
+	branch = main
 [submodule "solidity"]
 	path = solidity
 	url = https://github.com/ethereum/solidity
@@ -9,4 +9,4 @@
 [submodule "era-contracts"]
 	path = era-contracts
 	url = https://github.com/matter-labs/era-contracts
-	branch = release-v23
+	branch = evm-equivalence-yul
