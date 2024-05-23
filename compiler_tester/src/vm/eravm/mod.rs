@@ -112,6 +112,10 @@ impl EraVM {
             published_evm_bytecodes: HashMap::new(),
         };
 
+        for (address, build) in system_contracts.deployed_contracts {
+            vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly.clone()));
+            vm.add_known_contract(build.assembly, build.bytecode_hash);
+        }
         vm.add_known_contract(
             system_contracts.default_aa.assembly,
             system_contracts.default_aa.bytecode_hash,
@@ -132,10 +136,6 @@ impl EraVM {
             )
             .expect("Always valid"),
         );
-
-        for (address, build) in system_contracts.deployed_contracts {
-            vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly));
-        }
 
         Ok(vm)
     }
