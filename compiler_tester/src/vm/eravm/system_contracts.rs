@@ -166,15 +166,11 @@ impl SystemContracts {
                 Self::PATH_SHA256,
             ),
             (
-                web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::system_params::ADDRESS_ECADD.into(),
-                ),
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ECADD.into()),
                 Self::PATH_ECADD,
             ),
             (
-                web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::system_params::ADDRESS_ECMUL.into(),
-                ),
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ECMUL.into()),
                 Self::PATH_ECMUL,
             ),
             (
@@ -184,7 +180,9 @@ impl SystemContracts {
                 Self::PATH_EVENT_WRITER,
             ),
             (
-                web3::types::Address::from_low_u64_be(0x8012),
+                web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_CODE_ORACLE.into(),
+                ),
                 Self::PATH_CODE_ORACLE,
             ),
         ];

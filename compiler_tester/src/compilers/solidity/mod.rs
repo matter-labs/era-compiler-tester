@@ -200,7 +200,7 @@ impl SolidityCompiler {
             None
         };
 
-        let solc_input = era_compiler_solidity::SolcStandardJsonInput::try_from_sources(
+        let solc_input = era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
             evm_version,
             sources.iter().cloned().collect(),
             libraries.clone(),

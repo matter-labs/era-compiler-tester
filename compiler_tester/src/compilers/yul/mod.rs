@@ -46,12 +46,15 @@ impl Compiler for YulCompiler {
     ) -> anyhow::Result<EraVMInput> {
         let mode = YulMode::unwrap(mode);
 
-        let mut solc_compiler = if mode.is_system_mode {
+        let solc_version = if mode.is_system_mode {
             None
         } else {
-            Some(SolidityCompiler::executable(
-                &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-            )?)
+            Some(
+                SolidityCompiler::executable(
+                    &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+                )?
+                .version()?,
+            )
         };
 
         let last_contract = sources
@@ -63,7 +66,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
-            solc_compiler.as_mut(),
+            solc_version,
             debug_config.as_ref(),
         )?;
 
@@ -102,9 +105,12 @@ impl Compiler for YulCompiler {
     ) -> anyhow::Result<EVMInput> {
         let mode = YulMode::unwrap(mode);
 
-        let mut solc_compiler = Some(SolidityCompiler::executable(
-            &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-        )?);
+        let solc_version = Some(
+            SolidityCompiler::executable(
+                &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+            )?
+            .version()?,
+        );
 
         let last_contract = sources
             .last()
@@ -115,7 +121,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
-            solc_compiler.as_mut(),
+            solc_version,
             debug_config.as_ref(),
         )?;
 

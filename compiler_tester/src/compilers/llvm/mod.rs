@@ -7,8 +7,6 @@ pub mod mode;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
-use sha3::Digest;
-
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::build::Build as EraVMBuild;

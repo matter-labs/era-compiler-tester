@@ -112,6 +112,10 @@ impl EraVM {
             published_evm_bytecodes: HashMap::new(),
         };
 
+        for (address, build) in system_contracts.deployed_contracts {
+            vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly.clone()));
+            vm.add_known_contract(build.assembly, build.bytecode_hash);
+        }
         vm.add_known_contract(
             system_contracts.default_aa.assembly,
             system_contracts.default_aa.bytecode_hash,
@@ -132,10 +136,6 @@ impl EraVM {
             )
             .expect("Always valid"),
         );
-
-        for (address, build) in system_contracts.deployed_contracts {
-            vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly));
-        }
 
         Ok(vm)
     }
@@ -255,14 +255,14 @@ impl EraVM {
             }
 
             for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
-                if self.published_evm_bytecodes.contains_key(&hash) {
+                if self.published_evm_bytecodes.contains_key(hash) {
                     continue;
                 }
 
                 self.published_evm_bytecodes.insert(*hash, preimage.clone());
             }
 
-            self.storage = snapshot.storage.clone();
+            self.storage.clone_from(&snapshot.storage);
 
             Ok(snapshot.into())
         }
