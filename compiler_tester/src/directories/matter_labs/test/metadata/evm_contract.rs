@@ -15,7 +15,7 @@ pub struct EVMContract {
 
 impl EVMContract {
     /// The number of pattern reruns to provide more accurate benchmarks.
-    pub const RUNTIME_CODE_REPEATS: usize = 16;
+    pub const RUNTIME_CODE_REPEATS: usize = 32;
 
     ///
     /// Returns the init code.
