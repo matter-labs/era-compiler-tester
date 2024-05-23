@@ -13,11 +13,11 @@ use structopt::StructOpt;
 #[structopt(name = "benchmark-analyzer", about = "The zkEVM benchmark analyzer")]
 pub struct Arguments {
     /// The reference build benchmark.
-    #[structopt(long = "reference")]
+    #[structopt(long = "reference", default_value = "reference.json")]
     pub reference: PathBuf,
 
     /// The candidate build benchmark.
-    #[structopt(long = "candidate")]
+    #[structopt(long = "candidate", default_value = "candidate.json")]
     pub candidate: PathBuf,
 
     /// The output file. If unset, the result is printed to `stdout`.
@@ -25,7 +25,7 @@ pub struct Arguments {
     pub output_path: Option<PathBuf>,
 
     /// Maximum number of results displayed in a group.
-    #[structopt(short = "gm", long = "group-max", default_value = "100")]
+    #[structopt(long = "group-max", default_value = "100")]
     pub group_max: usize,
 }
 

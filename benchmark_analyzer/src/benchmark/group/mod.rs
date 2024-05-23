@@ -56,6 +56,11 @@ impl Group {
         let mut ergs_total_candidate: u64 = 0;
 
         for (path, reference) in reference.elements.iter() {
+            if path.contains("tests/solidity/complex/interpreter/test.json")
+                && path.contains("#deployer")
+            {
+                continue;
+            }
             let candidate = match candidate.elements.get(path.as_str()) {
                 Some(candidate) => candidate,
                 None => continue,
@@ -156,19 +161,19 @@ impl Group {
     /// Returns the EVM interpreter ergs/gas ratio.
     ///
     pub fn evm_interpreter_ratios(&self) -> Vec<(String, f64)> {
-        #[allow(clippy::unnecessary_to_owned)]
-        let elements: Vec<(String, Element)> = self.elements.to_owned().into_iter().collect();
         let mut results = Vec::with_capacity(Benchmark::EVM_OPCODES.len());
         for evm_opcode in Benchmark::EVM_OPCODES.into_iter() {
             let name_substring = format!("test.json::{evm_opcode}[");
-            let mut template_and_full: Vec<(String, Element)> = elements
+            let [full, template]: [Element; 2] = self
+                .elements
                 .iter()
                 .filter(|element| element.0.contains(name_substring.as_str()))
                 .rev()
                 .take(2)
-                .cloned()
-                .collect();
-            let (full, template) = (template_and_full.remove(0).1, template_and_full.remove(0).1);
+                .map(|element| (element.1.to_owned()))
+                .collect::<Vec<Element>>()
+                .try_into()
+                .expect("Always valid");
 
             let ergs_difference = full.ergs - template.ergs;
             let gas_difference = full.gas - template.gas;
