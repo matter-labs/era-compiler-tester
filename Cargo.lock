@@ -506,7 +506,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#fbfcee5edc1ed975686c24c161cf0b8f7dcde682"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1702-support-extcodecopy-codecopy#935a5550bd756f8f15c9a950bd59084ad04f1d29"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -525,7 +525,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#59408918ada305f448bf475ef54049241b69e291"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1702-support-extcodecopy-codecopy#296821fca0f6942a4ceffef813fc319202ffcb51"
 dependencies = [
  "anyhow",
  "colored",
@@ -554,7 +554,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#8e0e189b14eb106144ece77401dffaecb872185a"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1702-support-extcodecopy-codecopy#8ed7bf0ae8be57090174186f21b31a779d64de2e"
 dependencies = [
  "anyhow",
  "colored",
