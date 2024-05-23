@@ -6,11 +6,13 @@
 
 use std::collections::HashMap;
 
-use web3::ethabi::Address;
-
+use crate::vm::execution_result::ExecutionResult;
+use anyhow::anyhow;
+use vm2::initial_decommit;
 use vm2::ExecutionEnd;
+use vm2::Program;
 use vm2::World;
-use zkevm_assembly::zkevm_opcode_defs::Assembly;
+use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{BigEndianHash, H256, U256};
 use zkevm_tester::runners::compiler_tests::FullABIParams;
 use zkevm_tester::runners::compiler_tests::StorageKey;
@@ -21,7 +23,6 @@ use crate::test::case::input::{
     output::{event::Event, Output},
     value::Value,
 };
-use crate::vm::eravm::execution_result::ExecutionResult;
 
 pub fn run_vm(
     contracts: HashMap<web3::ethabi::Address, Assembly>,
@@ -54,28 +55,34 @@ pub fn run_vm(
             r5_value: None,
         },
         VmLaunchOption::ManualCallABI(abiparams) => abiparams,
-        x => return Err(anyhow::anyhow!("Unsupported launch option {x:?}")),
+        x => return Err(anyhow!("Unsupported launch option {x:?}")),
     };
 
     for (_, contract) in contracts {
         let bytecode = contract.clone().compile_to_bytecode()?;
-        let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)?;
+        let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)
+            .map_err(|()| anyhow!("Failed to hash bytecode"))?;
         known_contracts.insert(U256::from_big_endian(&hash), contract);
     }
 
     let context = context.unwrap_or_default();
 
+    let mut world = TestWorld {
+        storage,
+        contracts: known_contracts.clone(),
+    };
+    let initial_program = initial_decommit(&mut world, entry_address);
+
     let mut vm = vm2::VirtualMachine::new(
-        Box::new(TestWorld {
-            storage,
-            contracts: known_contracts.clone(),
-        }),
         entry_address,
+        initial_program,
         context.msg_sender,
         calldata.to_vec(),
-        u32::MAX,
+        // zkevm_tester subtracts this constant, I don't know why
+        u32::MAX - 0x80000000,
         vm2::Settings {
-            default_aa_code_hash,
+            default_aa_code_hash: default_aa_code_hash.into(),
+            evm_interpreter_code_hash: evm_interpreter_code_hash.into(),
             hook_address: 0,
         },
     );
@@ -90,47 +97,61 @@ pub fn run_vm(
     vm.state.registers[4] = abi_params.r4_value.unwrap_or_default();
     vm.state.registers[5] = abi_params.r5_value.unwrap_or_default();
 
-    let output = match vm.run() {
-        ExecutionEnd::ProgramFinished(return_value) => Output {
-            return_data: chunk_return_data(&return_value),
-            exception: false,
-            events: merge_events(vm.world.events()),
-        },
+    let mut storage_changes = HashMap::new();
+    let mut deployed_contracts = HashMap::new();
+
+    let output = match vm.run(&mut world) {
+        ExecutionEnd::ProgramFinished(return_value) => {
+            // Only successful transactions can have side effects
+            // The VM doesn't undo side effects done in the initial frame
+            // because that would mess with the bootloader.
+
+            storage_changes = vm
+                .world_diff
+                .get_storage_state()
+                .iter()
+                .map(|(&(address, key), value)| {
+                    (StorageKey { address, key }, H256::from_uint(value))
+                })
+                .collect::<HashMap<_, _>>();
+            deployed_contracts = vm
+                .world_diff
+                .get_storage_state()
+                .iter()
+                .filter_map(|((address, key), value)| {
+                    if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
+                        let mut buffer = [0u8; 32];
+                        key.to_big_endian(&mut buffer);
+                        let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
+                        if let Some(code) = known_contracts.get(&value) {
+                            Some((deployed_address, code.clone()))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect::<HashMap<_, _>>();
+
+            Output {
+                return_data: chunk_return_data(&return_value),
+                exception: false,
+                events: merge_events(vm.world_diff.events()),
+            }
+        }
         ExecutionEnd::Reverted(return_value) => Output {
             return_data: chunk_return_data(&return_value),
             exception: true,
             events: vec![],
         },
-        _panic => Output {
+        ExecutionEnd::Panicked => Output {
             return_data: vec![],
             exception: true,
             events: vec![],
         },
+        ExecutionEnd::SuspendedOnHook { .. } => unreachable!(),
     };
-
-    let storage_changes = vm
-        .world
-        .get_storage_changes()
-        .map(|((address, key), value)| (StorageKey { address, key }, H256::from_uint(&value)))
-        .collect::<HashMap<_, _>>();
-    let deployed_contracts = vm
-        .world
-        .get_storage_changes()
-        .filter_map(|((address, key), value)| {
-            if address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
-                let mut buffer = [0u8; 32];
-                key.to_big_endian(&mut buffer);
-                let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
-                if let Some(code) = known_contracts.get(&value) {
-                    Some((deployed_address, code.clone()))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .collect::<HashMap<_, _>>();
 
     Ok((
         ExecutionResult {
@@ -150,17 +171,15 @@ struct TestWorld {
 }
 
 impl World for TestWorld {
-    fn decommit(
-        &mut self,
-        hash: U256,
-    ) -> (std::sync::Arc<[vm2::Instruction]>, std::sync::Arc<[U256]>) {
-        let bytecode = self
+    fn decommit(&mut self, hash: U256) -> Program {
+        let Some(bytecode) = self
             .contracts
             .get(&hash)
-            .unwrap()
-            .clone()
-            .compile_to_bytecode()
-            .unwrap();
+            .map(|assembly| assembly.clone().compile_to_bytecode().unwrap())
+        else {
+            // This case only happens when a contract fails to deploy but the assumes it did deploy
+            return Program::new(vec![vm2::Instruction::from_invalid()], vec![]);
+        };
         let instructions = bytecode
             .iter()
             .flat_map(|x| {
@@ -169,13 +188,12 @@ impl World for TestWorld {
             })
             .collect::<Vec<_>>();
 
-        (
-            vm2::decode::decode_program(&instructions, false).into(),
+        Program::new(
+            vm2::decode::decode_program(&instructions, false),
             bytecode
                 .iter()
                 .map(|x| U256::from_big_endian(x))
-                .collect::<Vec<_>>()
-                .into(),
+                .collect::<Vec<_>>(),
         )
     }
 
@@ -193,8 +211,20 @@ impl World for TestWorld {
             .unwrap_or(U256::zero())
     }
 
-    fn handle_hook(&mut self, _: u32) {
-        unreachable!() // There is no bootloader
+    fn cost_of_writing_storage(
+        &mut self,
+        contract: web3::types::H160,
+        key: U256,
+        new_value: U256,
+    ) -> u32 {
+        0
+    }
+
+    fn is_free_storage_slot(&self, contract: &web3::types::H160, key: &U256) -> bool {
+        self.storage.contains_key(&StorageKey {
+            address: *contract,
+            key: *key,
+        })
     }
 }
 
@@ -231,6 +261,7 @@ fn merge_events(events: &[vm2::Event]) -> Vec<Event> {
             key,
             value,
         } = *message;
+        let tx_number = tx_number.into();
 
         if !is_first {
             if let Some((mut remaining_data_length, mut remaining_topics, mut event)) =

@@ -265,6 +265,7 @@ dependencies = [
  "sha3",
  "solidity-adapter",
  "structopt",
+ "vm2",
  "web3",
  "which",
  "zkevm-assembly",
@@ -471,6 +472,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b45de904aa0b010bce2ab45264d0631681847fa7b6f2eaa7dab7619943bc4f59"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "enum_dispatch"
+version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa18ce2bc66555b3218614519ac839ddb759a7d6720732f979ef8d13be147ecd"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.65",
 ]
 
 [[package]]
@@ -2574,6 +2587,16 @@ name = "vlog"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
+
+[[package]]
+name = "vm2"
+version = "0.1.0"
+dependencies = [
+ "enum_dispatch",
+ "primitive-types",
+ "zk_evm_abstractions",
+ "zkevm_opcode_defs",
+]
 
 [[package]]
 name = "want"
