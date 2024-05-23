@@ -110,7 +110,7 @@ pub fn run_vm(
                 .world_diff
                 .get_storage_state()
                 .iter()
-                .map(|(&(address, key), value)| {
+                .map(|(&(address, key), (_, value))| {
                     (StorageKey { address, key }, H256::from_uint(value))
                 })
                 .collect::<HashMap<_, _>>();
@@ -118,7 +118,7 @@ pub fn run_vm(
                 .world_diff
                 .get_storage_state()
                 .iter()
-                .filter_map(|((address, key), value)| {
+                .filter_map(|((address, key), (_, value))| {
                     if *address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
                         let mut buffer = [0u8; 32];
                         key.to_big_endian(&mut buffer);
