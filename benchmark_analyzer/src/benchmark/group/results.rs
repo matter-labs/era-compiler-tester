@@ -414,8 +414,8 @@ impl<'a> Results<'a> {
                     })
                     .expect("Always exists");
 
-                let reduction = (100.0 - (candidate_ratio * 100.0 / reference_ratio)).abs();
-                if reduction >= 0.001 {
+                let reduction = 100.0 - (candidate_ratio * 100.0 / reference_ratio);
+                if reduction.abs() >= 0.001 {
                     let is_positive = candidate_ratio < reference_ratio;
                     let is_negative = candidate_ratio > reference_ratio;
 
