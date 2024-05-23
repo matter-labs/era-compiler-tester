@@ -53,34 +53,28 @@ impl Compiler for LLVMCompiler {
             .0
             .clone();
 
-        let builds = sources
+        let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
+            sources.into_iter().collect(),
+        )?;
+
+        let builds = project
+            .compile_to_eravm(
+                mode.llvm_optimizer_settings.to_owned(),
+                true,
+                true,
+                zkevm_assembly::get_encoding_mode(),
+                debug_config.clone(),
+            )?
+            .contracts
             .into_iter()
-            .map(|(path, source)| {
-                let llvm = inkwell::context::Context::create();
-                let memory_buffer =
-                    inkwell::memory_buffer::MemoryBuffer::create_from_memory_range_copy(
-                        source.as_bytes(),
-                        path.as_str(),
-                    );
-                let module = llvm
-                    .create_module_from_ir(memory_buffer)
-                    .map_err(|error| anyhow::anyhow!(error.to_string()))?;
-                let optimizer =
-                    era_compiler_llvm_context::Optimizer::new(mode.llvm_optimizer_settings.clone());
-                let source_hash = sha3::Keccak256::digest(source.as_bytes()).into();
-
-                let context = era_compiler_llvm_context::EraVMContext::<
-                    era_compiler_llvm_context::EraVMDummyDependency,
-                >::new(
-                    &llvm, module, optimizer, None, true, debug_config.clone()
-                );
-                let build = context.build(path.as_str(), Some(source_hash))?;
+            .map(|(path, contract)| {
                 let assembly = zkevm_assembly::Assembly::from_string(
-                    build.assembly_text,
-                    build.metadata_hash,
-                )?;
-                let build = EraVMBuild::new(assembly)?;
+                    contract.build.assembly_text,
+                    contract.build.metadata_hash,
+                )
+                .map_err(anyhow::Error::new)?;
 
+                let build = EraVMBuild::new_with_hash(assembly, contract.build.bytecode_hash)?;
                 Ok((path, build))
             })
             .collect::<anyhow::Result<HashMap<String, EraVMBuild>>>()?;
@@ -104,36 +98,23 @@ impl Compiler for LLVMCompiler {
             .0
             .clone();
 
-        let builds = sources
+        let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
+            sources.into_iter().collect(),
+        )?;
+
+        let builds = project
+            .compile_to_evm(
+                mode.llvm_optimizer_settings.to_owned(),
+                true,
+                debug_config.clone(),
+            )?
+            .contracts
             .into_iter()
-            .map(|(path, source)| {
-                let optimizer =
-                    era_compiler_llvm_context::Optimizer::new(mode.llvm_optimizer_settings.clone());
-                let source_hash = sha3::Keccak256::digest(source.as_bytes()).into();
-
-                let llvm = inkwell::context::Context::create();
-                let memory_buffer =
-                    inkwell::memory_buffer::MemoryBuffer::create_from_memory_range_copy(
-                        source.as_bytes(),
-                        path.as_str(),
-                    );
-                let module = llvm
-                    .create_module_from_ir(memory_buffer)
-                    .map_err(|error| anyhow::anyhow!(error.to_string()))?;
-                let context = era_compiler_llvm_context::EVMContext::<
-                    era_compiler_llvm_context::EVMDummyDependency,
-                >::new(
-                    &llvm,
-                    module,
-                    era_compiler_llvm_context::CodeType::Runtime,
-                    optimizer,
-                    None,
-                    true,
-                    debug_config.clone(),
+            .map(|(path, contract)| {
+                let build = EVMBuild::new(
+                    era_compiler_llvm_context::EVMBuild::default(),
+                    contract.runtime_build,
                 );
-                let build = context.build(path.as_str(), Some(source_hash))?;
-
-                let build = EVMBuild::new(era_compiler_llvm_context::EVMBuild::default(), build);
                 Ok((path, build))
             })
             .collect::<anyhow::Result<HashMap<String, EVMBuild>>>()?;

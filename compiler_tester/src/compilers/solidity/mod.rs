@@ -172,16 +172,16 @@ impl SolidityCompiler {
         libraries: &BTreeMap<String, BTreeMap<String, String>>,
         mode: &SolidityMode,
     ) -> anyhow::Result<era_compiler_solidity::SolcStandardJsonOutput> {
-        let mut solc = if mode.is_system_contracts_mode {
+        let mut solc_compiler = if mode.is_system_contracts_mode {
             Self::system_contract_executable()
         } else {
             Self::executable(&mode.solc_version)
         }?;
 
         let output_selection =
-            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(
+            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(Some(
                 mode.solc_pipeline,
-            );
+            ));
 
         let optimizer = era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::new(
             mode.solc_optimize,
@@ -219,9 +219,9 @@ impl SolidityCompiler {
             .to_string_lossy()
             .to_string();
 
-        solc.standard_json(
+        solc_compiler.standard_json(
             solc_input,
-            mode.solc_pipeline,
+            Some(mode.solc_pipeline),
             None,
             vec![],
             Some(allow_paths),
@@ -373,11 +373,18 @@ impl Compiler for SolidityCompiler {
         let last_contract = Self::get_last_contract(&solc_output, &sources)
             .map_err(|error| anyhow::anyhow!("Failed to get the last contract: {}", error))?;
 
-        let project = solc_output.try_to_project(
+        let mut solc_compiler = if mode.is_system_contracts_mode {
+            SolidityCompiler::system_contract_executable()
+        } else {
+            SolidityCompiler::executable(&mode.solc_version)
+        }?;
+
+        let project = era_compiler_solidity::Project::try_from_solidity_sources(
+            &mut solc_output,
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
             mode.solc_pipeline,
-            &era_compiler_solidity::SolcVersion::new_simple(mode.solc_version.to_owned()),
+            &mut solc_compiler,
             debug_config.as_ref(),
         )?;
 
@@ -390,11 +397,11 @@ impl Compiler for SolidityCompiler {
         )?;
         build.write_to_standard_json(
             &mut solc_output,
-            &era_compiler_solidity::SolcVersion::new(
+            Some(&era_compiler_solidity::SolcVersion::new(
                 mode.solc_version.to_string(),
                 mode.solc_version.to_owned(),
                 None,
-            ),
+            )),
             &semver::Version::new(0, 0, 0),
         )?;
 
@@ -463,11 +470,14 @@ impl Compiler for SolidityCompiler {
 
         let last_contract = Self::get_last_contract(&solc_output, &sources)?;
 
-        let project = solc_output.try_to_project(
+        let mut solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
+
+        let project = era_compiler_solidity::Project::try_from_solidity_sources(
+            &mut solc_output,
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
             mode.solc_pipeline,
-            &era_compiler_solidity::SolcVersion::new_simple(mode.solc_version.to_owned()),
+            &mut solc_compiler,
             debug_config.as_ref(),
         )?;
 
