@@ -181,7 +181,6 @@ impl Benchmark {
             };
 
             let mut group_results = Group::compare(reference_group, candidate_group);
-            println!("group geomin {}", group_results.ergs_mean);
             if group_name.starts_with(Self::EVM_INTERPRETER_GROUP_PREFIX) {
                 if let (Some(reference_ratios), Some(candidate_ratios)) = (
                     reference
