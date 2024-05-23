@@ -36,7 +36,7 @@ impl EVMContract {
     ///
     /// Returns the runtime code.
     ///
-    pub fn runtime_code(&self) -> String {
-        format!("{}00", self.runtime_code.repeat(Self::PATTERN_REPEATS))
+    pub fn runtime_code(&self, repeats: usize) -> String {
+        format!("{}00", self.runtime_code.repeat(repeats))
     }
 }

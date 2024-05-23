@@ -280,7 +280,9 @@ impl MatterLabsTest {
         let mut instances = BTreeMap::new();
 
         for (instance, evm_contract) in self.metadata.evm_contracts.iter() {
-            let runtime_code = evm_contract.runtime_code();
+            dbg!(&instance);
+
+            let runtime_code = evm_contract.runtime_code(1);
             let mut bytecode = evm_contract.init_code(runtime_code.len());
             bytecode.push_str(runtime_code.as_str());
 
