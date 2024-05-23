@@ -159,12 +159,12 @@ impl Benchmark {
         "SWAP14",
         "SWAP15",
         "SWAP16",
-        "CREATE",
         "CALL",
-        "RETURN",
-        "DELEGATECALL",
         "STATICCALL",
+        "DELEGATECALL",
+        "CREATE",
         "CREATE2",
+        "RETURN",
         "REVERT",
     ];
 
