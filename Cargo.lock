@@ -519,7 +519,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#f63506726725f8940e02e5b3d345032b46046933"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#fbfcee5edc1ed975686c24c161cf0b8f7dcde682"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#dd81ee9c02d5fa5905d2461df1966215052f7923"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#59408918ada305f448bf475ef54049241b69e291"
 dependencies = [
  "anyhow",
  "colored",
@@ -567,7 +567,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#973230cde15e29eb91277c2cfcc86c7b3f33dde6"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#8e0e189b14eb106144ece77401dffaecb872185a"
 dependencies = [
  "anyhow",
  "colored",
