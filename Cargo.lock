@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-optimize-ram-usage#0b32df7067d7b93d39b9fc40ebc09150f2f68907"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#7d221b10df928b6dbfcfc0f1c004119b176604e4"
 dependencies = [
  "anyhow",
  "colored",
@@ -567,7 +567,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-optimize-ram-usage#4bbba113d825a0681818bfab0ccd23defd6a2fb2"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#5f371e516e3c573ab3626ab7cbb0ccb34b1d2bbe"
 dependencies = [
  "anyhow",
  "colored",
