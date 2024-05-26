@@ -566,7 +566,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1718-turn-underlying-compilers-into-singletons#a09bd40c6b8e033152e0c1844ab3159e43d319a8"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1718-turn-underlying-compilers-into-singletons#ee1c327ad99c3d78e4698333fd702905eb750aee"
 dependencies = [
  "anyhow",
  "colored",
