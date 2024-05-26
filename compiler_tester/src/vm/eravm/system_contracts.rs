@@ -264,7 +264,10 @@ impl SystemContracts {
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
         for pattern in [
-            "era-contracts/system-contracts/**/*.sol",
+            "era-contracts/system-contracts/contracts/*.sol",
+            "era-contracts/system-contracts/contracts/libraries/**/*.sol",
+            "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
+            "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
             "tests/solidity/complex/interpreter/*.sol",
         ] {
             for path in glob::glob(pattern)?.filter_map(Result::ok) {

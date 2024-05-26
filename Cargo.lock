@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#7d221b10df928b6dbfcfc0f1c004119b176604e4"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1718-turn-underlying-compilers-into-singletons#3427866df42c0dbeaac5fa45391301cd92746e0c"
 dependencies = [
  "anyhow",
  "colored",
@@ -549,7 +549,6 @@ dependencies = [
  "md5",
  "mimalloc",
  "num",
- "once_cell",
  "path-slash",
  "rand 0.8.5",
  "rayon",
@@ -567,7 +566,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#00c8ccd017e11bc601e043c387e8203c0a475015"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1718-turn-underlying-compilers-into-singletons#ee1c327ad99c3d78e4698333fd702905eb750aee"
 dependencies = [
  "anyhow",
  "colored",
@@ -577,7 +576,6 @@ dependencies = [
  "inkwell",
  "lazy_static",
  "mimalloc",
- "once_cell",
  "path-slash",
  "rayon",
  "semver",

@@ -100,17 +100,18 @@ impl SolidityCompiler {
     pub fn executable(
         version: &semver::Version,
     ) -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::new(format!("{}/solc-{}", Self::DIRECTORY, version))
+        era_compiler_solidity::SolcCompiler::new(
+            format!("{}/solc-{}", Self::DIRECTORY, version).as_str(),
+        )
     }
 
     ///
     /// Returns the `solc` executable used to compile system contracts.
     ///
     pub fn system_contract_executable() -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::new(format!(
-            "{}/solc-system-contracts",
-            Self::DIRECTORY
-        ))
+        era_compiler_solidity::SolcCompiler::new(
+            format!("{}/solc-system-contracts", Self::DIRECTORY).as_str(),
+        )
     }
 
     ///
@@ -172,7 +173,7 @@ impl SolidityCompiler {
         libraries: &BTreeMap<String, BTreeMap<String, String>>,
         mode: &SolidityMode,
     ) -> anyhow::Result<era_compiler_solidity::SolcStandardJsonOutput> {
-        let mut solc_compiler = if mode.is_system_contracts_mode {
+        let solc_compiler = if mode.is_system_contracts_mode {
             Self::system_contract_executable()
         } else {
             Self::executable(&mode.solc_version)
