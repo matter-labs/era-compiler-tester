@@ -53,7 +53,7 @@ impl Compiler for YulCompiler {
                 SolidityCompiler::executable(
                     &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
                 )?
-                .version()?,
+                .version,
             )
         };
 
@@ -66,7 +66,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
-            solc_version,
+            solc_version.as_ref(),
             debug_config.as_ref(),
         )?;
 
@@ -109,7 +109,7 @@ impl Compiler for YulCompiler {
             SolidityCompiler::executable(
                 &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
             )?
-            .version()?,
+            .version,
         );
 
         let last_contract = sources
@@ -121,7 +121,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
-            solc_version,
+            solc_version.as_ref(),
             debug_config.as_ref(),
         )?;
 

@@ -1,7 +1,4 @@
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{path::PathBuf, sync::Arc};
 
 use compiler_tester::{
     Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow,
@@ -168,11 +165,11 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
 
     // Initialization
     era_compiler_llvm_context::initialize_target(era_compiler_llvm_context::Target::EraVM);
-    era_compiler_solidity::EXECUTABLE.get_or_try_init(|| -> Result<PathBuf, anyhow::Error> {
-        Ok(PathBuf::from(
+    era_compiler_solidity::EXECUTABLE
+        .set(PathBuf::from(
             era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
         ))
-    })?;
+        .expect("Always valid");
     compiler_tester::LLVMOptions::initialize(false, false)?;
     let compiler_tester = compiler_tester::CompilerTester::new(
         compiler_tester::Summary::new(true, false).wrap(),
