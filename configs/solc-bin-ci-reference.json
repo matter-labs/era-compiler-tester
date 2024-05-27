@@ -1,0 +1,16 @@
+{
+  "binaries": {
+    "${SOLC_VERSION}": {
+      "is_enabled": true,
+      "protocol": "https",
+      "source": "https://github.com/matter-labs/era-solidity/releases/download/${VERSION}/solc-${PLATFORM}-${VERSION}-${ZKSYNC_REVISION}",
+      "destination": "./solc-bin/solc-${VERSION}"
+    }
+  },
+  "platforms": {
+    "linux-amd64": "linux-amd64",
+    "linux-arm64": "linux-arm64",
+    "macos-amd64": "macosx-amd64",
+    "macos-arm64": "macosx-arm64"
+  }
+}
