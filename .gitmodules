@@ -1,7 +1,7 @@
 [submodule "tests"]
 	path = tests
 	url = https://github.com/matter-labs/era-compiler-tests
-	branch = az-cpr-1711-weird-behavior-of-the-debug-folder-in-compiler-tester
+	branch = main
 [submodule "solidity"]
 	path = solidity
 	url = https://github.com/ethereum/solidity
