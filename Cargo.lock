@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#b6aee421856c54ba4d78c6a5ace0d6db2715cf78"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1719-read-underlying-compilers-stdout-in-another-thread#0d58155bad9a125e9a1e799e3fb85057ca7e7670"
 dependencies = [
  "anyhow",
  "colored",
