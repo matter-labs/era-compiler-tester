@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1718-turn-underlying-compilers-into-singletons#3427866df42c0dbeaac5fa45391301cd92746e0c"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#b6aee421856c54ba4d78c6a5ace0d6db2715cf78"
 dependencies = [
  "anyhow",
  "colored",
@@ -566,7 +566,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1718-turn-underlying-compilers-into-singletons#ee1c327ad99c3d78e4698333fd702905eb750aee"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#e379645966210c28ed1aa9b4e436f06202e0fab7"
 dependencies = [
  "anyhow",
  "colored",
