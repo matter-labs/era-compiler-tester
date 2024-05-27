@@ -143,7 +143,7 @@ When the build succeeds, you can run the tests using [the examples below](#usage
 ### Solidity codegens
 
 - Yul pure (`Y`)
-- EVM assembly from Yul (`y`)
+- EVM assembly from Yul (`I`)
 - EVM assembly pure (`E`)
 - Vyper LLL (`V`)
 
