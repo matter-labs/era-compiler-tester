@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1719-read-underlying-compilers-stdout-in-another-thread#56376151343b5a164c8aef2ac3f79bc5d080b9a8"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d535d428a962e439f5df2cc5761284544a0151a9"
 dependencies = [
  "anyhow",
  "colored",
@@ -566,7 +566,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1719-read-underlying-compilers-stdout-in-another-thread#6e6c9a8167123336309408a5c2eaf585896dc41f"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#6520055f6cd8ff548a40bc65a8dd97457f963ea6"
 dependencies = [
  "anyhow",
  "colored",
