@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#b6aee421856c54ba4d78c6a5ace0d6db2715cf78"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d535d428a962e439f5df2cc5761284544a0151a9"
 dependencies = [
  "anyhow",
  "colored",
@@ -566,7 +566,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#e379645966210c28ed1aa9b4e436f06202e0fab7"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#6520055f6cd8ff548a40bc65a8dd97457f963ea6"
 dependencies = [
  "anyhow",
  "colored",
@@ -2589,7 +2589,7 @@ checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 [[package]]
 name = "vm2"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#8defb4ad9643b87151e00030166f90763bcf356d"
+source = "git+https://github.com/matter-labs/vm2#a291c246bbd8fc2620b6ac61c0d9535b00c6bde5"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
