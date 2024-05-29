@@ -26,4 +26,4 @@ jobs:
     uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@main
     secrets: inherit
     with:
-      compiler-tester-repo: ${{ github.repository }} # required to properly test forks
+      compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }} # required to properly test forks
