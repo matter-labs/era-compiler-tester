@@ -1,46 +1,29 @@
-name: Tests
+name: Integration tests
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.repository_id }}-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  testing:
-    runs-on: [self-hosted, ci-runner-compiler]
-    timeout-minutes: 720
-    container:
-      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
-      options: -m 110g
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Build LLVM
-        uses: ./.github/actions/build-llvm
+  # Check for secrets leak in the repository
+  secrets-scanner:
+    uses: matter-labs/era-compiler-ci/.github/workflows/secrets-scanner.yaml@main
+    secrets: inherit
 
-      - name: Run tests
-        run: |
-          cargo build --verbose --release --bin 'compiler-tester'
-          cargo build --verbose --release --manifest-path /usr/local/cargo/git/checkouts/era-compiler-solidity-*/*/Cargo.toml --target-dir './target-zksolc/'
-          cargo build --verbose --release --manifest-path /usr/local/cargo/git/checkouts/era-compiler-vyper-*/*/Cargo.toml --target-dir './target-zkvyper/'
+  # Check for cargo licensing issues
+  cargo-license:
+    uses: matter-labs/era-compiler-ci/.github/workflows/cargo-license.yaml@main
+    secrets: inherit
 
-          ./target/release/compiler-tester \
-            --zksolc './target-zksolc/release/zksolc' \
-            --zkvyper './target-zkvyper/release/zkvyper'
-
-      - name: Send Slack notification
-        uses: 8398a7/action-slack@v3
-        if: ${{ failure() || success() }} # Skip canceled jobs
-        with:
-          status: ${{ job.status }}
-          fields: repo,commit,author,action,eventName,ref,workflow,job,took,pullRequest
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+  # Integration tests workflow call from the era-compiler-ci repository
+  # This is a common part of the integration tests workflow for all repositories
+  # If you would like to make a change to the integration tests workflow, please do it in the era-compiler-ci repository
+  integration-tests:
+    uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@main
+    secrets: inherit
+    with:
+      compiler-tester-repo: ${{ github.repository }} # required to properly test forks
