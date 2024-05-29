@@ -31,7 +31,7 @@ jobs:
   # This is a common part of the benchmarks workflow for all repositories
   # If you would like to make a change to the benchmarks workflow, please do it in the era-compiler-ci repository
   benchmarks:
-    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@main
+    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@abalias-cpr-1706-issue-with-checkout-fork-repositories
     secrets: inherit
     with:
       compiler_tester_reference_branch: ${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}
