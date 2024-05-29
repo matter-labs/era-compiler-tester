@@ -11,7 +11,7 @@ jobs:
 
   # Check for secrets leak in the repository
   secrets-scanner:
-    uses: matter-labs/era-compiler-ci/.github/workflows/secrets-scanner.yaml@main
+    uses: matter-labs/era-compiler-ci/.github/workflows/secrets-scanner.yaml@v1
     secrets: inherit
 
   # Check for cargo licensing issues
