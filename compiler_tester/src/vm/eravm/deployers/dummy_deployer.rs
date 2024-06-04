@@ -46,7 +46,7 @@ impl EraVMDeployer for DummyDeployer {
     ) -> anyhow::Result<ExecutionResult> {
         let address = self.address_iterator.next(&caller, false);
 
-        vm.add_deployed_contract(address, bytecode_hash, None);
+        vm.add_deployed_contract(address, bytecode_hash);
 
         let context_u128_value = if let Some(value) = value {
             vm.mint_ether(address, web3::types::U256::from(value));

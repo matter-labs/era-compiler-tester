@@ -135,10 +135,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 ),
             );
 
-            #[cfg(feature = "vm2")]
-            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
-            #[cfg(not(feature = "vm2"))]
+            #[cfg(all(feature = "vm2", feature = "zkevm_test_harness"))]
+            compile_error!("feature \"vm2\" and feature \"circuits_vm\" cannot be enabled at the same time");
+            #[cfg(all(not(feature = "vm2"), not(feature = "zkevm_test_harness")))]
             zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
+            #[cfg(any(feature = "vm2", feature = "zkevm_test_harness"))]
+            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
 
             let system_contracts_debug_config = if arguments.dump_system {
                 debug_config
@@ -158,9 +160,15 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 arguments.disable_value_simulator,
             ) {
                 (true, true) => {
+                    #[cfg(feature = "zkevm_test_harness")]
+                    anyhow::bail!("Deployer can not be disabled");
+                    #[cfg(not(feature = "zkevm_test_harness"))]
                     compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm)
                 }
                 (true, false) => {
+                    #[cfg(feature = "zkevm_test_harness")]
+                    anyhow::bail!("Deployer can not be disabled");
+                    #[cfg(not(feature = "zkevm_test_harness"))]
                     compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm)
                 }
                 (false, true) => compiler_tester
