@@ -136,7 +136,9 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             );
 
             #[cfg(all(feature = "vm2", feature = "zkevm_test_harness"))]
-            compile_error!("feature \"vm2\" and feature \"circuits_vm\" cannot be enabled at the same time");
+            compile_error!(
+                "feature \"vm2\" and feature \"circuits_vm\" cannot be enabled at the same time"
+            );
             #[cfg(all(not(feature = "vm2"), not(feature = "zkevm_test_harness")))]
             zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
             #[cfg(any(feature = "vm2", feature = "zkevm_test_harness"))]

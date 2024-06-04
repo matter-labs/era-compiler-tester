@@ -8,10 +8,10 @@ pub mod input;
 pub mod system_context;
 pub mod system_contracts;
 
-#[cfg(feature = "vm2")]
-mod vm2_adapter;
 #[cfg(feature = "zkevm_test_harness")]
 mod circuits_vm;
+#[cfg(feature = "vm2")]
+mod vm2_adapter;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
