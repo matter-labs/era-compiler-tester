@@ -306,6 +306,8 @@ impl EraVM {
         }
         #[cfg(feature = "zkevm_test_harness")]
         {
+            // We print the name of the test being executed, as in case of panic it will be clear which test caused failure from logs.
+            println!("Executing {} in circuits", test_name);
             let storage = circuits_vm::run_vm(
                 self.circuits_bootloader.clone(),
                 &calldata,

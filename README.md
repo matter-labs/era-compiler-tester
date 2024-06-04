@@ -286,6 +286,8 @@ cargo +nightly-2024-02-01 run --release --bin compiler-tester --features zkevm_t
 	--mode='Y+M3B3 0.8.25'
 ```
 
+For now, only the `EraVM` target was tested.
+
 ## Troubleshooting
 
 - Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`.

@@ -127,8 +127,34 @@ impl CompilerTester {
         let tests = self.all_tests(false)?;
         let vm = Arc::new(vm);
 
+        // For the circuits VM, we want to use `into_iter` as it uses multithread code under the hood.
+        #[cfg(not(feature = "zkevm_test_harness"))]
         let _: Vec<()> = tests
             .into_par_iter()
+            .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
+                if let Some(test) = test.build_for_eravm(
+                    mode,
+                    compiler,
+                    Target::EraVM,
+                    self.summary.clone(),
+                    &self.filters,
+                    specialized_debug_config,
+                ) {
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_eravm::<D, M>(self.summary.clone(), vm.clone())
+                    };
+                }
+            })
+            .collect();
+
+        #[cfg(feature = "zkevm_test_harness")]
+        let _: Vec<()> = tests
+            .into_iter()
             .map(|(test, compiler, mode)| {
                 let mode_string = mode.to_string();
                 let specialized_debug_config = self
