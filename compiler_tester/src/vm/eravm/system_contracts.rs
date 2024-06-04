@@ -119,8 +119,7 @@ impl SystemContracts {
     const PATH_EVM_PROXY: &'static str = "tests/solidity/complex/interpreter/Proxy.sol:Proxy";
 
     /// The compiler-tester bootloader used for the circuits testing.
-    const PATH_CIRCUITS_BOOTLOADER: &'static str =
-        "circuits_bootloader.yul";
+    const PATH_CIRCUITS_BOOTLOADER: &'static str = "circuits_bootloader.yul";
 
     ///
     /// Loads or builds the system contracts.
@@ -311,9 +310,14 @@ impl SystemContracts {
         let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
             anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
         })?;
-        let circuits_bootloader = builds.remove(Self::PATH_CIRCUITS_BOOTLOADER).ok_or_else(|| {
-            anyhow::anyhow!("Circuits bootloader code not found in the compiler build artifacts")
-        })?;
+        let circuits_bootloader =
+            builds
+                .remove(Self::PATH_CIRCUITS_BOOTLOADER)
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "Circuits bootloader code not found in the compiler build artifacts"
+                    )
+                })?;
 
         let mut system_contracts =
             Vec::with_capacity(solidity_system_contracts.len() + yul_system_contracts.len());

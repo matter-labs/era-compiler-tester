@@ -21,12 +21,27 @@ pub fn run_vm(
     evm_interpreter_code_hash: web3::types::U256,
 ) -> HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256> {
     let entry_point_code = bootloader.compile_to_bytecode().unwrap();
-    let known_contracts = known_contracts.into_iter().map(|(hash, mut asm)| (hash, asm.compile_to_bytecode().unwrap())).collect();
-    let mut storage_input: HashMap<web3::types::Address, HashMap<web3::types::U256, web3::types::U256>> = HashMap::new();
+    let known_contracts = known_contracts
+        .into_iter()
+        .map(|(hash, mut asm)| (hash, asm.compile_to_bytecode().unwrap()))
+        .collect();
+    let mut storage_input: HashMap<
+        web3::types::Address,
+        HashMap<web3::types::U256, web3::types::U256>,
+    > = HashMap::new();
     for (key, value) in storage.into_iter() {
-        storage_input.entry(key.address).or_default().insert(key.key, crate::utils::h256_to_u256(&value));
+        storage_input
+            .entry(key.address)
+            .or_default()
+            .insert(key.key, crate::utils::h256_to_u256(&value));
     }
-    let initial_heap_content = encode_bootloader_memory(context.this_address, context.msg_sender, context.u128_value, calldata, vm_launch_option);
+    let initial_heap_content = encode_bootloader_memory(
+        context.this_address,
+        context.msg_sender,
+        context.u128_value,
+        calldata,
+        vm_launch_option,
+    );
 
     let new_storage = zkevm_test_harness::compiler_tests_runner::compiler_tests_run(
         entry_point_code,
@@ -35,16 +50,14 @@ pub fn run_vm(
         known_contracts,
         storage_input,
         initial_heap_content,
-        <usize>::MAX
+        <usize>::MAX,
     );
     let mut result_storage = HashMap::new();
-    for(address, inner) in new_storage.into_iter() {
-        for(key, value) in inner.into_iter() {
+    for (address, inner) in new_storage.into_iter() {
+        for (key, value) in inner.into_iter() {
             result_storage.insert(
-                zkevm_tester::runners::compiler_tests::StorageKey {
-                    address,
-                    key
-                }, crate::utils::u256_to_h256(&value)
+                zkevm_tester::runners::compiler_tests::StorageKey { address, key },
+                crate::utils::u256_to_h256(&value),
             );
         }
     }
@@ -90,12 +103,12 @@ fn encode_bootloader_memory(
             extra_abi_data_1 = params.r3_value.unwrap_or_default();
             extra_abi_data_2 = params.r4_value.unwrap_or_default();
             extra_abi_data_3 = params.r5_value.unwrap_or_default();
-        },
+        }
         zkevm_tester::runners::compiler_tests::VmLaunchOption::Constructor => {
             is_constructor = web3::types::U256::one();
-        },
-        zkevm_tester::runners::compiler_tests::VmLaunchOption::Call => {},
-        _ => panic!("Unsupported launch option")
+        }
+        zkevm_tester::runners::compiler_tests::VmLaunchOption::Call => {}
+        _ => panic!("Unsupported launch option"),
     };
 
     data.extend(vec![0u8; 32 * 5]);
