@@ -10,6 +10,8 @@ pub mod system_contracts;
 
 #[cfg(feature = "vm2")]
 mod vm2_adapter;
+#[cfg(feature = "zkevm_test_harness")]
+mod circuits_vm;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -37,6 +39,8 @@ pub struct EraVM {
     default_aa_code_hash: web3::types::U256,
     /// The EVM interpreter contract code hash.
     evm_interpreter_code_hash: web3::types::U256,
+    /// The compiler-tester bootloader used for the circuits testing.
+    circuits_bootloader: zkevm_assembly::Assembly,
     /// The deployed contracts.
     deployed_contracts: HashMap<web3::types::Address, zkevm_assembly::Assembly>,
     /// The published EVM bytecodes
@@ -107,6 +111,7 @@ impl EraVM {
             known_contracts: HashMap::new(),
             default_aa_code_hash: system_contracts.default_aa.bytecode_hash,
             evm_interpreter_code_hash: system_contracts.evm_interpreter.bytecode_hash,
+            circuits_bootloader: system_contracts.circuits_bootloader.assembly.clone(),
             deployed_contracts: HashMap::new(),
             storage,
             published_evm_bytecodes: HashMap::new(),
@@ -119,6 +124,10 @@ impl EraVM {
         vm.add_known_contract(
             system_contracts.evm_interpreter.assembly,
             system_contracts.evm_interpreter.bytecode_hash,
+        );
+        vm.add_known_contract(
+            system_contracts.circuits_bootloader.assembly,
+            system_contracts.circuits_bootloader.bytecode_hash,
         );
         vm.add_known_contract(
             zkevm_assembly::Assembly::from_string(
@@ -134,7 +143,8 @@ impl EraVM {
         );
 
         for (address, build) in system_contracts.deployed_contracts {
-            vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly));
+            vm.add_known_contract(build.assembly, build.bytecode_hash);
+            vm.add_deployed_contract(address, build.bytecode_hash);
         }
 
         Ok(vm)
@@ -228,7 +238,7 @@ impl EraVM {
             0,
         );
 
-        #[cfg(not(feature = "vm2"))]
+        #[cfg(all(not(feature = "vm2"), not(feature = "zkevm_test_harness")))]
         {
             let snapshot = zkevm_tester::runners::compiler_tests::run_vm_multi_contracts(
                 trace_file_path.to_string_lossy().to_string(),
@@ -293,6 +303,23 @@ impl EraVM {
             }
 
             Ok(result)
+        }
+        #[cfg(feature = "zkevm_test_harness")]
+        {
+            let storage = circuits_vm::run_vm(
+                self.circuits_bootloader.clone(),
+                &calldata,
+                self.storage.clone(),
+                context,
+                vm_launch_option,
+                self.known_contracts.clone(),
+                self.default_aa_code_hash,
+                self.evm_interpreter_code_hash,
+            );
+
+            self.storage = storage;
+
+            Ok(Default::default())
         }
     }
 
@@ -389,13 +416,12 @@ impl EraVM {
     ///
     /// # Panics
     ///
-    /// Will panic if some contract already deployed at `address` or `assembly` in none and contract is not found in known contracts.
+    /// Will panic if some contract already deployed at `address` or `bytecode_hash` is not found in known contracts.
     ///
     pub fn add_deployed_contract(
         &mut self,
         address: web3::types::Address,
         bytecode_hash: web3::types::U256,
-        assembly: Option<zkevm_assembly::Assembly>,
     ) {
         assert!(
             !self.deployed_contracts.contains_key(&address),
@@ -410,14 +436,11 @@ impl EraVM {
             },
             crate::utils::u256_to_h256(&bytecode_hash),
         );
-        let assembly = match assembly {
-            Some(assembly) => assembly,
-            None => self
-                .known_contracts
-                .get(&bytecode_hash)
-                .expect("Contract not found in known contracts for deploy")
-                .clone(),
-        };
+        let assembly = self
+            .known_contracts
+            .get(&bytecode_hash)
+            .expect("Contract not found in known contracts for deploy")
+            .clone();
         self.deployed_contracts.insert(address, assembly);
     }
 

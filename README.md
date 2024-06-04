@@ -276,6 +276,16 @@ cargo run --release --bin benchmark-analyzer -- --reference reference.json --can
 
 After you make any changes in LLVM, you only need to repeat steps 2-3 to update the working branch benchmark data.
 
+## Running tests agaisnt circuits
+
+You need to use the rust version specified in the `era-zkevm_test_harness` toolchain file and the `zkevm_test_harness` feature.
+Example:
+```
+cargo +nightly-2024-02-01 run --release --bin compiler-tester --features zkevm_test_harness -- \
+	--path='tests/solidity/simple/default.sol' \
+	--mode='Y+M3B3 0.8.25'
+```
+
 ## Troubleshooting
 
 - Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`.
