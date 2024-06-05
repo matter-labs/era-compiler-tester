@@ -1,0 +1,27 @@
+name: Regenerate ccache
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # every month
+
+concurrency:
+  group: ${{ github.repository_id }}-${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+
+  ccache-regen:
+    runs-on: ci-runner-compiler
+    container:
+      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
+      options: -m 110g
+    steps:
+
+      - name: Build LLVM
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@main
+        with:
+          extra-args: "\\-DLLVM_ENABLE_WERROR=On \\-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          enable-tests: true
+          enable-assertions: true
+          save-ccache: true
