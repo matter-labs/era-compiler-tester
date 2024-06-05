@@ -255,6 +255,7 @@ impl Compiler for VyperCompiler {
         let build = project.compile(
             None,
             mode.llvm_optimizer_settings.to_owned(),
+            &[],
             true,
             zkevm_assembly::get_encoding_mode(),
             vec![],

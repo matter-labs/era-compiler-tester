@@ -47,8 +47,8 @@ vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1731-allow-passing-arbitrary-llvm-arguments-in-fe" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-cpr-1731-allow-passing-arbitrary-llvm-arguments-in-fe" }
 
 # era-compiler-common = { path = "../../era-compiler-common" }
 # era-compiler-llvm-context = { path = "../../era-compiler-llvm-context" }
