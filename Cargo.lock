@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1731-allow-passing-arbitrary-llvm-arguments-in-fe#e0eea5ba3a398f7064871548a50e6264dcc291b5"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#48aedfe3ea50b4018cba0f038798d8b478dffc37"
 dependencies = [
  "anyhow",
  "colored",
@@ -566,7 +566,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1731-allow-passing-arbitrary-llvm-arguments-in-fe#37a85e196ae38211cfc4908d1128119df356bf99"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#1019e330f4a3e0b193994a24341dafa5d1e0a522"
 dependencies = [
  "anyhow",
  "colored",
