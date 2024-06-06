@@ -12,12 +12,12 @@ pub mod system_contracts;
 mod vm2_adapter;
 
 use std::collections::HashMap;
+use std::ops::Add;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
-use std::ops::Add;
 
 use colored::Colorize;
 
@@ -60,7 +60,8 @@ impl EraVM {
 
     /// The first `evmStackFrames` array element storage slot in the `EvmGasManager` contract.
     /// (keccak256(uit256(2)))
-    pub const EVM_GAS_MANAGER_FIRST_STACK_FRAME: &'static str = "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
+    pub const EVM_GAS_MANAGER_FIRST_STACK_FRAME: &'static str =
+        "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
 
     ///
     /// Creates and initializes a new EraVM instance.
@@ -320,9 +321,7 @@ impl EraVM {
         // set `evmStackFrames` size to 1
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    ADDRESS_EVM_GAS_MANAGER.into(),
-                ),
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT),
             },
             web3::types::H256::from_low_u64_be(1),
@@ -331,9 +330,7 @@ impl EraVM {
         // set `evmStackFrames[0]`.isStatic size to false
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    ADDRESS_EVM_GAS_MANAGER.into(),
-                ),
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME),
             },
             web3::types::H256::zero(),
@@ -342,17 +339,27 @@ impl EraVM {
         // set `evmStackFrames[0].passGas` size to 2^24
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    ADDRESS_EVM_GAS_MANAGER.into(),
-                ),
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME).add(1),
             },
-            web3::types::H256::from_low_u64_be(1<<24),
+            web3::types::H256::from_low_u64_be(1 << 24),
         );
 
-        let mut result = self.execute::<M>(test_name, entry_address, caller, value, calldata, vm_launch_option)?;
-        let gas_left = result.output.return_data.remove(0).unwrap_certain_as_ref().as_u64();
-        result.gas = (1<<24) - gas_left;
+        let mut result = self.execute::<M>(
+            test_name,
+            entry_address,
+            caller,
+            value,
+            calldata,
+            vm_launch_option,
+        )?;
+        let gas_left = result
+            .output
+            .return_data
+            .remove(0)
+            .unwrap_certain_as_ref()
+            .as_u64();
+        result.gas = (1 << 24) - gas_left;
 
         Ok(result)
     }

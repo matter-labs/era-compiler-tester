@@ -223,7 +223,14 @@ impl Runtime {
                 result.gas,
             );
         } else {
-            Summary::failed(summary, mode, name, self.expected, result.output, self.calldata.inner);
+            Summary::failed(
+                summary,
+                mode,
+                name,
+                self.expected,
+                result.output,
+                self.calldata.inner,
+            );
         }
     }
 }
