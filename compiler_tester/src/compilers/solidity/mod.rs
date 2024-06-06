@@ -391,6 +391,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_eravm(
             mode.llvm_optimizer_settings.to_owned(),
+            &[],
             mode.is_system_mode,
             false,
             zkevm_assembly::get_encoding_mode(),
@@ -482,8 +483,12 @@ impl Compiler for SolidityCompiler {
             debug_config.as_ref(),
         )?;
 
-        let build =
-            project.compile_to_evm(mode.llvm_optimizer_settings.to_owned(), false, debug_config)?;
+        let build = project.compile_to_evm(
+            mode.llvm_optimizer_settings.to_owned(),
+            &[],
+            false,
+            debug_config,
+        )?;
 
         let builds: HashMap<String, EVMBuild> = build
             .contracts

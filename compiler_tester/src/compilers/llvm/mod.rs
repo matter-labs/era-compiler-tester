@@ -58,6 +58,7 @@ impl Compiler for LLVMCompiler {
         let builds = project
             .compile_to_eravm(
                 mode.llvm_optimizer_settings.to_owned(),
+                &[],
                 true,
                 true,
                 zkevm_assembly::get_encoding_mode(),
@@ -103,6 +104,7 @@ impl Compiler for LLVMCompiler {
         let builds = project
             .compile_to_evm(
                 mode.llvm_optimizer_settings.to_owned(),
+                &[],
                 true,
                 debug_config.clone(),
             )?
