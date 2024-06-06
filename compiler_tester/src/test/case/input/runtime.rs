@@ -197,27 +197,12 @@ impl Runtime {
     ) {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
         vm.populate_storage(self.storage.inner);
-
-        let benchmark_caller_address =
-            web3::types::Address::from_str(EraVM::DEFAULT_BENCHMARK_CALLER_ADDRESS)
-                .expect("Always valid");
-        let evm_proxy_address = web3::types::Address::from_low_u64_be(0x10000);
-
-        let mut calldata = Vec::with_capacity(
-            (era_compiler_common::BYTE_LENGTH_FIELD * 2) + self.calldata.inner.len(),
-        );
-        calldata.extend([0u8; era_compiler_common::BYTE_LENGTH_FIELD - BYTE_LENGTH_ETH_ADDRESS]);
-        calldata.extend(benchmark_caller_address.as_bytes());
-        calldata.extend([0u8; era_compiler_common::BYTE_LENGTH_FIELD - BYTE_LENGTH_ETH_ADDRESS]);
-        calldata.extend(self.address.as_bytes());
-        calldata.extend(self.calldata.inner);
-
-        let mut result = match vm.execute::<M>(
+        let mut result = match vm.execute_evm::<M>(
             name.clone(),
-            evm_proxy_address,
+            self.address,
             self.caller,
             self.value,
-            calldata.clone(),
+            self.calldata.inner.clone(),
             None,
         ) {
             Ok(result) => result,
@@ -226,21 +211,6 @@ impl Runtime {
                 return;
             }
         };
-        if result.output.return_data.is_empty() {
-            Summary::invalid(
-                summary,
-                Some(mode),
-                name,
-                "EVM interpreter gas usage value not found",
-            );
-            return;
-        }
-        let gas = result
-            .output
-            .return_data
-            .remove(0)
-            .unwrap_certain_as_ref()
-            .as_u64();
 
         if result.output == self.expected {
             Summary::passed_runtime(
@@ -250,10 +220,10 @@ impl Runtime {
                 test_group,
                 result.cycles,
                 result.ergs,
-                gas,
+                result.gas,
             );
         } else {
-            Summary::failed(summary, mode, name, self.expected, result.output, calldata);
+            Summary::failed(summary, mode, name, self.expected, result.output, self.calldata.inner);
         }
     }
 }

@@ -19,6 +19,8 @@ use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::build::Build as EraVMBuild;
 
+pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
+
 ///
 /// The EraVM system contracts.
 ///
@@ -242,7 +244,7 @@ impl SystemContracts {
                 Self::PATH_BASE_TOKEN,
             ),
             (
-                web3::types::Address::from_low_u64_be(0x8013),
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 Self::PATH_EVM_GAS_MANAGER,
             ),
             (
