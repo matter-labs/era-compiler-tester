@@ -327,7 +327,7 @@ impl EraVM {
             web3::types::H256::from_low_u64_be(1),
         );
 
-        // set `evmStackFrames[0]`.isStatic size to false
+        // set `evmStackFrames[0].isStatic` size to false
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
