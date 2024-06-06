@@ -2,7 +2,6 @@
 //! The contract call input variant.
 //!
 
-use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -197,7 +196,7 @@ impl Runtime {
     ) {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
         vm.populate_storage(self.storage.inner);
-        let mut result = match vm.execute_evm::<M>(
+        let result = match vm.execute_evm::<M>(
             name.clone(),
             self.address,
             self.caller,

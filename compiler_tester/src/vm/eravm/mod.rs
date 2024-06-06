@@ -312,7 +312,7 @@ impl EraVM {
     pub fn execute_evm<const M: bool>(
         &mut self,
         test_name: String,
-        mut entry_address: web3::types::Address,
+        entry_address: web3::types::Address,
         caller: web3::types::Address,
         value: Option<u128>,
         calldata: Vec<u8>,
