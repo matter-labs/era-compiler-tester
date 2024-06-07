@@ -309,7 +309,7 @@ impl EraVM {
     ///
     /// Executes a contract simulating EVM to EVM call, which gives the ability to measure the amount of gas used.
     ///
-    pub fn execute_evm<const M: bool>(
+    pub fn execute_evm_interpreter<const M: bool>(
         &mut self,
         test_name: String,
         entry_address: web3::types::Address,
@@ -353,12 +353,12 @@ impl EraVM {
             calldata,
             vm_launch_option,
         )?;
-        let gas_left = if result.output.return_data.is_empty() { 1 << 24 } else { result
+        let gas_left = result
             .output
             .return_data
             .remove(0)
             .unwrap_certain_as_ref()
-            .as_u64() };
+            .as_u64();
         result.gas = (1 << 24) - gas_left;
 
         Ok(result)

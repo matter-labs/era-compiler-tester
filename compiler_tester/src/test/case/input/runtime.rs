@@ -73,22 +73,21 @@ impl Runtime {
     ) {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
         vm.populate_storage(self.storage.inner);
-        let result = match if let Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) =
-        test_group.as_deref() { vm.execute_evm::<M>(
+        let vm_function = match test_group.as_deref() {
+            Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) => {
+                EraVM::execute_evm_interpreter::<M>
+            }
+            _ => EraVM::execute::<M>,
+        };
+        let result = match vm_function(
+            vm,
             name.clone(),
             self.address,
             self.caller,
             self.value,
             self.calldata.inner.clone(),
             None,
-        ) } else { vm.execute::<M>(
-            name.clone(),
-            self.address,
-            self.caller,
-            self.value,
-            self.calldata.inner.clone(),
-            None,
-        ) } {
+        ) {
             Ok(result) => result,
             Err(error) => {
                 Summary::invalid(summary, Some(mode), name, error);
@@ -180,7 +179,7 @@ impl Runtime {
     ) {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
         vm.populate_storage(self.storage.inner);
-        let result = match vm.execute_evm::<M>(
+        let result = match vm.execute_evm_interpreter::<M>(
             name.clone(),
             self.address,
             self.caller,

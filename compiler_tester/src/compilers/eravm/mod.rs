@@ -28,6 +28,7 @@ impl Compiler for EraVMCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         _mode: &Mode,
+        _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let last_contract = sources
@@ -55,6 +56,7 @@ impl Compiler for EraVMCompiler {
         _sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         _mode: &Mode,
+        _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
         anyhow::bail!("EraVM assembly cannot be compiled to EVM");
