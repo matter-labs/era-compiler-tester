@@ -5,8 +5,6 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use era_compiler_common::BYTE_LENGTH_ETH_ADDRESS;
-
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;

@@ -115,9 +115,6 @@ impl SystemContracts {
     const PATH_EVM_GAS_MANAGER: &'static str =
         "era-contracts/system-contracts/contracts/EvmGasManager.sol:EvmGasManager";
 
-    /// The EVM proxy temporary system contract implementation path.
-    const PATH_EVM_PROXY: &'static str = "tests/solidity/complex/interpreter/Proxy.sol:Proxy";
-
     ///
     /// Loads or builds the system contracts.
     ///
@@ -246,10 +243,6 @@ impl SystemContracts {
             (
                 web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 Self::PATH_EVM_GAS_MANAGER,
-            ),
-            (
-                web3::types::Address::from_low_u64_be(0x10000),
-                Self::PATH_EVM_PROXY,
             ),
         ];
 

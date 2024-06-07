@@ -108,7 +108,11 @@ impl MatterLabsTest {
         }
 
         let sources = if metadata.contracts.is_empty() {
-            vec![(path.to_string_lossy().to_string(), main_file_string)]
+            if path.ends_with("test.json") {
+                vec![]
+            } else {
+                vec![(path.to_string_lossy().to_string(), main_file_string)]
+            }
         } else {
             let mut sources = HashMap::new();
             let mut paths = HashSet::with_capacity(metadata.contracts.len());
@@ -207,28 +211,6 @@ impl MatterLabsTest {
             };
             contracts.insert(SIMPLE_TESTS_INSTANCE.to_owned(), contract_name);
         }
-    }
-
-    ///
-    /// Adds the Benchmark contract as a proxy for the EVM interpreter.
-    ///
-    fn push_benchmark_caller(
-        &self,
-        sources: &mut Vec<(String, String)>,
-        contracts: &mut BTreeMap<String, String>,
-    ) -> anyhow::Result<()> {
-        let benchmark_caller_string = std::fs::read_to_string(PathBuf::from(
-            "tests/solidity/complex/interpreter/Benchmark.sol",
-        ))?;
-        sources.push((
-            "tests/solidity/complex/interpreter/Benchmark.sol".to_owned(),
-            benchmark_caller_string,
-        )); // TODO
-        contracts.insert(
-            "Benchmark".to_owned(),
-            "tests/solidity/complex/interpreter/Benchmark.sol:Benchmark".to_owned(),
-        );
-        Ok(())
     }
 
     ///
@@ -335,11 +317,10 @@ impl MatterLabsTest {
                 inputs: vec![
                     MatterLabsCaseInput {
                         comment: None,
-                        instance: "Proxy".to_owned(),
+                        instance: "Benchmark".to_owned(),
                         caller: default_caller_address(),
                         method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "Benchmark.address".to_owned(),
                             format!("{before}.address"),
                         ]),
                         value: None,
@@ -352,11 +333,10 @@ impl MatterLabsTest {
                     },
                     MatterLabsCaseInput {
                         comment: None,
-                        instance: "Proxy".to_owned(),
+                        instance: "Benchmark".to_owned(),
                         caller: default_caller_address(),
                         method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "Benchmark.address".to_owned(),
                             format!("{template}.address"),
                         ]),
                         value: None,
@@ -369,11 +349,10 @@ impl MatterLabsTest {
                     },
                     MatterLabsCaseInput {
                         comment: None,
-                        instance: "Proxy".to_owned(),
+                        instance: "Benchmark".to_owned(),
                         caller: default_caller_address(),
                         method: "#fallback".to_owned(),
                         calldata: MatterLabsCaseInputCalldata::List(vec![
-                            "Benchmark.address".to_owned(),
                             format!("{full}.address"),
                         ]),
                         value: None,
@@ -537,16 +516,7 @@ impl Buildable for MatterLabsTest {
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
-        let sources = if let Target::EVMInterpreter = target {
-            let mut sources = self.sources.to_owned();
-            if let Err(error) = self.push_benchmark_caller(&mut sources, &mut contracts) {
-                Summary::invalid(summary, None, self.identifier.to_owned(), error);
-                return None;
-            }
-            sources
-        } else {
-            self.sources.to_owned()
-        };
+        let sources = self.sources.to_owned();
 
         let mut evm_address_iterator =
             EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
