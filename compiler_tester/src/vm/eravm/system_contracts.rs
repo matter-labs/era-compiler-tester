@@ -256,8 +256,7 @@ impl SystemContracts {
             yul_file_paths.push(path.to_owned());
         }
         yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
-        let yul_optimizer_settings =
-            era_compiler_llvm_context::OptimizerSettings::evm_interpreter();
+        let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
         let mut builds =
             Self::compile(YulCompiler, &yul_mode, yul_file_paths, debug_config.clone())?;
@@ -278,8 +277,7 @@ impl SystemContracts {
             }
         }
 
-        let solidity_optimizer_settings =
-            era_compiler_llvm_context::OptimizerSettings::evm_interpreter();
+        let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let solidity_mode = SolidityMode::new(
             solc_version,
             era_compiler_solidity::SolcPipeline::Yul,

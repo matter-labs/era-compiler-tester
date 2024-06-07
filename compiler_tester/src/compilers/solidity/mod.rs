@@ -100,17 +100,18 @@ impl SolidityCompiler {
     pub fn executable(
         version: &semver::Version,
     ) -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::new(format!("{}/solc-{}", Self::DIRECTORY, version))
+        era_compiler_solidity::SolcCompiler::new(
+            format!("{}/solc-{}", Self::DIRECTORY, version).as_str(),
+        )
     }
 
     ///
     /// Returns the `solc` executable used to compile system contracts.
     ///
     pub fn system_contract_executable() -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::new(format!(
-            "{}/solc-system-contracts",
-            Self::DIRECTORY
-        ))
+        era_compiler_solidity::SolcCompiler::new(
+            format!("{}/solc-system-contracts", Self::DIRECTORY).as_str(),
+        )
     }
 
     ///
@@ -188,8 +189,6 @@ impl SolidityCompiler {
             None,
             &mode.solc_version,
             false,
-            false,
-            None,
         );
 
         let evm_version = if mode.solc_version >= semver::Version::new(0, 8, 24)
@@ -210,9 +209,9 @@ impl SolidityCompiler {
             None,
             mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
             mode.via_ir,
-            mode.solc_pipeline == era_compiler_solidity::SolcPipeline::Yul,
             mode.enable_eravm_extensions,
             false,
+            vec![],
             None,
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
@@ -394,7 +393,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_eravm(
             mode.llvm_optimizer_settings.to_owned(),
-            &[],
+            vec![],
             mode.enable_eravm_extensions,
             false,
             zkevm_assembly::get_encoding_mode(),
@@ -488,7 +487,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_evm(
             mode.llvm_optimizer_settings.to_owned(),
-            &[],
+            vec![],
             false,
             debug_config,
         )?;

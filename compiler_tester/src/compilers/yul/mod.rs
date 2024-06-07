@@ -73,8 +73,8 @@ impl Compiler for YulCompiler {
         let builds = project
             .compile_to_eravm(
                 mode.llvm_optimizer_settings.to_owned(),
-                &[],
-                mode.is_system_mode,
+                vec![],
+                mode.enable_eravm_extensions,
                 true,
                 zkevm_assembly::get_encoding_mode(),
                 debug_config.clone(),
@@ -129,7 +129,7 @@ impl Compiler for YulCompiler {
         let builds = project
             .compile_to_evm(
                 mode.llvm_optimizer_settings.to_owned(),
-                &[],
+                vec![],
                 true,
                 debug_config.clone(),
             )?

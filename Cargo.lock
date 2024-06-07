@@ -242,14 +242,14 @@ dependencies = [
  "bincode",
  "colored",
  "era-compiler-common",
- "era-compiler-llvm-context 1.5.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc)",
+ "era-compiler-llvm-context",
  "era-compiler-solidity",
  "era-compiler-vyper",
  "evm",
  "glob",
  "hex",
  "inkwell",
- "itertools 0.13.0",
+ "itertools",
  "lazy_static",
  "md5",
  "once_cell",
@@ -267,7 +267,7 @@ dependencies = [
  "structopt",
  "vm2",
  "web3",
- "which 6.0.1",
+ "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
  "zkevm_tester",
@@ -279,7 +279,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "compiler-tester",
- "era-compiler-llvm-context 1.5.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc)",
+ "era-compiler-llvm-context",
  "era-compiler-solidity",
  "libfuzzer-sys",
  "semver",
@@ -519,35 +519,13 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc#e011a780e83e0bf4d2454632ea72fbf153e7c08a"
-dependencies = [
- "anyhow",
- "era-compiler-common",
- "hex",
- "inkwell",
- "itertools 0.12.1",
- "md5",
- "num",
- "once_cell",
- "regex",
- "semver",
- "serde",
- "sha2",
- "sha3",
- "zkevm-assembly",
- "zkevm_opcode_defs",
-]
-
-[[package]]
-name = "era-compiler-llvm-context"
-version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#4aaaf2945f302cbbf70650e127b5176312dc210a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
  "hex",
  "inkwell",
- "itertools 0.13.0",
+ "itertools",
  "md5",
  "num",
  "semver",
@@ -565,7 +543,7 @@ dependencies = [
  "anyhow",
  "colored",
  "era-compiler-common",
- "era-compiler-llvm-context 1.5.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
+ "era-compiler-llvm-context",
  "hex",
  "inkwell",
  "md5",
@@ -581,24 +559,23 @@ dependencies = [
  "sha3",
  "structopt",
  "thiserror",
- "which 6.0.1",
+ "which",
  "zkevm-assembly",
 ]
 
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc#5c4ba4c58a3b42dec8137f12ad0a2edd93cf6cdb"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#cd25921eb36a9f685bafd3adbef8f86b7c7e9980"
 dependencies = [
  "anyhow",
  "colored",
  "era-compiler-common",
- "era-compiler-llvm-context 1.5.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1699-switch-to-the-default-codegen-with-our-fork-of-solc)",
+ "era-compiler-llvm-context",
  "hex",
  "inkwell",
  "lazy_static",
  "mimalloc",
- "once_cell",
  "path-slash",
  "rayon",
  "semver",
@@ -606,7 +583,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "structopt",
- "which 5.0.0",
+ "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
 ]
@@ -668,7 +645,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "1.0.0-dev"
-source = "git+https://github.com/rust-ethereum/evm?branch=master#fda8a4082bb3fd98b089ceb30ce690e4cd4d6721"
+source = "git+https://github.com/rust-ethereum/evm#f7a23df6c478ca6a151af5f60e62944800529a61"
 dependencies = [
  "evm-interpreter",
  "primitive-types",
@@ -678,11 +655,10 @@ dependencies = [
 [[package]]
 name = "evm-interpreter"
 version = "1.0.0-dev"
-source = "git+https://github.com/rust-ethereum/evm?branch=master#fda8a4082bb3fd98b089ceb30ce690e4cd4d6721"
+source = "git+https://github.com/rust-ethereum/evm#f7a23df6c478ca6a151af5f60e62944800529a61"
 dependencies = [
  "auto_impl",
  "parity-scale-codec",
- "paste",
  "primitive-types",
  "rlp",
  "scale-info",
@@ -1149,15 +1125,6 @@ checksum = "8f518f335dce6725a761382244631d86cf0ccb2863413590b31338feb467f9c3"
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
@@ -1536,12 +1503,6 @@ dependencies = [
  "smallvec",
  "windows-targets 0.52.5",
 ]
-
-[[package]]
-name = "paste"
-version = "1.0.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "path-slash"
@@ -2756,19 +2717,6 @@ name = "webpki-roots"
 version = "0.25.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
-
-[[package]]
-name = "which"
-version = "5.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bf3ea8596f3a0dd5980b46430f2058dfe2c36a27ccfbb1845d6fbfcd9ba6e14"
-dependencies = [
- "either",
- "home",
- "once_cell",
- "rustix",
- "windows-sys 0.48.0",
-]
 
 [[package]]
 name = "which"
