@@ -258,8 +258,17 @@ impl SystemContracts {
         yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
-        let mut builds =
-            Self::compile(YulCompiler, &yul_mode, yul_file_paths, debug_config.clone())?;
+        let yul_llvm_options = vec!["-eravm-jump-table-density-threshold", "10"]
+            .into_iter()
+            .map(|option| option.to_owned())
+            .collect();
+        let mut builds = Self::compile(
+            YulCompiler,
+            yul_file_paths,
+            &yul_mode,
+            yul_llvm_options,
+            debug_config.clone(),
+        )?;
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
         for pattern in [
@@ -290,8 +299,9 @@ impl SystemContracts {
         .into();
         builds.extend(Self::compile(
             SolidityCompiler::new(),
-            &solidity_mode,
             solidity_file_paths,
+            &solidity_mode,
+            vec![],
             debug_config,
         )?);
 
@@ -376,8 +386,9 @@ impl SystemContracts {
     ///
     fn compile<C>(
         compiler: C,
-        mode: &Mode,
         paths: Vec<String>,
+        mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<HashMap<String, EraVMBuild>>
     where
@@ -417,6 +428,7 @@ impl SystemContracts {
                 sources,
                 BTreeMap::new(),
                 mode,
+                llvm_options,
                 debug_config,
             )
             .map(|output| output.builds)

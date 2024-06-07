@@ -42,6 +42,7 @@ impl Compiler for YulCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let mode = YulMode::unwrap(mode);
@@ -73,7 +74,7 @@ impl Compiler for YulCompiler {
         let builds = project
             .compile_to_eravm(
                 mode.llvm_optimizer_settings.to_owned(),
-                vec![],
+                llvm_options,
                 mode.enable_eravm_extensions,
                 true,
                 zkevm_assembly::get_encoding_mode(),
@@ -102,6 +103,7 @@ impl Compiler for YulCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
         let mode = YulMode::unwrap(mode);
@@ -129,7 +131,7 @@ impl Compiler for YulCompiler {
         let builds = project
             .compile_to_evm(
                 mode.llvm_optimizer_settings.to_owned(),
-                vec![],
+                llvm_options,
                 true,
                 debug_config.clone(),
             )?

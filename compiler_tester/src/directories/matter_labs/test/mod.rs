@@ -425,6 +425,7 @@ impl Buildable for MatterLabsTest {
                 self.sources.clone(),
                 libraries,
                 &mode,
+                vec![],
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
@@ -559,6 +560,7 @@ impl Buildable for MatterLabsTest {
                 sources,
                 libraries,
                 &mode,
+                vec![],
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))

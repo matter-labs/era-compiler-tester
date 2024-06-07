@@ -23,6 +23,8 @@ use crate::vm::evm::input::Input as EVMInput;
 use self::cache_key::CacheKey;
 use self::mode::Mode as SolidityMode;
 
+use super::mode::llvm_options;
+
 ///
 /// The Solidity compiler.
 ///
@@ -346,6 +348,7 @@ impl Compiler for SolidityCompiler {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let mode = SolidityMode::unwrap(mode);
@@ -393,7 +396,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_eravm(
             mode.llvm_optimizer_settings.to_owned(),
-            vec![],
+            llvm_options,
             mode.enable_eravm_extensions,
             false,
             zkevm_assembly::get_encoding_mode(),
@@ -447,6 +450,7 @@ impl Compiler for SolidityCompiler {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
         let mode = SolidityMode::unwrap(mode);
@@ -487,7 +491,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_evm(
             mode.llvm_optimizer_settings.to_owned(),
-            vec![],
+            llvm_options,
             false,
             debug_config,
         )?;
