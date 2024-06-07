@@ -317,12 +317,10 @@ impl MatterLabsTest {
                 inputs: vec![
                     MatterLabsCaseInput {
                         comment: None,
-                        instance: "Benchmark".to_owned(),
+                        instance: before.to_owned(),
                         caller: default_caller_address(),
                         method: "#fallback".to_owned(),
-                        calldata: MatterLabsCaseInputCalldata::List(vec![
-                            format!("{before}.address"),
-                        ]),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![]),
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(
@@ -333,12 +331,10 @@ impl MatterLabsTest {
                     },
                     MatterLabsCaseInput {
                         comment: None,
-                        instance: "Benchmark".to_owned(),
+                        instance: template.to_owned(),
                         caller: default_caller_address(),
                         method: "#fallback".to_owned(),
-                        calldata: MatterLabsCaseInputCalldata::List(vec![
-                            format!("{template}.address"),
-                        ]),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![]),
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(
@@ -349,12 +345,10 @@ impl MatterLabsTest {
                     },
                     MatterLabsCaseInput {
                         comment: None,
-                        instance: "Benchmark".to_owned(),
+                        instance: full.to_owned(),
                         caller: default_caller_address(),
                         method: "#fallback".to_owned(),
-                        calldata: MatterLabsCaseInputCalldata::List(vec![
-                            format!("{full}.address"),
-                        ]),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![]),
                         value: None,
                         storage: HashMap::new(),
                         expected: Some(

@@ -73,41 +73,27 @@ impl Runtime {
     ) {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
         vm.populate_storage(self.storage.inner);
-        let mut result = match vm.execute::<M>(
+        let result = match if let Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) =
+        test_group.as_deref() { vm.execute_evm::<M>(
             name.clone(),
             self.address,
             self.caller,
             self.value,
             self.calldata.inner.clone(),
             None,
-        ) {
+        ) } else { vm.execute::<M>(
+            name.clone(),
+            self.address,
+            self.caller,
+            self.value,
+            self.calldata.inner.clone(),
+            None,
+        ) } {
             Ok(result) => result,
             Err(error) => {
                 Summary::invalid(summary, Some(mode), name, error);
                 return;
             }
-        };
-        let gas = if let Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) =
-            test_group.as_deref()
-        {
-            if result.output.return_data.is_empty() {
-                Summary::invalid(
-                    summary,
-                    Some(mode),
-                    name,
-                    "EVM interpreter gas usage value not found",
-                );
-                return;
-            }
-            result
-                .output
-                .return_data
-                .remove(0)
-                .unwrap_certain_as_ref()
-                .as_u64()
-                - EraVM::EVM_INTERPRETER_GAS_OVERHEAD
-        } else {
-            0
         };
 
         if result.output == self.expected {
@@ -118,7 +104,7 @@ impl Runtime {
                 test_group,
                 result.cycles,
                 result.ergs,
-                gas,
+                result.gas,
             );
         } else {
             Summary::failed(
