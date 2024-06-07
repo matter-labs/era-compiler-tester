@@ -190,7 +190,7 @@ Use:
 - Yul optimizations enabled (`+`)
 - level 3 optimizations in LLVM middle-end (`M3`)
 - level 3 optimizations in LLVM back-end (`B3`)
-- Solidity compiler version (`0.8.25`)
+- Solidity compiler version (`0.8.26`)
 
 Output:
 
@@ -201,7 +201,7 @@ Output:
 ```bash
 cargo run --release --bin compiler-tester -- -DT \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M3B3 0.8.25' \
+	--mode='Y+M3B3 0.8.26' \
 	--zksolc '../era-compiler-solidity/target/release/zksolc'
 ```
 
@@ -252,7 +252,7 @@ zksync-llvm checkout && zksync-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.25' \
+	--mode='Y+M^B3 0.8.26' \
 	--benchmark='reference.json'
 ```
 
@@ -265,7 +265,7 @@ zksync-llvm checkout && zksync-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.25' \
+	--mode='Y+M^B3 0.8.26' \
 	--benchmark='candidate.json'
 ```
 

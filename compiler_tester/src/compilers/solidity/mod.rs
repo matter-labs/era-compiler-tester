@@ -23,6 +23,8 @@ use crate::vm::evm::input::Input as EVMInput;
 use self::cache_key::CacheKey;
 use self::mode::Mode as SolidityMode;
 
+use super::mode::llvm_options;
+
 ///
 /// The Solidity compiler.
 ///
@@ -189,8 +191,6 @@ impl SolidityCompiler {
             None,
             &mode.solc_version,
             false,
-            false,
-            None,
         );
 
         let evm_version = if mode.solc_version >= semver::Version::new(0, 8, 24)
@@ -209,7 +209,11 @@ impl SolidityCompiler {
             output_selection,
             optimizer,
             None,
+            mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
             mode.via_ir,
+            mode.enable_eravm_extensions,
+            false,
+            vec![],
             None,
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
@@ -344,6 +348,7 @@ impl Compiler for SolidityCompiler {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let mode = SolidityMode::unwrap(mode);
@@ -391,7 +396,8 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_eravm(
             mode.llvm_optimizer_settings.to_owned(),
-            mode.is_system_mode,
+            llvm_options,
+            mode.enable_eravm_extensions,
             false,
             zkevm_assembly::get_encoding_mode(),
             debug_config,
@@ -444,6 +450,7 @@ impl Compiler for SolidityCompiler {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
         let mode = SolidityMode::unwrap(mode);
@@ -482,8 +489,12 @@ impl Compiler for SolidityCompiler {
             debug_config.as_ref(),
         )?;
 
-        let build =
-            project.compile_to_evm(mode.llvm_optimizer_settings.to_owned(), false, debug_config)?;
+        let build = project.compile_to_evm(
+            mode.llvm_optimizer_settings.to_owned(),
+            llvm_options,
+            false,
+            debug_config,
+        )?;
 
         let builds: HashMap<String, EVMBuild> = build
             .contracts
