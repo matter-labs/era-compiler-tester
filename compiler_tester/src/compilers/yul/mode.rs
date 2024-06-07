@@ -13,8 +13,8 @@ use crate::compilers::mode::Mode as ModeWrapper;
 pub struct Mode {
     /// The optimizer settings.
     pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
-    /// The system mode.
-    pub is_system_mode: bool,
+    /// Whether the EraVM extensions are enabled.
+    pub enable_eravm_extensions: bool,
 }
 
 impl Mode {
@@ -23,7 +23,7 @@ impl Mode {
     ///
     pub fn new(
         mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
-        is_system_mode: bool,
+        enable_eravm_extensions: bool,
     ) -> Self {
         let llvm_options = LLVMOptions::get();
         llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
@@ -31,7 +31,7 @@ impl Mode {
 
         Self {
             llvm_optimizer_settings,
-            is_system_mode,
+            enable_eravm_extensions,
         }
     }
 

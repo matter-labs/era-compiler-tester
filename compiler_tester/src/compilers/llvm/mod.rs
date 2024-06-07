@@ -41,6 +41,7 @@ impl Compiler for LLVMCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let mode = LLVMMode::unwrap(mode);
@@ -58,7 +59,7 @@ impl Compiler for LLVMCompiler {
         let builds = project
             .compile_to_eravm(
                 mode.llvm_optimizer_settings.to_owned(),
-                &[],
+                llvm_options,
                 true,
                 true,
                 zkevm_assembly::get_encoding_mode(),
@@ -87,6 +88,7 @@ impl Compiler for LLVMCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
         let mode = LLVMMode::unwrap(mode);
@@ -104,7 +106,7 @@ impl Compiler for LLVMCompiler {
         let builds = project
             .compile_to_evm(
                 mode.llvm_optimizer_settings.to_owned(),
-                &[],
+                llvm_options,
                 true,
                 debug_config.clone(),
             )?

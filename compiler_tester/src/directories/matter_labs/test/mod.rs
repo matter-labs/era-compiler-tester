@@ -406,7 +406,7 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        mode.set_system_mode(self.metadata.system_mode);
+        mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
 
         self.check_filters(filters, &mode)?;
 
@@ -425,6 +425,7 @@ impl Buildable for MatterLabsTest {
                 self.sources.clone(),
                 libraries,
                 &mode,
+                vec![],
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
@@ -559,6 +560,7 @@ impl Buildable for MatterLabsTest {
                 sources,
                 libraries,
                 &mode,
+                vec![],
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))

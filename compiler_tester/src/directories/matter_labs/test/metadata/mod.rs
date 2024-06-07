@@ -33,9 +33,9 @@ pub struct Metadata {
     /// The test libraries for linking.
     #[serde(default)]
     pub libraries: BTreeMap<String, BTreeMap<String, String>>,
-    /// If build contracts in system mode.
+    /// Enable the EraVM extensions.
     #[serde(default)]
-    pub system_mode: bool,
+    pub enable_eravm_extensions: bool,
     /// The target to run the test on.
     pub target: Option<Target>,
     /// If the entire test file must be ignored.

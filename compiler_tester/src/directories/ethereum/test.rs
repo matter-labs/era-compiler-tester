@@ -224,6 +224,7 @@ impl Buildable for EthereumTest {
                 self.test.sources.clone(),
                 libraries,
                 &mode,
+                vec![],
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
@@ -312,6 +313,7 @@ impl Buildable for EthereumTest {
                 self.test.sources.clone(),
                 libraries,
                 &mode,
+                vec![],
                 debug_config,
             )
             .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
