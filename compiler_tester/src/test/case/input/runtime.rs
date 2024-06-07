@@ -124,6 +124,19 @@ impl Runtime {
                 gas,
             );
         } else {
+            // Currently, we are ignoring outputs on the circuits vm.
+            // Tests are passing on the out-of-circuits VM, and we are just checking that we can generate proofs.
+            #[cfg(feature = "zkevm_test_harness")]
+            Summary::passed_runtime(
+                summary,
+                mode,
+                name,
+                test_group,
+                result.cycles,
+                result.ergs,
+                gas,
+            );
+            #[cfg(not(feature = "zkevm_test_harness"))]
             Summary::failed(
                 summary,
                 mode,

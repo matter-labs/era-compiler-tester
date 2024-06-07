@@ -8,7 +8,7 @@ use crate::vm::evm::output::Output as EVMOutput;
 ///
 /// The VM execution result.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ExecutionResult {
     /// The VM snapshot execution result.
     pub output: Output,

@@ -30,6 +30,8 @@ pub struct SystemContracts {
     pub default_aa: EraVMBuild,
     /// The EVM interpreter contract build.
     pub evm_interpreter: EraVMBuild,
+    /// The in-circuits bootloader build.
+    pub circuits_bootloader: EraVMBuild,
 }
 
 impl SystemContracts {
@@ -115,6 +117,9 @@ impl SystemContracts {
 
     /// The EVM proxy temporary system contract implementation path.
     const PATH_EVM_PROXY: &'static str = "tests/solidity/complex/interpreter/Proxy.sol:Proxy";
+
+    /// The compiler-tester bootloader used for the circuits testing.
+    const PATH_CIRCUITS_BOOTLOADER: &'static str = "circuits_bootloader.yul";
 
     ///
     /// Loads or builds the system contracts.
@@ -256,6 +261,8 @@ impl SystemContracts {
             yul_file_paths.push(path.to_owned());
         }
         yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
+        yul_file_paths.push(Self::PATH_CIRCUITS_BOOTLOADER.to_owned());
+
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
         let yul_llvm_options = vec!["-eravm-jump-table-density-threshold", "10"]
@@ -311,6 +318,14 @@ impl SystemContracts {
         let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
             anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
         })?;
+        let circuits_bootloader =
+            builds
+                .remove(Self::PATH_CIRCUITS_BOOTLOADER)
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "Circuits bootloader code not found in the compiler build artifacts"
+                    )
+                })?;
 
         let mut system_contracts =
             Vec::with_capacity(solidity_system_contracts.len() + yul_system_contracts.len());
@@ -336,6 +351,7 @@ impl SystemContracts {
             deployed_contracts,
             default_aa,
             evm_interpreter,
+            circuits_bootloader,
         })
     }
 

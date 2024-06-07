@@ -58,6 +58,8 @@ era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper"
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
 
+zkevm_test_harness = { git = "https://github.com/matter-labs/era-zkevm_test_harness", branch = "v1.5.0-compiler-tests-2", optional = true }
+
 [dependencies.web3]
 version = "0.19"
 default-features = false
