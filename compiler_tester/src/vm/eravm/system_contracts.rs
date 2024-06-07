@@ -107,7 +107,7 @@ impl SystemContracts {
 
     /// The base token system contract implementation path.
     const PATH_BASE_TOKEN: &'static str =
-        "era-contracts/system-contracts/contracts/L2BaseToken.sol:L2BaseToken";
+        "era-contracts/system-contracts/contracts/L2EthToken.sol:L2EthToken";
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
@@ -264,7 +264,10 @@ impl SystemContracts {
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
         for pattern in [
-            "era-contracts/system-contracts/**/*.sol",
+            "era-contracts/system-contracts/contracts/*.sol",
+            "era-contracts/system-contracts/contracts/libraries/**/*.sol",
+            "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
+            "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
             "tests/solidity/complex/interpreter/*.sol",
         ] {
             for path in glob::glob(pattern)?.filter_map(Result::ok) {

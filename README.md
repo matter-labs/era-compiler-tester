@@ -143,7 +143,7 @@ When the build succeeds, you can run the tests using [the examples below](#usage
 ### Solidity codegens
 
 - Yul pure (`Y`)
-- EVM assembly from Yul (`y`)
+- EVM assembly from Yul (`I`)
 - EVM assembly pure (`E`)
 - Vyper LLL (`V`)
 
@@ -190,7 +190,7 @@ Use:
 - Yul optimizations enabled (`+`)
 - level 3 optimizations in LLVM middle-end (`M3`)
 - level 3 optimizations in LLVM back-end (`B3`)
-- Solidity compiler version (`0.8.25`)
+- Solidity compiler version (`0.8.26`)
 
 Output:
 
@@ -201,7 +201,7 @@ Output:
 ```bash
 cargo run --release --bin compiler-tester -- -DT \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M3B3 0.8.25' \
+	--mode='Y+M3B3 0.8.26' \
 	--zksolc '../era-compiler-solidity/target/release/zksolc'
 ```
 
@@ -252,7 +252,7 @@ zksync-llvm checkout && zksync-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.25' \
+	--mode='Y+M^B3 0.8.26' \
 	--benchmark='reference.json'
 ```
 
@@ -265,7 +265,7 @@ zksync-llvm checkout && zksync-llvm build
 ```
 ./target/release/compiler-tester \
 	--path='tests/solidity/simple/default.sol' \
-	--mode='Y+M^B3 0.8.25' \
+	--mode='Y+M^B3 0.8.26' \
 	--benchmark='candidate.json'
 ```
 
@@ -298,7 +298,7 @@ at your option.
 - [Website](https://zksync.io/)
 - [GitHub](https://github.com/matter-labs)
 - [Twitter](https://twitter.com/zksync)
-- [Twitter for Devs](https://twitter.com/zkSyncDevs)
+- [Twitter for Devs](https://twitter.com/ZKsyncDevs)
 - [Discord](https://join.zksync.dev/)
 
 ## Disclaimer

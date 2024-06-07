@@ -116,7 +116,7 @@ impl std::fmt::Display for Mode {
             "{}{} {}",
             match self.solc_pipeline {
                 era_compiler_solidity::SolcPipeline::Yul => "Y",
-                era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => "y",
+                era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => "I",
                 era_compiler_solidity::SolcPipeline::EVMLA => "E",
             },
             if self.solc_optimize { '+' } else { '-' },

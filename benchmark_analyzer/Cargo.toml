@@ -6,7 +6,7 @@ authors = [
 ]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-description = "The analyzer of benchmark reports"
+description = "Analyzer of benchmark reports of ZKsync compilers"
 
 [[bin]]
 name = "benchmark-analyzer"
@@ -15,7 +15,7 @@ path = "src/benchmark_analyzer/main.rs"
 [dependencies]
 structopt = { version = "0.3", default-features = false }
 anyhow = "1.0"
-colored = "2.0"
+colored = "2.1"
 
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"

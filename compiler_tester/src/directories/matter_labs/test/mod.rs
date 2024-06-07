@@ -280,8 +280,10 @@ impl MatterLabsTest {
         let mut instances = BTreeMap::new();
 
         for (instance, evm_contract) in self.metadata.evm_contracts.iter() {
-            let mut bytecode = evm_contract.init_code();
-            bytecode.push_str(evm_contract.runtime_code().as_str());
+            let instruction_name = instance.split('_').next().expect("Always exists");
+            let runtime_code = evm_contract.runtime_code(instruction_name);
+            let mut bytecode = evm_contract.init_code(runtime_code.len());
+            bytecode.push_str(runtime_code.as_str());
 
             let bytecode = hex::decode(bytecode.as_str()).map_err(|error| {
                 anyhow::anyhow!("Invalid bytecode of EVM instance `{}`: {}", instance, error)
@@ -309,18 +311,18 @@ impl MatterLabsTest {
             .metadata
             .evm_contracts
             .keys()
-            .filter(|name| name.contains("Template") || name.contains("Full"))
+            .filter(|name| {
+                name.contains("Template") || name.contains("Full") || name.contains("Before")
+            })
             .cloned()
             .collect();
         evm_contracts.sort();
 
-        let mut metadata_cases = Vec::with_capacity(evm_contracts.len() / 2);
-        for pair_of_bytecodes in evm_contracts.chunks(2) {
-            let full = &pair_of_bytecodes[0];
-            let template = &pair_of_bytecodes[1];
-            if full.starts_with("DUP") || full.starts_with("SWAP") || full.starts_with("PUSH") {
-                continue;
-            }
+        let mut metadata_cases = Vec::with_capacity(evm_contracts.len() / 3);
+        for pair_of_bytecodes in evm_contracts.chunks(3) {
+            let before = &pair_of_bytecodes[0];
+            let full = &pair_of_bytecodes[1];
+            let template = &pair_of_bytecodes[2];
             let exception = full.contains("REVERT");
 
             metadata_cases.push(MatterLabsCase {
@@ -331,6 +333,23 @@ impl MatterLabsTest {
                     .to_owned(),
                 modes: None,
                 inputs: vec![
+                    MatterLabsCaseInput {
+                        comment: None,
+                        instance: "Proxy".to_owned(),
+                        caller: default_caller_address(),
+                        method: "#fallback".to_owned(),
+                        calldata: MatterLabsCaseInputCalldata::List(vec![
+                            "Benchmark.address".to_owned(),
+                            format!("{before}.address"),
+                        ]),
+                        value: None,
+                        storage: HashMap::new(),
+                        expected: Some(
+                            MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(
+                                false,
+                            ),
+                        ),
+                    },
                     MatterLabsCaseInput {
                         comment: None,
                         instance: "Proxy".to_owned(),

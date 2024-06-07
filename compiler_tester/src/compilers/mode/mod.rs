@@ -151,10 +151,10 @@ impl Mode {
                 .replace_all(current.as_str(), "E*")
                 .to_string();
         }
-        if filter.contains("y*") {
-            current = regex::Regex::new("y[-+]")
+        if filter.contains("I*") {
+            current = regex::Regex::new("I[-+]")
                 .expect("Always valid")
-                .replace_all(current.as_str(), "y*")
+                .replace_all(current.as_str(), "I*")
                 .to_string();
         }
         if filter.contains("V*") {

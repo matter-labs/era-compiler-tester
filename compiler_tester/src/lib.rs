@@ -96,7 +96,7 @@ impl CompilerTester {
     const LLVM_SIMPLE: &'static str = "tests/llvm";
 
     /// The EraVM simple tests directory.
-    const ERAVM_SIMPLE: &'static str = "tests/zkevm";
+    const ERAVM_SIMPLE: &'static str = "tests/eravm";
 }
 
 impl CompilerTester {
