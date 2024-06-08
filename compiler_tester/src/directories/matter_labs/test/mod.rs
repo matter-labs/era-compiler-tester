@@ -262,8 +262,7 @@ impl MatterLabsTest {
         let mut instances = BTreeMap::new();
 
         for (instance, evm_contract) in self.metadata.evm_contracts.iter() {
-            let instruction_name = instance.split('_').next().expect("Always exists");
-            let runtime_code = evm_contract.runtime_code(instruction_name);
+            let runtime_code = evm_contract.runtime_code();
             let mut bytecode = evm_contract.init_code(runtime_code.len());
             bytecode.push_str(runtime_code.as_str());
 
