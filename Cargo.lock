@@ -270,7 +270,7 @@ dependencies = [
  "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
- "zkevm_tester 1.5.0 (git+https://github.com/matter-labs/era-zkevm_tester?branch=ad-support-evm)",
+ "zkevm_tester",
 ]
 
 [[package]]
@@ -285,7 +285,7 @@ dependencies = [
  "semver",
  "solidity-adapter",
  "zkevm-assembly",
- "zkevm_tester 1.5.0 (git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0)",
+ "zkevm_tester",
 ]
 
 [[package]]
@@ -3004,27 +3004,7 @@ dependencies = [
 [[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=ad-support-evm#6f24051da15a24f2be639b90eadc0a583d0c76e1"
-dependencies = [
- "anyhow",
- "ethabi",
- "futures",
- "hex",
- "num-bigint",
- "num-traits",
- "serde",
- "serde_json",
- "sha2",
- "tracing",
- "vlog",
- "zk_evm",
- "zkevm-assembly",
-]
-
-[[package]]
-name = "zkevm_tester"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#488ca0782fea1eb9af7ff82d252d54af3471f33e"
+source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#4439528eb936b932be9497923c1ad5c642101ca3"
 dependencies = [
  "anyhow",
  "ethabi",
