@@ -23,8 +23,6 @@ use crate::vm::evm::input::Input as EVMInput;
 use self::cache_key::CacheKey;
 use self::mode::Mode as SolidityMode;
 
-use super::mode::llvm_options;
-
 ///
 /// The Solidity compiler.
 ///
@@ -495,15 +493,16 @@ impl Compiler for SolidityCompiler {
             false,
             debug_config,
         )?;
-
+        build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()
-            .map(|(path, contract)| {
-                let build = EVMBuild::new(contract.deploy_build, contract.runtime_build);
+            .map(|(path, build)| {
+                let build = build.expect("Always valid");
+                let build = EVMBuild::new(build.deploy_build, build.runtime_build);
                 (path, build)
             })
-            .collect::<HashMap<String, EVMBuild>>();
+            .collect();
 
         Ok(EVMInput::new(
             builds,
