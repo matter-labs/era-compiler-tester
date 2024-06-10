@@ -353,6 +353,9 @@ impl EraVM {
             calldata,
             vm_launch_option,
         )?;
+        if result.output.return_data.is_empty() {
+            anyhow::bail!("Return data is empty");
+        }
         let gas_left = result
             .output
             .return_data
