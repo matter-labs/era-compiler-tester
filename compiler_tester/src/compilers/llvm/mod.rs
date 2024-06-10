@@ -56,25 +56,27 @@ impl Compiler for LLVMCompiler {
             sources.into_iter().collect(),
         )?;
 
-        let builds = project
-            .compile_to_eravm(
-                mode.llvm_optimizer_settings.to_owned(),
-                llvm_options,
-                true,
-                true,
-                zkevm_assembly::get_encoding_mode(),
-                debug_config.clone(),
-            )?
+        let build = project.compile_to_eravm(
+            mode.llvm_optimizer_settings.to_owned(),
+            llvm_options,
+            true,
+            true,
+            zkevm_assembly::get_encoding_mode(),
+            debug_config.clone(),
+        )?;
+        build.check_errors()?;
+        let builds = build
             .contracts
             .into_iter()
-            .map(|(path, contract)| {
+            .map(|(path, build)| {
+                let build = build.expect("Always valid");
                 let assembly = zkevm_assembly::Assembly::from_string(
-                    contract.build.assembly_text,
-                    contract.build.metadata_hash,
+                    build.build.assembly_text,
+                    build.build.metadata_hash,
                 )
                 .map_err(anyhow::Error::new)?;
 
-                let build = EraVMBuild::new_with_hash(assembly, contract.build.bytecode_hash)?;
+                let build = EraVMBuild::new_with_hash(assembly, build.build.bytecode_hash)?;
                 Ok((path, build))
             })
             .collect::<anyhow::Result<HashMap<String, EraVMBuild>>>()?;
@@ -103,23 +105,25 @@ impl Compiler for LLVMCompiler {
             sources.into_iter().collect(),
         )?;
 
-        let builds = project
-            .compile_to_evm(
-                mode.llvm_optimizer_settings.to_owned(),
-                llvm_options,
-                true,
-                debug_config.clone(),
-            )?
+        let build = project.compile_to_evm(
+            mode.llvm_optimizer_settings.to_owned(),
+            llvm_options,
+            true,
+            debug_config.clone(),
+        )?;
+        build.check_errors()?;
+        let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()
-            .map(|(path, contract)| {
+            .map(|(path, build)| {
+                let build = build.expect("Always valid");
                 let build = EVMBuild::new(
                     era_compiler_llvm_context::EVMBuild::default(),
-                    contract.runtime_build,
+                    build.runtime_build,
                 );
-                Ok((path, build))
+                (path, build)
             })
-            .collect::<anyhow::Result<HashMap<String, EVMBuild>>>()?;
+            .collect();
 
         Ok(EVMInput::new(builds, None, last_contract))
     }
