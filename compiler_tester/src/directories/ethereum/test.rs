@@ -269,11 +269,11 @@ impl Buildable for EthereumTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.index_entity.group.clone(),
+            vec![case],
             mode,
+            self.index_entity.group.clone(),
             builds,
             HashMap::new(),
-            vec![case],
         ))
     }
 
@@ -352,11 +352,11 @@ impl Buildable for EthereumTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.index_entity.group.clone(),
+            vec![case],
             mode,
+            self.index_entity.group.clone(),
             HashMap::new(),
             evm_input.builds,
-            vec![case],
         ))
     }
 }

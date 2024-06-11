@@ -26,16 +26,16 @@ use crate::vm::evm::EVM;
 pub struct Test {
     /// The test name.
     name: String,
-    /// The test group.
-    group: Option<String>,
+    /// The test cases.
+    cases: Vec<Case>,
     /// The test mode.
     mode: Mode,
+    /// The test group.
+    group: Option<String>,
     /// The EraVM contract builds.
     eravm_builds: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
     /// The EVM contract builds.
     evm_builds: HashMap<String, EVMBuild>,
-    /// The test cases.
-    cases: Vec<Case>,
 }
 
 impl Test {
@@ -44,19 +44,19 @@ impl Test {
     ///
     pub fn new(
         name: String,
-        group: Option<String>,
+        cases: Vec<Case>,
         mode: Mode,
+        group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
         evm_builds: HashMap<String, EVMBuild>,
-        cases: Vec<Case>,
     ) -> Self {
         Self {
             name,
-            group,
+            cases,
             mode,
+            group,
             eravm_builds,
             evm_builds,
-            cases,
         }
     }
 
