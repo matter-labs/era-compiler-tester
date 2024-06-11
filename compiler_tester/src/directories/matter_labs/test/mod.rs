@@ -180,7 +180,12 @@ impl MatterLabsTest {
     ///
     /// Checks if the test is not filtered out.
     ///
-    fn check_filters(&self, filters: &Filters, mode: &Mode) -> Option<()> {
+    fn check_filters(&self, filters: &Filters, mode: &Mode, target: Target) -> Option<()> {
+        if let Some(targets) = self.metadata.targets.as_ref() {
+            if !targets.contains(&target) {
+                return None;
+            }
+        }
         if !filters.check_mode(mode) {
             return None;
         }
@@ -381,7 +386,7 @@ impl Buildable for MatterLabsTest {
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
 
-        self.check_filters(filters, &mode)?;
+        self.check_filters(filters, &mode, target)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -490,11 +495,11 @@ impl Buildable for MatterLabsTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.metadata.group.clone(),
+            cases,
             mode,
+            self.metadata.group.clone(),
             builds,
             HashMap::new(),
-            cases,
         ))
     }
 
@@ -507,7 +512,7 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode)?;
+        self.check_filters(filters, &mode, target)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -594,11 +599,11 @@ impl Buildable for MatterLabsTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.metadata.group.clone(),
+            cases,
             mode,
+            self.metadata.group.clone(),
             HashMap::new(),
             evm_input.builds,
-            cases,
         ))
     }
 }
