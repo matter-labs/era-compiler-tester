@@ -3,7 +3,7 @@ name: Regenerate ccache
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # every month
+    - cron: '0 0 1 * *' # every month
 
 concurrency:
   group: ${{ github.repository_id }}-${{ github.workflow }}-${{ github.sha }}
@@ -18,10 +18,14 @@ jobs:
       options: -m 110g
     steps:
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Build LLVM
-        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@main
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
         with:
           extra-args: "\\-DLLVM_ENABLE_WERROR=On \\-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
           enable-tests: true
           enable-assertions: true
+          ccache-key-type: static
           save-ccache: true
