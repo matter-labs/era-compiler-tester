@@ -27,3 +27,4 @@ jobs:
     secrets: inherit
     with:
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }} # required to properly test forks
+      ccache-key-type: static

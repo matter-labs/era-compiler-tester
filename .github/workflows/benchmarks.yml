@@ -39,3 +39,4 @@ jobs:
       compiler_llvm_benchmark_mode: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3' }}
       compiler_llvm_benchmark_path: ${{ github.event.inputs.compiler_llvm_benchmark_path || '' }}
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }}
+      ccache-key-type: static
