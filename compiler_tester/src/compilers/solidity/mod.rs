@@ -399,6 +399,7 @@ impl Compiler for SolidityCompiler {
             mode.enable_eravm_extensions,
             false,
             zkevm_assembly::get_encoding_mode(),
+            None,
             debug_config,
         )?;
         build.write_to_standard_json(
@@ -494,6 +495,7 @@ impl Compiler for SolidityCompiler {
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             false,
+            None,
             debug_config,
         )?;
         build.check_errors()?;

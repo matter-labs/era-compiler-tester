@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-remove-stdin-readers#b2c5d6e3f4b1071fd98eb70bc7e580cee1603ead"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#2e60dd413e8d9224049e8b038596284681b00a3d"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -547,7 +547,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-remove-stdin-readers#7c47395ec8381f4b94c0a79ed4679ea83ca4e0df"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2eb6e70dc86daa9557abb9e88354a57bea5935b3"
 dependencies = [
  "anyhow",
  "colored",
@@ -558,6 +558,7 @@ dependencies = [
  "md5",
  "mimalloc",
  "num",
+ "num_cpus",
  "path-slash",
  "rand 0.8.5",
  "rayon",
@@ -576,7 +577,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-remove-stdin-readers#a84545c2c639e27b92d74f85f540b6d676aaaeca"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#e1604250185e0cbc95801142496a9fe52e071480"
 dependencies = [
  "anyhow",
  "colored",

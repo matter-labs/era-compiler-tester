@@ -63,6 +63,7 @@ impl Compiler for LLVMCompiler {
             true,
             true,
             zkevm_assembly::get_encoding_mode(),
+            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;
@@ -111,6 +112,7 @@ impl Compiler for LLVMCompiler {
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
+            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;
