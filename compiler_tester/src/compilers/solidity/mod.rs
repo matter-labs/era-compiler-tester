@@ -384,13 +384,14 @@ impl Compiler for SolidityCompiler {
         }?;
 
         let project = era_compiler_solidity::Project::try_from_solidity_sources(
-            &mut solc_output,
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
             mode.solc_pipeline,
+            &mut solc_output,
             &mut solc_compiler,
             debug_config.as_ref(),
         )?;
+        solc_output.check_errors()?;
 
         let build = project.compile_to_eravm(
             mode.llvm_optimizer_settings.to_owned(),
@@ -409,6 +410,7 @@ impl Compiler for SolidityCompiler {
             )),
             &semver::Version::new(0, 0, 0),
         )?;
+        solc_output.check_errors()?;
 
         let builds: HashMap<String, EraVMBuild> = solc_output
             .contracts
@@ -479,13 +481,14 @@ impl Compiler for SolidityCompiler {
         let mut solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
         let project = era_compiler_solidity::Project::try_from_solidity_sources(
-            &mut solc_output,
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
             mode.solc_pipeline,
+            &mut solc_output,
             &mut solc_compiler,
             debug_config.as_ref(),
         )?;
+        solc_output.check_errors()?;
 
         let build = project.compile_to_evm(
             mode.llvm_optimizer_settings.to_owned(),

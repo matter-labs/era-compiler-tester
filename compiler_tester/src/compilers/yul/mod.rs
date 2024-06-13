@@ -67,6 +67,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
+            None,
             solc_version.as_ref(),
             debug_config.as_ref(),
         )?;
@@ -126,6 +127,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
+            None,
             solc_version.as_ref(),
             debug_config.as_ref(),
         )?;
@@ -136,7 +138,7 @@ impl Compiler for YulCompiler {
             true,
             debug_config.clone(),
         )?;
-
+        build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()

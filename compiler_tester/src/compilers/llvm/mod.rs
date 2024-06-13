@@ -54,6 +54,7 @@ impl Compiler for LLVMCompiler {
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources.into_iter().collect(),
+            None,
         )?;
 
         let build = project.compile_to_eravm(
@@ -103,6 +104,7 @@ impl Compiler for LLVMCompiler {
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources.into_iter().collect(),
+            None,
         )?;
 
         let build = project.compile_to_evm(

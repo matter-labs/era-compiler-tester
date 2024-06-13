@@ -50,7 +50,7 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
 dependencies = [
- "hermit-abi",
+ "hermit-abi 0.1.19",
  "libc",
  "winapi",
 ]
@@ -337,6 +337,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.5.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33480d6946193aa8033910124896ca395333cae7e2d1113d1fef6c3272217df2"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -519,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#4aaaf2945f302cbbf70650e127b5176312dc210a"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-remove-stdin-readers#b2c5d6e3f4b1071fd98eb70bc7e580cee1603ead"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -537,8 +546,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-solidity"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#5c8d8152d95ca2a910f43401d4cc21cf4dc3694c"
+version = "1.5.1"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-remove-stdin-readers#7c47395ec8381f4b94c0a79ed4679ea83ca4e0df"
 dependencies = [
  "anyhow",
  "colored",
@@ -553,6 +562,7 @@ dependencies = [
  "rand 0.8.5",
  "rayon",
  "regex",
+ "rusty_pool",
  "semver",
  "serde",
  "serde_json",
@@ -565,8 +575,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-vyper"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#0ad30796d7a9a85279abaec88db530a35e7797ae"
+version = "1.5.1"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-remove-stdin-readers#a84545c2c639e27b92d74f85f540b6d676aaaeca"
 dependencies = [
  "anyhow",
  "colored",
@@ -921,6 +931,12 @@ checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hermit-abi"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
 
 [[package]]
 name = "hex"
@@ -1405,6 +1421,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
+dependencies = [
+ "hermit-abi 0.3.9",
+ "libc",
 ]
 
 [[package]]
@@ -1963,6 +1989,18 @@ checksum = "8b6275d1ee7a1cd780b64aca7726599a1dbc893b1e64144529e55c3c2f745765"
 dependencies = [
  "ring",
  "untrusted",
+]
+
+[[package]]
+name = "rusty_pool"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ed36cdb20de66d89a17ea04b8883fc7a386f2cf877aaedca5005583ce4876ff"
+dependencies = [
+ "crossbeam-channel",
+ "futures-channel",
+ "futures-executor",
+ "num_cpus",
 ]
 
 [[package]]
