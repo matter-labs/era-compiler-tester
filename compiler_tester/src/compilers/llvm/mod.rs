@@ -54,6 +54,7 @@ impl Compiler for LLVMCompiler {
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources.into_iter().collect(),
+            None,
         )?;
 
         let build = project.compile_to_eravm(
@@ -62,6 +63,7 @@ impl Compiler for LLVMCompiler {
             true,
             true,
             zkevm_assembly::get_encoding_mode(),
+            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;
@@ -103,12 +105,14 @@ impl Compiler for LLVMCompiler {
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources.into_iter().collect(),
+            None,
         )?;
 
         let build = project.compile_to_evm(
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
+            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;

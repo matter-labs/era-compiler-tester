@@ -67,6 +67,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
+            None,
             solc_version.as_ref(),
             debug_config.as_ref(),
         )?;
@@ -77,6 +78,7 @@ impl Compiler for YulCompiler {
             mode.enable_eravm_extensions,
             true,
             zkevm_assembly::get_encoding_mode(),
+            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;
@@ -126,6 +128,7 @@ impl Compiler for YulCompiler {
         let project = era_compiler_solidity::Project::try_from_yul_sources(
             sources.into_iter().collect(),
             BTreeMap::new(),
+            None,
             solc_version.as_ref(),
             debug_config.as_ref(),
         )?;
@@ -134,9 +137,10 @@ impl Compiler for YulCompiler {
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
+            None,
             debug_config.clone(),
         )?;
-
+        build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()
