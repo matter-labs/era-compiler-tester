@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#2e60dd413e8d9224049e8b038596284681b00a3d"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#833bb45635e113b5346457c63b68c3b5c69b2869"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -547,7 +547,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2eb6e70dc86daa9557abb9e88354a57bea5935b3"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#3163e963b600ddda4a8b9a4a79091f65119214ef"
 dependencies = [
  "anyhow",
  "colored",
@@ -557,6 +557,7 @@ dependencies = [
  "inkwell",
  "md5",
  "mimalloc",
+ "normpath",
  "num",
  "num_cpus",
  "path-slash",
@@ -577,7 +578,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#e1604250185e0cbc95801142496a9fe52e071480"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#2f9fe27a18669ebe97ca20a3bc6168cc2bc6ad98"
 dependencies = [
  "anyhow",
  "colored",
@@ -587,6 +588,7 @@ dependencies = [
  "inkwell",
  "lazy_static",
  "mimalloc",
+ "normpath",
  "path-slash",
  "rayon",
  "semver",
@@ -1112,7 +1114,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c0821d7234b867b79baf29b87a3fb0c751eccad2"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#bebd0026346c6da6fe4245274cb2ba92695d6f68"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1127,7 +1129,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c0821d7234b867b79baf29b87a3fb0c751eccad2"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#bebd0026346c6da6fe4245274cb2ba92695d6f68"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1349,6 +1351,15 @@ checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "normpath"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5831952a9476f2fed74b77d74182fa5ddc4d21c72ec45a333b250e3ed0272804"
+dependencies = [
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
