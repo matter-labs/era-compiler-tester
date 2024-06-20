@@ -12,6 +12,8 @@ use std::path::Path;
 
 use itertools::Itertools;
 
+use era_compiler_solidity::CollectableError;
+
 use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
