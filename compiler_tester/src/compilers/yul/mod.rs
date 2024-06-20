@@ -7,6 +7,8 @@ pub mod mode;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
+use era_compiler_solidity::CollectableError;
+
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::Compiler;
