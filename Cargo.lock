@@ -547,7 +547,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ace8d5822ac4110949f6c35522f7373952d572cc"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-remove-ascii-boxes#dca86d6ff5c6f55748f203a3e970f105d26d0936"
 dependencies = [
  "anyhow",
  "era-compiler-common",
