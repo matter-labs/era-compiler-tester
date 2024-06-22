@@ -29,6 +29,7 @@ pub trait Collection {
     /// Returns all directory tests.
     ///
     fn read_all(
+        target: Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
