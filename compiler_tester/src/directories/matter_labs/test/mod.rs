@@ -406,7 +406,7 @@ impl Buildable for MatterLabsTest {
                 vec![],
                 debug_config,
             )
-            .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
+            .map_err(|error| anyhow::anyhow!("Failed to compile sources:\n{error}"))
         {
             Ok(vm_input) => vm_input,
             Err(error) => {
@@ -532,7 +532,7 @@ impl Buildable for MatterLabsTest {
                 vec![],
                 debug_config,
             )
-            .map_err(|error| anyhow::anyhow!("Failed to compile sources: {}", error))
+            .map_err(|error| anyhow::anyhow!("Failed to compile sources:\n{error}"))
         {
             Ok(output) => output,
             Err(error) => {

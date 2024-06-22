@@ -355,9 +355,8 @@ impl Compiler for SolidityCompiler {
                     .as_str();
                 let build = EVMBuild::new(
                     era_compiler_llvm_context::EVMBuild::new(
-                        "".to_owned(),
-                        None,
                         hex::decode(bytecode_string).expect("Always valid"),
+                        None,
                     ),
                     era_compiler_llvm_context::EVMBuild::default(),
                 );

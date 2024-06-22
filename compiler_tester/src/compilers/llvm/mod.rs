@@ -7,6 +7,8 @@ pub mod mode;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
+use era_compiler_solidity::CollectableError;
+
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::build::Build as EraVMBuild;
@@ -54,24 +56,28 @@ impl Compiler for LLVMCompiler {
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources.into_iter().collect(),
+            None,
         )?;
 
         let build = project.compile_to_eravm(
-            mode.llvm_optimizer_settings.to_owned(),
-            llvm_options,
+            &mut vec![],
             true,
             true,
             zkevm_assembly::get_encoding_mode(),
+            mode.llvm_optimizer_settings.to_owned(),
+            llvm_options,
+            true,
+            None,
             debug_config.clone(),
         )?;
-        build.check_errors()?;
+        build.collect_errors()?;
         let builds = build
             .contracts
             .into_iter()
             .map(|(path, build)| {
                 let build = build.expect("Always valid");
                 let assembly = zkevm_assembly::Assembly::from_string(
-                    build.build.assembly_text,
+                    build.build.assembly.expect("Always exists"),
                     build.build.metadata_hash,
                 )
                 .map_err(anyhow::Error::new)?;
@@ -103,15 +109,18 @@ impl Compiler for LLVMCompiler {
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources.into_iter().collect(),
+            None,
         )?;
 
         let build = project.compile_to_evm(
+            &mut vec![],
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
+            None,
             debug_config.clone(),
         )?;
-        build.check_errors()?;
+        build.collect_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()

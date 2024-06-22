@@ -255,6 +255,7 @@ impl Compiler for VyperCompiler {
 
         let build = project.compile(
             None,
+            true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
@@ -268,7 +269,7 @@ impl Compiler for VyperCompiler {
             .into_iter()
             .map(|(path, contract)| {
                 zkevm_assembly::Assembly::from_string(
-                    contract.build.assembly_text,
+                    contract.build.assembly.expect("Always exists"),
                     contract.build.metadata_hash,
                 )
                 .map_err(anyhow::Error::new)

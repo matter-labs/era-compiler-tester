@@ -12,6 +12,8 @@ use std::path::Path;
 
 use itertools::Itertools;
 
+use era_compiler_solidity::CollectableError;
+
 use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
@@ -179,10 +181,11 @@ impl SolidityCompiler {
             Self::executable(&mode.solc_version)
         }?;
 
-        let output_selection =
+        let mut output_selection =
             era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(Some(
                 mode.solc_pipeline,
             ));
+        output_selection.extend_with_eravm_assembly();
 
         let optimizer = era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::new(
             mode.solc_optimize,
@@ -212,7 +215,8 @@ impl SolidityCompiler {
             mode.enable_eravm_extensions,
             false,
             vec![],
-            None,
+            vec![],
+            vec![],
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
 
@@ -225,6 +229,8 @@ impl SolidityCompiler {
         solc_compiler.standard_json(
             solc_input,
             Some(mode.solc_pipeline),
+            Some(&sources.iter().cloned().collect()),
+            &mut vec![],
             None,
             vec![],
             Some(allow_paths),
@@ -354,22 +360,7 @@ impl Compiler for SolidityCompiler {
         let mut solc_output = self
             .standard_json_output_cached(test_path, &sources, &libraries, mode)
             .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
-
-        if let Some(errors) = solc_output.errors.as_deref() {
-            let mut has_errors = false;
-            let mut error_messages = Vec::with_capacity(errors.len());
-
-            for error in errors.iter() {
-                if error.severity.as_str() == "error" {
-                    has_errors = true;
-                    error_messages.push(error.formatted_message.to_owned());
-                }
-            }
-
-            if has_errors {
-                anyhow::bail!("`solc` errors found: {:?}", error_messages);
-            }
-        }
+        solc_output.collect_errors()?;
 
         let method_identifiers = Self::get_method_identifiers(&solc_output)
             .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {}", error))?;
@@ -384,20 +375,23 @@ impl Compiler for SolidityCompiler {
         }?;
 
         let project = era_compiler_solidity::Project::try_from_solidity_sources(
-            &mut solc_output,
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
             mode.solc_pipeline,
+            &mut solc_output,
             &mut solc_compiler,
             debug_config.as_ref(),
         )?;
 
         let build = project.compile_to_eravm(
-            mode.llvm_optimizer_settings.to_owned(),
-            llvm_options,
+            &mut vec![],
             mode.enable_eravm_extensions,
             false,
             zkevm_assembly::get_encoding_mode(),
+            mode.llvm_optimizer_settings.to_owned(),
+            llvm_options,
+            true,
+            None,
             debug_config,
         )?;
         build.write_to_standard_json(
@@ -409,6 +403,7 @@ impl Compiler for SolidityCompiler {
             )),
             &semver::Version::new(0, 0, 0),
         )?;
+        solc_output.collect_errors()?;
 
         let builds: HashMap<String, EraVMBuild> = solc_output
             .contracts
@@ -418,10 +413,9 @@ impl Compiler for SolidityCompiler {
                 file.into_iter()
                     .filter_map(|(contract_name, contract)| {
                         let name = format!("{}:{}", file_name, contract_name);
-                        let evm = contract.evm.expect("Always exists");
-                        let assembly =
-                            zkevm_assembly::Assembly::from_string(evm.assembly_text?, None)
-                                .expect("Always valid");
+                        let evm = contract.evm?;
+                        let assembly = zkevm_assembly::Assembly::from_string(evm.assembly?, None)
+                            .expect("Always valid");
                         let build = match contract.hash {
                             Some(bytecode_hash) => {
                                 EraVMBuild::new_with_hash(assembly, bytecode_hash)
@@ -455,22 +449,7 @@ impl Compiler for SolidityCompiler {
 
         let mut solc_output =
             self.standard_json_output_cached(test_path, &sources, &libraries, mode)?;
-
-        if let Some(errors) = solc_output.errors.as_deref() {
-            let mut has_errors = false;
-            let mut error_messages = Vec::with_capacity(errors.len());
-
-            for error in errors.iter() {
-                if error.severity.as_str() == "error" {
-                    has_errors = true;
-                    error_messages.push(error.formatted_message.to_owned());
-                }
-            }
-
-            if has_errors {
-                anyhow::bail!("`solc` errors found: {:?}", error_messages);
-            }
-        }
+        solc_output.collect_errors()?;
 
         let method_identifiers = Self::get_method_identifiers(&solc_output)?;
 
@@ -479,21 +458,23 @@ impl Compiler for SolidityCompiler {
         let mut solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
         let project = era_compiler_solidity::Project::try_from_solidity_sources(
-            &mut solc_output,
             sources.into_iter().collect::<BTreeMap<String, String>>(),
             libraries,
             mode.solc_pipeline,
+            &mut solc_output,
             &mut solc_compiler,
             debug_config.as_ref(),
         )?;
 
         let build = project.compile_to_evm(
+            &mut vec![],
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             false,
+            None,
             debug_config,
         )?;
-        build.check_errors()?;
+        build.collect_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()
