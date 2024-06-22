@@ -82,6 +82,8 @@ impl CompilerTester {
     const SOLIDITY_COMPLEX: &'static str = "tests/solidity/complex";
     /// The Solidity Ethereum tests directory.
     const SOLIDITY_ETHEREUM: &'static str = "tests/solidity/ethereum";
+    /// The Solidity Ethereum upstream tests directory.
+    const SOLIDITY_ETHEREUM_UPSTREAM: &'static str = "solidity/test/libsolidity/semanticTests";
 
     /// The Vyper simple tests directory.
     const VYPER_SIMPLE: &'static str = "tests/vyper/simple";
@@ -240,6 +242,7 @@ impl CompilerTester {
         let mut tests = Vec::with_capacity(16384);
 
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::SOLIDITY_SIMPLE,
             era_compiler_common::EXTENSION_SOLIDITY,
             if use_upstream_solc {
@@ -248,14 +251,16 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        if target != Target::EraVM {
+        if let Target::EraVM = target {
             tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
                 Self::VYPER_SIMPLE,
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler.clone(),
             )?);
         }
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
             if use_upstream_solc {
@@ -265,17 +270,20 @@ impl CompilerTester {
             },
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::LLVM_SIMPLE,
             era_compiler_common::EXTENSION_LLVM_SOURCE,
             llvm_compiler,
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::ERAVM_SIMPLE,
             era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
             eravm_compiler,
         )?);
 
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::SOLIDITY_COMPLEX,
             era_compiler_common::EXTENSION_JSON,
             if use_upstream_solc {
@@ -284,8 +292,9 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        if target != Target::EraVM {
+        if let Target::EraVM = target {
             tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
                 Self::VYPER_COMPLEX,
                 era_compiler_common::EXTENSION_JSON,
                 vyper_compiler.clone(),
@@ -293,16 +302,18 @@ impl CompilerTester {
         }
 
         tests.extend(self.directory::<EthereumDirectory>(
-            Self::SOLIDITY_ETHEREUM,
+            target,
+            match target { Target::EraVM => Self::SOLIDITY_ETHEREUM, Target::EVMInterpreter | Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM },
             era_compiler_common::EXTENSION_SOLIDITY,
             if use_upstream_solc {
-                solidity_upstream_compiler.clone()
+                solidity_upstream_compiler
             } else {
-                solidity_compiler.clone()
+                solidity_compiler
             },
         )?);
-        if target != Target::EraVM {
+        if let Target::EraVM = target {
             tests.extend(self.directory::<EthereumDirectory>(
+                target,
                 Self::VYPER_ETHEREUM,
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler,
@@ -317,6 +328,7 @@ impl CompilerTester {
     ///
     fn directory<T>(
         &self,
+        target: Target,
         path: &str,
         extension: &'static str,
         compiler: Arc<dyn Compiler>,
@@ -325,13 +337,14 @@ impl CompilerTester {
         T: Collection,
     {
         Ok(T::read_all(
+            target,
             Path::new(path),
             extension,
             self.summary.clone(),
             &self.filters,
         )
         .map_err(|error| {
-            anyhow::anyhow!("Failed to read the tests directory `{}`: {}", path, error)
+            anyhow::anyhow!("Failed to read the tests directory `{path}`: {error}")
         })?
         .into_iter()
         .map(|test| Arc::new(test) as Arc<dyn Buildable>)

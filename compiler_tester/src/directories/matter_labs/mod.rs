@@ -12,6 +12,7 @@ use std::sync::Mutex;
 use crate::directories::Collection;
 use crate::filters::Filters;
 use crate::summary::Summary;
+use crate::target::Target;
 
 use self::test::MatterLabsTest;
 
@@ -24,6 +25,7 @@ impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
     fn read_all(
+        target: Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
@@ -43,7 +45,7 @@ impl Collection for MatterLabsDirectory {
             })?;
 
             if entry_type.is_dir() {
-                tests.extend(Self::read_all(&path, extension, summary.clone(), filters)?);
+                tests.extend(Self::read_all(target, &path, extension, summary.clone(), filters)?);
                 continue;
             } else if !entry_type.is_file() {
                 anyhow::bail!("Invalid type of file `{}`", path.to_string_lossy());
