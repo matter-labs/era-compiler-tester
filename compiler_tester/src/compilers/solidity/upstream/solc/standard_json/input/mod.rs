@@ -41,6 +41,7 @@ impl Input {
     /// Only for the integration test purposes.
     ///
     pub fn try_from_sources(
+        language: Language,
         evm_version: Option<era_compiler_common::EVMVersion>,
         sources: BTreeMap<String, String>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
@@ -55,7 +56,7 @@ impl Input {
             .collect();
 
         Ok(Self {
-            language: Language::Solidity,
+            language,
             sources,
             settings: Settings::new(
                 evm_version,

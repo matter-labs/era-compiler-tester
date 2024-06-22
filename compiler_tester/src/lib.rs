@@ -29,6 +29,7 @@ pub use crate::compilers::llvm::LLVMCompiler;
 pub use crate::compilers::mode::llvm_options::LLVMOptions;
 pub use crate::compilers::mode::Mode;
 pub use crate::compilers::solidity::mode::Mode as SolidityMode;
+pub use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
 pub use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
 pub use crate::compilers::solidity::SolidityCompiler;
 pub use crate::compilers::vyper::VyperCompiler;
@@ -124,7 +125,7 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(false)?;
+        let tests = self.all_tests(Target::EraVM, false)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -157,7 +158,7 @@ impl CompilerTester {
     /// Runs all tests on EVM.
     ///
     pub fn run_evm(self, use_upstream_solc: bool) -> anyhow::Result<()> {
-        let tests = self.all_tests(use_upstream_solc)?;
+        let tests = self.all_tests(Target::EVM, use_upstream_solc)?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -196,7 +197,7 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(use_upstream_solc)?;
+        let tests = self.all_tests(Target::EVMInterpreter, use_upstream_solc)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -223,13 +224,18 @@ impl CompilerTester {
     ///
     /// Returns all tests from all directories.
     ///
-    fn all_tests(&self, use_upstream_solc: bool) -> anyhow::Result<Vec<Test>> {
+    fn all_tests(&self, target: Target, use_upstream_solc: bool) -> anyhow::Result<Vec<Test>> {
         let solidity_compiler = Arc::new(SolidityCompiler::new());
-        let solidity_upstream_compiler = Arc::new(SolidityUpstreamCompiler::new());
+        let solidity_upstream_compiler = Arc::new(SolidityUpstreamCompiler::new(
+            SolcStandardJsonInputLanguage::Solidity,
+        ));
+        let solidity_upstream_yul_compiler = Arc::new(SolidityUpstreamCompiler::new(
+            SolcStandardJsonInputLanguage::Yul,
+        ));
         let vyper_compiler = Arc::new(VyperCompiler::new());
-        let yul_compiler = Arc::new(YulCompiler);
-        let llvm_compiler = Arc::new(LLVMCompiler);
-        let eravm_compiler = Arc::new(EraVMCompiler);
+        let yul_compiler = Arc::new(YulCompiler::new(use_upstream_solc));
+        let llvm_compiler = Arc::new(LLVMCompiler::default());
+        let eravm_compiler = Arc::new(EraVMCompiler::default());
 
         let mut tests = Vec::with_capacity(16384);
 
@@ -242,15 +248,21 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_SIMPLE,
-            era_compiler_common::EXTENSION_VYPER,
-            vyper_compiler.clone(),
-        )?);
+        if target != Target::EraVM {
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                Self::VYPER_SIMPLE,
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler.clone(),
+            )?);
+        }
         tests.extend(self.directory::<MatterLabsDirectory>(
             Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
-            yul_compiler,
+            if use_upstream_solc {
+                solidity_upstream_yul_compiler
+            } else {
+                yul_compiler
+            },
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
             Self::LLVM_SIMPLE,
@@ -272,11 +284,13 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_COMPLEX,
-            era_compiler_common::EXTENSION_JSON,
-            vyper_compiler.clone(),
-        )?);
+        if target != Target::EraVM {
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                Self::VYPER_COMPLEX,
+                era_compiler_common::EXTENSION_JSON,
+                vyper_compiler.clone(),
+            )?);
+        }
 
         tests.extend(self.directory::<EthereumDirectory>(
             Self::SOLIDITY_ETHEREUM,
@@ -287,11 +301,13 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        tests.extend(self.directory::<EthereumDirectory>(
-            Self::VYPER_ETHEREUM,
-            era_compiler_common::EXTENSION_VYPER,
-            vyper_compiler,
-        )?);
+        if target != Target::EraVM {
+            tests.extend(self.directory::<EthereumDirectory>(
+                Self::VYPER_ETHEREUM,
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler,
+            )?);
+        }
 
         Ok(tests)
     }

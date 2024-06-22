@@ -3,6 +3,7 @@
 //!
 
 pub mod mode;
+pub mod mode_upstream;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -10,7 +11,8 @@ use std::collections::HashMap;
 use era_compiler_solidity::CollectableError;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::solidity::SolidityCompiler;
+use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
+use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::build::Build as EraVMBuild;
 use crate::vm::eravm::input::Input as EraVMInput;
@@ -22,8 +24,10 @@ use self::mode::Mode as YulMode;
 ///
 /// The Yul compiler.
 ///
-#[derive(Default)]
-pub struct YulCompiler;
+pub struct YulCompiler {
+    /// Whether to use the upstream `solc`.
+    use_upstream_solc: bool,
+}
 
 lazy_static::lazy_static! {
     ///
@@ -35,6 +39,15 @@ lazy_static::lazy_static! {
             .map(|llvm_optimizer_settings| YulMode::new(llvm_optimizer_settings, false).into())
             .collect::<Vec<Mode>>()
     };
+}
+
+impl YulCompiler {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(use_upstream_solc: bool) -> Self {
+        Self { use_upstream_solc }
+    }
 }
 
 impl Compiler for YulCompiler {
@@ -52,12 +65,9 @@ impl Compiler for YulCompiler {
         let solc_version = if mode.enable_eravm_extensions {
             None
         } else {
-            Some(
-                SolidityCompiler::executable(
-                    &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-                )?
-                .version,
-            )
+            Some(era_compiler_solidity::SolcVersion::new_simple(
+                era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+            ))
         };
 
         let last_contract = sources
@@ -107,54 +117,76 @@ impl Compiler for YulCompiler {
 
     fn compile_for_evm(
         &self,
-        _test_path: String,
+        test_path: String,
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
-        llvm_options: Vec<String>,
-        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        _llvm_options: Vec<String>,
+        _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let mode = YulMode::unwrap(mode);
+        let solc_compiler = SolidityUpstreamCompiler::new(SolcStandardJsonInputLanguage::Yul);
 
-        let solc_version = Some(
-            SolidityCompiler::executable(
-                &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-            )?
-            .version,
-        );
-
-        let last_contract = sources
-            .last()
-            .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
-            .0
-            .clone();
-
-        let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources.into_iter().collect(),
-            BTreeMap::new(),
-            None,
-            solc_version.as_ref(),
-            debug_config.as_ref(),
+        let solc_output = solc_compiler.standard_json_output_cached(
+            test_path,
+            SolcStandardJsonInputLanguage::Yul,
+            &sources,
+            &BTreeMap::new(),
+            mode,
         )?;
 
-        let build = project.compile_to_evm(
-            &mut vec![],
-            mode.llvm_optimizer_settings.to_owned(),
-            llvm_options,
-            true,
-            None,
-            debug_config.clone(),
+        if let Some(errors) = solc_output.errors.as_deref() {
+            let mut has_errors = false;
+            let mut error_messages = Vec::with_capacity(errors.len());
+
+            for error in errors.iter() {
+                if error.severity.as_str() == "error" {
+                    has_errors = true;
+                    error_messages.push(error.formatted_message.to_owned());
+                }
+            }
+
+            if has_errors {
+                anyhow::bail!("`solc` errors found: {:?}", error_messages);
+            }
+        }
+
+        let last_contract = SolidityUpstreamCompiler::get_last_contract(
+            SolcStandardJsonInputLanguage::Yul,
+            &solc_output,
+            &sources,
         )?;
-        build.collect_errors()?;
-        let builds: HashMap<String, EVMBuild> = build
+
+        let contracts = solc_output
             .contracts
-            .into_iter()
-            .map(|(path, build)| {
-                let build = build.expect("Always valid");
-                let build = EVMBuild::new(build.deploy_build, build.runtime_build);
-                (path, build)
-            })
-            .collect();
+            .ok_or_else(|| anyhow::anyhow!("Yul contracts not found in the output"))?;
+
+        let mut builds = HashMap::with_capacity(contracts.len());
+        for (file, contracts) in contracts.into_iter() {
+            for (name, contract) in contracts.into_iter() {
+                let path = format!("{file}:{name}");
+                let bytecode_string = contract
+                    .evm
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                    })?
+                    .bytecode
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                    })?
+                    .object
+                    .as_str();
+                let build = EVMBuild::new(
+                    era_compiler_llvm_context::EVMBuild::new(
+                        hex::decode(bytecode_string).expect("Always valid"),
+                        None,
+                    ),
+                    era_compiler_llvm_context::EVMBuild::default(),
+                );
+                builds.insert(path, build);
+            }
+        }
 
         Ok(EVMInput::new(builds, None, last_contract))
     }

@@ -258,7 +258,7 @@ impl SystemContracts {
             .map(|option| option.to_owned())
             .collect();
         let mut builds = Self::compile(
-            YulCompiler,
+            YulCompiler::new(false),
             yul_file_paths,
             &yul_mode,
             yul_llvm_options,
