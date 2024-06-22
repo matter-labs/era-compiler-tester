@@ -303,7 +303,10 @@ impl CompilerTester {
 
         tests.extend(self.directory::<EthereumDirectory>(
             target,
-            match target { Target::EraVM => Self::SOLIDITY_ETHEREUM, Target::EVMInterpreter | Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM },
+            match target {
+                Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                Target::EVMInterpreter | Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+            },
             era_compiler_common::EXTENSION_SOLIDITY,
             if use_upstream_solc {
                 solidity_upstream_compiler
@@ -343,9 +346,7 @@ impl CompilerTester {
             self.summary.clone(),
             &self.filters,
         )
-        .map_err(|error| {
-            anyhow::anyhow!("Failed to read the tests directory `{path}`: {error}")
-        })?
+        .map_err(|error| anyhow::anyhow!("Failed to read the tests directory `{path}`: {error}"))?
         .into_iter()
         .map(|test| Arc::new(test) as Arc<dyn Buildable>)
         .cartesian_product(compiler.all_modes())
