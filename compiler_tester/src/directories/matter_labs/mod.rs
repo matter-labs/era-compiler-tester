@@ -45,7 +45,13 @@ impl Collection for MatterLabsDirectory {
             })?;
 
             if entry_type.is_dir() {
-                tests.extend(Self::read_all(target, &path, extension, summary.clone(), filters)?);
+                tests.extend(Self::read_all(
+                    target,
+                    &path,
+                    extension,
+                    summary.clone(),
+                    filters,
+                )?);
                 continue;
             } else if !entry_type.is_file() {
                 anyhow::bail!("Invalid type of file `{}`", path.to_string_lossy());

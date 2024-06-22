@@ -24,14 +24,14 @@ pub struct EthereumDirectory;
 impl EthereumDirectory {
     ///
     /// The upstream index file path.
-    /// 
+    ///
     /// Must be appended to the tests directory.
     ///
     const INDEX_NAME_UPSTREAM: &'static str = "ethereum.yaml";
 
     ///
     /// The ZKsync index file name.
-    /// 
+    ///
     /// Should refer to a file in the tester repository root.
     ///
     const INDEX_NAME_ZKSYNC: &'static str = "index.yaml";
@@ -61,10 +61,8 @@ impl Collection for EthereumDirectory {
                 let mut index_path = directory_path.to_path_buf();
                 index_path.push(Self::INDEX_NAME_ZKSYNC);
                 index_path
-            },
-            Target::EVMInterpreter | Target::EVM => {
-                PathBuf::from(Self::INDEX_NAME_UPSTREAM)
             }
+            Target::EVMInterpreter | Target::EVM => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
         };
 
         Ok(Self::read_index(index_path.as_path())?

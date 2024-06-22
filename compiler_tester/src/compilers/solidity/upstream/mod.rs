@@ -339,7 +339,11 @@ impl SolidityCompiler {
                 .contracts
                 .as_ref()
                 .and_then(|contracts| contracts.first_key_value())
-                .and_then(|(path, contracts)| contracts.first_key_value().map(|(name, _contract)| format!("{path}:{name}")))
+                .and_then(|(path, contracts)| {
+                    contracts
+                        .first_key_value()
+                        .map(|(name, _contract)| format!("{path}:{name}"))
+                })
                 .ok_or_else(|| {
                     anyhow::anyhow!(
                         "The sources are empty. Found errors: {:?}",
