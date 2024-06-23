@@ -215,7 +215,8 @@ impl SolidityCompiler {
             mode.enable_eravm_extensions,
             false,
             vec![],
-            None,
+            vec![],
+            vec![],
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
 

@@ -14,10 +14,26 @@ jobs:
     uses: matter-labs/era-compiler-ci/.github/workflows/secrets-scanner.yaml@v1
     secrets: inherit
 
-  # Check for cargo licensing issues
-  cargo-license:
-    uses: matter-labs/era-compiler-ci/.github/workflows/cargo-license.yaml@v1
-    secrets: inherit
+  # Check for cargo issues
+  cargo-check:
+    runs-on: ci-runner-compiler
+    container:
+      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build LLVM
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
+        with:
+          extra-args: "\\-DLLVM_ENABLE_WERROR=On \\-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          enable-tests: true
+          enable-assertions: true
+          ccache-key-type: static
+
+      - name: Cargo checks
+        uses: matter-labs/era-compiler-ci/.github/actions/cargo-check@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Integration tests workflow call from the era-compiler-ci repository
   # This is a common part of the integration tests workflow for all repositories
