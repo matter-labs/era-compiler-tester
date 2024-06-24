@@ -44,20 +44,13 @@ pub fn run_vm(
     HashMap<web3::ethabi::Address, Assembly>,
 )> {
     let mut initial_program: Vec<u8> = Vec::new();
-    for (_, contract) in contracts.iter() {
-        let bytecode = contract.clone().compile_to_bytecode()?;
-        let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)
-            .map_err(|()| anyhow!("Failed to hash bytecode"))?;
-        if U256::from_big_endian(&hash) == address_into_u256(entry_address) {
-            for byte in bytecode {
-                for b in byte {
-                    initial_program.push(b);
-                }
-            }
+    let address_to_find = address_into_u256(entry_address); // This is not the correct address, it should find the address from deployer system contract
+    let bytecode = known_contracts.get(&address_to_find).map(|assembly| assembly.clone().compile_to_bytecode().unwrap()).unwrap();
+    for byte in bytecode {
+        for b in byte {
+            initial_program.push(b);
         }
     }
-
-
 
     let mut storage_changes = HashMap::new();
     let mut deployed_contracts = HashMap::new();
