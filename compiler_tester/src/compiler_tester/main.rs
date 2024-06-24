@@ -135,9 +135,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 ),
             );
 
+            #[cfg(feature = "lambda_vm")]
+            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
             #[cfg(feature = "vm2")]
             zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
-            #[cfg(not(feature = "vm2"))]
+            #[cfg(not(any(feature = "vm2", feature = "lambda_vm")))]
             zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
 
             let system_contracts_debug_config = if arguments.dump_system {

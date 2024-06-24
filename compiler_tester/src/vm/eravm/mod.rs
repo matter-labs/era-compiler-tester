@@ -11,6 +11,9 @@ pub mod system_contracts;
 #[cfg(feature = "vm2")]
 mod vm2_adapter;
 
+#[cfg(feature = "lambda_vm")]
+mod lambda_vm_adapter;
+
 use std::collections::HashMap;
 use std::ops::Add;
 use std::path::PathBuf;
@@ -238,7 +241,7 @@ impl EraVM {
             0,
         );
 
-        #[cfg(not(feature = "vm2"))]
+        #[cfg(not(any(feature = "vm2", feature = "lambda_vm")))]
         {
             let snapshot = zkevm_tester::runners::compiler_tests::run_vm_multi_contracts(
                 trace_file_path.to_string_lossy().to_string(),
@@ -279,6 +282,34 @@ impl EraVM {
         #[cfg(feature = "vm2")]
         {
             let (result, storage_changes, deployed_contracts) = vm2_adapter::run_vm(
+                self.deployed_contracts.clone(),
+                &calldata,
+                self.storage.clone(),
+                entry_address,
+                Some(context),
+                vm_launch_option,
+                self.known_contracts.clone(),
+                self.default_aa_code_hash,
+                self.evm_interpreter_code_hash,
+            )
+            .map_err(|error| anyhow::anyhow!("EraVM failure: {}", error))?;
+
+            for (key, value) in storage_changes.into_iter() {
+                self.storage.insert(key, value);
+            }
+            for (address, assembly) in deployed_contracts.into_iter() {
+                if self.deployed_contracts.contains_key(&address) {
+                    continue;
+                }
+
+                self.deployed_contracts.insert(address, assembly);
+            }
+
+            Ok(result)
+        }
+        #[cfg(feature = "lambda_vm")]
+        {
+            let (result, storage_changes, deployed_contracts) = lambda_vm_adapter::run_vm(
                 self.deployed_contracts.clone(),
                 &calldata,
                 self.storage.clone(),
