@@ -4,10 +4,12 @@
 
 pub mod optimizer;
 pub mod selection;
+pub mod debug;
 
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 
+use debug::DebugOpt;
 use serde::Serialize;
 
 use self::optimizer::Optimizer;
@@ -40,6 +42,7 @@ pub struct Settings {
     pub via_ir: Option<bool>,
     /// The optimizer settings.
     pub optimizer: Optimizer,
+    pub debug: DebugOpt,
 }
 
 impl Settings {
@@ -53,6 +56,7 @@ impl Settings {
         output_selection: Selection,
         via_ir: bool,
         optimizer: Optimizer,
+        debug: DebugOpt
     ) -> Self {
         Self {
             evm_version,
@@ -61,6 +65,7 @@ impl Settings {
             output_selection: Some(output_selection),
             via_ir: if via_ir { Some(true) } else { None },
             optimizer,
+            debug: debug
         }
     }
 }

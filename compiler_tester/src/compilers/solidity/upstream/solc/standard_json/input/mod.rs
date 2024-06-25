@@ -12,6 +12,7 @@ use std::collections::BTreeSet;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use serde::Serialize;
+use settings::debug::DebugOpt;
 
 use self::settings::optimizer::Optimizer as SolcStandardJsonInputSettingsOptimizer;
 use self::settings::selection::Selection as SolcStandardJsonInputSettingsSelection;
@@ -65,6 +66,7 @@ impl Input {
                 output_selection,
                 via_ir,
                 optimizer,
+                DebugOpt::new("debug".to_owned())
             ),
         })
     }
