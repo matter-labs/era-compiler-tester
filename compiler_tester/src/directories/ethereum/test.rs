@@ -313,6 +313,7 @@ impl Buildable for EthereumTest {
                 self.test.sources.clone(),
                 libraries,
                 &mode,
+                Some(&self.test.params),
                 vec![],
                 debug_config,
             )

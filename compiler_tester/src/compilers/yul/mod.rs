@@ -121,6 +121,7 @@ impl Compiler for YulCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
@@ -132,6 +133,7 @@ impl Compiler for YulCompiler {
             &sources,
             &BTreeMap::new(),
             mode,
+            test_params,
         )?;
 
         if let Some(errors) = solc_output.errors.as_deref() {

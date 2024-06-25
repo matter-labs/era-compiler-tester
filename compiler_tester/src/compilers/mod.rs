@@ -44,6 +44,7 @@ pub trait Compiler: Send + Sync + 'static {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput>;

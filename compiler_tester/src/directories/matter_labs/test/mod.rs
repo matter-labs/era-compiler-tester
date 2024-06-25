@@ -529,6 +529,7 @@ impl Buildable for MatterLabsTest {
                 sources,
                 libraries,
                 &mode,
+                None,
                 vec![],
                 debug_config,
             )

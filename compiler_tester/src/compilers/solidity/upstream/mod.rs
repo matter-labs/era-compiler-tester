@@ -20,6 +20,7 @@ use crate::vm::evm::input::Input as EVMInput;
 
 use self::mode::Mode as SolidityUpstreamMode;
 use self::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
+use self::solc::standard_json::input::settings::debug::Debug as SolcStandardJsonInputSettingsDebug;
 use self::solc::standard_json::input::settings::optimizer::Optimizer as SolcStandardJsonInputSettingsOptimizer;
 use self::solc::standard_json::input::settings::selection::Selection as SolcStandardJsonInputSettingsSelection;
 use self::solc::standard_json::input::Input as SolcStandardJsonInput;
@@ -160,6 +161,7 @@ impl SolidityCompiler {
         sources: &[(String, String)],
         libraries: &BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
         let mut solc = Self::executable(match mode {
             Mode::SolidityUpstream(mode) => &mode.solc_version,
@@ -190,6 +192,16 @@ impl SolidityCompiler {
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
+        let via_ir = match mode {
+            Mode::SolidityUpstream(mode) => mode.via_ir,
+            Mode::YulUpstream(_mode) => true,
+            mode => anyhow::bail!("Unsupported mode: {mode}"),
+        };
+
+        let debug = test_params.map(|test_params| {
+            SolcStandardJsonInputSettingsDebug::new(Some(test_params.revert_strings.to_string()))
+        });
+
         let solc_input = SolcStandardJsonInput::try_from_sources(
             language,
             evm_version,
@@ -197,12 +209,9 @@ impl SolidityCompiler {
             libraries.clone(),
             None,
             output_selection,
+            via_ir,
             optimizer,
-            match mode {
-                Mode::SolidityUpstream(mode) => mode.via_ir,
-                Mode::YulUpstream(_mode) => true,
-                mode => anyhow::bail!("Unsupported mode: {mode}"),
-            },
+            debug,
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
 
@@ -225,6 +234,7 @@ impl SolidityCompiler {
         sources: &[(String, String)],
         libraries: &BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
         let cache_key = match mode {
             Mode::SolidityUpstream(mode) => CacheKey::new(
@@ -246,7 +256,7 @@ impl SolidityCompiler {
 
         if !self.cache.contains(&cache_key) {
             self.cache.evaluate(cache_key.clone(), || {
-                Self::standard_json_output(language, sources, libraries, mode)
+                Self::standard_json_output(language, sources, libraries, mode, test_params)
             });
         }
 
@@ -373,11 +383,18 @@ impl Compiler for SolidityCompiler {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let solc_output =
-            self.standard_json_output_cached(test_path, self.language, &sources, &libraries, mode)?;
+        let solc_output = self.standard_json_output_cached(
+            test_path,
+            self.language,
+            &sources,
+            &libraries,
+            mode,
+            test_params,
+        )?;
 
         if let Some(errors) = solc_output.errors.as_deref() {
             let mut has_errors = false;

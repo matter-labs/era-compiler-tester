@@ -26,3 +26,12 @@ impl TryFrom<&str> for RevertStrings {
         })
     }
 }
+
+impl std::fmt::Display for RevertStrings {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            RevertStrings::Debug => write!(f, "debug"),
+            RevertStrings::Default => write!(f, "default"),
+        }
+    }
+}
