@@ -51,7 +51,7 @@ made, and there is no point in running tests in all LLVM optimization modes.
 <details>
 <summary>2. Install Rust.</summary>
 
-   * Follow the latest [official instructions]((https://www.rust-lang.org/tools/install)):
+   * Follow the latest [official instructions](https://www.rust-lang.org/tools/install:
       ```shell
       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
       . ${HOME}/.cargo/env
@@ -291,7 +291,7 @@ at your option.
 
 ## Resources
 
-[ZKsync Era compiler toolchain documentation](https://era.zksync.io/docs/api/compiler-toolchain)
+[ZKsync Era compiler toolchain documentation](https://docs.zksync.io/zk-stack/components/compiler/toolchain)
 
 ## Official Links
 
