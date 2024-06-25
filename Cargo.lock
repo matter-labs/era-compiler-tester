@@ -577,7 +577,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1755-support-vyper-v040#19d622ce5a863bfce8b15adc679a298085c20d4e"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1755-support-vyper-v040#0e11234677bd107e2e8abbc9d8c5076496c7a191"
 dependencies = [
  "anyhow",
  "era-compiler-common",

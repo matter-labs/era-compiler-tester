@@ -138,7 +138,13 @@ impl VyperCompiler {
             None
         };
 
-        vyper.batch(&mode.vyper_version, paths, evm_version, mode.vyper_optimize)
+        vyper.batch(
+            &mode.vyper_version,
+            paths,
+            evm_version,
+            true,
+            mode.vyper_optimize,
+        )
     }
 
     ///
@@ -211,7 +217,7 @@ impl VyperCompiler {
             .map(|(path_str, _)| {
                 let path = Path::new(path_str.as_str());
                 vyper
-                    .lll_debug(path, evm_version, mode.vyper_optimize)
+                    .lll_debug(path, evm_version, true, mode.vyper_optimize)
                     .map(|lll| (path_str.to_string(), lll))
             })
             .collect::<anyhow::Result<Vec<(String, String)>>>()?;
