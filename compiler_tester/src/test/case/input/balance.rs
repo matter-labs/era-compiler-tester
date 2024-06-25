@@ -79,13 +79,26 @@ impl Balance {
     ///
     pub fn run_evm_interpreter(
         self,
-        _summary: Arc<Mutex<Summary>>,
-        _vm: &EraVM,
-        _mode: Mode,
-        _test_group: Option<String>,
-        _name_prefix: String,
-        _index: usize,
+        summary: Arc<Mutex<Summary>>,
+        vm: &EraVM,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
     ) {
-        todo!()
+        let name = format!("{name_prefix}[#balance_check:{index}]");
+        let found = vm.get_balance(self.address);
+        if found == self.balance {
+            Summary::passed_special(summary, mode, name, test_group);
+        } else {
+            Summary::failed(
+                summary,
+                mode,
+                name,
+                self.balance.into(),
+                found.into(),
+                self.address.to_fixed_bytes().to_vec(),
+            );
+        }
     }
 }
