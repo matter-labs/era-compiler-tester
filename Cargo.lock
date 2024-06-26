@@ -517,7 +517,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#6a8f58a39bdba2a7410329e89ccc4758372702e7"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9b0143d1687b4b259e620aa292fa9dbb389dfb4d"
 dependencies = [
  "anyhow",
  "serde",
@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#02ae122a96b0eefa1cec36c703b1eaad71f507e7"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#d7be90b6918f05b9d77d4ac4cc2949a3525baf19"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -577,7 +577,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1755-support-vyper-v040#0e11234677bd107e2e8abbc9d8c5076496c7a191"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1755-support-vyper-v040#9378ae270436364608399779128d9b5c83983c2d"
 dependencies = [
  "anyhow",
  "era-compiler-common",
