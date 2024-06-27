@@ -21,6 +21,7 @@ use std::time::Instant;
 
 use colored::Colorize;
 
+use crate::target::Target;
 use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::vm::execution_result::ExecutionResult;
 
@@ -72,6 +73,7 @@ impl EraVM {
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
+        target: Target,
     ) -> anyhow::Result<Self> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
@@ -111,7 +113,7 @@ impl EraVM {
             system_contracts_save_path,
         )?;
 
-        let storage = SystemContext::create_storage();
+        let storage = SystemContext::create_storage(target);
 
         let mut vm = Self {
             known_contracts: HashMap::new(),
