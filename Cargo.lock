@@ -197,9 +197,9 @@ checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
 
 [[package]]
 name = "cc"
-version = "1.0.101"
+version = "1.0.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac367972e516d45567c7eafc73d24e1c193dcf200a8d94e9db7b3d38b349572d"
+checksum = "779e6b7d17797c0b42023d417228c02889300190e700cb074c3438d9c541d332"
 dependencies = [
  "jobserver",
  "libc",
@@ -528,14 +528,13 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#d7be90b6918f05b9d77d4ac4cc2949a3525baf19"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#31946ecd883be041c5b232a85a778501f4cc3d85"
 dependencies = [
  "anyhow",
  "era-compiler-common",
  "hex",
  "inkwell",
  "itertools",
- "md5",
  "num",
  "semver",
  "serde",
@@ -547,14 +546,13 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#fcd56092517d35423b739dec0a73e42b4bde94fa"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2491da8559fb263c3af60693141c0bfc3070f55b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
  "era-compiler-llvm-context",
  "hex",
  "inkwell",
- "md5",
  "mimalloc",
  "normpath",
  "num",
@@ -577,7 +575,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.1"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#b8fffb737eb38d153bad5d8a20b5a7ff03a03535"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#8a28a915b5aab1dd45c33162117696c89b7ce088"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1466,9 +1464,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.36.0"
+version = "0.36.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "576dfe1fc8f9df304abb159d767a29d0476f7750fbf8aa7ad07816004a207434"
+checksum = "081b846d1d56ddfc18fdf1a922e4f6e07a11768ea1b92dec44e42b72712ccfce"
 dependencies = [
  "memchr",
 ]
