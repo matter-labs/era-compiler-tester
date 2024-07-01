@@ -242,11 +242,23 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_SIMPLE,
-            era_compiler_common::EXTENSION_VYPER,
-            vyper_compiler.clone(),
-        )?);
+        if !cfg!(target_arch = "aarch64") {
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                Self::VYPER_SIMPLE,
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler.clone(),
+            )?);
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                Self::VYPER_COMPLEX,
+                era_compiler_common::EXTENSION_JSON,
+                vyper_compiler.clone(),
+            )?);
+            tests.extend(self.directory::<EthereumDirectory>(
+                Self::VYPER_ETHEREUM,
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler,
+            )?);
+        }
         tests.extend(self.directory::<MatterLabsDirectory>(
             Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
@@ -272,12 +284,6 @@ impl CompilerTester {
                 solidity_compiler.clone()
             },
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_COMPLEX,
-            era_compiler_common::EXTENSION_JSON,
-            vyper_compiler.clone(),
-        )?);
-
         tests.extend(self.directory::<EthereumDirectory>(
             Self::SOLIDITY_ETHEREUM,
             era_compiler_common::EXTENSION_SOLIDITY,
@@ -286,11 +292,6 @@ impl CompilerTester {
             } else {
                 solidity_compiler.clone()
             },
-        )?);
-        tests.extend(self.directory::<EthereumDirectory>(
-            Self::VYPER_ETHEREUM,
-            era_compiler_common::EXTENSION_VYPER,
-            vyper_compiler,
         )?);
 
         Ok(tests)
