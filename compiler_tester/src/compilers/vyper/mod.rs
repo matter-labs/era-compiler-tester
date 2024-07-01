@@ -74,7 +74,7 @@ impl VyperCompiler {
     ///
     fn executable(version: &semver::Version) -> anyhow::Result<era_compiler_vyper::VyperCompiler> {
         era_compiler_vyper::VyperCompiler::new(
-            format!("{}/vyper-{}", Self::DIRECTORY, version).as_str(),
+            format!("{}/vyper-{version}", Self::DIRECTORY).as_str(),
         )
     }
 
@@ -86,18 +86,11 @@ impl VyperCompiler {
         for entry in std::fs::read_dir(Self::DIRECTORY)? {
             let entry = entry?;
             let path = entry.path();
-            let entry_type = entry.file_type().map_err(|error| {
-                anyhow::anyhow!(
-                    "File `{}` type getting error: {}",
-                    path.to_string_lossy(),
-                    error
-                )
-            })?;
+            let entry_type = entry
+                .file_type()
+                .map_err(|error| anyhow::anyhow!("File {path:?} type getting error: {error}"))?;
             if !entry_type.is_file() {
-                anyhow::bail!(
-                    "Invalid `vyper` binary file type: {}",
-                    path.to_string_lossy()
-                );
+                anyhow::bail!("Invalid `vyper` binary file type: {path:?}");
             }
 
             let file_name = entry.file_name().to_string_lossy().to_string();
@@ -126,13 +119,12 @@ impl VyperCompiler {
         let paths = sources
             .into_iter()
             .map(|(path, _)| {
-                PathBuf::from_str(path.as_str()).map_err(|error| {
-                    anyhow::anyhow!("Invalid source code path `{}`: {}", path, error)
-                })
+                PathBuf::from_str(path.as_str())
+                    .map_err(|error| anyhow::anyhow!("Invalid source code path `{path}`: {error}"))
             })
             .collect::<anyhow::Result<Vec<PathBuf>>>()?;
 
-        let evm_version = if mode.vyper_version == semver::Version::new(0, 3, 10) {
+        let evm_version = if mode.vyper_version >= semver::Version::new(0, 3, 10) {
             Some(era_compiler_common::EVMVersion::Cancun)
         } else {
             None
@@ -181,12 +173,10 @@ impl VyperCompiler {
             let mut contract_identifiers = BTreeMap::new();
             for (entry, hash) in contract_abi.iter() {
                 let selector =
-                    u32::from_str_radix(&hash[2..], era_compiler_common::BASE_HEXADECIMAL)
+                    u32::from_str_radix(hash.strip_prefix("0x").unwrap_or(hash), era_compiler_common::BASE_HEXADECIMAL)
                         .map_err(|error| {
                             anyhow::anyhow!(
-                                "Invalid selector `{}` received from the Vyper compiler: {}",
-                                hash,
-                                error
+                                "Invalid selector `{hash}` in contract `{path}` received from the Vyper compiler: {error}"
                             )
                         })?;
                 contract_identifiers.insert(entry.clone(), selector);
@@ -206,7 +196,7 @@ impl VyperCompiler {
     ) -> anyhow::Result<()> {
         let vyper = Self::executable(&mode.vyper_version)?;
 
-        let evm_version = if mode.vyper_version == semver::Version::new(0, 3, 10) {
+        let evm_version = if mode.vyper_version >= semver::Version::new(0, 3, 10) {
             Some(era_compiler_common::EVMVersion::Cancun)
         } else {
             None
@@ -254,10 +244,10 @@ impl Compiler for VyperCompiler {
 
         let project = self
             .get_project_cached(test_path, sources, mode)
-            .map_err(|error| anyhow::anyhow!("Failed to get vyper project: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to get the Vyper project: {error}"))?;
 
         let method_identifiers = Self::get_method_identifiers(&project)
-            .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {error}"))?;
 
         let build = project.compile(
             None,
