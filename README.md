@@ -123,6 +123,21 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 When the build succeeds, you can run the tests using [the examples below](#usage).
 
+## GitHub Actions
+
+The `era-compiler-tester` is integrated into the GitHub Actions workflows of the following projects:
+
+* [era-compiler-llvm](https://github.com/matter-labs/era-compiler-llvm)
+* [era-solidity](https://github.com/matter-labs/era-solidity/)
+
+To allow testing custom FE and VM changes in the Pull Requests (PRs) of these repositories, two additional tags are supported:
+* `era-solidity-test`
+* `era-compiler-llvm-test`
+
+If these tags exist, the tester from these tags will be used by the workflows instead of the default `main` branch.
+
+When testing is done, these tags should be removed.
+
 ## What is supported
 
 ### Languages
