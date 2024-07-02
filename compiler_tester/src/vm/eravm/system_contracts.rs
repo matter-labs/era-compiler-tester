@@ -121,16 +121,11 @@ impl SystemContracts {
     pub fn load_or_build(
         solc_version: semver::Version,
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-        system_contracts_load_path: Option<PathBuf>,
+        _system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
     ) -> anyhow::Result<Self> {
-        let system_contracts = if let Some(system_contracts_path) = system_contracts_load_path {
-            Self::load(system_contracts_path)
-                .map_err(|error| anyhow::anyhow!("System contracts loading: {}", error))?
-        } else {
-            Self::build(solc_version, system_contracts_debug_config)
-                .map_err(|error| anyhow::anyhow!("System contracts building: {}", error))?
-        };
+        let system_contracts = Self::build(solc_version, system_contracts_debug_config)
+            .map_err(|error| anyhow::anyhow!("System contracts building: {}", error))?;
 
         if let Some(system_contracts_save_path) = system_contracts_save_path {
             system_contracts
