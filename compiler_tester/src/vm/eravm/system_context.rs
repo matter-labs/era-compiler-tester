@@ -211,6 +211,22 @@ impl SystemContext {
             );
         }
 
+        let rich_addresses: Vec<Address> = (0..=9)
+            .map(|address_id| format!("0x121212121212121212121212121212000000{}{}", id, "012"))
+            .map(|s| Address::from_str(&s).unwrap())
+            .collect();
+        rich_addresses.iter().for_each(|address| {
+            let address_h256 = Self::address_to_h256(address);
+            let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
+            let key = keccak256(&bytes).into();
+            let storage_key = StorageKey {
+                address: Self::L2_ETH_TOKEN_ADDRESS,
+                key,
+            };
+            let initial_balance = u256_to_h256(&(U256::from(1) << 100));
+            storage.insert(storage_key, initial_balance);
+        });
+
         storage
     }
 }
