@@ -71,7 +71,8 @@ impl SystemContext {
     /// The default block difficulty for EraVM tests.
     const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
     /// The default block difficulty for EVM tests.
-    const BLOCK_DIFFICULTY_EVM: &str = "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    const BLOCK_DIFFICULTY_EVM: &str =
+        "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
     const BASE_FEE: u64 = 7;
@@ -145,8 +146,13 @@ impl SystemContext {
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
                 match target {
-                    Target::EraVM => web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM),
-                    Target::EVMInterpreter | Target::EVM => web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM).expect("Always valid"),
+                    Target::EraVM => {
+                        web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
+                    }
+                    Target::EVMInterpreter | Target::EVM => {
+                        web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM)
+                            .expect("Always valid")
+                    }
                 },
             ),
             (
@@ -161,11 +167,7 @@ impl SystemContext {
             ),
         ];
 
-        let block_info_bytes = [
-            block_number.to_be_bytes(),
-            block_timestamp.to_be_bytes(),
-        ]
-        .concat();
+        let block_info_bytes = [block_number.to_be_bytes(), block_timestamp.to_be_bytes()].concat();
 
         system_context_values.push((
             web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION),
@@ -183,8 +185,8 @@ impl SystemContext {
             let mut hash = web3::types::U256::from_str(match target {
                 Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
                 Target::EVMInterpreter | Target::EVM => Self::ZERO_BLOCK_HASH_EVM,
-        })
-                .expect("Invalid zero block hash const");
+            })
+            .expect("Invalid zero block hash const");
             hash = hash.add(web3::types::U256::from(index));
             let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
             hash.to_big_endian(&mut hash_bytes);
