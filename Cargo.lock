@@ -270,7 +270,7 @@ dependencies = [
  "which",
  "zkevm-assembly",
  "zkevm_opcode_defs",
- "zkevm_tester 1.5.0 (git+https://github.com/lambdaclass/era-zkevm_tester?branch=debug-tracer-with-prints)",
+ "zkevm_tester",
 ]
 
 [[package]]
@@ -285,7 +285,7 @@ dependencies = [
  "semver",
  "solidity-adapter",
  "zkevm-assembly",
- "zkevm_tester 1.5.0 (git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0)",
+ "zkevm_tester",
 ]
 
 [[package]]
@@ -3047,26 +3047,6 @@ dependencies = [
  "serde",
  "sha2",
  "sha3",
-]
-
-[[package]]
-name = "zkevm_tester"
-version = "1.5.0"
-source = "git+https://github.com/lambdaclass/era-zkevm_tester?branch=debug-tracer-with-prints#93fce49780e7b5b21546399a178b101b1a44f75d"
-dependencies = [
- "anyhow",
- "ethabi",
- "futures",
- "hex",
- "num-bigint",
- "num-traits",
- "serde",
- "serde_json",
- "sha2",
- "tracing",
- "vlog",
- "zk_evm",
- "zkevm-assembly",
 ]
 
 [[package]]

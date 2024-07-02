@@ -21,8 +21,8 @@ use std::time::Instant;
 
 use colored::Colorize;
 
-use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::target::Target;
+use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::system_context::SystemContext;
