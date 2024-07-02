@@ -6,7 +6,12 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
+use web3::signing::keccak256;
+use web3::types::{Address, H160, H256, U256};
+use zkevm_tester::runners::compiler_tests::StorageKey;
+
 use crate::target::Target;
+use crate::utils::u256_to_h256;
 
 ///
 /// The EraVM system context.
@@ -93,6 +98,17 @@ impl SystemContext {
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373738";
+    
+    pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x80, 0x0a,
+    ]);
+
+    pub fn address_to_h256(address: &Address) -> H256 {
+        let mut buffer = [0u8; 32];
+        buffer[12..].copy_from_slice(address.as_bytes());
+        H256(buffer)
+    }
 
     ///
     /// Returns the storage values for the system context.
@@ -212,7 +228,7 @@ impl SystemContext {
         }
 
         let rich_addresses: Vec<Address> = (0..=9)
-            .map(|address_id| format!("0x121212121212121212121212121212000000{}{}", id, "012"))
+            .map(|address_id| format!("0x121212121212121212121212121212000000{}{}", address_id, "012"))
             .map(|s| Address::from_str(&s).unwrap())
             .collect();
         rich_addresses.iter().for_each(|address| {
