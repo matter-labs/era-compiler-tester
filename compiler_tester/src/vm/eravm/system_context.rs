@@ -98,10 +98,10 @@ impl SystemContext {
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373738";
-    
+
     pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x80, 0x0a,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x80, 0x0a,
     ]);
 
     pub fn address_to_h256(address: &Address) -> H256 {
@@ -228,7 +228,12 @@ impl SystemContext {
         }
 
         let rich_addresses: Vec<Address> = (0..=9)
-            .map(|address_id| format!("0x121212121212121212121212121212000000{}{}", address_id, "012"))
+            .map(|address_id| {
+                format!(
+                    "0x121212121212121212121212121212000000{}{}",
+                    address_id, "012"
+                )
+            })
             .map(|s| Address::from_str(&s).unwrap())
             .collect();
         rich_addresses.iter().for_each(|address| {
@@ -242,6 +247,19 @@ impl SystemContext {
             let initial_balance = u256_to_h256(&(U256::from(1) << 100));
             storage.insert(storage_key, initial_balance);
         });
+
+        // Fund the 0x01 address with 1 token to match the solidity tests behavior.
+        let address_h256 = Self::address_to_h256(
+            &Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+        );
+        let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
+        let key = keccak256(&bytes).into();
+        let storage_key = StorageKey {
+            address: Self::L2_ETH_TOKEN_ADDRESS,
+            key,
+        };
+        let initial_balance = u256_to_h256(&(U256::from(1)));
+        storage.insert(storage_key, initial_balance);
 
         storage
     }
