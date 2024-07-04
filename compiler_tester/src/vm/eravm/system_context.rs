@@ -76,8 +76,8 @@ impl SystemContext {
     /// The default block difficulty for EraVM tests.
     const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
     /// The default block difficulty for EVM tests.
-    const BLOCK_DIFFICULTY_EVM: &str =
-        "0x000000000000000000000000000000000000000000000000000000000bebc200";
+    const BLOCK_DIFFICULTY_EVM: &'static str =
+        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
 
     /// The default base fee for tests.
     const BASE_FEE: u64 = 7;
@@ -97,7 +97,7 @@ impl SystemContext {
         "0x3737373737373737373737373737373737373737373737373737373737373737";
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
-        "0x3737373737373737373737373737373737373737373737373737373737373738";
+        "0x3737373737373737373737373737373737373737373737373737373737373737";
 
     pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
