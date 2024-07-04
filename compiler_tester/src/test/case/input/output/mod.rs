@@ -113,10 +113,10 @@ impl Output {
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
-                value_str = value_str.replace(
+                /*value_str = value_str.replace(
                     solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
                     &crate::utils::address_as_string(contract_address),
-                );
+                );*/
                 Value::Certain(
                     web3::types::U256::from_str(&value_str)
                         .expect("Solidity adapter default contract address constant is invalid"),
