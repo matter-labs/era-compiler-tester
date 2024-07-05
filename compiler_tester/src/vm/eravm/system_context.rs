@@ -75,9 +75,12 @@ impl SystemContext {
 
     /// The default block difficulty for EraVM tests.
     const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
-    /// The default block difficulty for EVM tests.
-    const BLOCK_DIFFICULTY_EVM: &'static str =
+    /// The block difficulty for EVM tests using a post paris version.
+    const BLOCK_DIFFICULTY_EVM_POST_PARIS: &'static str =
         "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    /// The block difficulty for EVM tests using a pre paris version.
+    const BLOCK_DIFFICULTY_EVM_PRE_PARIS: &'static str =
+        "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
     const BASE_FEE: u64 = 7;
@@ -108,6 +111,24 @@ impl SystemContext {
         let mut buffer = [0u8; 32];
         buffer[12..].copy_from_slice(address.as_bytes());
         H256(buffer)
+    }
+
+    pub fn set_pre_paris_contracts(storage: &mut HashMap<StorageKey, H256>) {
+        storage.insert(
+            zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                ),
+                key: web3::types::U256::from_big_endian(
+                    web3::types::H256::from_low_u64_be(
+                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
+                    )
+                    .as_bytes(),
+                ),
+            },
+            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
+                .expect("Always valid"),
+        );
     }
 
     ///
@@ -165,8 +186,9 @@ impl SystemContext {
                     Target::EraVM => {
                         web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
                     }
+                    // This block difficulty is setted by default, but it can be overriden if the test needs it.
                     Target::EVMInterpreter | Target::EVM => {
-                        web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM)
+                        web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM_POST_PARIS)
                             .expect("Always valid")
                     }
                 },
