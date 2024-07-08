@@ -108,6 +108,32 @@ impl Test {
     }
 
     ///
+    /// Runs the test on REVM.
+    ///
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>) {
+        for case in self.cases {
+            /*let config = evm::standard::Config::shanghai();
+            let etable =
+                evm::Etable::<evm::standard::State, EVMRuntime, evm::trap::CallCreateTrap>::runtime(
+                );
+            let resolver = evm::standard::EtableResolver::new(&config, &(), &etable);
+            let invoker = EVMInvoker::new(&config, &resolver);
+
+            let vm = EVM::new(self.evm_builds.clone(), invoker);
+            case.run_evm(
+                summary.clone(),
+                vm,
+                &self.mode,
+                self.name.clone(),
+                self.group.clone(),
+            );*/
+
+            let vm = revm::Evm::builder().build();
+            case.run_revm(summary.clone(),vm,&self.mode, self.name.clone(), self.group.clone(), self.evm_builds.clone());
+        }
+    }
+
+    ///
     /// Runs the test on EVM interpreter.
     ///
     pub fn run_evm_interpreter<D, const M: bool>(self, summary: Arc<Mutex<Summary>>, vm: Arc<EraVM>)

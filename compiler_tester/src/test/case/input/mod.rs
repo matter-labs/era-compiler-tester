@@ -13,6 +13,8 @@ pub mod storage_empty;
 pub mod value;
 
 use std::collections::BTreeMap;
+use std::collections::HashMap;
+use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -23,6 +25,7 @@ use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
+use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
 use self::balance::Balance;
@@ -410,6 +413,35 @@ impl Input {
             }
             Self::Balance(balance_check) => {
                 balance_check.run_evm(summary, vm, mode, test_group, name_prefix, index)
+            }
+        };
+    }
+
+    ///
+    /// Runs the input on EVM.
+    ///
+    pub fn run_revm<EXT, DB: revm::db::Database>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut revm::Evm<EXT, DB>,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+        evm_builds: HashMap<String, Build, RandomState>
+    ) {
+        
+        match self {
+            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
+            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, mode, test_group, name_prefix,evm_builds),
+            Self::Runtime(runtime) => {
+                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::StorageEmpty(storage_empty) => {
+                //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::Balance(balance_check) => {
+                balance_check.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
         };
     }

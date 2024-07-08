@@ -5,6 +5,8 @@
 pub mod input;
 
 use std::collections::BTreeMap;
+use std::collections::HashMap;
+use std::hash::RandomState;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -14,6 +16,7 @@ use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
+use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
 use self::input::Input;
@@ -145,6 +148,37 @@ impl Case {
                 test_group.clone(),
                 name.clone(),
                 index,
+            )
+        }
+    }
+
+    ///
+    /// Runs the case on REVM.
+    ///
+    pub fn run_revm<EXT, DB: revm::db::Database>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        mut vm: revm::Evm<EXT, DB>,
+        mode: &Mode,
+        test_name: String,
+        test_group: Option<String>,
+        evm_builds: HashMap<String, Build, RandomState>,
+    ) {
+        let name = if let Some(case_name) = self.name {
+            format!("{test_name}::{case_name}")
+        } else {
+            test_name
+        };
+
+        for (index, input) in self.inputs.into_iter().enumerate() {
+            input.run_revm(
+                summary.clone(),
+                &mut vm,
+                mode.clone(),
+                test_group.clone(),
+                name.clone(),
+                index,
+                evm_builds,
             )
         }
     }

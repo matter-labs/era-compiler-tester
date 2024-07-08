@@ -2,6 +2,8 @@
 //! The EVM deploy contract call input variant.
 //!
 
+use std::collections::HashMap;
+use std::hash::RandomState;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -12,6 +14,7 @@ use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
+use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
 ///
@@ -108,6 +111,59 @@ impl DeployEVM {
                 self.calldata.inner,
             );
         }
+    }
+
+    ///
+    /// Runs the deploy transaction on native REVM.
+    ///
+    pub fn run_revm<EXT,DB: revm::db::Database>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut revm::Evm<EXT,DB>,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        evm_builds: HashMap<String, Build, RandomState>,
+    ) {
+        let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
+
+        //vm.populate_storage(self.storage.inner);
+        let build = evm_builds.get(self.identifier.as_str()).expect("Always valid");
+        let mut deploy_code = build.deploy_build.bytecode.to_owned();
+        deploy_code.extend(self.calldata.inner.clone());
+        /*let result = match vm.execute_deploy_code(
+            name.clone(),
+            self.identifier.as_str(),
+            self.caller,
+            self.value,
+            self.calldata.inner.clone(),
+        ) {
+            Ok(execution_result) => execution_result,
+            Err(error) => {
+                Summary::invalid(summary, Some(mode), name, error);
+                return;
+            }
+        };
+        if result.output == self.expected {
+            Summary::passed_runtime(
+                summary,
+                mode,
+                name,
+                test_group,
+                result.cycles,
+                0,
+                result.gas,
+            );
+        } else {
+            Summary::failed(
+                summary,
+                mode,
+                name,
+                self.expected,
+                result.output,
+                self.calldata.inner,
+            );
+        }*/
     }
 
     ///

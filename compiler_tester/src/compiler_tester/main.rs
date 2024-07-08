@@ -174,6 +174,10 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             compiler_tester::EVM::download(binary_download_config_paths)?;
             compiler_tester.run_evm(arguments.use_upstream_solc)
         }
+        compiler_tester::Target::REVM => {
+            compiler_tester::EVM::download(binary_download_config_paths)?;
+            compiler_tester.run_revm(arguments.use_upstream_solc)
+        }
         target @ compiler_tester::Target::EVMInterpreter => {
             zkevm_tester::runners::compiler_tests::set_tracing_mode(
                 zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(

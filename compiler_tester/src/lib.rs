@@ -189,6 +189,38 @@ impl CompilerTester {
     }
 
     ///
+    /// Runs all tests on REVM.
+    ///
+    pub fn run_revm(self, use_upstream_solc: bool) -> anyhow::Result<()> {
+        let tests = self.all_tests(Target::REVM, use_upstream_solc)?;
+
+        let _: Vec<()> = tests
+            .into_par_iter()
+            .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
+                if let Some(test) = test.build_for_evm(
+                    mode,
+                    compiler,
+                    Target::REVM,
+                    self.summary.clone(),
+                    &self.filters,
+                    specialized_debug_config,
+                ) {
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_revm(self.summary.clone())
+                    };
+                }
+            })
+            .collect();
+
+        Ok(())
+    }
+
+    ///
     /// Runs all tests on EVM interpreter.
     ///
     pub fn run_evm_interpreter<D, const M: bool>(
@@ -305,7 +337,7 @@ impl CompilerTester {
             target,
             match target {
                 Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                Target::EVMInterpreter | Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+                Target::EVMInterpreter | Target::EVM | Target::REVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
             },
             era_compiler_common::EXTENSION_SOLIDITY,
             if use_upstream_solc {
