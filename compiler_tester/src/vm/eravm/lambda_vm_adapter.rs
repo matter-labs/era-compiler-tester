@@ -115,7 +115,7 @@ pub fn run_vm(
     vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
     vm.registers[5] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
 
-    let result = lambda_vm::run_program_with_custom_bytecode(vm, initial_program, &mut storage);
+    let result = lambda_vm::run_program_with_custom_bytecode(vm, initial_program, &mut storage, &entry_address);
 
     let mut result_vec: [u8; 32] = [0; 32];
     result.0.to_big_endian(&mut result_vec);
