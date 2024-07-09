@@ -9,4 +9,4 @@
 [submodule "era-contracts"]
 	path = era-contracts
 	url = https://github.com/lambdaclass/era-contracts
-	branch = fix-compiler-tester-bugs
+	branch = evm-equivalence-yul
