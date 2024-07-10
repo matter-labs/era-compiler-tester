@@ -7,9 +7,13 @@ use std::hash::RandomState;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use revm::db::states::plain_account::PlainStorage;
+use revm::primitives::hex::FromHex;
 use revm::primitives::Address;
+use revm::primitives::Bytes;
 use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
+use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Evm;
 use zkevm_opcode_defs::p256::U256 as ZKU256;
@@ -146,7 +150,7 @@ impl DeployEVM {
         //env.block.number = ;
         //env.block.coinbase = ;
         //env.block.timestamp = ;
-        env.block.gas_limit = U256::from(0xffffffff_u32);
+        //env.block.gas_limit = U256::from(0xffffffff_u32);
         //env.block.basefee = ;
         //env.block.difficulty = ;
         //env.block.prevrandao = ;
@@ -158,14 +162,24 @@ impl DeployEVM {
         //env.tx.gas_priority_fee = ;
         //env.tx.blob_hashes = ;
         //env.tx.max_fee_per_blob_gas = 
-        //env.tx.gas_limit = ;;
+        env.tx.gas_limit = 0xffffffff;
         env.tx.data = revm::primitives::Bytes::from(deploy_code);
         env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
         env.tx.access_list = vec![];
         //env.tx.transact_to = ;
 
+        let mut cache_state = revm::CacheState::new(false);
 
-        let mut state = revm::db::State::builder()
+        let acc_info = revm::primitives::AccountInfo {
+            balance: U256::MAX,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+            nonce: 1,
+        };
+        cache_state.insert_account_with_storage(env.tx.caller, acc_info, PlainStorage::default());
+
+
+        let mut state = revm::db::State::builder().with_cached_prestate(cache_state)
                     .build();
                 let mut evm = Evm::builder()
                     .with_db(&mut state)
@@ -181,7 +195,7 @@ impl DeployEVM {
                         bytes
                     }
                     revm::primitives::Output::Create(bytes,address) => {
-                        bytes
+                        Bytes::from_hex(address.unwrap()).unwrap()
                     }
                 };
                 let mut return_data = vec![];
