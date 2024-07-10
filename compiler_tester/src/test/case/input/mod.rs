@@ -418,7 +418,7 @@ impl Input {
     }
 
     ///
-    /// Runs the input on EVM.
+    /// Runs the input on REVM.
     ///
     pub fn run_revm<EXT, DB: revm::db::Database>(
         self,
@@ -435,9 +435,10 @@ impl Input {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
             Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, mode, test_group, name_prefix,evm_builds),
             Self::Runtime(runtime) => {
-                //runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
+                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::StorageEmpty(storage_empty) => {
+                todo!()
                 //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Balance(balance_check) => {

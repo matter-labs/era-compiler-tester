@@ -8,11 +8,13 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::db::states::plain_account::PlainStorage;
+use revm::primitives::bitvec::view::BitViewSized;
 use revm::primitives::hex::FromHex;
 use revm::primitives::Address;
 use revm::primitives::Bytes;
 use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
+use revm::primitives::TxKind;
 use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Evm;
@@ -166,7 +168,7 @@ impl DeployEVM {
         env.tx.data = revm::primitives::Bytes::from(deploy_code);
         env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
         env.tx.access_list = vec![];
-        //env.tx.transact_to = ;
+        env.tx.transact_to = TxKind::Create;
 
         let mut cache_state = revm::CacheState::new(false);
 
@@ -187,7 +189,7 @@ impl DeployEVM {
                     .build();
 
         let res = evm.transact_commit().expect("Execution Error");
-
+        
         let output = match res {
             ExecutionResult::Success{reason, gas_used, gas_refunded, logs, output} => {
                 let bytes = match output {
@@ -195,7 +197,8 @@ impl DeployEVM {
                         bytes
                     }
                     revm::primitives::Output::Create(bytes,address) => {
-                        Bytes::from_hex(address.unwrap()).unwrap()
+                        let addr_slice = address.unwrap();
+                        Bytes::from(addr_slice.into_word())
                     }
                 };
                 let mut return_data = vec![];
