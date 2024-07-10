@@ -426,16 +426,16 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<'a, EXT,DB: Database + DatabaseCommit>(
+    pub fn run_revm<'a, EXT,DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: revm::Evm<'a, EXT,DB>,
+        mut vm: revm::Evm<'a, EXT,revm::db::State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
         evm_builds: &HashMap<String, Build, RandomState>
-    ) -> revm::Evm<'a, EXT,DB> {
+    ) -> revm::Evm<'a, EXT,State<DB>> {
         
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
@@ -444,8 +444,8 @@ impl Input {
                 runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::StorageEmpty(storage_empty) => {
-                todo!();
-                //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
             }
             Self::Balance(balance_check) => {
                 balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);

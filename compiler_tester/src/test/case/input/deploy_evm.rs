@@ -142,15 +142,15 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm<'a, EXT,DB: Database + DatabaseCommit>(
+    pub fn run_revm<'a, EXT,DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: revm::Evm<'a, EXT,DB>,
+        vm: revm::Evm<'a, EXT,State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         evm_builds: &HashMap<String, Build, RandomState>,
-    ) -> revm::Evm<'a, EXT,DB> {
+    ) -> revm::Evm<'a, EXT,State<DB>> {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
         //vm.populate_storage(self.storage.inner);
@@ -158,7 +158,7 @@ impl DeployEVM {
         let mut deploy_code = build.deploy_build.bytecode.to_owned();
         deploy_code.extend(self.calldata.inner.clone());
 
-        let mut new_vm: Evm<EXT, DB> = vm.modify().modify_env(|env| {
+        let mut new_vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
              // env.cfg.chain_id = ;
             //env.block.number = ;
             //env.block.coinbase = ;
@@ -179,19 +179,6 @@ impl DeployEVM {
             env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
             env.tx.access_list = vec![];
             env.tx.transact_to = TxKind::Create;
-        }).modify_db(|db| {
-            let acc_info = revm::primitives::AccountInfo {
-                balance: U256::MAX,
-                code_hash: KECCAK_EMPTY,
-                code: None,
-                nonce: 1,
-            };
-            let mut changes = HashMap::new();
-            let caller_bytes: &mut [u8; 32] = &mut [0; 32];
-            web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
-            let account = Account{info: acc_info, storage: HashMap::new(), status: AccountStatus::Created};
-            changes.insert(Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes)), account);
-            db.commit(changes);
         }).build();
         let caller_bytes: &mut [u8; 32] = &mut [0; 32];
         web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);

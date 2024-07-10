@@ -5,6 +5,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use revm::db::State;
 use revm::primitives::Address;
 use web3::types::U256;
 
@@ -83,7 +84,7 @@ impl Balance {
     pub fn run_revm<'a,EXT, DB: revm::db::Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut revm::Evm<'a, EXT, DB>,
+        vm: &mut revm::Evm<'a, EXT, State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,

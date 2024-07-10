@@ -191,18 +191,18 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm<'a, EXT,DB: Database + DatabaseCommit>(
+    pub fn run_revm<'a, EXT,DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: revm::Evm<'a, EXT,DB>,
+        vm: revm::Evm<'a, EXT,revm::State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
-    ) -> revm::Evm<'a, EXT,DB> {
+    ) -> revm::Evm<'a, EXT,State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
-        let mut vm: Evm<EXT, DB> = vm.modify().modify_env(|env| {
+        let mut vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
             // env.cfg.chain_id = ;
             //env.block.number = ;
             //env.block.coinbase = ;
@@ -225,19 +225,6 @@ impl Runtime {
             let address_bytes: &mut [u8; 32] = &mut [0; 32];
             web3::types::U256::from(self.address.as_bytes()).to_big_endian(address_bytes);
             env.tx.transact_to = TxKind::Call(Address::from_word(revm::primitives::FixedBytes::new(*address_bytes)));
-       }).modify_db(|db| {
-           let acc_info = revm::primitives::AccountInfo {
-               balance: U256::MAX,
-               code_hash: KECCAK_EMPTY,
-               code: None,
-               nonce: 1,
-           };
-           let mut changes = HashMap::new();
-           let caller_bytes: &mut [u8; 32] = &mut [0; 32];
-           web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
-           let account = Account{info: acc_info, storage: HashMap::new(), status: AccountStatus::Created};
-           changes.insert(Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes)), account);
-           db.commit(changes);
        }).build();
 
        let res = match vm.transact_commit() {
