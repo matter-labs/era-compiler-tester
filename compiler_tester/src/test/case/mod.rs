@@ -178,7 +178,7 @@ impl Case {
                 test_group.clone(),
                 name.clone(),
                 index,
-                evm_builds,
+                &evm_builds,
             )
         }
     }
