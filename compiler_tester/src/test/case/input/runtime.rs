@@ -33,6 +33,8 @@ use crate::vm::eravm::EraVM;
 use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
+use super::output::event::Event;
+
 ///
 /// The contract call input variant.
 #[derive(Debug, Clone)]
@@ -273,7 +275,30 @@ impl Runtime {
                         return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
                     }
                 }
-                let output = Output::new(return_data_value, false, vec![]);
+                let events = logs.into_iter().map(|log| {
+                    let mut topics = vec![];
+                    for topic in log.data.topics().iter() {
+                        let mut topic_value = [0u8; 32];
+                        topic_value.copy_from_slice(topic.as_slice());
+                        topics.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&topic_value)));
+                    }
+                    let mut data = vec![];
+                    data.extend_from_slice(&log.data.data);
+                    let mut data_value = vec![];
+                    for data in data.chunks(32) {
+                        if data.len() < 32 {
+                            let mut value = [0u8; 32];
+                            value[..data.len()].copy_from_slice(data);
+                            data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                        } else {
+                            let mut value = [0u8; 32];
+                            value.copy_from_slice(data);
+                            data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                        }
+                    }
+                    Event::new(Some(web3::types::Address::from_slice(&log.address.as_slice())), topics, data_value)
+                }).collect();
+                let output = Output::new(return_data_value, false, events);
                 output
             }
             ExecutionResult::Revert{gas_used, output} => {
@@ -281,9 +306,15 @@ impl Runtime {
                 return_data.extend_from_slice(&output);
                 let mut return_data_value = vec![];
                 for data in return_data.chunks(32) {
-                    let mut value = [0u8; 32];
-                    value.copy_from_slice(data);
-                    return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                    if data.len() < 32 {
+                        let mut value = [0u8; 32];
+                        value[..data.len()].copy_from_slice(data);
+                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                    } else {
+                        let mut value = [0u8; 32];
+                        value.copy_from_slice(data);
+                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                    }
                 }
                 let output = Output::new(return_data_value, true, vec![]);
                 output
