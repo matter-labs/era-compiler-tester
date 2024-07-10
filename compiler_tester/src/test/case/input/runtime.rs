@@ -3,11 +3,16 @@
 //!
 
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::hash::RandomState;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::db::states::plain_account::PlainStorage;
+use revm::db::EmptyDBTyped;
+use revm::db::State;
+use revm::primitives::Account;
+use revm::primitives::AccountStatus;
 use revm::primitives::Address;
 use revm::primitives::Bytes;
 use revm::primitives::Env;
@@ -15,6 +20,8 @@ use revm::primitives::ExecutionResult;
 use revm::primitives::TxKind;
 use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
+use revm::Database;
+use revm::DatabaseCommit;
 use revm::Evm;
 
 use crate::compilers::mode::Mode;
@@ -182,65 +189,64 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm<EXT, DB: revm::db::Database>(
+    pub fn run_revm<'a, EXT,DB: Database + DatabaseCommit>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut revm::Evm<EXT, DB>,
+        vm: revm::Evm<'a, EXT,DB>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
-    ) {
+    ) -> revm::Evm<'a, EXT,DB> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
+        let mut vm: Evm<EXT, DB> = vm.modify().modify_env(|env| {
+            // env.cfg.chain_id = ;
+            //env.block.number = ;
+            //env.block.coinbase = ;
+            //env.block.timestamp = ;
+            //env.block.gas_limit = U256::from(0xffffffff_u32);
+            //env.block.basefee = ;
+            //env.block.difficulty = ;
+            //env.block.prevrandao = ;
+            let caller_bytes: &mut [u8; 32] = &mut [0; 32];
+            web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
+            env.tx.caller = Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes));
+            env.tx.gas_price = U256::from(0xb2d05e00_u32);
+            //env.tx.gas_priority_fee = ;
+            //env.tx.blob_hashes = ;
+            //env.tx.max_fee_per_blob_gas = 
+            env.tx.gas_limit = 0xffffffff;
+            env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
+            env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
+            env.tx.access_list = vec![];
+            let address_bytes: &mut [u8; 32] = &mut [0; 32];
+            web3::types::U256::from(self.address.as_bytes()).to_big_endian(address_bytes);
+            env.tx.transact_to = TxKind::Call(Address::from_word(revm::primitives::FixedBytes::new(*address_bytes)));
+       }).modify_db(|db| {
+           let acc_info = revm::primitives::AccountInfo {
+               balance: U256::MAX,
+               code_hash: KECCAK_EMPTY,
+               code: None,
+               nonce: 1,
+           };
+           let mut changes = HashMap::new();
+           let caller_bytes: &mut [u8; 32] = &mut [0; 32];
+           web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
+           let account = Account{info: acc_info, storage: HashMap::new(), status: AccountStatus::Created};
+           changes.insert(Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes)), account);
+           db.commit(changes);
+       }).build();
+
+       let res = match vm.transact_commit() {
+           Ok(res) => res,
+           Err(error) => {
+               Summary::invalid(summary, Some(mode), name, "error on commit");
+               return vm;
+           }
+       };
+
         //vm.populate_storage(self.storage.inner)
-
-        let mut env = Box::<Env>::default();
-
-
-        // env.cfg.chain_id = ;
-        //env.block.number = ;
-        //env.block.coinbase = ;
-        //env.block.timestamp = ;
-        //env.block.gas_limit = U256::from(0xffffffff_u32);
-        //env.block.basefee = ;
-        //env.block.difficulty = ;
-        //env.block.prevrandao = ;
-
-        let caller_bytes: &mut [u8; 32] = &mut [0; 32];
-        web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
-        env.tx.caller = Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes));
-        env.tx.gas_price = U256::from(0xb2d05e00_u32);
-        //env.tx.gas_priority_fee = ;
-        //env.tx.blob_hashes = ;
-        //env.tx.max_fee_per_blob_gas = 
-        env.tx.gas_limit = 0xffffffff;
-        env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
-        env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
-        env.tx.access_list = vec![];
-        let address_bytes: &mut [u8; 32] = &mut [0; 32];
-        web3::types::U256::from(self.caller.as_bytes()).to_big_endian(address_bytes);
-        env.tx.transact_to = TxKind::Call(Address::from_word(revm::primitives::FixedBytes::new(*address_bytes)));
-
-        let mut cache_state = revm::CacheState::new(false);
-
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::MAX,
-            code_hash: KECCAK_EMPTY,
-            code: None,
-            nonce: 1,
-        };
-        cache_state.insert_account_with_storage(env.tx.caller, acc_info, PlainStorage::default());
-
-
-        let mut state = revm::db::State::builder().with_cached_prestate(cache_state)
-                    .build();
-                let mut evm = Evm::builder()
-                    .with_db(&mut state)
-                    .modify_env(|e| e.clone_from(&env))
-                    .build();
-
-        let res = evm.transact_commit().expect("Execution Error");
         
         let output = match res {
             ExecutionResult::Success{reason, gas_used, gas_refunded, logs, output} => {
@@ -257,9 +263,15 @@ impl Runtime {
                 return_data.extend_from_slice(&bytes);
                 let mut return_data_value = vec![];
                 for data in return_data.chunks(32) {
-                    let mut value = [0u8; 32];
-                    value.copy_from_slice(data);
-                    return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                    if data.len() < 32 {
+                        let mut value = [0u8; 32];
+                        value[..data.len()].copy_from_slice(data);
+                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                    } else {
+                        let mut value = [0u8; 32];
+                        value.copy_from_slice(data);
+                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
+                    }
                 }
                 let output = Output::new(return_data_value, false, vec![]);
                 output
@@ -300,7 +312,27 @@ impl Runtime {
                 output,
                 self.calldata.inner,
             );
-        }
+        };
+        vm
+    }
+
+    pub fn add_balance(&self, cache: &mut revm::CacheState) {
+        let acc_info = revm::primitives::AccountInfo {
+            balance: U256::MAX,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+            nonce: 1,
+        };
+        let caller_bytes: &mut [u8; 32] = &mut [0; 32];
+        web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
+        let acc_info = revm::primitives::AccountInfo {
+            balance: U256::MAX,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+            nonce: 1,
+        };
+
+        cache.insert_account_with_storage(Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes)), acc_info, PlainStorage::default());
     }
 
     ///

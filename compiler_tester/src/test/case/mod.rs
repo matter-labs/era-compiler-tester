@@ -6,9 +6,15 @@ pub mod input;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::hash::RandomState;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use revm::db::EmptyDBTyped;
+use revm::db::State;
+use revm::Database;
+use revm::DatabaseCommit;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
@@ -155,10 +161,9 @@ impl Case {
     ///
     /// Runs the case on REVM.
     ///
-    pub fn run_revm<EXT, DB: revm::db::Database>(
+    pub fn run_revm(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: revm::Evm<EXT, DB>,
         mode: &Mode,
         test_name: String,
         test_group: Option<String>,
@@ -170,10 +175,17 @@ impl Case {
             test_name
         };
 
+        let mut cache = revm::CacheState::new(false);
+        for input in self.inputs.iter() {
+            input.add_balance(&mut cache);
+        }
+        let state = revm::db::State::builder().with_cached_prestate(cache).with_bundle_update().build();
+        let mut vm = revm::Evm::builder().with_db(state).build();
+
         for (index, input) in self.inputs.into_iter().enumerate() {
-            input.run_revm(
+            vm = input.run_revm(
                 summary.clone(),
-                &mut vm,
+                vm,
                 mode.clone(),
                 test_group.clone(),
                 name.clone(),

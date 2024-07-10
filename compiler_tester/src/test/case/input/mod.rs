@@ -14,10 +14,16 @@ pub mod value;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use revm::db::EmptyDBTyped;
+use revm::db::State;
+use revm::Database;
+use revm::DatabaseCommit;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
@@ -420,16 +426,16 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<EXT, DB: revm::db::Database>(
+    pub fn run_revm<'a, EXT,DB: Database + DatabaseCommit>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut revm::Evm<EXT, DB>,
+        mut vm: revm::Evm<'a, EXT,DB>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
         evm_builds: &HashMap<String, Build, RandomState>
-    ) {
+    ) -> revm::Evm<'a, EXT,DB> {
         
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
@@ -438,13 +444,31 @@ impl Input {
                 runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::StorageEmpty(storage_empty) => {
-                todo!()
+                todo!();
                 //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Balance(balance_check) => {
-                balance_check.run_revm(summary, vm, mode, test_group, name_prefix, index)
+                balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
             }
-        };
+        }
+    }
+
+    pub fn add_balance(&self, cache: &mut revm::CacheState) {
+        match self {
+            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
+            Self::DeployEVM(deploy) => deploy.add_balance(cache),
+            Self::Runtime(runtime) => {
+                runtime.add_balance(cache);
+            }
+            Self::StorageEmpty(storage_empty) => {
+                
+                //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::Balance(balance_check) => {
+                
+            }
+        }
     }
 
     ///

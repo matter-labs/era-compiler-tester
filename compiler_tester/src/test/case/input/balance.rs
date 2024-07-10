@@ -80,10 +80,10 @@ impl Balance {
     ///
     /// Runs the balance check on REVM.
     ///
-    pub fn run_revm<EXT, DB: revm::db::Database>(
+    pub fn run_revm<'a,EXT, DB: revm::db::Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut revm::Evm<EXT, DB>,
+        vm: &mut revm::Evm<'a, EXT, DB>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
