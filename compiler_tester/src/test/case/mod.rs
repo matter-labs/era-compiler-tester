@@ -194,7 +194,7 @@ impl Case {
             let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase,16).unwrap();
             env.block.coinbase = web3_u256_to_revm_address(coinbase);
             env.block.timestamp = U256::from(evm_context.block_timestamp);
-            //env.block.gas_limit = U256::from(evm_context.block_gas_limit);
+            env.block.gas_limit = U256::from(evm_context.block_gas_limit);
             env.block.basefee = U256::from(evm_context.base_fee);
             let block_difficulty = web3::types::U256::from_str_radix(evm_context.block_difficulty,16).unwrap();
             env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
@@ -203,7 +203,7 @@ impl Case {
             //env.tx.gas_priority_fee = ;
             //env.tx.blob_hashes = ;
             //env.tx.max_fee_per_blob_gas = 
-            env.tx.gas_limit = 0xffffffff;
+            env.tx.gas_limit = evm_context.block_gas_limit;
             env.tx.access_list = vec![];
         }).build();
 
