@@ -202,23 +202,24 @@ impl SolidityCompiler {
             None
         };
 
-        let solc_input = era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
-            evm_version,
-            sources.iter().cloned().collect(),
-            libraries.clone(),
-            None,
-            output_selection,
-            optimizer,
-            None,
-            mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
-            mode.via_ir,
-            mode.enable_eravm_extensions,
-            false,
-            vec![],
-            vec![era_compiler_solidity::MessageType::SendTransfer],
-            vec![],
-        )
-        .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
+        let mut solc_input =
+            era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
+                evm_version,
+                sources.iter().cloned().collect(),
+                libraries.clone(),
+                None,
+                output_selection,
+                optimizer,
+                None,
+                mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
+                mode.via_ir,
+                mode.enable_eravm_extensions,
+                false,
+                vec![],
+                vec![era_compiler_solidity::MessageType::SendTransfer],
+                vec![],
+            )
+            .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
 
         let allow_paths = Path::new(Self::SOLC_ALLOW_PATHS)
             .canonicalize()
@@ -227,9 +228,8 @@ impl SolidityCompiler {
             .to_string();
 
         solc_compiler.standard_json(
-            solc_input,
+            &mut solc_input,
             Some(mode.solc_pipeline),
-            Some(&sources.iter().cloned().collect()),
             &mut vec![],
             None,
             vec![],
@@ -374,8 +374,7 @@ impl Compiler for SolidityCompiler {
             SolidityCompiler::executable(&mode.solc_version)
         }?;
 
-        let project = era_compiler_solidity::Project::try_from_solidity_sources(
-            sources.into_iter().collect::<BTreeMap<String, String>>(),
+        let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
             mode.solc_pipeline,
             &mut solc_output,
@@ -457,8 +456,7 @@ impl Compiler for SolidityCompiler {
 
         let mut solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
-        let project = era_compiler_solidity::Project::try_from_solidity_sources(
-            sources.into_iter().collect::<BTreeMap<String, String>>(),
+        let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
             mode.solc_pipeline,
             &mut solc_output,

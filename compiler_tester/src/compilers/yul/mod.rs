@@ -67,7 +67,15 @@ impl Compiler for YulCompiler {
             .clone();
 
         let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources.into_iter().collect(),
+            sources
+                .into_iter()
+                .map(|(path, source)| {
+                    (
+                        path,
+                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                    )
+                })
+                .collect(),
             BTreeMap::new(),
             None,
             solc_version.as_ref(),
@@ -130,7 +138,15 @@ impl Compiler for YulCompiler {
             .clone();
 
         let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources.into_iter().collect(),
+            sources
+                .into_iter()
+                .map(|(path, source)| {
+                    (
+                        path,
+                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                    )
+                })
+                .collect(),
             BTreeMap::new(),
             None,
             solc_version.as_ref(),
