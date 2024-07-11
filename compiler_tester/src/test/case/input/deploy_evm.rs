@@ -23,6 +23,7 @@ use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
 use revm::primitives::LogData;
 use revm::primitives::TxKind;
+use revm::primitives::B256;
 use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Database;
@@ -158,7 +159,6 @@ impl DeployEVM {
         test_group: Option<String>,
         name_prefix: String,
         evm_builds: &HashMap<String, Build, RandomState>,
-        evm_version: Option::<EVMVersion>,
     ) -> revm::Evm<'a, EXT,State<DB>> {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
@@ -168,26 +168,9 @@ impl DeployEVM {
         deploy_code.extend(self.calldata.inner.clone());
 
         let mut new_vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            let evm_context = SystemContext::get_constants_evm(evm_version);
-            env.cfg.chain_id = evm_context.chain_id;
-            env.block.number = U256::from(evm_context.block_number);
-            let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase,16).unwrap();
-            env.block.coinbase = web3_u256_to_revm_address(coinbase);
-            env.block.timestamp = U256::from(evm_context.block_timestamp);
-            //env.block.gas_limit = U256::from(evm_context.block_gas_limit);
-            env.block.basefee = U256::from(evm_context.base_fee);
-            let block_difficulty = web3::types::U256::from_str_radix(evm_context.block_difficulty,16).unwrap();
-            env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
-            //env.block.prevrandao = ;
             env.tx.caller = web3_address_to_revm_address(self.caller);
-            env.tx.gas_price = U256::from(0xb2d05e00_u32);
-            //env.tx.gas_priority_fee = ;
-            //env.tx.blob_hashes = ;
-            //env.tx.max_fee_per_blob_gas = 
-            env.tx.gas_limit = 0xffffffff;
             env.tx.data = revm::primitives::Bytes::from(deploy_code);
             env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
-            env.tx.access_list = vec![];
             env.tx.transact_to = TxKind::Create;
         }).build();
 

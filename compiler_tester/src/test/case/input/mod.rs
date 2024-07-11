@@ -438,14 +438,13 @@ impl Input {
         name_prefix: String,
         index: usize,
         evm_builds: &HashMap<String, Build, RandomState>,
-        evm_version: Option<evm_version::EVMVersion>,
     ) -> revm::Evm<'a, EXT,State<DB>> {
         
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, mode, test_group, name_prefix,evm_builds,evm_version),
+            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, mode, test_group, name_prefix,evm_builds),
             Self::Runtime(runtime) => {
-                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index,evm_version)
+                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::StorageEmpty(storage_empty) => {
                 storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);

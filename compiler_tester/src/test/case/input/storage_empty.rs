@@ -97,8 +97,10 @@ impl StorageEmpty {
         for (address,cache_account) in &vm.db().cache.accounts {
             let plain_account = cache_account.clone().account;
             if plain_account.is_some() {
-                if !plain_account.unwrap().storage.is_empty() {
-                    is_empty = false;
+                for (key, value) in plain_account.unwrap().storage.iter() {
+                    if !value.is_zero() {
+                        is_empty = false;
+                    }
                 }
             }
         };
