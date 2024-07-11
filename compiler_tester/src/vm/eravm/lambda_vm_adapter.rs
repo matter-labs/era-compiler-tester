@@ -101,9 +101,12 @@ pub fn run_vm(
 
     let initial_program = initial_decommit(&mut storage, entry_address);
 
-    let mut storage = InMemory::new_empty();
-
-    let mut vm = VMState::new(initial_program, calldata.to_vec(), entry_address, context.unwrap().msg_sender);
+    let mut vm = VMState::new(
+        initial_program,
+        calldata.to_vec(),
+        entry_address,
+        context.unwrap().msg_sender,
+    );
 
     if abi_params.is_constructor {
         vm.registers[1] |= TaggedValue::new_raw_integer(1.into());
