@@ -14,6 +14,8 @@ use crate::summary::Summary;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
 
+use super::revm_type_conversions::web3_address_to_revm_address;
+
 ///
 /// The balance check input variant.
 ///
@@ -91,9 +93,7 @@ impl Balance {
         index: usize,
     ) {
         let name = format!("{name_prefix}[#balance_check:{index}]");
-        let bytes: &mut [u8; 32] = &mut [0; 32];
-        U256::from(self.address.as_bytes()).to_big_endian(bytes);
-        let found = vm.context.evm.balance(Address::from_word(revm::primitives::FixedBytes::new(*bytes))).map_err(|e| vm.context.evm.error = Err(e))
+        let found = vm.context.evm.balance(web3_address_to_revm_address(self.address)).map_err(|e| vm.context.evm.error = Err(e))
         .ok().unwrap().0;
         let u256_found = U256::from(found.to_be_bytes());
         if u256_found == self.balance {

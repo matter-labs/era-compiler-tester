@@ -16,6 +16,7 @@ use revm::primitives::Account;
 use revm::primitives::AccountStatus;
 use revm::primitives::Address;
 use revm::primitives::Bytes;
+use revm::primitives::EVMError;
 use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
 use revm::primitives::TxKind;
@@ -37,6 +38,11 @@ use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
 use super::output::event::Event;
+use super::revm_type_conversions::revm_bytes_to_vec_value;
+use super::revm_type_conversions::revm_topics_to_vec_value;
+use super::revm_type_conversions::web3_address_to_revm_address;
+use super::revm_type_conversions::web3_u256_to_revm_address;
+use super::revm_type_conversions::web3_u256_to_revm_u256;
 
 ///
 /// The contract call input variant.
@@ -211,20 +217,14 @@ impl Runtime {
             env.cfg.chain_id = evm_context.chain_id;
             env.block.number = U256::from(evm_context.block_number);
             let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase,16).unwrap();
-            let mut coinbase_bytes = [0_u8;32];
-            coinbase.to_big_endian(&mut coinbase_bytes);
-            env.block.coinbase = Address::from_word(revm::primitives::FixedBytes::new(coinbase_bytes));
+            env.block.coinbase = web3_u256_to_revm_address(coinbase);
             env.block.timestamp = U256::from(evm_context.block_timestamp);
             //env.block.gas_limit = U256::from(evm_context.block_gas_limit);
             env.block.basefee = U256::from(evm_context.base_fee);
             let block_difficulty = web3::types::U256::from_str_radix(evm_context.block_difficulty,16).unwrap();
-            let mut block_difficulty_bytes = [0_u8;32];
-            block_difficulty.to_big_endian(&mut block_difficulty_bytes);
-            env.block.difficulty = U256::from_be_bytes(block_difficulty_bytes);
+            env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
             //env.block.prevrandao = ;
-            let caller_bytes: &mut [u8; 32] = &mut [0; 32];
-            web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
-            env.tx.caller = Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes));
+            env.tx.caller = web3_address_to_revm_address(self.caller);
             env.tx.gas_price = U256::from(0xb2d05e00_u32);
             //env.tx.gas_priority_fee = ;
             //env.tx.blob_hashes = ;
@@ -233,20 +233,35 @@ impl Runtime {
             env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
             env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
             env.tx.access_list = vec![];
-            let address_bytes: &mut [u8; 32] = &mut [0; 32];
-            web3::types::U256::from(self.address.as_bytes()).to_big_endian(address_bytes);
-            env.tx.transact_to = TxKind::Call(Address::from_word(revm::primitives::FixedBytes::new(*address_bytes)));
+            env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(self.address));
        }).build();
 
-       let res = match vm.transact_commit() {
-           Ok(res) => res,
-           Err(error) => {
-               Summary::invalid(summary, Some(mode), name, "error on commit");
-               return vm;
-           }
-       };
-
         //vm.populate_storage(self.storage.inner)
+        
+        let res = match vm.transact_commit() {
+            Ok(res) => res,
+            Err(error) => {
+                match error {
+                    EVMError::Transaction(e) => {
+                        println!("Error on transaction: {:?}", e)
+                    },
+                    EVMError::Header(e) => {
+                        println!("Error on Header: {:?}", e)
+                    },
+                    EVMError::Database(e) => {
+                        println!("Error on Database:")
+                    },
+                    EVMError::Custom(e) => {
+                        println!("Error on Custom: {:?}", e)
+                    },
+                    EVMError::Precompile(e) => {
+                        println!("Error on Precompile: {:?}", e)
+                    },
+                }
+                Summary::invalid(summary, Some(mode), name, "error on commit");
+                return vm;
+            }
+        };
         
         let output = match res {
             ExecutionResult::Success{reason, gas_used, gas_refunded, logs, output} => {
@@ -259,63 +274,19 @@ impl Runtime {
                         Bytes::from(addr_slice.into_word())
                     }
                 };
-                let mut return_data = vec![];
-                return_data.extend_from_slice(&bytes);
-                let mut return_data_value = vec![];
-                for data in return_data.chunks(32) {
-                    if data.len() < 32 {
-                        let mut value = [0u8; 32];
-                        value[..data.len()].copy_from_slice(data);
-                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
-                    } else {
-                        let mut value = [0u8; 32];
-                        value.copy_from_slice(data);
-                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
-                    }
-                }
+                let return_data_value = revm_bytes_to_vec_value(bytes);
+
                 let events = logs.into_iter().map(|log| {
-                    let mut topics = vec![];
-                    for topic in log.data.topics().iter() {
-                        let mut topic_value = [0u8; 32];
-                        topic_value.copy_from_slice(topic.as_slice());
-                        topics.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&topic_value)));
-                    }
-                    let mut data = vec![];
-                    data.extend_from_slice(&log.data.data);
-                    let mut data_value = vec![];
-                    for data in data.chunks(32) {
-                        if data.len() < 32 {
-                            let mut value = [0u8; 32];
-                            value[..data.len()].copy_from_slice(data);
-                            data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
-                        } else {
-                            let mut value = [0u8; 32];
-                            value.copy_from_slice(data);
-                            data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
-                        }
-                    }
+                    let topics = revm_topics_to_vec_value(log.data.topics());
+                    let data_value = revm_bytes_to_vec_value(log.data.data);
                     Event::new(Some(web3::types::Address::from_slice(&log.address.as_slice())), topics, data_value)
                 }).collect();
                 let output = Output::new(return_data_value, false, events);
                 output
             }
             ExecutionResult::Revert{gas_used, output} => {
-                let mut return_data = vec![];
-                return_data.extend_from_slice(&output);
-                let mut return_data_value = vec![];
-                for data in return_data.chunks(32) {
-                    if data.len() < 32 {
-                        let mut value = [0u8; 32];
-                        value[..data.len()].copy_from_slice(data);
-                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
-                    } else {
-                        let mut value = [0u8; 32];
-                        value.copy_from_slice(data);
-                        return_data_value.push(super::value::Value::Certain(web3::types::U256::from_big_endian(&value)));
-                    }
-                }
-                let output = Output::new(return_data_value, true, vec![]);
-                output
+                let return_data_value = revm_bytes_to_vec_value(output);
+                Output::new(return_data_value, true, vec![])
             }
             ExecutionResult::Halt{reason, gas_used} => {
                 Output::new(vec![], true, vec![])
@@ -346,8 +317,6 @@ impl Runtime {
     }
 
     pub fn add_balance(&self, cache: &mut revm::CacheState) {
-        let caller_bytes: &mut [u8; 32] = &mut [0; 32];
-        web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
         let acc_info = revm::primitives::AccountInfo {
             balance: U256::MAX,
             code_hash: KECCAK_EMPTY,
@@ -355,7 +324,7 @@ impl Runtime {
             nonce: 1,
         };
 
-        cache.insert_account_with_storage(Address::from_word(revm::primitives::FixedBytes::new(*caller_bytes)), acc_info, PlainStorage::default());
+        cache.insert_account_with_storage(web3_address_to_revm_address(self.caller), acc_info, PlainStorage::default());
     }
 
     ///

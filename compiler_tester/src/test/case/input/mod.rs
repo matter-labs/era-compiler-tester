@@ -11,6 +11,7 @@ pub mod runtime;
 pub mod storage;
 pub mod storage_empty;
 pub mod value;
+pub mod revm_type_conversions;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
