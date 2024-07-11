@@ -20,14 +20,17 @@ use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
+use solidity_adapter::EVMVersion;
 
-use crate::target::Target;
 use crate::compilers::downloader::Downloader as CompilerDownloader;
+use crate::target::Target;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::system_context::SystemContext;
 use self::system_contracts::SystemContracts;
 use self::system_contracts::ADDRESS_EVM_GAS_MANAGER;
+use solidity_adapter::EVMVersion::{Lesser, LesserEquals};
+use solidity_adapter::EVM::Paris;
 
 ///
 /// The EraVM interface.
@@ -160,10 +163,17 @@ impl EraVM {
     pub fn clone_with_contracts(
         vm: Arc<Self>,
         known_contracts: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
+        evm_version: Option<EVMVersion>,
     ) -> Self {
         let mut new_vm = (*vm).clone();
         for (bytecode_hash, assembly) in known_contracts.into_iter() {
             new_vm.add_known_contract(assembly, bytecode_hash);
+        }
+        match evm_version {
+            Some(Lesser(Paris) | LesserEquals(Paris)) => {
+                SystemContext::set_pre_paris_contracts(&mut new_vm.storage)
+            }
+            _ => (),
         }
         new_vm
     }
