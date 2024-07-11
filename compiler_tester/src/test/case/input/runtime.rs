@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::hash::RandomState;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -23,12 +24,14 @@ use revm::primitives::U256;
 use revm::Database;
 use revm::DatabaseCommit;
 use revm::Evm;
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
+use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
@@ -199,17 +202,25 @@ impl Runtime {
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
+        evm_version: Option<EVMVersion>,
     ) -> revm::Evm<'a, EXT,State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
         let mut vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            // env.cfg.chain_id = ;
-            //env.block.number = ;
-            //env.block.coinbase = ;
-            //env.block.timestamp = ;
-            //env.block.gas_limit = U256::from(0xffffffff_u32);
-            //env.block.basefee = ;
-            //env.block.difficulty = ;
+            let evm_context = SystemContext::get_constants_evm(evm_version);
+            env.cfg.chain_id = evm_context.chain_id;
+            env.block.number = U256::from(evm_context.block_number);
+            let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase,16).unwrap();
+            let mut coinbase_bytes = [0_u8;32];
+            coinbase.to_big_endian(&mut coinbase_bytes);
+            env.block.coinbase = Address::from_word(revm::primitives::FixedBytes::new(coinbase_bytes));
+            env.block.timestamp = U256::from(evm_context.block_timestamp);
+            //env.block.gas_limit = U256::from(evm_context.block_gas_limit);
+            env.block.basefee = U256::from(evm_context.base_fee);
+            let block_difficulty = web3::types::U256::from_str_radix(evm_context.block_difficulty,16).unwrap();
+            let mut block_difficulty_bytes = [0_u8;32];
+            block_difficulty.to_big_endian(&mut block_difficulty_bytes);
+            env.block.difficulty = U256::from_be_bytes(block_difficulty_bytes);
             //env.block.prevrandao = ;
             let caller_bytes: &mut [u8; 32] = &mut [0; 32];
             web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
@@ -335,12 +346,6 @@ impl Runtime {
     }
 
     pub fn add_balance(&self, cache: &mut revm::CacheState) {
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::MAX,
-            code_hash: KECCAK_EMPTY,
-            code: None,
-            nonce: 1,
-        };
         let caller_bytes: &mut [u8; 32] = &mut [0; 32];
         web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
         let acc_info = revm::primitives::AccountInfo {

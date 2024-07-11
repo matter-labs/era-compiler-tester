@@ -15,6 +15,7 @@ use revm::db::EmptyDBTyped;
 use revm::db::State;
 use revm::Database;
 use revm::DatabaseCommit;
+use solidity_adapter::test::params::evm_version;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
@@ -168,6 +169,7 @@ impl Case {
         test_name: String,
         test_group: Option<String>,
         evm_builds: HashMap<String, Build, RandomState>,
+        evm_version: Option<evm_version::EVMVersion>,
     ) {
         let name = if let Some(case_name) = self.name {
             format!("{test_name}::{case_name}")
@@ -191,6 +193,7 @@ impl Case {
                 name.clone(),
                 index,
                 &evm_builds,
+                evm_version.clone()
             )
         }
     }

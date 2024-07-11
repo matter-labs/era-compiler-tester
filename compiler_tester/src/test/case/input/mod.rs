@@ -25,6 +25,8 @@ use revm::db::State;
 use revm::Database;
 use revm::DatabaseCommit;
 
+use solidity_adapter::test::params::evm_version;
+
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
@@ -434,14 +436,15 @@ impl Input {
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
-        evm_builds: &HashMap<String, Build, RandomState>
+        evm_builds: &HashMap<String, Build, RandomState>,
+        evm_version: Option<evm_version::EVMVersion>,
     ) -> revm::Evm<'a, EXT,State<DB>> {
         
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, mode, test_group, name_prefix,evm_builds),
+            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, mode, test_group, name_prefix,evm_builds,evm_version),
             Self::Runtime(runtime) => {
-                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
+                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index,evm_version)
             }
             Self::StorageEmpty(storage_empty) => {
                 storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
