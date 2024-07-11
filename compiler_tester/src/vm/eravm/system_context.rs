@@ -186,7 +186,7 @@ impl SystemContext {
                     Target::EraVM => {
                         web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
                     }
-                    // This block difficulty is setted by default, but it can be overriden if the test needs it.
+                    // This block difficulty is set by default, but it can be overridden if the test needs it.
                     Target::EVMInterpreter | Target::EVM => {
                         web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM_POST_PARIS)
                             .expect("Always valid")
@@ -249,39 +249,41 @@ impl SystemContext {
             );
         }
 
-        let rich_addresses: Vec<Address> = (0..=9)
-            .map(|address_id| {
-                format!(
-                    "0x121212121212121212121212121212000000{}{}",
-                    address_id, "012"
-                )
-            })
-            .map(|s| Address::from_str(&s).unwrap())
-            .collect();
-        rich_addresses.iter().for_each(|address| {
-            let address_h256 = Self::address_to_h256(address);
+        if target == Target::EVMInterpreter {
+            let rich_addresses: Vec<Address> = (0..=9)
+                .map(|address_id| {
+                    format!(
+                        "0x121212121212121212121212121212000000{}{}",
+                        address_id, "012"
+                    )
+                })
+                .map(|s| Address::from_str(&s).unwrap())
+                .collect();
+            rich_addresses.iter().for_each(|address| {
+                let address_h256 = Self::address_to_h256(address);
+                let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
+                let key = keccak256(&bytes).into();
+                let storage_key = StorageKey {
+                    address: Self::L2_ETH_TOKEN_ADDRESS,
+                    key,
+                };
+                let initial_balance = u256_to_h256(&(U256::from(1) << 100));
+                storage.insert(storage_key, initial_balance);
+            });
+
+            // Fund the 0x01 address with 1 token to match the solidity tests behavior.
+            let address_h256 = Self::address_to_h256(
+                &Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+            );
             let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
             let key = keccak256(&bytes).into();
             let storage_key = StorageKey {
                 address: Self::L2_ETH_TOKEN_ADDRESS,
                 key,
             };
-            let initial_balance = u256_to_h256(&(U256::from(1) << 100));
+            let initial_balance = u256_to_h256(&(U256::from(1)));
             storage.insert(storage_key, initial_balance);
-        });
-
-        // Fund the 0x01 address with 1 token to match the solidity tests behavior.
-        let address_h256 = Self::address_to_h256(
-            &Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
-        );
-        let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
-        let key = keccak256(&bytes).into();
-        let storage_key = StorageKey {
-            address: Self::L2_ETH_TOKEN_ADDRESS,
-            key,
-        };
-        let initial_balance = u256_to_h256(&(U256::from(1)));
-        storage.insert(storage_key, initial_balance);
+        }
 
         storage
     }
