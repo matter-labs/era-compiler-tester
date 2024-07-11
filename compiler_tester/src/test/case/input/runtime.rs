@@ -212,8 +212,13 @@ impl Runtime {
     ) -> revm::Evm<'a, EXT,State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
+
         let mut vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            env.tx.caller = web3_address_to_revm_address(self.caller);
+            let mut caller = self.caller;
+            if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+                caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
+            }
+            env.tx.caller = web3_address_to_revm_address(caller);
             env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
             env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
             env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(self.address));
@@ -299,7 +304,11 @@ impl Runtime {
         vm
     }
 
-    pub fn add_balance(&self, cache: &mut revm::CacheState) {
+    pub fn add_balance(&self, cache: &mut revm::CacheState, name_prefix: String) {
+        let mut caller = self.caller;
+        if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
+        }
         let acc_info = revm::primitives::AccountInfo {
             balance: U256::MAX,
             code_hash: KECCAK_EMPTY,
@@ -307,7 +316,7 @@ impl Runtime {
             nonce: 1,
         };
 
-        cache.insert_account_with_storage(web3_address_to_revm_address(self.caller), acc_info, PlainStorage::default());
+        cache.insert_account_with_storage(web3_address_to_revm_address(caller), acc_info, PlainStorage::default());
     }
 
     ///

@@ -457,12 +457,12 @@ impl Input {
         }
     }
 
-    pub fn add_balance(&self, cache: &mut revm::CacheState) {
+    pub fn add_balance(&self, cache: &mut revm::CacheState, name_prefix: String) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
             Self::DeployEVM(deploy) => deploy.add_balance(cache),
             Self::Runtime(runtime) => {
-                runtime.add_balance(cache);
+                runtime.add_balance(cache,name_prefix);
             }
             Self::StorageEmpty(storage_empty) => {
                 

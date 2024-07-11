@@ -8,13 +8,18 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::hash::RandomState;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use input::revm_type_conversions::web3_u256_to_revm_address;
 use input::revm_type_conversions::web3_u256_to_revm_u256;
+use revm::db::states::plain_account::PlainStorage;
 use revm::db::EmptyDBTyped;
 use revm::db::State;
+use revm::primitives::Address;
+use revm::primitives::FixedBytes;
+use revm::primitives::SpecId::SHANGHAI;
 use revm::primitives::B256;
 use revm::primitives::U256;
 use revm::Database;
@@ -184,9 +189,20 @@ impl Case {
 
         let mut cache = revm::CacheState::new(false);
         for input in self.inputs.iter() {
-            input.add_balance(&mut cache);
+            input.add_balance(&mut cache,name.clone());
         }
-        let state = revm::db::State::builder().with_cached_prestate(cache).with_bundle_update().build();
+        let acc_info = revm::primitives::AccountInfo {
+            balance: U256::MAX,
+            code_hash: FixedBytes::from_str("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470").unwrap(),
+            code: None,
+            nonce: 1,
+        };
+
+        cache.insert_account_with_storage(Address::from_str("0x0000000000000000000000000000000000000001").unwrap(), acc_info, PlainStorage::default());
+
+        let mut state = revm::db::State::builder().with_cached_prestate(cache).with_bundle_update().build();
+        state.block_hashes.insert(1, B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737").unwrap());
+        state.block_hashes.insert(0, B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737").unwrap());
         let mut vm = revm::Evm::builder().with_db(state).modify_env(|env| {
             let evm_context = SystemContext::get_constants_evm(evm_version);
             env.cfg.chain_id = evm_context.chain_id;
