@@ -12,6 +12,7 @@ use revm::db::states::plain_account::PlainStorage;
 
 use revm::primitives::Bytes;
 use revm::primitives::EVMError;
+use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
 use revm::primitives::TxKind;
 use revm::primitives::B256;
@@ -162,7 +163,9 @@ impl DeployEVM {
         let mut vm = vm;
         let address = web3_address_to_revm_address(&self.caller);
         let nonce = match vm.db_mut().basic(address) {
-            Ok(Some(acc)) => acc.nonce,
+            Ok(Some(acc)) => {
+                acc.nonce
+            },
             _ => 1,
         };
         let vm = if rich_addresses.contains(&self.caller) {
@@ -176,7 +179,7 @@ impl DeployEVM {
                 .modify()
                 .modify_db(|db| {
                     db.insert_account(address, acc_info.clone());
-                })
+                }).modify_env(|env| env.clone_from(&Box::new(Env::default())))
                 .build();
             vm.transact_commit().ok().unwrap();
             vm
@@ -191,7 +194,6 @@ impl DeployEVM {
             .ok()
             .unwrap()
             .0;
-        println!("BALANCE: {:?}", balance);
 
         let mut new_vm = vm
             .modify()
