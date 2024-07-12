@@ -151,7 +151,7 @@ pub fn gen_fuzzing_test(case: FuzzingCase) -> anyhow::Result<EthereumTest> {
 /// * `Summary` - The test summary
 pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     // TODO: this should be parametrized
-    let solc_version = semver::Version::new(0, 8, 24);
+    let solc_version = semver::Version::new(0, 8, 26);
     let mode = Mode::Solidity(SolidityMode::new(
         solc_version,
         SolcPipeline::Yul,
