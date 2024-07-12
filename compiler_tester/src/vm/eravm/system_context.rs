@@ -148,7 +148,7 @@ impl SystemContext {
     pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
         match evm_version {
             Some(Lesser(Paris) | LesserEquals(Paris)) => EVMContext {
-                chain_id: SystemContext::CHAIND_ID_ERAVM,
+                chain_id: SystemContext::CHAIND_ID_EVM,
                 coinbase: &SystemContext::COIN_BASE_EVM[2..],
                 block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
                 block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
@@ -158,7 +158,7 @@ impl SystemContext {
                 zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
             },
             _ => EVMContext {
-                chain_id: SystemContext::CHAIND_ID_ERAVM,
+                chain_id: SystemContext::CHAIND_ID_EVM,
                 coinbase: &SystemContext::COIN_BASE_EVM[2..],
                 block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
                 block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
