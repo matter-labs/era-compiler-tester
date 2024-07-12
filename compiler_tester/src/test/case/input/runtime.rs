@@ -215,19 +215,23 @@ impl Runtime {
 
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
-            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
+            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
+                .unwrap();
         }
-        let mut vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            env.tx.caller = web3_address_to_revm_address(&caller);
-            env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
-            env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
-            env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&self.address));
-       }).build();
+        let mut vm: Evm<EXT, State<DB>> = vm
+            .modify()
+            .modify_env(|env| {
+                env.tx.caller = web3_address_to_revm_address(&caller);
+                env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
+                env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
+                env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&self.address));
+            })
+            .build();
 
         match vm.transact() {
             Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
                 fee,
-                balance : _balance,
+                balance: _balance,
             })) => {
                 let acc_info = revm::primitives::AccountInfo {
                     balance: *fee,
@@ -283,7 +287,6 @@ impl Runtime {
                 output,
             } => {
                 if !SystemContext::get_rich_addresses().contains(&caller) {
-                    let address = web3_address_to_revm_address(&caller);
                     let post_balance = vm
                         .context
                         .evm
@@ -303,12 +306,13 @@ impl Runtime {
                         .modify()
                         .modify_db(|db| {
                             db.insert_account_with_storage(
-                                address,
+                                web3_address_to_revm_address(&caller),
                                 acc_info,
                                 PlainStorage::default(),
                             );
                         })
                         .build();
+                    let _ = vm.transact_commit();
                 };
                 let bytes = match output {
                     revm::primitives::Output::Call(bytes) => bytes,
@@ -360,7 +364,8 @@ impl Runtime {
         let rich_addresses: Vec<web3::types::Address> = SystemContext::get_rich_addresses();
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
-            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
+            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
+                .unwrap();
         }
         let acc_info = if rich_addresses.contains(&caller) {
             revm::primitives::AccountInfo {

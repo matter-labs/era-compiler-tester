@@ -189,39 +189,61 @@ impl Case {
 
         let mut cache = revm::CacheState::new(false);
         for input in self.inputs.iter() {
-            input.add_balance(&mut cache,name.clone());
+            input.add_balance(&mut cache, name.clone());
         }
         let acc_info = revm::primitives::AccountInfo {
             balance: U256::from(1_u64),
-            code_hash: FixedBytes::from_str("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470").unwrap(),
+            code_hash: FixedBytes::from_str(
+                "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+            )
+            .unwrap(),
             code: None,
             nonce: 1,
         };
 
-        cache.insert_account_with_storage(Address::from_str("0x0000000000000000000000000000000000000001").unwrap(), acc_info, PlainStorage::default());
+        cache.insert_account_with_storage(
+            Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+            acc_info,
+            PlainStorage::default(),
+        );
 
-        let mut state = revm::db::State::builder().with_cached_prestate(cache).with_bundle_update().build();
-        state.block_hashes.insert(1, B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737").unwrap());
-        state.block_hashes.insert(0, B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737").unwrap());
-        let mut vm = revm::Evm::builder().with_db(state).modify_env(|env| {
-            let evm_context = SystemContext::get_constants_evm(evm_version);
-            env.cfg.chain_id = evm_context.chain_id;
-            env.block.number = U256::from(evm_context.block_number);
-            let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase,16).unwrap();
-            env.block.coinbase = web3_u256_to_revm_address(coinbase);
-            env.block.timestamp = U256::from(evm_context.block_timestamp);
-            env.block.gas_limit = U256::from(evm_context.block_gas_limit);
-            env.block.basefee = U256::from(evm_context.base_fee);
-            let block_difficulty = web3::types::U256::from_str_radix(evm_context.block_difficulty,16).unwrap();
-            env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
-            env.block.prevrandao = Some(B256::from(env.block.difficulty));
-            env.tx.gas_price = U256::from(0xb2d05e00_u32);
-            //env.tx.gas_priority_fee = ;
-            //env.tx.blob_hashes = ;
-            //env.tx.max_fee_per_blob_gas = 
-            env.tx.gas_limit = evm_context.block_gas_limit;
-            env.tx.access_list = vec![];
-        }).build();
+        let mut state = revm::db::State::builder()
+            .with_cached_prestate(cache)
+            .with_bundle_update()
+            .build();
+        state.block_hashes.insert(
+            1,
+            B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
+                .unwrap(),
+        );
+        state.block_hashes.insert(
+            0,
+            B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
+                .unwrap(),
+        );
+        let mut vm = revm::Evm::builder()
+            .with_db(state)
+            .modify_env(|env| {
+                let evm_context = SystemContext::get_constants_evm(evm_version);
+                env.cfg.chain_id = evm_context.chain_id;
+                env.block.number = U256::from(evm_context.block_number);
+                let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
+                env.block.coinbase = web3_u256_to_revm_address(coinbase);
+                env.block.timestamp = U256::from(evm_context.block_timestamp);
+                env.block.gas_limit = U256::from(evm_context.block_gas_limit);
+                env.block.basefee = U256::from(evm_context.base_fee);
+                let block_difficulty =
+                    web3::types::U256::from_str_radix(evm_context.block_difficulty, 16).unwrap();
+                env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
+                env.block.prevrandao = Some(B256::from(env.block.difficulty));
+                env.tx.gas_price = U256::from(0xb2d05e00_u32);
+                //env.tx.gas_priority_fee = ;
+                //env.tx.blob_hashes = ;
+                //env.tx.max_fee_per_blob_gas =
+                env.tx.gas_limit = evm_context.block_gas_limit;
+                env.tx.access_list = vec![];
+            })
+            .build();
 
         for (index, input) in self.inputs.into_iter().enumerate() {
             vm = input.run_revm(

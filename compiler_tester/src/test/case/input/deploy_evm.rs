@@ -150,7 +150,7 @@ impl DeployEVM {
         test_group: Option<String>,
         name_prefix: String,
         evm_builds: &HashMap<String, Build, RandomState>,
-    ) -> revm::Evm<'a, EXT,State<DB>> {
+    ) -> revm::Evm<'a, EXT, State<DB>> {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
         //vm.populate_storage(self.storage.inner);
@@ -160,12 +160,15 @@ impl DeployEVM {
         let mut deploy_code = build.deploy_build.bytecode.to_owned();
         deploy_code.extend(self.calldata.inner.clone());
 
-        let mut new_vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            env.tx.caller = web3_address_to_revm_address(&self.caller);
-            env.tx.data = revm::primitives::Bytes::from(deploy_code);
-            env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
-            env.tx.transact_to = TxKind::Create;
-        }).build();
+        let mut new_vm: Evm<EXT, State<DB>> = vm
+            .modify()
+            .modify_env(|env| {
+                env.tx.caller = web3_address_to_revm_address(&self.caller);
+                env.tx.data = revm::primitives::Bytes::from(deploy_code);
+                env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
+                env.tx.transact_to = TxKind::Create;
+            })
+            .build();
 
         let res = match new_vm.transact_commit() {
             Ok(res) => res,
