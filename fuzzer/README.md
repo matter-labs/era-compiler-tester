@@ -26,10 +26,25 @@ path = "fuzz_targets/demo.rs"
 
 ## Running fuzzing
 
-To run the fuzzing, execute the following command:
+### Prerequisites
+
+1. Follow the build instructions from [README.md](../README.md) to build `era-compiler-tester`.
+2. Install the `cargo-fuzz` tool:
+```bash
+cargo install cargo-fuzz
+```
+3. Build `zksolc` compiler and make sure that `zksolc` is added in the `PATH`.
+4. Install nightly Rust toolchain:
+```bash
+rustup toolchain install nightly
+```
+
+### Executing fuzzing
+
+To execute a fuzzing target, run the following command from the root directory of the project:
 
 ```bash
-cargo fuzz run <target_name>
+cargo +nightly fuzz run --fuzz-dir fuzzer <target_name>
 ```
 
 ## Supported targets
