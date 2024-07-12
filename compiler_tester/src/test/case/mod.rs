@@ -192,7 +192,7 @@ impl Case {
             input.add_balance(&mut cache,name.clone());
         }
         let acc_info = revm::primitives::AccountInfo {
-            balance: U256::MAX,
+            balance: U256::from(1_u64),
             code_hash: FixedBytes::from_str("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470").unwrap(),
             code: None,
             nonce: 1,
