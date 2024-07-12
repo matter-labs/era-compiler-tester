@@ -6,7 +6,12 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
+use web3::signing::keccak256;
+use web3::types::{Address, H160, H256, U256};
+use zkevm_tester::runners::compiler_tests::StorageKey;
+
 use crate::target::Target;
+use crate::utils::u256_to_h256;
 
 ///
 /// The EraVM system context.
@@ -70,8 +75,12 @@ impl SystemContext {
 
     /// The default block difficulty for EraVM tests.
     const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
-    /// The default block difficulty for EVM tests.
-    const BLOCK_DIFFICULTY_EVM: &str = "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    /// The block difficulty for EVM tests using a post paris version.
+    const BLOCK_DIFFICULTY_EVM_POST_PARIS: &'static str =
+        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    /// The block difficulty for EVM tests using a pre paris version.
+    const BLOCK_DIFFICULTY_EVM_PRE_PARIS: &'static str =
+        "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
     const BASE_FEE: u64 = 7;
@@ -92,6 +101,35 @@ impl SystemContext {
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
+
+    pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x80, 0x0a,
+    ]);
+
+    pub fn address_to_h256(address: &Address) -> H256 {
+        let mut buffer = [0u8; 32];
+        buffer[12..].copy_from_slice(address.as_bytes());
+        H256(buffer)
+    }
+
+    pub fn set_pre_paris_contracts(storage: &mut HashMap<StorageKey, H256>) {
+        storage.insert(
+            zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                ),
+                key: web3::types::U256::from_big_endian(
+                    web3::types::H256::from_low_u64_be(
+                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
+                    )
+                    .as_bytes(),
+                ),
+            },
+            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
+                .expect("Always valid"),
+        );
+    }
 
     ///
     /// Returns the storage values for the system context.
@@ -145,8 +183,14 @@ impl SystemContext {
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
                 match target {
-                    Target::EraVM => web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM),
-                    Target::EVMInterpreter | Target::EVM => web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM).expect("Always valid"),
+                    Target::EraVM => {
+                        web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
+                    }
+                    // This block difficulty is set by default, but it can be overridden if the test needs it.
+                    Target::EVMInterpreter | Target::EVM => {
+                        web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM_POST_PARIS)
+                            .expect("Always valid")
+                    }
                 },
             ),
             (
@@ -161,11 +205,7 @@ impl SystemContext {
             ),
         ];
 
-        let block_info_bytes = [
-            block_number.to_be_bytes(),
-            block_timestamp.to_be_bytes(),
-        ]
-        .concat();
+        let block_info_bytes = [block_number.to_be_bytes(), block_timestamp.to_be_bytes()].concat();
 
         system_context_values.push((
             web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION),
@@ -183,8 +223,8 @@ impl SystemContext {
             let mut hash = web3::types::U256::from_str(match target {
                 Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
                 Target::EVMInterpreter | Target::EVM => Self::ZERO_BLOCK_HASH_EVM,
-        })
-                .expect("Invalid zero block hash const");
+            })
+            .expect("Invalid zero block hash const");
             hash = hash.add(web3::types::U256::from(index));
             let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
             hash.to_big_endian(&mut hash_bytes);
@@ -207,6 +247,42 @@ impl SystemContext {
                 },
                 value,
             );
+        }
+
+        if target == Target::EVMInterpreter {
+            let rich_addresses: Vec<Address> = (0..=9)
+                .map(|address_id| {
+                    format!(
+                        "0x121212121212121212121212121212000000{}{}",
+                        address_id, "012"
+                    )
+                })
+                .map(|s| Address::from_str(&s).unwrap())
+                .collect();
+            rich_addresses.iter().for_each(|address| {
+                let address_h256 = Self::address_to_h256(address);
+                let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
+                let key = keccak256(&bytes).into();
+                let storage_key = StorageKey {
+                    address: Self::L2_ETH_TOKEN_ADDRESS,
+                    key,
+                };
+                let initial_balance = u256_to_h256(&(U256::from(1) << 100));
+                storage.insert(storage_key, initial_balance);
+            });
+
+            // Fund the 0x01 address with 1 token to match the solidity tests behavior.
+            let address_h256 = Self::address_to_h256(
+                &Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+            );
+            let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
+            let key = keccak256(&bytes).into();
+            let storage_key = StorageKey {
+                address: Self::L2_ETH_TOKEN_ADDRESS,
+                key,
+            };
+            let initial_balance = u256_to_h256(&(U256::from(1)));
+            storage.insert(storage_key, initial_balance);
         }
 
         storage

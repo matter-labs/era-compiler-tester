@@ -5,6 +5,7 @@
 pub mod case;
 pub mod instance;
 
+use solidity_adapter::EVMVersion;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -36,6 +37,8 @@ pub struct Test {
     eravm_builds: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
     /// The EVM contract builds.
     evm_builds: HashMap<String, EVMBuild>,
+    /// The EVM version.
+    evm_version: Option<EVMVersion>,
 }
 
 impl Test {
@@ -49,6 +52,7 @@ impl Test {
         group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
         evm_builds: HashMap<String, EVMBuild>,
+        evm_version: Option<EVMVersion>,
     ) -> Self {
         Self {
             name,
@@ -57,6 +61,7 @@ impl Test {
             group,
             eravm_builds,
             evm_builds,
+            evm_version,
         }
     }
 
@@ -68,7 +73,7 @@ impl Test {
         D: EraVMDeployer,
     {
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone());
+            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone(), None);
             case.run_eravm::<D, M>(
                 summary.clone(),
                 vm.clone(),
@@ -110,10 +115,14 @@ impl Test {
         D: EraVMDeployer,
     {
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone());
+            let vm = EraVM::clone_with_contracts(
+                vm.clone(),
+                self.eravm_builds.clone(),
+                self.evm_version,
+            );
             case.run_evm_interpreter::<D, M>(
                 summary.clone(),
-                vm.clone(),
+                vm,
                 &self.mode,
                 self.name.clone(),
                 self.group.clone(),

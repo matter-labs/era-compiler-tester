@@ -197,7 +197,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             )?;
 
             compiler_tester
-                .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, false>(
+                .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, true>(
                     vm,
                     arguments.use_upstream_solc,
                 )
