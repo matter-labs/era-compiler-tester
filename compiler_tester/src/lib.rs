@@ -337,7 +337,9 @@ impl CompilerTester {
             target,
             match target {
                 Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                Target::EVMInterpreter | Target::EVM | Target::REVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+                Target::EVMInterpreter | Target::EVM | Target::REVM => {
+                    Self::SOLIDITY_ETHEREUM_UPSTREAM
+                }
             },
             era_compiler_common::EXTENSION_SOLIDITY,
             if use_upstream_solc {

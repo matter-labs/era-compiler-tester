@@ -3,7 +3,6 @@
 //!
 
 use std::collections::HashMap;
-use std::convert::Infallible;
 use std::hash::RandomState;
 use std::io::Read;
 use std::str::FromStr;
@@ -11,23 +10,15 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::db::states::plain_account::PlainStorage;
-use revm::db::EmptyDBTyped;
-use revm::primitives::bitvec::view::BitViewSized;
-use revm::primitives::hex::FromHex;
-use revm::primitives::Account;
-use revm::primitives::AccountStatus;
-use revm::primitives::Address;
+
 use revm::primitives::Bytes;
 use revm::primitives::EVMError;
-use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
-use revm::primitives::LogData;
 use revm::primitives::TxKind;
 use revm::primitives::B256;
 use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Database;
-use revm::DatabaseCommit;
 use revm::Evm;
 use revm::State;
 use solidity_adapter::EVMVersion;
@@ -151,10 +142,10 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm<'a, EXT,DB: Database>(
+    pub fn run_revm<'a, EXT, DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: revm::Evm<'a, EXT,State<DB>>,
+        vm: revm::Evm<'a, EXT, State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
@@ -163,12 +154,14 @@ impl DeployEVM {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
         //vm.populate_storage(self.storage.inner);
-        let build = evm_builds.get(self.identifier.as_str()).expect("Always valid");
+        let build = evm_builds
+            .get(self.identifier.as_str())
+            .expect("Always valid");
         let mut deploy_code = build.deploy_build.bytecode.to_owned();
         deploy_code.extend(self.calldata.inner.clone());
 
         let mut new_vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            env.tx.caller = web3_address_to_revm_address(self.caller);
+            env.tx.caller = web3_address_to_revm_address(&self.caller);
             env.tx.data = revm::primitives::Bytes::from(deploy_code);
             env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
             env.tx.transact_to = TxKind::Create;
@@ -180,65 +173,66 @@ impl DeployEVM {
                 match error {
                     EVMError::Transaction(e) => {
                         println!("Error on transaction: {:?}", e)
-                    },
+                    }
                     EVMError::Header(e) => {
                         println!("Error on Header: {:?}", e)
-                    },
+                    }
                     EVMError::Database(e) => {
                         println!("Error on Database:")
-                    },
+                    }
                     EVMError::Custom(e) => {
                         println!("Error on Custom: {:?}", e)
-                    },
+                    }
                     EVMError::Precompile(e) => {
                         println!("Error on Precompile: {:?}", e)
-                    },
+                    }
                 }
                 Summary::invalid(summary, Some(mode), name, "error on commit");
                 return new_vm;
             }
         };
-        
+
         let output = match res {
-            ExecutionResult::Success{reason, gas_used, gas_refunded, logs, output} => {
+            ExecutionResult::Success {
+                reason,
+                gas_used,
+                gas_refunded,
+                logs,
+                output,
+            } => {
                 let bytes = match output {
-                    revm::primitives::Output::Call(bytes) => {
-                        bytes
-                    }
-                    revm::primitives::Output::Create(bytes,address) => {
+                    revm::primitives::Output::Call(bytes) => bytes,
+                    revm::primitives::Output::Create(bytes, address) => {
                         let addr_slice = address.unwrap();
                         Bytes::from(addr_slice.into_word())
                     }
                 };
                 let return_data_value = revm_bytes_to_vec_value(bytes);
 
-                let events = logs.into_iter().map(|log| {
-                    let topics = revm_topics_to_vec_value(log.data.topics());
-                    let data_value = revm_bytes_to_vec_value(log.data.data);
-                    Event::new(Some(web3::types::Address::from_slice(&log.address.as_slice())), topics, data_value)
-                }).collect();
+                let events = logs
+                    .into_iter()
+                    .map(|log| {
+                        let topics = revm_topics_to_vec_value(log.data.topics());
+                        let data_value = revm_bytes_to_vec_value(log.data.data);
+                        Event::new(
+                            Some(web3::types::Address::from_slice(&log.address.as_slice())),
+                            topics,
+                            data_value,
+                        )
+                    })
+                    .collect();
                 let output = Output::new(return_data_value, false, events);
                 output
             }
-            ExecutionResult::Revert{gas_used, output} => {
+            ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 Output::new(return_data_value, true, vec![])
             }
-            ExecutionResult::Halt{reason, gas_used} => {
-                Output::new(vec![], true, vec![])
-            }
+            ExecutionResult::Halt { reason, gas_used } => Output::new(vec![], true, vec![]),
         };
 
         if output == self.expected {
-            Summary::passed_runtime(
-                summary,
-                mode,
-                name,
-                test_group,
-                0,
-                0,
-                0,
-            );
+            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, 0);
         } else {
             Summary::failed(
                 summary,
@@ -254,15 +248,41 @@ impl DeployEVM {
     }
 
     pub fn add_balance(&self, cache: &mut revm::CacheState) {
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::MAX,
-            code_hash: KECCAK_EMPTY,
-            code: None,
-            nonce: 1,
+        let rich_addresses: Vec<web3::types::Address> = SystemContext::get_rich_addresses();
+        let acc_info = if rich_addresses.contains(&self.caller) {
+            let address_bytes: &mut [u8; 32] = &mut [0; 32];
+            web3::types::U256::from(self.caller.as_bytes()).to_big_endian(address_bytes);
+            revm::primitives::AccountInfo {
+                balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
+                code_hash: KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            }
+        } else {
+            let address_bytes: &mut [u8; 32] = &mut [0; 32];
+            web3::types::U256::from(self.caller.as_bytes()).to_big_endian(address_bytes);
+            revm::primitives::AccountInfo {
+                balance: U256::ZERO,
+                code_hash: KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            }
         };
+        cache.insert_account_with_storage(
+            web3_address_to_revm_address(&self.caller),
+            acc_info,
+            PlainStorage::default(),
+        );
 
-        cache.insert_account_with_storage(web3_address_to_revm_address(self.caller), acc_info, PlainStorage::default());
+        // web3::types::U256::from(self.caller.as_bytes()).to_big_endian(caller_bytes);
+        // let acc_info = revm::primitives::AccountInfo {
+        //     balance: U256::from(1) << 100,c
+        //     code_hash: KECCAK_EMPTY,
+        //     code: None,
+        //     nonce: 1,
+        // };
     }
+
     ///
     /// Runs the deploy transaction on EVM interpreter.
     ///

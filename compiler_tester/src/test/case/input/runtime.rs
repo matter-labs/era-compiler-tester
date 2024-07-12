@@ -14,11 +14,11 @@ use revm::db::EmptyDBTyped;
 use revm::db::State;
 use revm::primitives::Account;
 use revm::primitives::AccountStatus;
-use revm::primitives::Address;
 use revm::primitives::Bytes;
 use revm::primitives::EVMError;
 use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
+use revm::primitives::InvalidTransaction;
 use revm::primitives::TxKind;
 use revm::primitives::B256;
 use revm::primitives::KECCAK_EMPTY;
@@ -27,6 +27,7 @@ use revm::Database;
 use revm::DatabaseCommit;
 use revm::Evm;
 use solidity_adapter::EVMVersion;
+use web3::types::Address;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
@@ -201,96 +202,147 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm<'a, EXT,DB: Database>(
+    pub fn run_revm<'a, EXT, DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: revm::Evm<'a, EXT,revm::State<DB>>,
+        vm: revm::Evm<'a, EXT, revm::State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
-    ) -> revm::Evm<'a, EXT,State<DB>> {
+    ) -> revm::Evm<'a, EXT, State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
-
+        let mut caller = self.caller;
+        if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
+        }
         let mut vm: Evm<EXT, State<DB>> = vm.modify().modify_env(|env| {
-            let mut caller = self.caller;
-            if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
-                caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
-            }
-            env.tx.caller = web3_address_to_revm_address(caller);
+            env.tx.caller = web3_address_to_revm_address(&caller);
             env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
             env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
-            env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(self.address));
+            env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&self.address));
        }).build();
 
-        //vm.populate_storage(self.storage.inner)
-        
+        match vm.transact() {
+            Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
+                fee,
+                balance : _balance,
+            })) => {
+                let acc_info = revm::primitives::AccountInfo {
+                    balance: *fee,
+                    code_hash: KECCAK_EMPTY,
+                    code: None,
+                    nonce: 1,
+                };
+                vm = vm
+                    .modify()
+                    .modify_db(|db| {
+                        db.insert_account_with_storage(
+                            web3_address_to_revm_address(&caller),
+                            acc_info,
+                            PlainStorage::default(),
+                        );
+                    })
+                    .build();
+            }
+            _ => (),
+        };
+
         let res = match vm.transact_commit() {
             Ok(res) => res,
             Err(error) => {
                 match error {
                     EVMError::Transaction(e) => {
                         println!("Error on transaction: {:?}", e)
-                    },
+                    }
                     EVMError::Header(e) => {
                         println!("Error on Header: {:?}", e)
-                    },
+                    }
                     EVMError::Database(e) => {
                         println!("Error on Database:")
-                    },
+                    }
                     EVMError::Custom(e) => {
                         println!("Error on Custom: {:?}", e)
-                    },
+                    }
                     EVMError::Precompile(e) => {
                         println!("Error on Precompile: {:?}", e)
-                    },
+                    }
                 }
                 Summary::invalid(summary, Some(mode), name, "error on commit");
                 return vm;
             }
         };
-        
+
         let output = match res {
-            ExecutionResult::Success{reason, gas_used, gas_refunded, logs, output} => {
+            ExecutionResult::Success {
+                reason,
+                gas_used,
+                gas_refunded,
+                logs,
+                output,
+            } => {
+                if !SystemContext::get_rich_addresses().contains(&self.caller) {
+                    let address = web3_address_to_revm_address(&self.caller);
+                    let post_balance = vm
+                        .context
+                        .evm
+                        .balance(web3_address_to_revm_address(&self.caller))
+                        .map_err(|e| vm.context.evm.error = Err(e))
+                        .ok()
+                        .unwrap()
+                        .0;
+                    let acc_info = revm::primitives::AccountInfo {
+                        balance: U256::from(vm.tx().gas_limit) * vm.tx().gas_price
+                            - (post_balance + U256::from_str("63615000000000").unwrap()),
+                        code_hash: KECCAK_EMPTY,
+                        code: None,
+                        nonce: 1,
+                    };
+                    vm = vm
+                        .modify()
+                        .modify_db(|db| {
+                            db.insert_account_with_storage(
+                                address,
+                                acc_info,
+                                PlainStorage::default(),
+                            );
+                        })
+                        .build();
+                };
                 let bytes = match output {
-                    revm::primitives::Output::Call(bytes) => {
-                        bytes
-                    }
-                    revm::primitives::Output::Create(bytes,address) => {
+                    revm::primitives::Output::Call(bytes) => bytes,
+                    revm::primitives::Output::Create(bytes, address) => {
                         let addr_slice = address.unwrap();
                         Bytes::from(addr_slice.into_word())
                     }
                 };
                 let return_data_value = revm_bytes_to_vec_value(bytes);
 
-                let events = logs.into_iter().map(|log| {
-                    let topics = revm_topics_to_vec_value(log.data.topics());
-                    let data_value = revm_bytes_to_vec_value(log.data.data);
-                    Event::new(Some(web3::types::Address::from_slice(&log.address.as_slice())), topics, data_value)
-                }).collect();
+                let events = logs
+                    .into_iter()
+                    .map(|log| {
+                        let topics = revm_topics_to_vec_value(log.data.topics());
+                        let data_value = revm_bytes_to_vec_value(log.data.data);
+                        Event::new(
+                            Some(web3::types::Address::from_slice(&log.address.as_slice())),
+                            topics,
+                            data_value,
+                        )
+                    })
+                    .collect();
                 let output = Output::new(return_data_value, false, events);
                 output
             }
-            ExecutionResult::Revert{gas_used, output} => {
+            ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 Output::new(return_data_value, true, vec![])
             }
-            ExecutionResult::Halt{reason, gas_used} => {
-                Output::new(vec![], true, vec![])
-            }
+            ExecutionResult::Halt { reason, gas_used } => Output::new(vec![], true, vec![]),
         };
 
         if output == self.expected {
-            Summary::passed_runtime(
-                summary,
-                mode,
-                name,
-                test_group,
-                0,
-                0,
-                0,
-            );
+            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, 0);
         } else {
             Summary::failed(
                 summary,
@@ -305,18 +357,31 @@ impl Runtime {
     }
 
     pub fn add_balance(&self, cache: &mut revm::CacheState, name_prefix: String) {
+        let rich_addresses: Vec<web3::types::Address> = SystemContext::get_rich_addresses();
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292").unwrap();
         }
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::MAX,
-            code_hash: KECCAK_EMPTY,
-            code: None,
-            nonce: 1,
+        let acc_info = if rich_addresses.contains(&caller) {
+            revm::primitives::AccountInfo {
+                balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
+                code_hash: KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            }
+        } else {
+            revm::primitives::AccountInfo {
+                balance: U256::ZERO,
+                code_hash: KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            }
         };
-
-        cache.insert_account_with_storage(web3_address_to_revm_address(caller), acc_info, PlainStorage::default());
+        cache.insert_account_with_storage(
+            web3_address_to_revm_address(&self.caller),
+            acc_info,
+            PlainStorage::default(),
+        );
     }
 
     ///

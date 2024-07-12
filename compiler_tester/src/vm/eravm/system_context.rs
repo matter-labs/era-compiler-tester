@@ -16,7 +16,6 @@ use crate::utils::u256_to_h256;
 use solidity_adapter::EVMVersion::{self, Lesser, LesserEquals};
 use solidity_adapter::EVM::Paris;
 
-
 ///
 /// The EraVM system context.
 ///
@@ -146,22 +145,20 @@ impl SystemContext {
         );
     }
 
-    pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext{
+    pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
         match evm_version {
-            Some(Lesser(Paris) | LesserEquals(Paris)) => {
-                EVMContext{
-                    chain_id: SystemContext::CHAIND_ID_EVM,
-                    coinbase: &SystemContext::COIN_BASE_EVM[2..],
-                    block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
-                    block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
-                    block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
-                    block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
-                    base_fee: SystemContext::BASE_FEE,
-                    zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
-                }
-            }
-            _ => EVMContext{
-                chain_id: SystemContext::CHAIND_ID_EVM,
+            Some(Lesser(Paris) | LesserEquals(Paris)) => EVMContext {
+                chain_id: SystemContext::CHAIND_ID_ERAVM,
+                coinbase: &SystemContext::COIN_BASE_EVM[2..],
+                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
+                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
+                base_fee: SystemContext::BASE_FEE,
+                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
+            },
+            _ => EVMContext {
+                chain_id: SystemContext::CHAIND_ID_ERAVM,
                 coinbase: &SystemContext::COIN_BASE_EVM[2..],
                 block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
                 block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
@@ -171,6 +168,18 @@ impl SystemContext {
                 zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
             },
         }
+    }
+
+    pub fn get_rich_addresses() -> Vec<Address> {
+        (0..=9)
+            .map(|address_id| {
+                format!(
+                    "0x121212121212121212121212121212000000{}{}",
+                    address_id, "012"
+                )
+            })
+            .map(|s| Address::from_str(&s).unwrap())
+            .collect()
     }
 
     ///
@@ -194,7 +203,9 @@ impl SystemContext {
         };
         let block_timestamp = match target {
             Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
-            Target::EVMInterpreter | Target::EVM | Target::REVM => Self::CURRENT_BLOCK_TIMESTAMP_EVM,
+            Target::EVMInterpreter | Target::EVM | Target::REVM => {
+                Self::CURRENT_BLOCK_TIMESTAMP_EVM
+            }
         };
         let block_gas_limit = match target {
             Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
@@ -291,15 +302,7 @@ impl SystemContext {
             );
         }
 
-        let rich_addresses: Vec<Address> = (0..=9)
-            .map(|address_id| {
-                format!(
-                    "0x121212121212121212121212121212000000{}{}",
-                    address_id, "012"
-                )
-            })
-            .map(|s| Address::from_str(&s).unwrap())
-            .collect();
+        let rich_addresses: Vec<Address> = Self::get_rich_addresses();
         rich_addresses.iter().for_each(|address| {
             let address_h256 = Self::address_to_h256(address);
             let bytes = [address_h256.as_bytes(), &[0; 32]].concat();

@@ -83,7 +83,7 @@ impl Balance {
     ///
     /// Runs the balance check on REVM.
     ///
-    pub fn run_revm<'a,EXT, DB: revm::db::Database>(
+    pub fn run_revm<'a, EXT, DB: revm::db::Database>(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut revm::Evm<'a, EXT, State<DB>>,
@@ -93,8 +93,14 @@ impl Balance {
         index: usize,
     ) {
         let name = format!("{name_prefix}[#balance_check:{index}]");
-        let found = vm.context.evm.balance(web3_address_to_revm_address(self.address)).map_err(|e| vm.context.evm.error = Err(e))
-        .ok().unwrap().0;
+        let found = vm
+            .context
+            .evm
+            .balance(web3_address_to_revm_address(&self.address))
+            .map_err(|e| vm.context.evm.error = Err(e))
+            .ok()
+            .unwrap()
+            .0;
         let u256_found = U256::from(found.to_be_bytes());
         if u256_found == self.balance {
             Summary::passed_special(summary, mode, name, test_group);

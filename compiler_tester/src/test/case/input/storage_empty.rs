@@ -82,10 +82,10 @@ impl StorageEmpty {
     ///
     /// Runs the storage empty check on REVM.
     ///
-    pub fn run_revm<EXT,DB: Database>(
+    pub fn run_revm<EXT, DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut  revm::Evm<EXT,State<DB>>,
+        vm: &mut revm::Evm<EXT, State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
@@ -94,7 +94,7 @@ impl StorageEmpty {
         let name = format!("{name_prefix}[#storage_empty_check:{index}]");
 
         let mut is_empty = true;
-        for (address,cache_account) in &vm.db().cache.accounts {
+        for (address, cache_account) in &vm.db().cache.accounts {
             let plain_account = cache_account.clone().account;
             if plain_account.is_some() {
                 for (key, value) in plain_account.unwrap().storage.iter() {
@@ -103,7 +103,7 @@ impl StorageEmpty {
                     }
                 }
             }
-        };
+        }
         if is_empty == self.is_empty {
             Summary::passed_special(summary, mode, name, test_group);
         } else {
@@ -117,7 +117,6 @@ impl StorageEmpty {
             );
         }
     }
-    
 
     ///
     /// Runs the storage empty check on EVM interpreter.

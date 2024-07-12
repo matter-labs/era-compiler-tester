@@ -29,7 +29,7 @@ impl std::str::FromStr for Target {
             string => Err(anyhow::anyhow!(
                 "Unknown target `{}`. Supported targets: {:?}",
                 string,
-                vec![Self::EraVM, Self::EVM, Self::EVMInterpreter]
+                vec![Self::EraVM, Self::EVM, Self::EVMInterpreter, Self::REVM]
             )),
         }
     }

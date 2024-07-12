@@ -7,11 +7,11 @@ pub mod calldata;
 pub mod deploy_eravm;
 pub mod deploy_evm;
 pub mod output;
+pub mod revm_type_conversions;
 pub mod runtime;
 pub mod storage;
 pub mod storage_empty;
 pub mod value;
-pub mod revm_type_conversions;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -429,10 +429,10 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<'a, EXT,DB: Database>(
+    pub fn run_revm<'a, EXT, DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: revm::Evm<'a, EXT,revm::db::State<DB>>,
+        mut vm: revm::Evm<'a, EXT, revm::db::State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
@@ -465,12 +465,10 @@ impl Input {
                 runtime.add_balance(cache,name_prefix);
             }
             Self::StorageEmpty(storage_empty) => {
-                
+
                 //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
             }
-            Self::Balance(balance_check) => {
-                
-            }
+            Self::Balance(balance_check) => {}
         }
     }
 
