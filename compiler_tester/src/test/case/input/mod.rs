@@ -15,18 +15,15 @@ pub mod value;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::convert::Infallible;
 use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::EmptyDBTyped;
 use revm::db::State;
 use revm::Database;
-use revm::DatabaseCommit;
 
-use solidity_adapter::test::params::evm_version;
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
@@ -438,15 +435,28 @@ impl Input {
         name_prefix: String,
         index: usize,
         evm_builds: &HashMap<String, Build, RandomState>,
+        evm_version: Option<EVMVersion>,
     ) -> revm::Evm<'a, EXT, State<DB>> {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => {
-                deploy.run_revm(summary, vm, mode, test_group, name_prefix, evm_builds)
-            }
-            Self::Runtime(runtime) => {
-                runtime.run_revm(summary, vm, mode, test_group, name_prefix, index)
-            }
+            Self::DeployEVM(deploy) => deploy.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                evm_builds,
+                evm_version,
+            ),
+            Self::Runtime(runtime) => runtime.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                index,
+                evm_version,
+            ),
             Self::StorageEmpty(storage_empty) => {
                 storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
                 vm
@@ -455,21 +465,6 @@ impl Input {
                 balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
                 vm
             }
-        }
-    }
-
-    pub fn add_balance(&self, cache: &mut revm::CacheState, name_prefix: String) {
-        match self {
-            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.add_balance(cache),
-            Self::Runtime(runtime) => {
-                runtime.add_balance(cache, name_prefix);
-            }
-            Self::StorageEmpty(storage_empty) => {
-
-                //storage_empty.run_revm(summary, vm, mode, test_group, name_prefix, index)
-            }
-            Self::Balance(balance_check) => {}
         }
     }
 

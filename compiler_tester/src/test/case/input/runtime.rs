@@ -2,18 +2,12 @@
 //! The contract call input variant.
 //!
 
-use std::collections::HashMap;
-use std::convert::Infallible;
-use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::db::states::plain_account::PlainStorage;
-use revm::db::EmptyDBTyped;
 use revm::db::State;
-use revm::primitives::Account;
-use revm::primitives::AccountStatus;
 use revm::primitives::Bytes;
 use revm::primitives::EVMError;
 use revm::primitives::Env;
@@ -24,10 +18,7 @@ use revm::primitives::B256;
 use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Database;
-use revm::DatabaseCommit;
-use revm::Evm;
 use solidity_adapter::EVMVersion;
-use web3::types::Address;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
@@ -36,7 +27,6 @@ use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
 use super::output::event::Event;
@@ -210,6 +200,7 @@ impl Runtime {
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
+        evm_version: Option<EVMVersion>,
     ) -> revm::Evm<'a, EXT, State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
@@ -218,13 +209,53 @@ impl Runtime {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
                 .unwrap();
         }
-        let mut vm: Evm<EXT, State<DB>> = vm
+
+        let rich_addresses = SystemContext::get_rich_addresses();
+        let vm = if rich_addresses.contains(&caller) {
+            let address = web3_address_to_revm_address(&caller);
+            let acc_info = revm::primitives::AccountInfo {
+                balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
+                code_hash: revm::primitives::KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            };
+            let mut vm = vm
+                .modify()
+                .modify_db(|db| {
+                    db.insert_account(address, acc_info);
+                })
+                .modify_env(|env| {
+                    env.clone_from(&Box::new(Env::default()));
+                })
+                .build();
+            vm.transact_commit().ok().unwrap();
+            vm
+        } else {
+            vm
+        };
+
+        let mut vm = vm
             .modify()
             .modify_env(|env| {
+                let evm_context = SystemContext::get_constants_evm(evm_version);
                 env.tx.caller = web3_address_to_revm_address(&caller);
                 env.tx.data = revm::primitives::Bytes::from(self.calldata.inner.clone());
                 env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
                 env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&self.address));
+                env.cfg.chain_id = evm_context.chain_id;
+                env.block.number = U256::from(evm_context.block_number);
+                let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
+                env.block.coinbase = web3_u256_to_revm_address(coinbase);
+                env.block.timestamp = U256::from(evm_context.block_timestamp);
+                env.block.gas_limit = U256::from(evm_context.block_gas_limit);
+                env.block.basefee = U256::from(evm_context.base_fee);
+                let block_difficulty =
+                    web3::types::U256::from_str_radix(evm_context.block_difficulty, 16).unwrap();
+                env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
+                env.block.prevrandao = Some(B256::from(env.block.difficulty));
+                env.tx.gas_price = U256::from(0xb2d05e00_u32);
+                env.tx.gas_limit = evm_context.block_gas_limit;
+                env.tx.access_list = vec![];
             })
             .build();
 
