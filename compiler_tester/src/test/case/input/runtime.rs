@@ -282,12 +282,12 @@ impl Runtime {
                 logs,
                 output,
             } => {
-                if !SystemContext::get_rich_addresses().contains(&self.caller) {
-                    let address = web3_address_to_revm_address(&self.caller);
+                if !SystemContext::get_rich_addresses().contains(&caller) {
+                    let address = web3_address_to_revm_address(&caller);
                     let post_balance = vm
                         .context
                         .evm
-                        .balance(web3_address_to_revm_address(&self.caller))
+                        .balance(web3_address_to_revm_address(&caller))
                         .map_err(|e| vm.context.evm.error = Err(e))
                         .ok()
                         .unwrap()
@@ -378,7 +378,7 @@ impl Runtime {
             }
         };
         cache.insert_account_with_storage(
-            web3_address_to_revm_address(&self.caller),
+            web3_address_to_revm_address(&caller),
             acc_info,
             PlainStorage::default(),
         );
