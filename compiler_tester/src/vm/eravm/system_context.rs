@@ -6,12 +6,7 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
-use web3::signing::keccak256;
-use web3::types::{Address, H160, H256, U256};
-use zkevm_tester::runners::compiler_tests::StorageKey;
-
 use crate::target::Target;
-use crate::utils::u256_to_h256;
 
 ///
 /// The EraVM system context.
@@ -101,35 +96,6 @@ impl SystemContext {
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
-
-    pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x80, 0x0a,
-    ]);
-
-    pub fn address_to_h256(address: &Address) -> H256 {
-        let mut buffer = [0u8; 32];
-        buffer[12..].copy_from_slice(address.as_bytes());
-        H256(buffer)
-    }
-
-    pub fn set_pre_paris_contracts(storage: &mut HashMap<StorageKey, H256>) {
-        storage.insert(
-            zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
-                ),
-                key: web3::types::U256::from_big_endian(
-                    web3::types::H256::from_low_u64_be(
-                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
-                    )
-                    .as_bytes(),
-                ),
-            },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
-                .expect("Always valid"),
-        );
-    }
 
     ///
     /// Returns the storage values for the system context.
@@ -250,41 +216,79 @@ impl SystemContext {
         }
 
         if target == Target::EVMInterpreter {
-            let rich_addresses: Vec<Address> = (0..=9)
+            let rich_addresses: Vec<web3::types::Address> = (0..=9)
                 .map(|address_id| {
                     format!(
                         "0x121212121212121212121212121212000000{}{}",
                         address_id, "012"
                     )
                 })
-                .map(|s| Address::from_str(&s).unwrap())
+                .map(|string| {
+                    web3::types::Address::from_str(string.as_str()).expect("Always valid")
+                })
                 .collect();
             rich_addresses.iter().for_each(|address| {
-                let address_h256 = Self::address_to_h256(address);
-                let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
-                let key = keccak256(&bytes).into();
-                let storage_key = StorageKey {
-                    address: Self::L2_ETH_TOKEN_ADDRESS,
+                let address_h256 = crate::utils::address_to_h256(address);
+                let bytes = [
+                    address_h256.as_bytes(),
+                    &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+                ]
+                .concat();
+                let key = web3::signing::keccak256(&bytes).into();
+                let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                    address: web3::types::Address::from_low_u64_be(
+                        zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
+                    ),
                     key,
                 };
-                let initial_balance = u256_to_h256(&(U256::from(1) << 100));
+                let initial_balance =
+                    crate::utils::u256_to_h256(&(web3::types::U256::one() << 100));
                 storage.insert(storage_key, initial_balance);
             });
 
-            // Fund the 0x01 address with 1 token to match the solidity tests behavior.
-            let address_h256 = Self::address_to_h256(
-                &Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+            // Fund the 0x01 address with 1 token to match the behavior of upstream Solidity tests.
+            let address_ecrecover = crate::utils::address_to_h256(
+                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
             );
-            let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
-            let key = keccak256(&bytes).into();
-            let storage_key = StorageKey {
-                address: Self::L2_ETH_TOKEN_ADDRESS,
+            let bytes = [
+                address_ecrecover.as_bytes(),
+                &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+            ]
+            .concat();
+            let key = web3::signing::keccak256(&bytes).into();
+            let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
+                ),
                 key,
             };
-            let initial_balance = u256_to_h256(&(U256::from(1)));
+            let initial_balance = crate::utils::u256_to_h256(&web3::types::U256::one());
             storage.insert(storage_key, initial_balance);
         }
 
         storage
+    }
+
+    ///
+    /// Sets the storage values for the system context to the pre-Paris values.
+    ///
+    pub fn set_pre_paris_contracts(
+        storage: &mut HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
+    ) {
+        storage.insert(
+            zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                ),
+                key: web3::types::U256::from_big_endian(
+                    web3::types::H256::from_low_u64_be(
+                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
+                    )
+                    .as_bytes(),
+                ),
+            },
+            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
+                .expect("Always valid"),
+        );
     }
 }
