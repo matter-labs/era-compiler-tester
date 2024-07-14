@@ -9,10 +9,10 @@
 pub enum Target {
     /// The EraVM target.
     EraVM,
-    /// The native EVM target.
-    EVM,
     /// The EVM interpreter running on top of EraVM.
-    EVMInterpreter,
+    EVM,
+    /// The additional EVM emulator.
+    EVMEmulator,
 }
 
 impl std::str::FromStr for Target {
@@ -22,11 +22,11 @@ impl std::str::FromStr for Target {
         match string {
             "EraVM" => Ok(Self::EraVM),
             "EVM" => Ok(Self::EVM),
-            "EVMInterpreter" => Ok(Self::EVMInterpreter),
+            "EVMEmulator" => Ok(Self::EVMEmulator),
             string => Err(anyhow::anyhow!(
                 "Unknown target `{}`. Supported targets: {:?}",
                 string,
-                vec![Self::EraVM, Self::EVM, Self::EVMInterpreter]
+                vec![Self::EraVM, Self::EVM, Self::EVMEmulator]
             )),
         }
     }
@@ -37,7 +37,7 @@ impl std::fmt::Display for Target {
         match self {
             Target::EraVM => write!(f, "EraVM"),
             Target::EVM => write!(f, "EVM"),
-            Target::EVMInterpreter => write!(f, "EVMInterpreter"),
+            Target::EVMEmulator => write!(f, "EVMEmulator"),
         }
     }
 }

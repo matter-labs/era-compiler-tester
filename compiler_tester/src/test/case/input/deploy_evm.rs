@@ -62,9 +62,9 @@ impl DeployEVM {
 
 impl DeployEVM {
     ///
-    /// Runs the deploy transaction on native EVM.
+    /// Runs the deploy transaction on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,

@@ -388,9 +388,9 @@ impl Input {
     }
 
     ///
-    /// Runs the input on EVM.
+    /// Runs the input on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
@@ -401,15 +401,17 @@ impl Input {
     ) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on EVM"),
-            Self::DeployEVM(deploy) => deploy.run_evm(summary, vm, mode, test_group, name_prefix),
+            Self::DeployEVM(deploy) => {
+                deploy.run_evm_emulator(summary, vm, mode, test_group, name_prefix)
+            }
             Self::Runtime(runtime) => {
-                runtime.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                runtime.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Balance(balance_check) => {
-                balance_check.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                balance_check.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
         };
     }

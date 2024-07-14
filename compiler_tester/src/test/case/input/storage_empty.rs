@@ -59,9 +59,9 @@ impl StorageEmpty {
     }
 
     ///
-    /// Runs the storage empty check on EVM.
+    /// Runs the storage empty check on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         _summary: Arc<Mutex<Summary>>,
         _vm: &EVM,
