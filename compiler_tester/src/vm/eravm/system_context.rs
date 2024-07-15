@@ -6,12 +6,7 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
-use web3::signing::keccak256;
-use web3::types::{Address, H160, H256, U256};
-use zkevm_tester::runners::compiler_tests::StorageKey;
-
 use crate::target::Target;
-use crate::utils::u256_to_h256;
 
 ///
 /// The EraVM system context.
