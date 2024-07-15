@@ -9,12 +9,10 @@
 pub enum Target {
     /// The EraVM target.
     EraVM,
-    /// The native EVM target.
+    // The Rust Ethereum Virtual Machine target.
     EVM,
     /// The EVM interpreter running on top of EraVM.
     EVMInterpreter,
-    // The Rust Ethereum Virtual Machine target.
-    REVM,
 }
 
 impl std::str::FromStr for Target {
@@ -25,11 +23,10 @@ impl std::str::FromStr for Target {
             "EraVM" => Ok(Self::EraVM),
             "EVM" => Ok(Self::EVM),
             "EVMInterpreter" => Ok(Self::EVMInterpreter),
-            "REVM" => Ok(Self::REVM),
             string => Err(anyhow::anyhow!(
                 "Unknown target `{}`. Supported targets: {:?}",
                 string,
-                vec![Self::EraVM, Self::EVM, Self::EVMInterpreter, Self::REVM]
+                vec![Self::EraVM, Self::EVM, Self::EVMInterpreter]
             )),
         }
     }
@@ -40,7 +37,6 @@ impl std::fmt::Display for Target {
         match self {
             Target::EraVM => write!(f, "EraVM"),
             Target::EVM => write!(f, "EVM"),
-            Target::REVM => write!(f, "REVM"),
             Target::EVMInterpreter => write!(f, "EVMInterpreter"),
         }
     }
