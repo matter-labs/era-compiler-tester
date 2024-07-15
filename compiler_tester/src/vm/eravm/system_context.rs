@@ -6,7 +6,6 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
-use revm::interpreter::opcode::CHAINID;
 use web3::signing::keccak256;
 use web3::types::{Address, H160, H256, U256};
 use zkevm_tester::runners::compiler_tests::StorageKey;

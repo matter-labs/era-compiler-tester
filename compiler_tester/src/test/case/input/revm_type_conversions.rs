@@ -1,3 +1,5 @@
+use revm::primitives::Bytes;
+
 use super::value::Value;
 
 pub fn web3_u256_to_revm_address(u256: web3::types::U256) -> revm::primitives::Address {
@@ -50,4 +52,32 @@ pub fn revm_topics_to_vec_value(revm_topics: &[revm::primitives::B256]) -> Vec<V
         ));
     }
     topics
+}
+
+pub fn transform_success_output(
+    output: revm::primitives::Output,
+    logs: Vec<revm::primitives::Log>,
+) -> crate::test::case::input::Output {
+    let bytes = match output {
+        revm::primitives::Output::Call(bytes) => bytes,
+        revm::primitives::Output::Create(_, address) => {
+            let addr_slice = address.unwrap();
+            Bytes::from(addr_slice.into_word())
+        }
+    };
+    let return_data_value = revm_bytes_to_vec_value(bytes);
+
+    let events = logs
+        .into_iter()
+        .map(|log| {
+            let topics = revm_topics_to_vec_value(log.data.topics());
+            let data_value = revm_bytes_to_vec_value(log.data.data);
+            super::output::event::Event::new(
+                Some(web3::types::Address::from_slice(&log.address.as_slice())),
+                topics,
+                data_value,
+            )
+        })
+        .collect();
+    crate::test::case::input::Output::new(return_data_value, false, events)
 }

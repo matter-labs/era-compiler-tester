@@ -4,19 +4,14 @@
 
 use std::collections::HashMap;
 use std::hash::RandomState;
-use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::states::plain_account::PlainStorage;
-
-use revm::primitives::Bytes;
 use revm::primitives::EVMError;
 use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
 use revm::primitives::TxKind;
 use revm::primitives::B256;
-use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Database;
 use revm::State;
@@ -24,7 +19,6 @@ use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
-use crate::test::case::input::balance;
 use crate::test::case::input::calldata::Calldata;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
@@ -34,9 +28,8 @@ use crate::vm::eravm::EraVM;
 use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
-use super::output::event::Event;
 use super::revm_type_conversions::revm_bytes_to_vec_value;
-use super::revm_type_conversions::revm_topics_to_vec_value;
+use super::revm_type_conversions::transform_success_output;
 use super::revm_type_conversions::web3_address_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_u256;
@@ -152,49 +145,13 @@ impl DeployEVM {
     ) -> revm::Evm<'a, EXT, State<DB>> {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
-        //vm.populate_storage(self.storage.inner);
         let build = evm_builds
             .get(self.identifier.as_str())
             .expect("Always valid");
         let mut deploy_code = build.deploy_build.bytecode.to_owned();
         deploy_code.extend(self.calldata.inner.clone());
 
-        let rich_addresses = SystemContext::get_rich_addresses();
-        let mut vm = vm;
-        let address = web3_address_to_revm_address(&self.caller);
-        let nonce = match vm.db_mut().basic(address) {
-            Ok(Some(acc)) => {
-                acc.nonce
-            },
-            _ => 1,
-        };
-        let vm = if rich_addresses.contains(&self.caller) {
-            let acc_info = revm::primitives::AccountInfo {
-                balance: U256::MAX,
-                code_hash: revm::primitives::KECCAK_EMPTY,
-                code: None,
-                nonce,
-            };
-            let mut vm = vm
-                .modify()
-                .modify_db(|db| {
-                    db.insert_account(address, acc_info.clone());
-                }).modify_env(|env| env.clone_from(&Box::new(Env::default())))
-                .build();
-            vm.transact_commit().ok();
-            vm
-        } else {
-            vm
-        };
-
-        let mut vm = vm;
-        let balance = vm
-            .context
-            .evm
-            .balance(web3_address_to_revm_address(&self.caller))
-            .ok()
-            .unwrap()
-            .0;
+        let vm = self.update_balance(vm);
 
         let mut new_vm = vm
             .modify()
@@ -249,41 +206,19 @@ impl DeployEVM {
 
         let output = match res {
             ExecutionResult::Success {
-                reason,
-                gas_used,
-                gas_refunded,
+                reason: _,
+                gas_used: _,
+                gas_refunded: _,
                 logs,
                 output,
             } => {
-                let bytes = match output {
-                    revm::primitives::Output::Call(bytes) => bytes,
-                    revm::primitives::Output::Create(bytes, address) => {
-                        let addr_slice = address.unwrap();
-                        Bytes::from(addr_slice.into_word())
-                    }
-                };
-                let return_data_value = revm_bytes_to_vec_value(bytes);
-
-                let events = logs
-                    .into_iter()
-                    .map(|log| {
-                        let topics = revm_topics_to_vec_value(log.data.topics());
-                        let data_value = revm_bytes_to_vec_value(log.data.data);
-                        Event::new(
-                            Some(web3::types::Address::from_slice(&log.address.as_slice())),
-                            topics,
-                            data_value,
-                        )
-                    })
-                    .collect();
-                let output = Output::new(return_data_value, false, events);
-                output
+                transform_success_output(output, logs)
             }
-            ExecutionResult::Revert { gas_used, output } => {
+            ExecutionResult::Revert { gas_used: _, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 Output::new(return_data_value, true, vec![])
             }
-            ExecutionResult::Halt { reason, gas_used } => Output::new(vec![], true, vec![]),
+            ExecutionResult::Halt { reason:_, gas_used: _ } => Output::new(vec![], true, vec![]),
         };
 
         if output == self.expected {
@@ -357,4 +292,34 @@ impl DeployEVM {
             );
         }
     }
+
+    fn update_balance<'a, EXT, DB: Database>(&self, mut vm: revm::Evm<'a, EXT, State<DB>>) -> revm::Evm<'a, EXT, State<DB>> {
+        let rich_addresses = SystemContext::get_rich_addresses();
+        if rich_addresses.contains(&self.caller) {
+            let address = web3_address_to_revm_address(&self.caller);
+            let nonce = match vm.db_mut().basic(address) {
+                Ok(Some(acc)) => {
+                    acc.nonce
+                },
+                _ => 1,
+            };
+            let acc_info = revm::primitives::AccountInfo {
+                balance: U256::MAX,
+                code_hash: revm::primitives::KECCAK_EMPTY,
+                code: None,
+                nonce,
+            };
+            let mut vm = vm
+                .modify()
+                .modify_db(|db| {
+                    db.insert_account(address, acc_info.clone());
+                }).modify_env(|env| env.clone_from(&Box::new(Env::default())))
+                .build();
+            vm.transact_commit().ok(); // Even if TX fails, the balance update will be committed
+            vm
+        } else {
+            vm
+        }
+    }
 }
+

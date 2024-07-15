@@ -12,6 +12,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::db::states::plain_account::PlainStorage;
+use revm::db::EmptyDBTyped;
 use revm::primitives::Address;
 use revm::primitives::FixedBytes;
 use revm::primitives::B256;
@@ -178,55 +179,7 @@ impl Case {
             test_name
         };
 
-        let mut cache = revm::CacheState::new(false);
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::from(1_u64),
-            code_hash: FixedBytes::from_str(
-                "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-            )
-            .unwrap(),
-            code: None,
-            nonce: 1,
-        };
-
-        cache.insert_account_with_storage(
-            Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
-            acc_info,
-            PlainStorage::default(),
-        );
-
-        let acc_info_zero = revm::primitives::AccountInfo {
-            balance: U256::from(0_u64),
-            code_hash: FixedBytes::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
-            code: None,
-            nonce: 1,
-        };
-
-        cache.insert_account_with_storage(
-            Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
-            acc_info_zero,
-            PlainStorage::default(),
-        );
-
-        let mut state = revm::db::State::builder()
-            .with_cached_prestate(cache)
-            .with_bundle_update()
-            .build();
-        state.block_hashes.insert(
-            1,
-            B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
-                .unwrap(),
-        );
-        state.block_hashes.insert(
-            0,
-            B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
-                .unwrap(),
-        );
-
-        let mut vm = revm::Evm::builder().with_db(state).build();
+        let mut vm = create_initial_revm();
         for (index, input) in self.inputs.into_iter().enumerate() {
             vm = input.run_revm(
                 summary.clone(),
@@ -272,4 +225,58 @@ impl Case {
             )
         }
     }
+
+}
+
+pub fn create_initial_revm() -> revm::Evm<'static, (), revm::db::State<EmptyDBTyped<std::convert::Infallible>>> {
+    let mut cache = revm::CacheState::new(false);
+    // Precompile 0x01 needs to have its code hash
+    let acc_info = revm::primitives::AccountInfo {
+        balance: U256::from(1_u64),
+        code_hash: FixedBytes::from_str(
+            "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        )
+        .unwrap(),
+        code: None,
+        nonce: 1,
+    };
+
+    cache.insert_account_with_storage(
+        Address::from_word(FixedBytes::from(U256::from(1_u64))),
+        acc_info,
+        PlainStorage::default(),
+    );
+
+    // Account 0x00 needs to have its code hash on 0
+    let acc_info_zero = revm::primitives::AccountInfo {
+        balance: U256::from(0_u64),
+        code_hash: FixedBytes::from(U256::ZERO),
+        code: None,
+        nonce: 1,
+    };
+
+    cache.insert_account_with_storage(
+        Address::from_word(FixedBytes::from(U256::ZERO)),
+        acc_info_zero,
+        PlainStorage::default(),
+    );
+
+    let mut state = revm::db::State::builder()
+        .with_cached_prestate(cache)
+        .with_bundle_update()
+        .build();
+
+    // Blocks 0 and 1 need to have their hashes set (revm by default just uses the keccak of the number)
+    state.block_hashes.insert(
+        1,
+        B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
+            .unwrap(),
+    );
+    state.block_hashes.insert(
+        0,
+        B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
+            .unwrap(),
+    );
+
+    revm::Evm::builder().with_db(state).build()
 }

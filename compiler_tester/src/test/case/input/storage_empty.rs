@@ -5,11 +5,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::states::cache_account;
-use revm::db::states::plain_account;
 use revm::db::State;
 use revm::Database;
-use revm::DatabaseCommit;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
@@ -94,16 +91,20 @@ impl StorageEmpty {
         let name = format!("{name_prefix}[#storage_empty_check:{index}]");
 
         let mut is_empty = true;
-        for (address, cache_account) in &vm.db().cache.accounts {
+        for (_, cache_account) in &vm.db().cache.accounts {
             let plain_account = cache_account.clone().account;
-            if plain_account.is_some() {
-                for (key, value) in plain_account.unwrap().storage.iter() {
-                    if !value.is_zero() {
-                        is_empty = false;
+            match plain_account {
+                Some(plain_account) => {
+                    for (_, value) in plain_account.storage.iter() {
+                        if !value.is_zero() {
+                            is_empty = false;
+                        }
                     }
                 }
+                None => {}
             }
         }
+
         if is_empty == self.is_empty {
             Summary::passed_special(summary, mode, name, test_group);
         } else {

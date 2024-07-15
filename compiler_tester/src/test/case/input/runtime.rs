@@ -8,7 +8,6 @@ use std::sync::Mutex;
 
 use revm::db::states::plain_account::PlainStorage;
 use revm::db::State;
-use revm::primitives::Bytes;
 use revm::primitives::EVMError;
 use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
@@ -19,20 +18,19 @@ use revm::primitives::KECCAK_EMPTY;
 use revm::primitives::U256;
 use revm::Database;
 use solidity_adapter::EVMVersion;
+use web3::ethabi::Address;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
-use crate::vm;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
 
-use super::output::event::Event;
 use super::revm_type_conversions::revm_bytes_to_vec_value;
-use super::revm_type_conversions::revm_topics_to_vec_value;
+use super::revm_type_conversions::transform_success_output;
 use super::revm_type_conversions::web3_address_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_u256;
@@ -206,35 +204,14 @@ impl Runtime {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
 
+        // On revm we can't send a tx with a tx_origin different from the tx_sender, this specific test expects tx_origin to be that value, so we change the sender
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
                 .unwrap();
         }
 
-        let rich_addresses = SystemContext::get_rich_addresses();
-        let vm = if rich_addresses.contains(&caller) {
-            let address = web3_address_to_revm_address(&caller);
-            let acc_info = revm::primitives::AccountInfo {
-                balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
-                code_hash: revm::primitives::KECCAK_EMPTY,
-                code: None,
-                nonce: 1,
-            };
-            let mut vm = vm
-                .modify()
-                .modify_db(|db| {
-                    db.insert_account(address, acc_info);
-                })
-                .modify_env(|env| {
-                    env.clone_from(&Box::new(Env::default()));
-                })
-                .build();
-            vm.transact_commit().ok();
-            vm
-        } else {
-            vm
-        };
+        let vm = self.update_balance(vm, caller);
 
         let mut vm = vm
             .modify()
@@ -261,31 +238,7 @@ impl Runtime {
             })
             .build();
 
-        match vm.transact() {
-            Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
-                fee,
-                balance: _balance,
-            })) => {
-                let acc_info = revm::primitives::AccountInfo {
-                    balance: *fee,
-                    code_hash: KECCAK_EMPTY,
-                    code: None,
-                    nonce: 1,
-                };
-                vm = vm
-                    .modify()
-                    .modify_db(|db| {
-                        db.insert_account_with_storage(
-                            web3_address_to_revm_address(&caller),
-                            acc_info,
-                            PlainStorage::default(),
-                        );
-                    })
-                    .build();
-            }
-            _ => (),
-        };
-
+        vm = self.update_balance_if_lack_of_funds(caller, vm);
 
         let res = match vm.transact_commit() {
             Ok(res) => res,
@@ -313,69 +266,20 @@ impl Runtime {
         };
         let output = match res {
             ExecutionResult::Success {
-                reason,
-                gas_used,
-                gas_refunded,
+                reason: _,
+                gas_used: _,
+                gas_refunded: _,
                 logs,
                 output,
             } => {
-                if !SystemContext::get_rich_addresses().contains(&caller) {
-                    let post_balance = vm
-                        .context
-                        .evm
-                        .balance(web3_address_to_revm_address(&caller))
-                        .map_err(|e| vm.context.evm.error = Err(e))
-                        .ok()
-                        .unwrap()
-                        .0;
-                    let acc_info = revm::primitives::AccountInfo {
-                        balance: U256::from(vm.tx().gas_limit) * vm.tx().gas_price
-                            - (post_balance + U256::from_str("63615000000000").unwrap()),
-                        code_hash: KECCAK_EMPTY,
-                        code: None,
-                        nonce: 1,
-                    };
-                    vm = vm
-                        .modify()
-                        .modify_db(|db| {
-                            db.insert_account_with_storage(
-                                web3_address_to_revm_address(&caller),
-                                acc_info,
-                                PlainStorage::default(),
-                            );
-                        })
-                        .build();
-                    let _ = vm.transact_commit();
-                };
-                let bytes = match output {
-                    revm::primitives::Output::Call(bytes) => bytes,
-                    revm::primitives::Output::Create(bytes, address) => {
-                        let addr_slice = address.unwrap();
-                        Bytes::from(addr_slice.into_word())
-                    }
-                };
-                let return_data_value = revm_bytes_to_vec_value(bytes);
-
-                let events = logs
-                    .into_iter()
-                    .map(|log| {
-                        let topics = revm_topics_to_vec_value(log.data.topics());
-                        let data_value = revm_bytes_to_vec_value(log.data.data);
-                        Event::new(
-                            Some(web3::types::Address::from_slice(&log.address.as_slice())),
-                            topics,
-                            data_value,
-                        )
-                    })
-                    .collect();
-                let output = Output::new(return_data_value, false, events);
-                output
+                vm = self.non_rich_update_balance(caller, vm);
+                transform_success_output(output, logs)
             }
-            ExecutionResult::Revert { gas_used, output } => {
+            ExecutionResult::Revert { gas_used: _, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 Output::new(return_data_value, true, vec![])
             }
-            ExecutionResult::Halt { reason, gas_used } => Output::new(vec![], true, vec![]),
+            ExecutionResult::Halt { reason: _, gas_used: _ } => Output::new(vec![], true, vec![]),
         };
 
         if output == self.expected {
@@ -391,35 +295,6 @@ impl Runtime {
             );
         };
         vm
-    }
-
-    pub fn add_balance(&self, cache: &mut revm::CacheState, name_prefix: String) {
-        let rich_addresses: Vec<web3::types::Address> = SystemContext::get_rich_addresses();
-        let mut caller = self.caller;
-        if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
-            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
-                .unwrap();
-        }
-        let acc_info = if rich_addresses.contains(&caller) {
-            revm::primitives::AccountInfo {
-                balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
-                code_hash: KECCAK_EMPTY,
-                code: None,
-                nonce: 1,
-            }
-        } else {
-            revm::primitives::AccountInfo {
-                balance: U256::ZERO,
-                code_hash: KECCAK_EMPTY,
-                code: None,
-                nonce: 1,
-            }
-        };
-        cache.insert_account_with_storage(
-            web3_address_to_revm_address(&caller),
-            acc_info,
-            PlainStorage::default(),
-        );
     }
 
     ///
@@ -471,5 +346,91 @@ impl Runtime {
                 self.calldata.inner,
             );
         }
+    }
+
+    fn update_balance<'a, EXT, DB: Database>(&self, vm: revm::Evm<'a, EXT, State<DB>>, caller: Address) -> revm::Evm<'a, EXT, State<DB>> {        let rich_addresses = SystemContext::get_rich_addresses();
+        let rich_addresses = SystemContext::get_rich_addresses();
+        if rich_addresses.contains(&caller) {
+            let address = web3_address_to_revm_address(&caller);
+            let acc_info = revm::primitives::AccountInfo {
+                balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
+                code_hash: revm::primitives::KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            };
+            let mut vm = vm
+                .modify()
+                .modify_db(|db| {
+                    db.insert_account(address, acc_info);
+                })
+                .modify_env(|env| {
+                    env.clone_from(&Box::new(Env::default()));
+                })
+                .build();
+            vm.transact_commit().ok();
+            vm
+        } else {
+            vm
+        }
+    }
+
+    fn update_balance_if_lack_of_funds<'a, EXT, DB: Database>(&self , caller: Address, mut vm: revm::Evm<'a, EXT, State<DB>>) -> revm::Evm<'a, EXT, State<DB>> {
+        match vm.transact() {
+            Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
+                fee,
+                balance: _balance,
+            })) => {
+                let acc_info = revm::primitives::AccountInfo {
+                    balance: *fee,
+                    code_hash: KECCAK_EMPTY,
+                    code: None,
+                    nonce: 1,
+                };
+                vm = vm
+                    .modify()
+                    .modify_db(|db| {
+                        db.insert_account_with_storage(
+                            web3_address_to_revm_address(&caller),
+                            acc_info,
+                            PlainStorage::default(),
+                        );
+                    })
+                    .build();
+            }
+            _ => (),
+        };
+        vm
+    }
+
+    fn non_rich_update_balance<'a, EXT, DB: Database>(&self, caller: Address, mut vm: revm::Evm<'a, EXT, State<DB>>) -> revm::Evm<'a, EXT, State<DB>> {
+        if !SystemContext::get_rich_addresses().contains(&caller) {
+            let post_balance = vm
+                .context
+                .evm
+                .balance(web3_address_to_revm_address(&caller))
+                .map_err(|e| vm.context.evm.error = Err(e))
+                .ok()
+                .unwrap()
+                .0;
+            let acc_info = revm::primitives::AccountInfo {
+                balance: U256::from(vm.tx().gas_limit) * vm.tx().gas_price
+                    - (post_balance + U256::from_str("63615000000000").unwrap()),
+                code_hash: KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            };
+            vm = vm
+                .modify()
+                .modify_db(|db| {
+                    db.insert_account_with_storage(
+                        web3_address_to_revm_address(&caller),
+                        acc_info,
+                        PlainStorage::default(),
+                    );
+                })
+                .build();
+            let _ = vm.transact_commit();
+        };
+        vm
     }
 }

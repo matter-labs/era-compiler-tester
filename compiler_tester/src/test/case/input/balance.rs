@@ -6,7 +6,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::db::State;
-use revm::primitives::Address;
 use web3::types::U256;
 
 use crate::compilers::mode::Mode;
@@ -96,23 +95,33 @@ impl Balance {
         let found = vm
             .context
             .evm
-            .balance(web3_address_to_revm_address(&self.address))
-            .map_err(|e| vm.context.evm.error = Err(e))
-            .ok()
-            .unwrap()
-            .0;
-        let u256_found = U256::from(found.to_be_bytes());
-        if u256_found == self.balance {
-            Summary::passed_special(summary, mode, name, test_group);
-        } else {
-            Summary::failed(
-                summary,
-                mode,
-                name,
-                self.balance.into(),
-                u256_found.into(),
-                self.address.to_fixed_bytes().to_vec(),
-            );
+            .balance(web3_address_to_revm_address(&self.address));
+        match found {
+            Ok(found) => {
+                let u256_found = U256::from(found.0.to_be_bytes());
+                if u256_found == self.balance {
+                    Summary::passed_special(summary, mode, name, test_group);
+                } else {
+                    Summary::failed(
+                        summary,
+                        mode,
+                        name,
+                        self.balance.into(),
+                        u256_found.into(),
+                        self.address.to_fixed_bytes().to_vec(),
+                    );
+                }
+            }
+            Err(_) => {
+                Summary::failed(
+                    summary,
+                    mode,
+                    name,
+                    self.balance.into(),
+                    U256::zero().into(),
+                    self.address.to_fixed_bytes().to_vec(),
+                );
+            }
         }
     }
 
