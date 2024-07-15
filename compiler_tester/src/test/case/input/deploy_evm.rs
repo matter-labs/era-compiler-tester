@@ -33,6 +33,7 @@ use super::revm_type_conversions::transform_success_output;
 use super::revm_type_conversions::web3_address_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_u256;
+use std::str::FromStr;
 
 ///
 /// The EVM deploy contract call input variant.
@@ -203,7 +204,6 @@ impl DeployEVM {
             }
         };
 
-
         let output = match res {
             ExecutionResult::Success {
                 reason: _,
@@ -211,18 +211,22 @@ impl DeployEVM {
                 gas_refunded: _,
                 logs,
                 output,
+            } => transform_success_output(output, logs),
+            ExecutionResult::Revert {
+                gas_used: _,
+                output,
             } => {
-                transform_success_output(output, logs)
-            }
-            ExecutionResult::Revert { gas_used: _, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 Output::new(return_data_value, true, vec![])
             }
-            ExecutionResult::Halt { reason:_, gas_used: _ } => Output::new(vec![], true, vec![]),
+            ExecutionResult::Halt {
+                reason: _,
+                gas_used: _,
+            } => Output::new(vec![], true, vec![]),
         };
 
         if output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, 0);
+            Summary::passed_deploy(summary, mode, name, test_group, 0, 0, 0, 0);
         } else {
             Summary::failed(
                 summary,
@@ -293,14 +297,17 @@ impl DeployEVM {
         }
     }
 
-    fn update_balance<'a, EXT, DB: Database>(&self, mut vm: revm::Evm<'a, EXT, State<DB>>) -> revm::Evm<'a, EXT, State<DB>> {
+    fn update_balance<'a, EXT, DB: Database>(
+        &self,
+        mut vm: revm::Evm<'a, EXT, State<DB>>,
+    ) -> revm::Evm<'a, EXT, State<DB>> {
         let rich_addresses = SystemContext::get_rich_addresses();
-        if rich_addresses.contains(&self.caller) {
+        let era_vm_rich_address =
+            web3::types::Address::from_str("0xdeadbeef01000000000000000000000000000000").unwrap();
+        if rich_addresses.contains(&self.caller) || self.caller == era_vm_rich_address {
             let address = web3_address_to_revm_address(&self.caller);
             let nonce = match vm.db_mut().basic(address) {
-                Ok(Some(acc)) => {
-                    acc.nonce
-                },
+                Ok(Some(acc)) => acc.nonce,
                 _ => 1,
             };
             let acc_info = revm::primitives::AccountInfo {
@@ -313,7 +320,8 @@ impl DeployEVM {
                 .modify()
                 .modify_db(|db| {
                     db.insert_account(address, acc_info.clone());
-                }).modify_env(|env| env.clone_from(&Box::new(Env::default())))
+                })
+                .modify_env(|env| env.clone_from(&Box::new(Env::default())))
                 .build();
             vm.transact_commit().ok(); // Even if TX fails, the balance update will be committed
             vm
@@ -322,4 +330,3 @@ impl DeployEVM {
         }
     }
 }
-

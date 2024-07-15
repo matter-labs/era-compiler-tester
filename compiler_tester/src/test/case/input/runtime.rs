@@ -203,7 +203,6 @@ impl Runtime {
     ) -> revm::Evm<'a, EXT, State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
-
         // On revm we can't send a tx with a tx_origin different from the tx_sender, this specific test expects tx_origin to be that value, so we change the sender
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
@@ -275,11 +274,17 @@ impl Runtime {
                 vm = self.non_rich_update_balance(caller, vm);
                 transform_success_output(output, logs)
             }
-            ExecutionResult::Revert { gas_used: _, output } => {
+            ExecutionResult::Revert {
+                gas_used: _,
+                output,
+            } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 Output::new(return_data_value, true, vec![])
             }
-            ExecutionResult::Halt { reason: _, gas_used: _ } => Output::new(vec![], true, vec![]),
+            ExecutionResult::Halt {
+                reason: _,
+                gas_used: _,
+            } => Output::new(vec![], true, vec![]),
         };
 
         if output == self.expected {
@@ -348,9 +353,15 @@ impl Runtime {
         }
     }
 
-    fn update_balance<'a, EXT, DB: Database>(&self, vm: revm::Evm<'a, EXT, State<DB>>, caller: Address) -> revm::Evm<'a, EXT, State<DB>> {        let rich_addresses = SystemContext::get_rich_addresses();
+    fn update_balance<'a, EXT, DB: Database>(
+        &self,
+        vm: revm::Evm<'a, EXT, State<DB>>,
+        caller: Address,
+    ) -> revm::Evm<'a, EXT, State<DB>> {
         let rich_addresses = SystemContext::get_rich_addresses();
-        if rich_addresses.contains(&caller) {
+        let era_vm_rich_address =
+            web3::types::Address::from_str("0xdeadbeef01000000000000000000000000000000").unwrap();
+        if rich_addresses.contains(&caller) || caller == era_vm_rich_address {
             let address = web3_address_to_revm_address(&caller);
             let acc_info = revm::primitives::AccountInfo {
                 balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
@@ -374,7 +385,11 @@ impl Runtime {
         }
     }
 
-    fn update_balance_if_lack_of_funds<'a, EXT, DB: Database>(&self , caller: Address, mut vm: revm::Evm<'a, EXT, State<DB>>) -> revm::Evm<'a, EXT, State<DB>> {
+    fn update_balance_if_lack_of_funds<'a, EXT, DB: Database>(
+        &self,
+        caller: Address,
+        mut vm: revm::Evm<'a, EXT, State<DB>>,
+    ) -> revm::Evm<'a, EXT, State<DB>> {
         match vm.transact() {
             Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
                 fee,
@@ -402,7 +417,11 @@ impl Runtime {
         vm
     }
 
-    fn non_rich_update_balance<'a, EXT, DB: Database>(&self, caller: Address, mut vm: revm::Evm<'a, EXT, State<DB>>) -> revm::Evm<'a, EXT, State<DB>> {
+    fn non_rich_update_balance<'a, EXT, DB: Database>(
+        &self,
+        caller: Address,
+        mut vm: revm::Evm<'a, EXT, State<DB>>,
+    ) -> revm::Evm<'a, EXT, State<DB>> {
         if !SystemContext::get_rich_addresses().contains(&caller) {
             let post_balance = vm
                 .context
