@@ -102,35 +102,6 @@ impl SystemContext {
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
 
-    pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x80, 0x0a,
-    ]);
-
-    pub fn address_to_h256(address: &Address) -> H256 {
-        let mut buffer = [0u8; 32];
-        buffer[12..].copy_from_slice(address.as_bytes());
-        H256(buffer)
-    }
-
-    pub fn set_pre_paris_contracts(storage: &mut HashMap<StorageKey, H256>) {
-        storage.insert(
-            zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
-                ),
-                key: web3::types::U256::from_big_endian(
-                    web3::types::H256::from_low_u64_be(
-                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
-                    )
-                    .as_bytes(),
-                ),
-            },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
-                .expect("Always valid"),
-        );
-    }
-
     ///
     /// Returns the storage values for the system context.
     ///
@@ -139,24 +110,24 @@ impl SystemContext {
     ) -> HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256> {
         let chain_id = match target {
             Target::EraVM => Self::CHAIND_ID_ERAVM,
-            Target::EVMInterpreter | Target::EVM => Self::CHAIND_ID_EVM,
+            Target::EVM | Target::EVMEmulator => Self::CHAIND_ID_EVM,
         };
         let coinbase = match target {
             Target::EraVM => Self::COIN_BASE_ERAVM,
-            Target::EVMInterpreter | Target::EVM => Self::COIN_BASE_EVM,
+            Target::EVM | Target::EVMEmulator => Self::COIN_BASE_EVM,
         };
 
         let block_number = match target {
             Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
-            Target::EVMInterpreter | Target::EVM => Self::CURRENT_BLOCK_NUMBER_EVM,
+            Target::EVM | Target::EVMEmulator => Self::CURRENT_BLOCK_NUMBER_EVM,
         };
         let block_timestamp = match target {
             Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
-            Target::EVMInterpreter | Target::EVM => Self::CURRENT_BLOCK_TIMESTAMP_EVM,
+            Target::EVM | Target::EVMEmulator => Self::CURRENT_BLOCK_TIMESTAMP_EVM,
         };
         let block_gas_limit = match target {
             Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
-            Target::EVMInterpreter | Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
+            Target::EVM | Target::EVMEmulator => Self::BLOCK_GAS_LIMIT_EVM,
         };
 
         let mut system_context_values = vec![
@@ -186,8 +157,8 @@ impl SystemContext {
                     Target::EraVM => {
                         web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
                     }
-                    // This block difficulty is setted by default, but it can be overriden if the test needs it.
-                    Target::EVMInterpreter | Target::EVM => {
+                    // This block difficulty is set by default, but it can be overridden if the test needs it.
+                    Target::EVM | Target::EVMEmulator => {
                         web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM_POST_PARIS)
                             .expect("Always valid")
                     }
@@ -222,7 +193,7 @@ impl SystemContext {
 
             let mut hash = web3::types::U256::from_str(match target {
                 Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
-                Target::EVMInterpreter | Target::EVM => Self::ZERO_BLOCK_HASH_EVM,
+                Target::EVM | Target::EVMEmulator => Self::ZERO_BLOCK_HASH_EVM,
             })
             .expect("Invalid zero block hash const");
             hash = hash.add(web3::types::U256::from(index));
@@ -249,40 +220,80 @@ impl SystemContext {
             );
         }
 
-        let rich_addresses: Vec<Address> = (0..=9)
-            .map(|address_id| {
-                format!(
-                    "0x121212121212121212121212121212000000{}{}",
-                    address_id, "012"
-                )
-            })
-            .map(|s| Address::from_str(&s).unwrap())
-            .collect();
-        rich_addresses.iter().for_each(|address| {
-            let address_h256 = Self::address_to_h256(address);
-            let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
-            let key = keccak256(&bytes).into();
-            let storage_key = StorageKey {
-                address: Self::L2_ETH_TOKEN_ADDRESS,
+        if target == Target::EVM {
+            let rich_addresses: Vec<web3::types::Address> = (0..=9)
+                .map(|address_id| {
+                    format!(
+                        "0x121212121212121212121212121212000000{}{}",
+                        address_id, "012"
+                    )
+                })
+                .map(|string| {
+                    web3::types::Address::from_str(string.as_str()).expect("Always valid")
+                })
+                .collect();
+            rich_addresses.iter().for_each(|address| {
+                let address_h256 = crate::utils::address_to_h256(address);
+                let bytes = [
+                    address_h256.as_bytes(),
+                    &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+                ]
+                .concat();
+                let key = web3::signing::keccak256(&bytes).into();
+                let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                    address: web3::types::Address::from_low_u64_be(
+                        zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
+                    ),
+                    key,
+                };
+                let initial_balance =
+                    crate::utils::u256_to_h256(&(web3::types::U256::one() << 100));
+                storage.insert(storage_key, initial_balance);
+            });
+
+            // Fund the 0x01 address with 1 token to match the behavior of upstream Solidity tests.
+            let address_ecrecover = crate::utils::address_to_h256(
+                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
+            );
+            let bytes = [
+                address_ecrecover.as_bytes(),
+                &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+            ]
+            .concat();
+            let key = web3::signing::keccak256(&bytes).into();
+            let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
+                ),
                 key,
             };
-            let initial_balance = u256_to_h256(&(U256::from(1) << 100));
+            let initial_balance = crate::utils::u256_to_h256(&web3::types::U256::one());
             storage.insert(storage_key, initial_balance);
-        });
-
-        // Fund the 0x01 address with 1 token to match the solidity tests behavior.
-        let address_h256 = Self::address_to_h256(
-            &Address::from_str("0x0000000000000000000000000000000000000001").unwrap(),
-        );
-        let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
-        let key = keccak256(&bytes).into();
-        let storage_key = StorageKey {
-            address: Self::L2_ETH_TOKEN_ADDRESS,
-            key,
-        };
-        let initial_balance = u256_to_h256(&(U256::from(1)));
-        storage.insert(storage_key, initial_balance);
+        }
 
         storage
+    }
+
+    ///
+    /// Sets the storage values for the system context to the pre-Paris values.
+    ///
+    pub fn set_pre_paris_contracts(
+        storage: &mut HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
+    ) {
+        storage.insert(
+            zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                ),
+                key: web3::types::U256::from_big_endian(
+                    web3::types::H256::from_low_u64_be(
+                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
+                    )
+                    .as_bytes(),
+                ),
+            },
+            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
+                .expect("Always valid"),
+        );
     }
 }

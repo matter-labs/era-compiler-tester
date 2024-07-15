@@ -55,7 +55,15 @@ impl Compiler for LLVMCompiler {
             .clone();
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
-            sources.into_iter().collect(),
+            sources
+                .into_iter()
+                .map(|(path, source)| {
+                    (
+                        path,
+                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                    )
+                })
+                .collect(),
             None,
         )?;
 
@@ -109,7 +117,15 @@ impl Compiler for LLVMCompiler {
             .clone();
 
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
-            sources.into_iter().collect(),
+            sources
+                .into_iter()
+                .map(|(path, source)| {
+                    (
+                        path,
+                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                    )
+                })
+                .collect(),
             None,
         )?;
 

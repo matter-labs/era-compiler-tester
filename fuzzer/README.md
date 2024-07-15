@@ -11,14 +11,14 @@ The project consists of the following directories:
 
 ### Fuzzing targets
 
-Each fuzzing target is a separate Rust binary crate and defined in the `fuzz_targets` directory. The `Cargo.toml` file in the root directory contains the dependencies and the configuration for the fuzzing engine.
+Each fuzzing target is a separate Rust binary crate and defined in the `fuzz_targets` directory. The `Cargo.toml` file in the fuzzer directory contains the dependencies and the configuration for the fuzzing engine.
 
-For example, the `simple` fuzzing target is defined in the `fuzz_targets/simple.rs` file. The `Cargo.toml` file contains the following section:
+For example, the `demo` fuzzing target is defined in the `fuzz_targets/demo.rs` file. The `Cargo.toml` file contains the following section:
 
 ```properties
 [[bin]]
-name = "simple"
-path = "fuzz_targets/simple.rs"
+name = "demo"
+path = "fuzz_targets/demo.rs"
 ...
 ```
 
@@ -26,10 +26,25 @@ path = "fuzz_targets/simple.rs"
 
 ## Running fuzzing
 
-To run the fuzzing, execute the following command:
+### Prerequisites
+
+1. Follow the build instructions from [README.md](../README.md) to build `era-compiler-tester`.
+2. Install the `cargo-fuzz` tool:
+```bash
+cargo install cargo-fuzz
+```
+3. Build `zksolc` compiler and make sure that `zksolc` is added in the `PATH`.
+4. Install nightly Rust toolchain:
+```bash
+rustup toolchain install nightly
+```
+
+### Executing fuzzing
+
+To execute a fuzzing target, run the following command from the root directory of the project:
 
 ```bash
-cargo fuzz run <target_name>
+cargo +nightly fuzz run --fuzz-dir fuzzer <target_name>
 ```
 
 ## Supported targets

@@ -170,11 +170,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm),
             }
         }
-        compiler_tester::Target::EVM => {
+        compiler_tester::Target::EVMEmulator => {
             compiler_tester::EVM::download(binary_download_config_paths)?;
-            compiler_tester.run_evm(arguments.use_upstream_solc)
+            compiler_tester.run_evm_emulator(arguments.use_upstream_solc)
         }
-        target @ compiler_tester::Target::EVMInterpreter => {
+        target @ compiler_tester::Target::EVM => {
             zkevm_tester::runners::compiler_tests::set_tracing_mode(
                 zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(
                     arguments.trace as u64,

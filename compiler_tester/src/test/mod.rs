@@ -85,9 +85,9 @@ impl Test {
     }
 
     ///
-    /// Runs the test on EVM.
+    /// Runs the test on EVM emulator.
     ///
-    pub fn run_evm(self, summary: Arc<Mutex<Summary>>) {
+    pub fn run_evm_emulator(self, summary: Arc<Mutex<Summary>>) {
         for case in self.cases {
             let config = evm::standard::Config::shanghai();
             let etable =
@@ -97,7 +97,7 @@ impl Test {
             let invoker = EVMInvoker::new(&config, &resolver);
 
             let vm = EVM::new(self.evm_builds.clone(), invoker);
-            case.run_evm(
+            case.run_evm_emulator(
                 summary.clone(),
                 vm,
                 &self.mode,

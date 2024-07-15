@@ -392,8 +392,7 @@ impl Buildable for MatterLabsTest {
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
 
         let mut eravm_address_iterator = EraVMAddressIterator::new();
-        let evm_address_iterator =
-            EVMAddressIterator::new(false);
+        let evm_address_iterator = EVMAddressIterator::new(false);
 
         let (libraries, library_addresses) = self.get_libraries(&mut eravm_address_iterator);
 
@@ -519,8 +518,7 @@ impl Buildable for MatterLabsTest {
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
         let sources = self.sources.to_owned();
 
-        let mut evm_address_iterator =
-            EVMAddressIterator::new(false);
+        let mut evm_address_iterator = EVMAddressIterator::new(false);
 
         let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
 

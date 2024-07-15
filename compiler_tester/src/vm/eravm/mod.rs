@@ -165,17 +165,14 @@ impl EraVM {
         known_contracts: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
         evm_version: Option<EVMVersion>,
     ) -> Self {
-        let mut new_vm = (*vm).clone();
+        let mut vm_clone = (*vm).clone();
         for (bytecode_hash, assembly) in known_contracts.into_iter() {
-            new_vm.add_known_contract(assembly, bytecode_hash);
+            vm_clone.add_known_contract(assembly, bytecode_hash);
         }
-        match evm_version {
-            Some(Lesser(Paris) | LesserEquals(Paris)) => {
-                SystemContext::set_pre_paris_contracts(&mut new_vm.storage)
-            }
-            _ => (),
+        if let Some(Lesser(Paris) | LesserEquals(Paris)) = evm_version {
+            SystemContext::set_pre_paris_contracts(&mut vm_clone.storage);
         }
-        new_vm
+        vm_clone
     }
 
     ///
@@ -277,7 +274,7 @@ impl EraVM {
             }
 
             for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
-                if self.published_evm_bytecodes.contains_key(&hash) {
+                if self.published_evm_bytecodes.contains_key(hash) {
                     continue;
                 }
 

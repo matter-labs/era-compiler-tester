@@ -51,7 +51,7 @@ made, and there is no point in running tests in all LLVM optimization modes.
 <details>
 <summary>2. Install Rust.</summary>
 
-   * Follow the latest [official instructions]((https://www.rust-lang.org/tools/install)):
+   * Follow the latest [official instructions](https://www.rust-lang.org/tools/install:
       ```shell
       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
       . ${HOME}/.cargo/env
@@ -122,6 +122,21 @@ made, and there is no point in running tests in all LLVM optimization modes.
 </details>
 
 When the build succeeds, you can run the tests using [the examples below](#usage).
+
+## GitHub Actions
+
+The `era-compiler-tester` is integrated into the GitHub Actions workflows of the following projects:
+
+* [era-compiler-llvm](https://github.com/matter-labs/era-compiler-llvm)
+* [era-solidity](https://github.com/matter-labs/era-solidity/)
+
+To allow testing custom FE and VM changes in the Pull Requests (PRs) of these repositories, two additional tags are supported:
+* `era-solidity-test`
+* `era-compiler-llvm-test`
+
+If these tags exist, the tester from these tags will be used by the workflows instead of the default `main` branch.
+
+When testing is done, these tags should be removed.
 
 ## What is supported
 
@@ -291,7 +306,7 @@ at your option.
 
 ## Resources
 
-[ZKsync Era compiler toolchain documentation](https://era.zksync.io/docs/api/compiler-toolchain)
+[ZKsync Era compiler toolchain documentation](https://docs.zksync.io/zk-stack/components/compiler/toolchain)
 
 ## Official Links
 
