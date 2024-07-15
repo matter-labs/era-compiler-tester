@@ -297,36 +297,30 @@ impl DeployEVM {
         }
     }
 
+    /// All accounts used to deploy the test contracts should have a balance of U256::MAX
     fn update_balance<'a, EXT, DB: Database>(
         &self,
         mut vm: revm::Evm<'a, EXT, State<DB>>,
     ) -> revm::Evm<'a, EXT, State<DB>> {
-        let rich_addresses = SystemContext::get_rich_addresses();
-        let era_vm_rich_address =
-            web3::types::Address::from_str("0xdeadbeef01000000000000000000000000000000").unwrap();
-        if rich_addresses.contains(&self.caller) || self.caller == era_vm_rich_address {
-            let address = web3_address_to_revm_address(&self.caller);
-            let nonce = match vm.db_mut().basic(address) {
-                Ok(Some(acc)) => acc.nonce,
-                _ => 1,
-            };
-            let acc_info = revm::primitives::AccountInfo {
-                balance: U256::MAX,
-                code_hash: revm::primitives::KECCAK_EMPTY,
-                code: None,
-                nonce,
-            };
-            let mut vm = vm
-                .modify()
-                .modify_db(|db| {
-                    db.insert_account(address, acc_info.clone());
-                })
-                .modify_env(|env| env.clone_from(&Box::new(Env::default())))
-                .build();
-            vm.transact_commit().ok(); // Even if TX fails, the balance update will be committed
-            vm
-        } else {
-            vm
-        }
+        let address = web3_address_to_revm_address(&self.caller);
+        let nonce = match vm.db_mut().basic(address) {
+            Ok(Some(acc)) => acc.nonce,
+            _ => 1,
+        };
+        let acc_info = revm::primitives::AccountInfo {
+            balance: U256::MAX,
+            code_hash: revm::primitives::KECCAK_EMPTY,
+            code: None,
+            nonce,
+        };
+        let mut vm = vm
+            .modify()
+            .modify_db(|db| {
+                db.insert_account(address, acc_info.clone());
+            })
+            .modify_env(|env| env.clone_from(&Box::new(Env::default())))
+            .build();
+        vm.transact_commit().ok(); // Even if TX fails, the balance update will be committed
+        vm
     }
 }

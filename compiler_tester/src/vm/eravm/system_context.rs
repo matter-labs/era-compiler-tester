@@ -198,17 +198,15 @@ impl SystemContext {
 
         let block_number = match target {
             Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
-            Target::EVMInterpreter | Target::EVM  => Self::CURRENT_BLOCK_NUMBER_EVM,
+            Target::EVMInterpreter | Target::EVM => Self::CURRENT_BLOCK_NUMBER_EVM,
         };
         let block_timestamp = match target {
             Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
-            Target::EVMInterpreter | Target::EVM  => {
-                Self::CURRENT_BLOCK_TIMESTAMP_EVM
-            }
+            Target::EVMInterpreter | Target::EVM => Self::CURRENT_BLOCK_TIMESTAMP_EVM,
         };
         let block_gas_limit = match target {
             Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
-            Target::EVMInterpreter | Target::EVM  => Self::BLOCK_GAS_LIMIT_EVM,
+            Target::EVMInterpreter | Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
         };
 
         let mut system_context_values = vec![
@@ -274,7 +272,7 @@ impl SystemContext {
 
             let mut hash = web3::types::U256::from_str(match target {
                 Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
-                Target::EVMInterpreter | Target::EVM  => Self::ZERO_BLOCK_HASH_EVM,
+                Target::EVMInterpreter | Target::EVM => Self::ZERO_BLOCK_HASH_EVM,
             })
             .expect("Invalid zero block hash const");
             hash = hash.add(web3::types::U256::from(index));

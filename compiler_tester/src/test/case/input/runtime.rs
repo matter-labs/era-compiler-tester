@@ -359,9 +359,7 @@ impl Runtime {
         caller: Address,
     ) -> revm::Evm<'a, EXT, State<DB>> {
         let rich_addresses = SystemContext::get_rich_addresses();
-        let era_vm_rich_address =
-            web3::types::Address::from_str("0xdeadbeef01000000000000000000000000000000").unwrap();
-        if rich_addresses.contains(&caller) || caller == era_vm_rich_address {
+        if rich_addresses.contains(&caller) {
             let address = web3_address_to_revm_address(&caller);
             let acc_info = revm::primitives::AccountInfo {
                 balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
@@ -385,6 +383,7 @@ impl Runtime {
         }
     }
 
+    /// REVM needs to send a transaction to execute a contract call, the balance of the caller is updated to have enough funds to send the transaction.
     fn update_balance_if_lack_of_funds<'a, EXT, DB: Database>(
         &self,
         caller: Address,
@@ -417,6 +416,7 @@ impl Runtime {
         vm
     }
 
+    /// If the caller is not a rich address, subtract the FEE from the balance used only to previoulsy send the transaction.
     fn non_rich_update_balance<'a, EXT, DB: Database>(
         &self,
         caller: Address,
