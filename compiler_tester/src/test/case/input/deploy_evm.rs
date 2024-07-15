@@ -181,11 +181,12 @@ impl DeployEVM {
                     db.insert_account(address, acc_info.clone());
                 }).modify_env(|env| env.clone_from(&Box::new(Env::default())))
                 .build();
-            vm.transact_commit().ok().unwrap();
+            vm.transact_commit().ok();
             vm
         } else {
             vm
         };
+
         let mut vm = vm;
         let balance = vm
             .context
@@ -244,6 +245,7 @@ impl DeployEVM {
                 return new_vm;
             }
         };
+
 
         let output = match res {
             ExecutionResult::Success {

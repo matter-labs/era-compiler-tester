@@ -195,6 +195,22 @@ impl Case {
             PlainStorage::default(),
         );
 
+        let acc_info_zero = revm::primitives::AccountInfo {
+            balance: U256::from(0_u64),
+            code_hash: FixedBytes::from_str(
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap(),
+            code: None,
+            nonce: 1,
+        };
+
+        cache.insert_account_with_storage(
+            Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
+            acc_info_zero,
+            PlainStorage::default(),
+        );
+
         let mut state = revm::db::State::builder()
             .with_cached_prestate(cache)
             .with_bundle_update()

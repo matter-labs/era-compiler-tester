@@ -25,6 +25,7 @@ use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
+use crate::vm;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
@@ -204,6 +205,7 @@ impl Runtime {
     ) -> revm::Evm<'a, EXT, State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
+
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
@@ -228,7 +230,7 @@ impl Runtime {
                     env.clone_from(&Box::new(Env::default()));
                 })
                 .build();
-            vm.transact_commit().ok().unwrap();
+            vm.transact_commit().ok();
             vm
         } else {
             vm
@@ -284,6 +286,7 @@ impl Runtime {
             _ => (),
         };
 
+
         let res = match vm.transact_commit() {
             Ok(res) => res,
             Err(error) => {
@@ -308,7 +311,6 @@ impl Runtime {
                 return vm;
             }
         };
-
         let output = match res {
             ExecutionResult::Success {
                 reason,
