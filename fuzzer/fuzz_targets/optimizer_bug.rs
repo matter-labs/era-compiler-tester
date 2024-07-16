@@ -7,7 +7,7 @@ mod common;
 fuzz_target!(|data: u8| {
     // Fuzzing case definition
     let case = common::FuzzingCase {
-        contract_path: String::from("fuzz/fuzz_contracts/optimizer_bug/optimizer_bug.sol"),
+        contract_path: String::from("fuzzer/fuzz_contracts/optimizer_bug/optimizer_bug.sol"),
         function_name: String::from("function_to_fuzz"),
         input_types: vec![
             common::TypeVariant::integer_unsigned(8),

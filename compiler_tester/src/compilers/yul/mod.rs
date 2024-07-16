@@ -77,7 +77,15 @@ impl Compiler for YulCompiler {
             .clone();
 
         let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources.into_iter().collect(),
+            sources
+                .into_iter()
+                .map(|(path, source)| {
+                    (
+                        path,
+                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                    )
+                })
+                .collect(),
             BTreeMap::new(),
             None,
             solc_version.as_ref(),
@@ -119,19 +127,21 @@ impl Compiler for YulCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let solc_compiler = SolidityUpstreamCompiler::new(SolcStandardJsonInputLanguage::Yul);
+        let language = SolcStandardJsonInputLanguage::Yul;
+
+        let solc_compiler = SolidityUpstreamCompiler::new(language);
 
         let solc_output = solc_compiler.standard_json_output_cached(
             test_path,
-            SolcStandardJsonInputLanguage::Yul,
+            language,
             &sources,
-            &BTreeMap::new(),
+            &libraries,
             mode,
             test_params,
         )?;
@@ -152,15 +162,15 @@ impl Compiler for YulCompiler {
             }
         }
 
-        let last_contract = SolidityUpstreamCompiler::get_last_contract(
-            SolcStandardJsonInputLanguage::Yul,
-            &solc_output,
-            &sources,
-        )?;
+        let last_contract = sources
+            .last()
+            .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
+            .0
+            .clone();
 
         let contracts = solc_output
             .contracts
-            .ok_or_else(|| anyhow::anyhow!("Yul contracts not found in the output"))?;
+            .ok_or_else(|| anyhow::anyhow!("Solidity contracts not found in the output"))?;
 
         let mut builds = HashMap::with_capacity(contracts.len());
         for (file, contracts) in contracts.into_iter() {

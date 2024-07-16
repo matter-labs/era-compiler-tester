@@ -133,9 +133,9 @@ impl Case {
     }
 
     ///
-    /// Runs the case on EVM.
+    /// Runs the case on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         summary: Arc<Mutex<Summary>>,
         mut vm: EVM,
@@ -150,7 +150,7 @@ impl Case {
         };
 
         for (index, input) in self.inputs.into_iter().enumerate() {
-            input.run_evm(
+            input.run_evm_emulator(
                 summary.clone(),
                 &mut vm,
                 mode.clone(),

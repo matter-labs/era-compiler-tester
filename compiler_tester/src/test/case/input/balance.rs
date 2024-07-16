@@ -65,9 +65,9 @@ impl Balance {
     }
 
     ///
-    /// Runs the balance check on EVM.
+    /// Runs the balance check on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         _summary: Arc<Mutex<Summary>>,
         _vm: &EVM,

@@ -62,9 +62,7 @@ impl Collection for EthereumDirectory {
                 index_path.push(Self::INDEX_NAME_ZKSYNC);
                 index_path
             }
-            Target::EVMInterpreter | Target::EVM=> {
-                PathBuf::from(Self::INDEX_NAME_UPSTREAM)
-            }
+            Target::EVM | Target::EVMEmulator => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
         };
 
         Ok(Self::read_index(index_path.as_path())?

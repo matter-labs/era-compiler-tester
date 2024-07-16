@@ -157,10 +157,10 @@ impl CompilerTester {
     }
 
     ///
-    /// Runs all tests on EVM.
+    /// Runs all tests on EVM emulator.
     ///
-    pub fn run_evm(self, use_upstream_solc: bool) -> anyhow::Result<()> {
-        let tests = self.all_tests(Target::EVM, use_upstream_solc)?;
+    pub fn run_evm_emulator(self, use_upstream_solc: bool) -> anyhow::Result<()> {
+        let tests = self.all_tests(Target::EVMEmulator, use_upstream_solc)?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -173,13 +173,13 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
-                    Target::EVM,
+                    Target::EVMEmulator,
                     self.summary.clone(),
                     &self.filters,
                     specialized_debug_config,
                 ) {
                     if let Workflow::BuildAndRun = self.workflow {
-                        test.run_evm(self.summary.clone())
+                        test.run_evm_emulator(self.summary.clone())
                     };
                 }
             })
@@ -231,7 +231,7 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(Target::EVMInterpreter, use_upstream_solc)?;
+        let tests = self.all_tests(Target::EVM, use_upstream_solc)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -240,7 +240,7 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
-                    Target::EVMInterpreter,
+                    Target::EVM,
                     self.summary.clone(),
                     &self.filters,
                     self.debug_config.clone(),
@@ -337,9 +337,7 @@ impl CompilerTester {
             target,
             match target {
                 Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                Target::EVMInterpreter | Target::EVM=> {
-                    Self::SOLIDITY_ETHEREUM_UPSTREAM
-                }
+                Target::EVM | Target::EVMEmulator => Self::SOLIDITY_ETHEREUM_UPSTREAM,
             },
             era_compiler_common::EXTENSION_SOLIDITY,
             if use_upstream_solc {
