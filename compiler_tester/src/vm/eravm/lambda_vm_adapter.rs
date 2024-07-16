@@ -22,10 +22,7 @@ use zkevm_tester::runners::compiler_tests::StorageKey;
 use zkevm_tester::runners::compiler_tests::VmExecutionContext;
 use zkevm_tester::runners::compiler_tests::VmLaunchOption;
 
-use crate::test::case::input::{
-    output::Output,
-    value::Value,
-};
+use crate::test::case::input::{output::Output, value::Value};
 
 pub fn address_into_u256(address: H160) -> U256 {
     let mut buffer = [0; 32];
@@ -135,7 +132,6 @@ pub fn run_vm(
         },
     };
 
-    dbg!(output.clone());
     Ok((
         ExecutionResult {
             output,
