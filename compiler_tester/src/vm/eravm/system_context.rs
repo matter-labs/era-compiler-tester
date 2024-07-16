@@ -8,8 +8,11 @@ use std::str::FromStr;
 
 use crate::target::Target;
 use crate::utils::u256_to_h256;
+use web3::signing::keccak256;
 use solidity_adapter::EVMVersion::{self, Lesser, LesserEquals};
 use solidity_adapter::EVM::Paris;
+use web3::types::{Address, H160, H256};
+use zkevm_tester::runners::compiler_tests::StorageKey;
 
 ///
 /// The EraVM system context.
@@ -120,24 +123,6 @@ impl SystemContext {
         let mut buffer = [0u8; 32];
         buffer[12..].copy_from_slice(address.as_bytes());
         H256(buffer)
-    }
-
-    pub fn set_pre_paris_contracts(storage: &mut HashMap<StorageKey, H256>) {
-        storage.insert(
-            zkevm_tester::runners::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
-                ),
-                key: web3::types::U256::from_big_endian(
-                    web3::types::H256::from_low_u64_be(
-                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
-                    )
-                    .as_bytes(),
-                ),
-            },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
-                .expect("Always valid"),
-        );
     }
 
     pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
