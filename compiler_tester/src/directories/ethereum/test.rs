@@ -192,7 +192,7 @@ impl Buildable for EthereumTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        _target: Target,
+        target: Target,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -249,7 +249,7 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, &last_source) {
+        let case = match Case::try_from_ethereum(&calls, instances, &last_source, &target) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(
@@ -296,7 +296,7 @@ impl Buildable for EthereumTest {
         let last_source = self.last_source(summary.clone(), &mode)?;
 
         let (contract_address, libraries_addresses, libraries) = match self.get_addresses(
-            EVMAddressIterator::new(matches!(target, Target::EVM)),
+            EVMAddressIterator::new(false),
             calls.as_slice(),
             last_source.as_str(),
         ) {
@@ -341,7 +341,7 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, &last_source) {
+        let case = match Case::try_from_ethereum(&calls, instances, &last_source, &target) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(
