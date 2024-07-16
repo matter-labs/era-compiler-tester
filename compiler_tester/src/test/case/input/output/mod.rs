@@ -15,6 +15,7 @@ use crate::directories::matter_labs::test::metadata::case::input::expected::Expe
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 use crate::vm::evm::output::Output as EVMOutput;
+use crate::Target;
 
 use self::event::Event;
 
@@ -108,15 +109,18 @@ impl Output {
         exception: bool,
         events: &[solidity_adapter::Event],
         contract_address: &web3::types::Address,
+        target: &Target,
     ) -> Self {
         let return_data = expected
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
-                /*value_str = value_str.replace(
-                    solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
-                    &crate::utils::address_as_string(contract_address),
-                );*/
+                if let Target::EraVM = target {
+                    value_str = value_str.replace(
+                        solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
+                        &crate::utils::address_as_string(contract_address),
+                    );
+                }
                 Value::Certain(
                     web3::types::U256::from_str(&value_str)
                         .expect("Solidity adapter default contract address constant is invalid"),

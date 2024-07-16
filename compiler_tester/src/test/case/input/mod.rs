@@ -20,6 +20,7 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
+use crate::target;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
@@ -205,6 +206,7 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
+        target: &target::Target,
     ) -> anyhow::Result<Option<Self>> {
         let main_contract_instance = instances
             .values()
@@ -234,6 +236,7 @@ impl Input {
                     false,
                     events,
                     main_contract_address,
+                    target,
                 );
 
                 match main_contract_instance {
@@ -277,6 +280,7 @@ impl Input {
                     false,
                     &[],
                     main_contract_address,
+                    target,
                 );
 
                 match instance {
@@ -330,6 +334,7 @@ impl Input {
                     *failure,
                     events,
                     main_contract_address,
+                    target,
                 );
 
                 Some(Input::Runtime(Runtime::new(
