@@ -244,22 +244,46 @@ impl Runtime {
             Err(error) => {
                 match error {
                     EVMError::Transaction(e) => {
-                        println!("Error on transaction: {:?}", e)
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Transaction: {:?}", e),
+                        );
                     }
                     EVMError::Header(e) => {
-                        println!("Error on Header: {:?}", e)
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Header: {:?}", e),
+                        );
                     }
                     EVMError::Database(e) => {
-                        println!("Error on Database:")
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            "Error on Database",
+                        );
                     }
                     EVMError::Custom(e) => {
-                        println!("Error on Custom: {:?}", e)
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Custom: {:?}", e),
+                        );
                     }
                     EVMError::Precompile(e) => {
-                        println!("Error on Precompile: {:?}", e)
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Precompile: {:?}", e),
+                        );
                     }
                 }
-                Summary::invalid(summary, Some(mode), name, "error on commit");
                 return vm;
             }
         };

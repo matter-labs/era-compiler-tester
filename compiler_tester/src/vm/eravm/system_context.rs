@@ -8,9 +8,9 @@ use std::str::FromStr;
 
 use crate::target::Target;
 use crate::utils::u256_to_h256;
-use web3::signing::keccak256;
 use solidity_adapter::EVMVersion::{self, Lesser, LesserEquals};
 use solidity_adapter::EVM::Paris;
+use web3::signing::keccak256;
 use web3::types::{Address, H160, H256};
 use zkevm_tester::runners::compiler_tests::StorageKey;
 
@@ -113,17 +113,6 @@ impl SystemContext {
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
-
-    pub const L2_ETH_TOKEN_ADDRESS: Address = H160([
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x80, 0x0a,
-    ]);
-
-    pub fn address_to_h256(address: &Address) -> H256 {
-        let mut buffer = [0u8; 32];
-        buffer[12..].copy_from_slice(address.as_bytes());
-        H256(buffer)
-    }
 
     pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
         match evm_version {

@@ -228,10 +228,10 @@ impl Case {
             )
         }
     }
-
 }
 
-pub fn create_initial_revm() -> revm::Evm<'static, (), revm::db::State<EmptyDBTyped<std::convert::Infallible>>> {
+pub fn create_initial_revm(
+) -> revm::Evm<'static, (), revm::db::State<EmptyDBTyped<std::convert::Infallible>>> {
     let mut cache = revm::CacheState::new(false);
     // Precompile 0x01 needs to have its code hash
     let acc_info = revm::primitives::AccountInfo {
