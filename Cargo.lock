@@ -575,7 +575,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-assert-unreachable-burn-gas#434a4f810fdf0cb0f1dc684e5bd884ce19e266ee"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#072e0713e578505d8eab5a99b5adf1b070c85712"
 dependencies = [
  "anyhow",
  "era-compiler-common",
