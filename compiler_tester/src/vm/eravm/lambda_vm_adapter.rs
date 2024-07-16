@@ -10,23 +10,19 @@ use crate::vm::execution_result::ExecutionResult;
 use anyhow::anyhow;
 use lambda_vm;
 use lambda_vm::state::VMState;
-use lambda_vm::store;
 use lambda_vm::store::initial_decommit;
 use lambda_vm::store::InMemory;
 use lambda_vm::value::TaggedValue;
-use web3::contract::tokens::Tokenize;
+use lambda_vm::ExecutionOutput;
 use web3::types::H160;
 use zkevm_assembly::Assembly;
-use zkevm_opcode_defs::ethereum_types::{BigEndianHash, H256, U256};
+use zkevm_opcode_defs::ethereum_types::{H256, U256};
 use zkevm_tester::runners::compiler_tests::FullABIParams;
 use zkevm_tester::runners::compiler_tests::StorageKey;
 use zkevm_tester::runners::compiler_tests::VmExecutionContext;
 use zkevm_tester::runners::compiler_tests::VmLaunchOption;
 
-use crate::test::case::input::{
-    output::{event::Event, Output},
-    value::Value,
-};
+use crate::test::case::input::{output::Output, value::Value};
 
 pub fn address_into_u256(address: H160) -> U256 {
     let mut buffer = [0; 32];
@@ -118,17 +114,24 @@ pub fn run_vm(
     vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
     vm.registers[5] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
 
-    let result = lambda_vm::run_program_with_custom_bytecode(vm, &mut storage);
-
-    let mut result_vec: [u8; 32] = [0; 32];
-    result.0.to_big_endian(&mut result_vec);
-    let output = Output {
-        return_data: chunk_return_data(&result_vec),
-        exception: false,
-        events: vec![],
+    let output = match lambda_vm::run_program_with_custom_bytecode(vm, &mut storage).0 {
+        ExecutionOutput::Ok(output) => Output {
+            return_data: chunk_return_data(&output),
+            exception: false,
+            events: vec![],
+        },
+        ExecutionOutput::Revert(output) => Output {
+            return_data: chunk_return_data(&output),
+            exception: true,
+            events: vec![],
+        },
+        ExecutionOutput::Panic => Output {
+            return_data: vec![],
+            exception: true,
+            events: vec![],
+        },
     };
 
-    dbg!(output.clone());
     Ok((
         ExecutionResult {
             output,
