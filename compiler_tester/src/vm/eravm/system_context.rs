@@ -248,7 +248,7 @@ impl SystemContext {
 
             // Fund the 0x01 address with 1 token to match the behavior of upstream Solidity tests.
             let address_ecrecover = crate::utils::address_to_h256(
-                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
+                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ECRECOVER.into()),
             );
             let bytes = [
                 address_ecrecover.as_bytes(),
