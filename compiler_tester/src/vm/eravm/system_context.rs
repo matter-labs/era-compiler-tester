@@ -280,18 +280,56 @@ impl SystemContext {
             );
         }
 
-        let rich_addresses: Vec<Address> = Self::get_rich_addresses();
-        rich_addresses.iter().for_each(|address| {
-            let address_h256 = Self::address_to_h256(address);
-            let bytes = [address_h256.as_bytes(), &[0; 32]].concat();
-            let key = keccak256(&bytes).into();
-            let storage_key = StorageKey {
-                address: Self::L2_ETH_TOKEN_ADDRESS,
+        if target == Target::EVM {
+            let rich_addresses: Vec<web3::types::Address> = (0..=9)
+                .map(|address_id| {
+                    format!(
+                        "0x121212121212121212121212121212000000{}{}",
+                        address_id, "012"
+                    )
+                })
+                .map(|string| {
+                    web3::types::Address::from_str(string.as_str()).expect("Always valid")
+                })
+                .collect();
+            rich_addresses.iter().for_each(|address| {
+                let address_h256 = crate::utils::address_to_h256(address);
+                let bytes = [
+                    address_h256.as_bytes(),
+                    &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+                ]
+                .concat();
+                let key = web3::signing::keccak256(&bytes).into();
+                let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                    address: web3::types::Address::from_low_u64_be(
+                        zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
+                    ),
+                    key,
+                };
+                let initial_balance =
+                    crate::utils::u256_to_h256(&(web3::types::U256::one() << 100));
+                storage.insert(storage_key, initial_balance);
+            });
+
+            // Fund the 0x01 address with 1 token to match the behavior of upstream Solidity tests.
+            let address_ecrecover = crate::utils::address_to_h256(
+                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ECRECOVER.into()),
+            );
+            let bytes = [
+                address_ecrecover.as_bytes(),
+                &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+            ]
+            .concat();
+            let key = web3::signing::keccak256(&bytes).into();
+            let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
+                ),
                 key,
             };
             let initial_balance = crate::utils::u256_to_h256(&web3::types::U256::one());
             storage.insert(storage_key, initial_balance);
-        });
+        };
 
         storage
     }
