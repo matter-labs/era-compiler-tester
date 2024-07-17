@@ -73,7 +73,7 @@ pub fn transform_success_output(
             let topics = revm_topics_to_vec_value(log.data.topics());
             let data_value = revm_bytes_to_vec_value(log.data.data);
             super::output::event::Event::new(
-                Some(web3::types::Address::from_slice(&log.address.as_slice())),
+                Some(web3::types::Address::from_slice(log.address.as_slice())),
                 topics,
                 data_value,
             )

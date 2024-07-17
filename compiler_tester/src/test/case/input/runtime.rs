@@ -191,19 +191,20 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm<'a, EXT, DB: Database>(
+    pub fn run_revm<EXT, DB: Database>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: revm::Evm<'a, EXT, revm::State<DB>>,
+        vm: revm::Evm<EXT, revm::State<DB>>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
         evm_version: Option<EVMVersion>,
-    ) -> revm::Evm<'a, EXT, State<DB>> {
+    ) -> revm::Evm<EXT, State<DB>> {
         let name = format!("{}[{}:{}]", name_prefix, self.name, index);
 
-        // On revm we can't send a tx with a tx_origin different from the tx_sender, this specific test expects tx_origin to be that value, so we change the sender
+        // On revm we can't send a tx with a tx_origin different from the tx_sender,
+        // this specific test expects tx_origin to be that value, so we change the sender
         let mut caller = self.caller;
         if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
@@ -239,27 +240,27 @@ impl Runtime {
 
         vm = self.update_balance_if_lack_of_funds(caller, vm);
 
-        let res = match vm.transact_commit() {
-            Ok(res) => res,
+        let result = match vm.transact_commit() {
+            Ok(result) => result,
             Err(error) => {
                 match error {
-                    EVMError::Transaction(e) => {
+                    EVMError::Transaction(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Transaction: {:?}", e),
+                            format!("Error on Transaction: {error:?}"),
                         );
                     }
-                    EVMError::Header(e) => {
+                    EVMError::Header(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Header: {:?}", e),
+                            format!("Error on Header: {error:?}"),
                         );
                     }
-                    EVMError::Database(e) => {
+                    EVMError::Database(_error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
@@ -267,27 +268,27 @@ impl Runtime {
                             "Error on Database",
                         );
                     }
-                    EVMError::Custom(e) => {
+                    EVMError::Custom(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Custom: {:?}", e),
+                            format!("Error on Custom: {error:?}"),
                         );
                     }
-                    EVMError::Precompile(e) => {
+                    EVMError::Precompile(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Precompile: {:?}", e),
+                            format!("Error on Precompile: {error:?}"),
                         );
                     }
                 }
                 return vm;
             }
         };
-        let output = match res {
+        let output = match result {
             ExecutionResult::Success {
                 reason: _,
                 gas_used: _,
@@ -407,40 +408,44 @@ impl Runtime {
         }
     }
 
-    /// REVM needs to send a transaction to execute a contract call, the balance of the caller is updated to have enough funds to send the transaction.
+    ///
+    /// REVM needs to send a transaction to execute a contract call,
+    /// the balance of the caller is updated to have enough funds to send the transaction.
+    ///
     fn update_balance_if_lack_of_funds<'a, EXT, DB: Database>(
         &self,
         caller: Address,
         mut vm: revm::Evm<'a, EXT, State<DB>>,
     ) -> revm::Evm<'a, EXT, State<DB>> {
-        match vm.transact() {
-            Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
-                fee,
-                balance: _balance,
-            })) => {
-                let acc_info = revm::primitives::AccountInfo {
-                    balance: *fee,
-                    code_hash: KECCAK_EMPTY,
-                    code: None,
-                    nonce: 1,
-                };
-                vm = vm
-                    .modify()
-                    .modify_db(|db| {
-                        db.insert_account_with_storage(
-                            web3_address_to_revm_address(&caller),
-                            acc_info,
-                            PlainStorage::default(),
-                        );
-                    })
-                    .build();
-            }
-            _ => (),
-        };
+        if let Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
+            fee,
+            balance: _balance,
+        })) = vm.transact()
+        {
+            let acc_info = revm::primitives::AccountInfo {
+                balance: *fee,
+                code_hash: KECCAK_EMPTY,
+                code: None,
+                nonce: 1,
+            };
+            vm = vm
+                .modify()
+                .modify_db(|db| {
+                    db.insert_account_with_storage(
+                        web3_address_to_revm_address(&caller),
+                        acc_info,
+                        PlainStorage::default(),
+                    );
+                })
+                .build();
+        }
         vm
     }
 
-    /// If the caller is not a rich address, subtract the FEE from the balance used only to previoulsy send the transaction.
+    ///
+    /// If the caller is not a rich address, subtract the fee
+    /// from the balance used only to previoulsy send the transaction.
+    ///
     fn non_rich_update_balance<'a, EXT, DB: Database>(
         &self,
         caller: Address,

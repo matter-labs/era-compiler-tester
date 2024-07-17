@@ -1,3 +1,9 @@
+//!
+//! Common fuzzer code.
+//!
+
+#![allow(dead_code)]
+
 use std::{path::PathBuf, sync::Arc};
 
 use compiler_tester::{

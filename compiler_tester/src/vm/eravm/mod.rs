@@ -281,7 +281,7 @@ impl EraVM {
                 self.published_evm_bytecodes.insert(*hash, preimage.clone());
             }
 
-            self.storage = snapshot.storage.clone();
+            self.storage.clone_from(&snapshot.storage);
 
             Ok(snapshot.into())
         }

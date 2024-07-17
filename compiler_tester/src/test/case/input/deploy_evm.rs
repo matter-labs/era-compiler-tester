@@ -33,7 +33,6 @@ use super::revm_type_conversions::transform_success_output;
 use super::revm_type_conversions::web3_address_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_address;
 use super::revm_type_conversions::web3_u256_to_revm_u256;
-use std::str::FromStr;
 
 ///
 /// The EVM deploy contract call input variant.
@@ -183,23 +182,23 @@ impl DeployEVM {
             Ok(res) => res,
             Err(error) => {
                 match error {
-                    EVMError::Transaction(e) => {
+                    EVMError::Transaction(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Transaction: {:?}", e),
+                            format!("Error on Transaction: {error:?}"),
                         );
                     }
-                    EVMError::Header(e) => {
+                    EVMError::Header(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Header: {:?}", e),
+                            format!("Error on Header: {error:?}"),
                         );
                     }
-                    EVMError::Database(e) => {
+                    EVMError::Database(_error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
@@ -207,20 +206,20 @@ impl DeployEVM {
                             "Error on Database",
                         );
                     }
-                    EVMError::Custom(e) => {
+                    EVMError::Custom(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Custom: {:?}", e),
+                            format!("Error on Custom: {error:?}"),
                         );
                     }
-                    EVMError::Precompile(e) => {
+                    EVMError::Precompile(error) => {
                         Summary::invalid(
                             summary.clone(),
                             Some(mode.clone()),
                             name.clone(),
-                            format!("Error on Precompile: {:?}", e),
+                            format!("Error on Precompile: {error:?}"),
                         );
                     }
                 }

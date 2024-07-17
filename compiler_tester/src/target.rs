@@ -9,7 +9,7 @@
 pub enum Target {
     /// The EraVM target.
     EraVM,
-    // The Rust Ethereum Virtual Machine target.
+    /// The EVM interpreter within EraVM System Contracts.
     EVM,
     /// The additional EVM emulator.
     EVMEmulator,

@@ -91,17 +91,14 @@ impl StorageEmpty {
         let name = format!("{name_prefix}[#storage_empty_check:{index}]");
 
         let mut is_empty = true;
-        for (_, cache_account) in &vm.db().cache.accounts {
+        for cache_account in vm.db().cache.accounts.values() {
             let plain_account = cache_account.clone().account;
-            match plain_account {
-                Some(plain_account) => {
-                    for (_, value) in plain_account.storage.iter() {
-                        if !value.is_zero() {
-                            is_empty = false;
-                        }
+            if let Some(plain_account) = plain_account {
+                for (_, value) in plain_account.storage.iter() {
+                    if !value.is_zero() {
+                        is_empty = false;
                     }
                 }
-                None => {}
             }
         }
 

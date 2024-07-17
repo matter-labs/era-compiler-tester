@@ -268,8 +268,8 @@ impl CompilerTester {
         ));
         let vyper_compiler = Arc::new(VyperCompiler::new());
         let yul_compiler = Arc::new(YulCompiler::new(use_upstream_solc));
-        let llvm_compiler = Arc::new(LLVMCompiler::default());
-        let eravm_compiler = Arc::new(EraVMCompiler::default());
+        let llvm_compiler = Arc::new(LLVMCompiler);
+        let eravm_compiler = Arc::new(EraVMCompiler);
 
         let mut tests = Vec::with_capacity(16384);
 
