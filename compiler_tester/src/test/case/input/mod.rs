@@ -7,15 +7,23 @@ pub mod calldata;
 pub mod deploy_eravm;
 pub mod deploy_evm;
 pub mod output;
+pub mod revm_type_conversions;
 pub mod runtime;
 pub mod storage;
 pub mod storage_empty;
 pub mod value;
 
 use std::collections::BTreeMap;
+use std::collections::HashMap;
+use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use revm::db::State;
+use revm::Database;
+
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
@@ -24,6 +32,7 @@ use crate::target;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
+use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
 use self::balance::Balance;
@@ -419,6 +428,51 @@ impl Input {
                 balance_check.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
         };
+    }
+
+    ///
+    /// Runs the input on REVM.
+    ///
+    pub fn run_revm<'a, EXT, DB: Database>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        mut vm: revm::Evm<'a, EXT, revm::db::State<DB>>,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+        evm_builds: &HashMap<String, Build, RandomState>,
+        evm_version: Option<EVMVersion>,
+    ) -> revm::Evm<'a, EXT, State<DB>> {
+        match self {
+            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
+            Self::DeployEVM(deploy) => deploy.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                evm_builds,
+                evm_version,
+            ),
+            Self::Runtime(runtime) => runtime.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                index,
+                evm_version,
+            ),
+            Self::StorageEmpty(storage_empty) => {
+                storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
+            }
+            Self::Balance(balance_check) => {
+                balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
+            }
+        }
     }
 
     ///

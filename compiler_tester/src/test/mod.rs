@@ -108,6 +108,22 @@ impl Test {
     }
 
     ///
+    /// Runs the test on REVM.
+    ///
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>) {
+        for case in self.cases {
+            case.run_revm(
+                summary.clone(),
+                &self.mode,
+                self.name.clone(),
+                self.group.clone(),
+                self.evm_builds.clone(),
+                self.evm_version,
+            );
+        }
+    }
+
+    ///
     /// Runs the test on EVM interpreter.
     ///
     pub fn run_evm_interpreter<D, const M: bool>(self, summary: Arc<Mutex<Summary>>, vm: Arc<EraVM>)

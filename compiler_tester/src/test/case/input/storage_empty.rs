@@ -5,6 +5,9 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use revm::db::State;
+use revm::Database;
+
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::vm::eravm::EraVM;
@@ -71,6 +74,49 @@ impl StorageEmpty {
         _index: usize,
     ) {
         todo!()
+    }
+
+    ///
+    /// Runs the storage empty check on REVM.
+    ///
+    pub fn run_revm<EXT, DB: Database>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut revm::Evm<EXT, State<DB>>,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+    ) {
+        let name = format!("{name_prefix}[#storage_empty_check:{index}]");
+
+        let mut is_empty = true;
+        for (_, cache_account) in &vm.db().cache.accounts {
+            let plain_account = cache_account.clone().account;
+            match plain_account {
+                Some(plain_account) => {
+                    for (_, value) in plain_account.storage.iter() {
+                        if !value.is_zero() {
+                            is_empty = false;
+                        }
+                    }
+                }
+                None => {}
+            }
+        }
+
+        if is_empty == self.is_empty {
+            Summary::passed_special(summary, mode, name, test_group);
+        } else {
+            Summary::failed(
+                summary,
+                mode,
+                name,
+                self.is_empty.into(),
+                is_empty.into(),
+                vec![],
+            );
+        }
     }
 
     ///

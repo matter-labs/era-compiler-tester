@@ -7,11 +7,28 @@ use std::ops::Add;
 use std::str::FromStr;
 
 use crate::target::Target;
+use crate::utils::u256_to_h256;
+use solidity_adapter::EVMVersion::{self, Lesser, LesserEquals};
+use solidity_adapter::EVM::Paris;
+use web3::signing::keccak256;
+use web3::types::{Address, H160, H256};
+use zkevm_tester::runners::compiler_tests::StorageKey;
 
 ///
 /// The EraVM system context.
 ///
 pub struct SystemContext;
+
+pub struct EVMContext {
+    pub chain_id: u64,
+    pub coinbase: &'static str,
+    pub block_number: u128,
+    pub block_timestamp: u128,
+    pub block_gas_limit: u64,
+    pub block_difficulty: &'static str,
+    pub base_fee: u64,
+    pub zero_block_hash: &'static str,
+}
 
 impl SystemContext {
     /// The system context chain ID value position in the storage.
@@ -96,6 +113,43 @@ impl SystemContext {
     /// The default zero block hash for EVM tests.
     const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
+
+    pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
+        match evm_version {
+            Some(Lesser(Paris) | LesserEquals(Paris)) => EVMContext {
+                chain_id: SystemContext::CHAIND_ID_EVM,
+                coinbase: &SystemContext::COIN_BASE_EVM[2..],
+                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
+                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
+                base_fee: SystemContext::BASE_FEE,
+                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
+            },
+            _ => EVMContext {
+                chain_id: SystemContext::CHAIND_ID_EVM,
+                coinbase: &SystemContext::COIN_BASE_EVM[2..],
+                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
+                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
+                base_fee: SystemContext::BASE_FEE,
+                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
+            },
+        }
+    }
+
+    pub fn get_rich_addresses() -> Vec<Address> {
+        (0..=9)
+            .map(|address_id| {
+                format!(
+                    "0x121212121212121212121212121212000000{}{}",
+                    address_id, "012"
+                )
+            })
+            .map(|s| Address::from_str(&s).unwrap())
+            .collect()
+    }
 
     ///
     /// Returns the storage values for the system context.
@@ -264,7 +318,7 @@ impl SystemContext {
             };
             let initial_balance = crate::utils::u256_to_h256(&web3::types::U256::one());
             storage.insert(storage_key, initial_balance);
-        }
+        };
 
         storage
     }
