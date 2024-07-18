@@ -322,7 +322,7 @@ dependencies = [
  "web3",
  "which",
  "zkevm-assembly",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
  "zkevm_tester",
 ]
 
@@ -594,7 +594,7 @@ dependencies = [
  "serde",
  "sha3",
  "zkevm-assembly",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -649,7 +649,7 @@ dependencies = [
  "structopt",
  "which",
  "zkevm-assembly",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -659,7 +659,8 @@ dependencies = [
  "hex",
  "primitive-types",
  "rocksdb",
- "zkevm_opcode_defs",
+ "thiserror",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs.git?branch=v1.5.1)",
 ]
 
 [[package]]
@@ -2801,7 +2802,7 @@ dependencies = [
  "enum_dispatch",
  "primitive-types",
  "zk_evm_abstractions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -3177,7 +3178,7 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -3196,13 +3197,29 @@ dependencies = [
  "smallvec",
  "structopt",
  "thiserror",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
 name = "zkevm_opcode_defs"
 version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#28d2edabf902ea9b08f6a26a4506831fd89346b9"
+dependencies = [
+ "bitflags 2.5.0",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2",
+ "sha3",
+]
+
+[[package]]
+name = "zkevm_opcode_defs"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs.git?branch=v1.5.1#9c470e3dbb093c4878b04b61e4d9459d94b41d45"
 dependencies = [
  "bitflags 2.5.0",
  "blake2",

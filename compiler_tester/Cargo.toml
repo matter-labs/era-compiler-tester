@@ -46,7 +46,7 @@ zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch
 vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
 # lambda_vm = { git = "https://github.com/lambdaclass/era_vm", package = "era_vm", branch= "compiler-tester-compatibility", optional = true }
-lambda_vm = { path = "../../era_vm", package = "era_vm", optional = true }
+lambda_vm = { path = "../../", package = "era_vm", optional = true }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
