@@ -22,7 +22,10 @@ use zkevm_tester::runners::compiler_tests::StorageKey;
 use zkevm_tester::runners::compiler_tests::VmExecutionContext;
 use zkevm_tester::runners::compiler_tests::VmLaunchOption;
 
-use crate::test::case::input::{output::Output, value::Value};
+use crate::test::case::input::{
+    output::{event::Event, Output},
+    value::Value,
+};
 
 pub fn address_into_u256(address: H160) -> U256 {
     let mut buffer = [0; 32];
@@ -114,11 +117,13 @@ pub fn run_vm(
     vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
     vm.registers[5] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
 
-    let output = match lambda_vm::run_program_with_custom_bytecode(vm, &mut storage).0 {
+    let (result, final_vm) = lambda_vm::run_program_with_custom_bytecode(vm, &mut storage);
+    let events = merge_events(&final_vm.events);
+    let output = match result {
         ExecutionOutput::Ok(output) => Output {
             return_data: chunk_return_data(&output),
             exception: false,
-            events: vec![],
+            events,
         },
         ExecutionOutput::Revert(output) => Output {
             return_data: chunk_return_data(&output),
@@ -162,4 +167,121 @@ fn chunk_return_data(bytes: &[u8]) -> Vec<Value> {
         res.push(Value::Certain(U256::from_big_endian(&last)));
     }
     res
+}
+
+fn merge_events(events: &[lambda_vm::state::Event]) -> Vec<Event> {
+    struct TmpEvent {
+        topics: Vec<U256>,
+        data: Vec<u8>,
+        shard_id: u8,
+        tx_number: u32,
+    }
+    let mut result = vec![];
+    let mut current: Option<(usize, u32, TmpEvent)> = None;
+
+    for message in events.into_iter() {
+        let lambda_vm::state::Event {
+            shard_id,
+            is_first,
+            tx_number,
+            key,
+            value,
+        } = *message;
+        let tx_number = tx_number.into();
+
+        if !is_first {
+            if let Some((mut remaining_data_length, mut remaining_topics, mut event)) =
+                current.take()
+            {
+                if event.shard_id != shard_id || event.tx_number != tx_number {
+                    continue;
+                }
+
+                for el in [key, value].iter() {
+                    if remaining_topics != 0 {
+                        event.topics.push(*el);
+                        remaining_topics -= 1;
+                    } else if remaining_data_length != 0 {
+                        let mut bytes = [0; 32];
+                        el.to_big_endian(&mut bytes);
+                        if remaining_data_length >= 32 {
+                            event.data.extend_from_slice(&bytes);
+                            remaining_data_length -= 32;
+                        } else {
+                            event
+                                .data
+                                .extend_from_slice(&bytes[..remaining_data_length]);
+                            remaining_data_length = 0;
+                        }
+                    }
+                }
+
+                if remaining_data_length != 0 || remaining_topics != 0 {
+                    current = Some((remaining_data_length, remaining_topics, event))
+                } else {
+                    result.push(event);
+                }
+            }
+        } else {
+            // start new one. First take the old one only if it's well formed
+            if let Some((remaining_data_length, remaining_topics, event)) = current.take() {
+                if remaining_data_length == 0 && remaining_topics == 0 {
+                    result.push(event);
+                }
+            }
+
+            // split key as our internal marker. Ignore higher bits
+            let mut num_topics = key.0[0] as u32;
+            let mut data_length = (key.0[0] >> 32) as usize;
+            let mut buffer = [0u8; 32];
+            value.to_big_endian(&mut buffer);
+
+            let (topics, data) = if num_topics == 0 && data_length == 0 {
+                (vec![], vec![])
+            } else if num_topics == 0 {
+                data_length -= 32;
+                (vec![], buffer.to_vec())
+            } else {
+                num_topics -= 1;
+                (vec![value], vec![])
+            };
+
+            let new_event = TmpEvent {
+                shard_id,
+                tx_number,
+                topics,
+                data,
+            };
+
+            current = Some((data_length, num_topics, new_event))
+        }
+    }
+
+    // add the last one
+    if let Some((remaining_data_length, remaining_topics, event)) = current.take() {
+        if remaining_data_length == 0 && remaining_topics == 0 {
+            result.push(event);
+        }
+    }
+
+    result
+        .iter()
+        .filter_map(|event| {
+            let mut address_bytes = [0; 32];
+            event.topics[0].to_big_endian(&mut address_bytes);
+            let address = web3::ethabi::Address::from_slice(&address_bytes[12..]);
+
+            // Filter out events that are from system contracts
+            if address.as_bytes().iter().rev().skip(2).all(|x| *x == 0) {
+                return None;
+            }
+            let topics = event.topics[1..]
+                .iter()
+                .cloned()
+                .map(Value::Certain)
+                .collect();
+            let values = chunk_return_data(&event.data);
+            Some(Event::new(Some(address), topics, values))
+        })
+        .collect()
 }
