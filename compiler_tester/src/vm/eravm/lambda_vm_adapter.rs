@@ -100,11 +100,14 @@ pub fn run_vm(
 
     let initial_program = initial_decommit(&mut storage, entry_address);
 
+    let context_val = context.unwrap();
+
     let mut vm = VMState::new(
         initial_program,
         calldata.to_vec(),
         entry_address,
-        context.unwrap().msg_sender,
+        context_val.msg_sender,
+        context_val.u128_value,
     );
 
     if abi_params.is_constructor {
@@ -113,9 +116,9 @@ pub fn run_vm(
     if abi_params.is_system_call {
         vm.registers[1] |= TaggedValue::new_raw_integer(2.into());
     }
-    vm.registers[3] = TaggedValue::new_raw_integer(abi_params.r3_value.unwrap_or_default());
-    vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
-    vm.registers[5] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
+    vm.registers[2] = TaggedValue::new_raw_integer(abi_params.r3_value.unwrap_or_default());
+    vm.registers[3] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
+    vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
 
     let (result, final_vm) = lambda_vm::run_program_with_custom_bytecode(vm, &mut storage);
     let events = merge_events(&final_vm.events);
