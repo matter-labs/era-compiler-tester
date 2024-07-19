@@ -111,14 +111,25 @@ pub fn run_vm(
     );
 
     if abi_params.is_constructor {
-        vm.registers[1] |= TaggedValue::new_raw_integer(1.into());
+        let r1_with_constructor_bit = vm.get_register(1).value | 1.into();
+        vm.set_register(2, TaggedValue::new_raw_integer(r1_with_constructor_bit));
     }
     if abi_params.is_system_call {
-        vm.registers[1] |= TaggedValue::new_raw_integer(2.into());
+        let r1_with_system_bit = vm.get_register(1).value | 2.into();
+        vm.set_register(2, TaggedValue::new_raw_integer(r1_with_system_bit));
     }
-    vm.registers[2] = TaggedValue::new_raw_integer(abi_params.r3_value.unwrap_or_default());
-    vm.registers[3] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
-    vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
+    vm.set_register(
+        3,
+        TaggedValue::new_raw_integer(abi_params.r3_value.unwrap_or_default()),
+    );
+    vm.set_register(
+        4,
+        TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default()),
+    );
+    vm.set_register(
+        5,
+        TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default()),
+    );
 
     let (result, final_vm) = lambda_vm::run_program_with_custom_bytecode(vm, &mut storage);
     let events = merge_events(&final_vm.events);
