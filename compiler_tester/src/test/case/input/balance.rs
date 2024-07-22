@@ -12,8 +12,8 @@ use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
-
-use super::revm_type_conversions::web3_address_to_revm_address;
+use crate::vm::revm::revm_type_conversions::web3_address_to_revm_address;
+use crate::vm::revm::Revm;
 
 ///
 /// The balance check input variant.
@@ -82,10 +82,10 @@ impl Balance {
     ///
     /// Runs the balance check on REVM.
     ///
-    pub fn run_revm<EXT, DB: revm::db::Database>(
+    pub fn run_revm(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: &mut revm::Evm<EXT, State<DB>>,
+        vm: &mut Revm,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
@@ -93,6 +93,7 @@ impl Balance {
     ) {
         let name = format!("{name_prefix}[#balance_check:{index}]");
         let found = vm
+            .state
             .context
             .evm
             .balance(web3_address_to_revm_address(&self.address));
