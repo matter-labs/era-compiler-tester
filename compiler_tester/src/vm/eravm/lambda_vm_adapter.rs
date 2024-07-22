@@ -14,6 +14,7 @@ use lambda_vm::store::initial_decommit;
 use lambda_vm::store::InMemory;
 use lambda_vm::value::TaggedValue;
 use lambda_vm::ExecutionOutput;
+use lambda_vm::store::Storage;
 use web3::types::H160;
 use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{H256, U256};
@@ -98,6 +99,8 @@ pub fn run_vm(
 
     let mut storage = InMemory::new(lambda_contract_storage, lambda_storage);
 
+    let initial_storage = storage.clone();
+
     let initial_program = initial_decommit(&mut storage, entry_address);
 
     let context_val = context.unwrap();
@@ -150,6 +153,14 @@ pub fn run_vm(
             events: vec![],
         },
     };
+
+    for (key, value) in storage.state_storage.into_iter() {
+        if initial_storage.storage_read(key).unwrap() != Some(value) {
+            let mut bytes: [u8; 32] = [0;32];
+            value.to_big_endian(&mut bytes);
+            storage_changes.insert(StorageKey{address: key.address, key: key.key}, H256::from(bytes));
+        }
+    }
 
     Ok((
         ExecutionResult {
