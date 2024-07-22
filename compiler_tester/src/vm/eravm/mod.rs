@@ -132,12 +132,12 @@ impl EraVM {
         );
         vm.add_known_contract(
             zkevm_assembly::Assembly::from_string(
-                era_compiler_vyper::FORWARDER_CONTRACT_ASSEMBLY.to_owned(),
+                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_ASSEMBLY.to_owned(),
                 None,
             )
             .expect("Always valid"),
             web3::types::U256::from_str_radix(
-                era_compiler_vyper::FORWARDER_CONTRACT_HASH.as_str(),
+                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_HASH.as_str(),
                 era_compiler_common::BASE_HEXADECIMAL,
             )
             .expect("Always valid"),
