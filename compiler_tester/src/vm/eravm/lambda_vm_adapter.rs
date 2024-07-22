@@ -14,6 +14,7 @@ use lambda_vm::store::initial_decommit;
 use lambda_vm::store::InMemory;
 use lambda_vm::value::TaggedValue;
 use lambda_vm::ExecutionOutput;
+use lambda_vm::store::Storage;
 use web3::types::H160;
 use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{H256, U256};
@@ -98,24 +99,40 @@ pub fn run_vm(
 
     let mut storage = InMemory::new(lambda_contract_storage, lambda_storage);
 
+    let initial_storage = storage.clone();
+
     let initial_program = initial_decommit(&mut storage, entry_address);
+
+    let context_val = context.unwrap();
 
     let mut vm = VMState::new(
         initial_program,
         calldata.to_vec(),
         entry_address,
-        context.unwrap().msg_sender,
+        context_val.msg_sender,
+        context_val.u128_value,
     );
 
     if abi_params.is_constructor {
-        vm.registers[1] |= TaggedValue::new_raw_integer(1.into());
+        let r1_with_constructor_bit = vm.get_register(1).value | 1.into();
+        vm.set_register(2, TaggedValue::new_raw_integer(r1_with_constructor_bit));
     }
     if abi_params.is_system_call {
-        vm.registers[1] |= TaggedValue::new_raw_integer(2.into());
+        let r1_with_system_bit = vm.get_register(1).value | 2.into();
+        vm.set_register(2, TaggedValue::new_raw_integer(r1_with_system_bit));
     }
-    vm.registers[3] = TaggedValue::new_raw_integer(abi_params.r3_value.unwrap_or_default());
-    vm.registers[4] = TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default());
-    vm.registers[5] = TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default());
+    vm.set_register(
+        3,
+        TaggedValue::new_raw_integer(abi_params.r3_value.unwrap_or_default()),
+    );
+    vm.set_register(
+        4,
+        TaggedValue::new_raw_integer(abi_params.r4_value.unwrap_or_default()),
+    );
+    vm.set_register(
+        5,
+        TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default()),
+    );
 
     let (result, final_vm) = lambda_vm::run_program_with_custom_bytecode(vm, &mut storage);
     let events = merge_events(&final_vm.events);
@@ -136,6 +153,14 @@ pub fn run_vm(
             events: vec![],
         },
     };
+
+    for (key, value) in storage.state_storage.into_iter() {
+        if initial_storage.storage_read(key).unwrap() != Some(value) {
+            let mut bytes: [u8; 32] = [0;32];
+            value.to_big_endian(&mut bytes);
+            storage_changes.insert(StorageKey{address: key.address, key: key.key}, H256::from(bytes));
+        }
+    }
 
     Ok((
         ExecutionResult {
