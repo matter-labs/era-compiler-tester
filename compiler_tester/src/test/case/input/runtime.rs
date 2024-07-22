@@ -206,7 +206,13 @@ impl Runtime {
             vm
         };
 
-        let mut vm = vm.fill_runtime_new_transaction(self.address, caller, self.calldata.clone(), self.value, evm_version);
+        let mut vm = vm.fill_runtime_new_transaction(
+            self.address,
+            caller,
+            self.calldata.clone(),
+            self.value,
+            evm_version,
+        );
 
         vm = vm.update_balance_if_lack_of_funds(caller);
 

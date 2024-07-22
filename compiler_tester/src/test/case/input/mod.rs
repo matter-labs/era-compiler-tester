@@ -19,9 +19,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::State;
-use revm::Database;
-
 use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;

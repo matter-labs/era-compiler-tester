@@ -143,7 +143,8 @@ impl DeployEVM {
         deploy_code.extend(self.calldata.inner.clone());
 
         let vm = vm.update_deploy_balance(&self.caller);
-        let mut vm = vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, deploy_code);
+        let mut vm =
+            vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, deploy_code);
 
         let res = match vm.state.transact_commit() {
             Ok(res) => res,

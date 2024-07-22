@@ -5,7 +5,6 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::State;
 use web3::types::U256;
 
 use crate::compilers::mode::Mode;

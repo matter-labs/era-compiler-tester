@@ -2,14 +2,18 @@ use std::{convert::Infallible, str::FromStr};
 
 use revm::{
     db::{states::plain_account::PlainStorage, EmptyDBTyped},
-    primitives::{Address, EVMError, Env, FixedBytes, InvalidTransaction, TxKind, B256, KECCAK_EMPTY, U256},
+    primitives::{
+        Address, EVMError, Env, FixedBytes, InvalidTransaction, TxKind, B256, KECCAK_EMPTY, U256,
+    },
     Evm,
 };
 use solidity_adapter::EVMVersion;
 
 use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::SystemContext};
 
-use super::revm_type_conversions::{web3_address_to_revm_address, web3_u256_to_revm_address, web3_u256_to_revm_u256};
+use super::revm_type_conversions::{
+    web3_address_to_revm_address, web3_u256_to_revm_address, web3_u256_to_revm_u256,
+};
 use revm::Database;
 
 #[derive(Debug)]
@@ -73,7 +77,14 @@ impl<'a> Revm<'a> {
         }
     }
 
-    pub fn fill_runtime_new_transaction(self, address: web3::types::Address, caller: web3::types::Address, calldata: Calldata, value: Option<u128>, evm_version: Option<EVMVersion>) -> Self {
+    pub fn fill_runtime_new_transaction(
+        self,
+        address: web3::types::Address,
+        caller: web3::types::Address,
+        calldata: Calldata,
+        value: Option<u128>,
+        evm_version: Option<EVMVersion>,
+    ) -> Self {
         let mut vm = self
             .state
             .modify()
@@ -99,13 +110,18 @@ impl<'a> Revm<'a> {
                 env.tx.access_list = vec![];
             })
             .build();
-        Self {
-            state: vm,
-        }
+        Self { state: vm }
     }
 
-    pub fn fill_deploy_new_transaction(self, caller: web3::types::Address, value: Option<u128>, evm_version: Option<EVMVersion>, deploy_code: Vec<u8>) -> Self {
-        let mut new_vm = self.state
+    pub fn fill_deploy_new_transaction(
+        self,
+        caller: web3::types::Address,
+        value: Option<u128>,
+        evm_version: Option<EVMVersion>,
+        deploy_code: Vec<u8>,
+    ) -> Self {
+        let mut new_vm = self
+            .state
             .modify()
             .modify_env(|env| {
                 let evm_context = SystemContext::get_constants_evm(evm_version);
@@ -129,8 +145,6 @@ impl<'a> Revm<'a> {
                 env.tx.transact_to = TxKind::Create;
             })
             .build();
-        Self {
-            state: new_vm,
-        }
+        Self { state: new_vm }
     }
 }

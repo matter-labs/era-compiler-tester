@@ -5,9 +5,6 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::State;
-use revm::Database;
-
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::vm::eravm::EraVM;
