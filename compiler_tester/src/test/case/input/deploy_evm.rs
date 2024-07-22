@@ -8,13 +8,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::primitives::EVMError;
-use revm::primitives::Env;
 use revm::primitives::ExecutionResult;
-use revm::primitives::TxKind;
-use revm::primitives::B256;
-use revm::primitives::U256;
-use revm::Database;
-use revm::State;
 use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
@@ -23,16 +17,13 @@ use crate::test::case::input::calldata::Calldata;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
 use crate::vm::eravm::deployers::EraVMDeployer;
-use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 
-use super::revm_type_conversions::revm_bytes_to_vec_value;
-use super::revm_type_conversions::transform_success_output;
-use super::revm_type_conversions::web3_address_to_revm_address;
-use super::revm_type_conversions::web3_u256_to_revm_address;
-use super::revm_type_conversions::web3_u256_to_revm_u256;
+use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
+use crate::vm::revm::revm_type_conversions::transform_success_output;
+use crate::vm::revm::Revm;
 
 ///
 /// The EVM deploy contract call input variant.
@@ -133,16 +124,16 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm<'a, EXT, DB: Database>(
+    pub fn run_revm<'a>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: revm::Evm<'a, EXT, State<DB>>,
+        vm: Revm<'a>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         evm_builds: &HashMap<String, Build, RandomState>,
         evm_version: Option<EVMVersion>,
-    ) -> revm::Evm<'a, EXT, State<DB>> {
+    ) -> Revm<'a> {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
         let build = evm_builds
@@ -151,34 +142,11 @@ impl DeployEVM {
         let mut deploy_code = build.deploy_build.bytecode.to_owned();
         deploy_code.extend(self.calldata.inner.clone());
 
-        let vm = self.update_balance(vm);
+        let vm = vm.update_deploy_balance(&self.caller);
+        let mut vm =
+            vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, deploy_code);
 
-        let mut new_vm = vm
-            .modify()
-            .modify_env(|env| {
-                let evm_context = SystemContext::get_constants_evm(evm_version);
-                env.cfg.chain_id = evm_context.chain_id;
-                env.block.number = U256::from(evm_context.block_number);
-                let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
-                env.block.coinbase = web3_u256_to_revm_address(coinbase);
-                env.block.timestamp = U256::from(evm_context.block_timestamp);
-                env.block.gas_limit = U256::from(evm_context.block_gas_limit);
-                env.block.basefee = U256::from(evm_context.base_fee);
-                let block_difficulty =
-                    web3::types::U256::from_str_radix(evm_context.block_difficulty, 16).unwrap();
-                env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
-                env.block.prevrandao = Some(B256::from(env.block.difficulty));
-                env.tx.gas_price = U256::from(0xb2d05e00_u32);
-                env.tx.gas_limit = evm_context.block_gas_limit;
-                env.tx.access_list = vec![];
-                env.tx.caller = web3_address_to_revm_address(&self.caller);
-                env.tx.data = revm::primitives::Bytes::from(deploy_code);
-                env.tx.value = revm::primitives::U256::from(self.value.unwrap_or_default());
-                env.tx.transact_to = TxKind::Create;
-            })
-            .build();
-
-        let res = match new_vm.transact_commit() {
+        let res = match vm.state.transact_commit() {
             Ok(res) => res,
             Err(error) => {
                 match error {
@@ -223,7 +191,7 @@ impl DeployEVM {
                         );
                     }
                 }
-                return new_vm;
+                return vm;
             }
         };
 
@@ -261,7 +229,7 @@ impl DeployEVM {
             );
         }
 
-        new_vm
+        return vm;
     }
 
     ///
@@ -318,32 +286,5 @@ impl DeployEVM {
                 self.calldata.inner,
             );
         }
-    }
-
-    /// All accounts used to deploy the test contracts should have a balance of U256::MAX
-    fn update_balance<'a, EXT, DB: Database>(
-        &self,
-        mut vm: revm::Evm<'a, EXT, State<DB>>,
-    ) -> revm::Evm<'a, EXT, State<DB>> {
-        let address = web3_address_to_revm_address(&self.caller);
-        let nonce = match vm.db_mut().basic(address) {
-            Ok(Some(acc)) => acc.nonce,
-            _ => 1,
-        };
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::MAX,
-            code_hash: revm::primitives::KECCAK_EMPTY,
-            code: None,
-            nonce,
-        };
-        let mut vm = vm
-            .modify()
-            .modify_db(|db| {
-                db.insert_account(address, acc_info.clone());
-            })
-            .modify_env(|env| env.clone_from(&Box::new(Env::default())))
-            .build();
-        vm.transact_commit().ok(); // Even if TX fails, the balance update will be committed
-        vm
     }
 }

@@ -7,7 +7,6 @@ pub mod calldata;
 pub mod deploy_eravm;
 pub mod deploy_evm;
 pub mod output;
-pub mod revm_type_conversions;
 pub mod runtime;
 pub mod storage;
 pub mod storage_empty;
@@ -20,9 +19,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::db::State;
-use revm::Database;
-
 use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
@@ -34,6 +30,7 @@ use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
+use crate::vm::revm::Revm;
 
 use self::balance::Balance;
 use self::calldata::Calldata;
@@ -433,17 +430,17 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<'a, EXT, DB: Database>(
+    pub fn run_revm<'a>(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: revm::Evm<'a, EXT, revm::db::State<DB>>,
+        mut vm: Revm<'a>,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
         evm_builds: &HashMap<String, Build, RandomState>,
         evm_version: Option<EVMVersion>,
-    ) -> revm::Evm<'a, EXT, State<DB>> {
+    ) -> Revm<'a> {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
             Self::DeployEVM(deploy) => deploy.run_revm(
