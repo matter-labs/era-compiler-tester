@@ -575,7 +575,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-remove-combined-json-call#b18c7dae957bbf7af2ed697329c5ccf528dee466"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#fd5ff9401cd9cf665d500209fbd30cd3c245c5e4"
 dependencies = [
  "anyhow",
  "era-compiler-common",
