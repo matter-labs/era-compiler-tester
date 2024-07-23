@@ -71,7 +71,6 @@ impl Compiler for LLVMCompiler {
             &mut vec![],
             true,
             true,
-            zkevm_assembly::get_encoding_mode(),
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,

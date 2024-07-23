@@ -231,7 +231,6 @@ impl Compiler for VyperCompiler {
             true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            zkevm_assembly::get_encoding_mode(),
             vec![],
             debug_config,
         )?;
