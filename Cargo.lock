@@ -527,7 +527,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#108ec64f483d3a77f72a87574c1e40453490bf41"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#474c041325f4a3c92a509894b3b5b6a04deb8599"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -544,7 +544,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#d81ad7a453ce166f2be4cdc28bfa2748b357d19f"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#129214220feff11b5d8f31c0a5d37cd9f830856c"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -572,7 +572,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#69bdf47342c65a302b79d3c0af543a2adc971c77"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#8fbf7a063d9ee6a0a9036bb82f5d354574ef4e5f"
 dependencies = [
  "anyhow",
  "era-compiler-common",
