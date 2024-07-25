@@ -2953,7 +2953,7 @@ dependencies = [
 [[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=az-cpr-1735-migrate-to-the-new-assembler#541e262211cf0bb4d9e43841597f7e14d3167ff0"
+source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=az-cpr-1735-migrate-to-the-new-assembler#d2e567a55d807dbfda90b60772a29a7cdf29d453"
 dependencies = [
  "anyhow",
  "ethabi",
