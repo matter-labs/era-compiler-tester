@@ -267,9 +267,8 @@ dependencies = [
  "vm2",
  "web3",
  "which",
- "zkevm-assembly",
  "zkevm_opcode_defs",
- "zkevm_tester",
+ "zkevm_tester 1.5.0 (git+https://github.com/matter-labs/era-zkevm_tester?branch=az-cpr-1735-migrate-to-the-new-assembler)",
 ]
 
 [[package]]
@@ -284,7 +283,7 @@ dependencies = [
  "semver",
  "solidity-adapter",
  "zkevm-assembly",
- "zkevm_tester",
+ "zkevm_tester 1.5.0 (git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -527,7 +526,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#e853fd696993d930186402851e746ac7d80758a7"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#162e12e6e7931229a1fbd155276b18075ac07ab4"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -544,7 +543,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#5225286c8cb18ef30001e7013f2638718ba78773"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#7d2bac4a6a6df10293decc2020ffa5379d8e6161"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -572,7 +571,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#a4aac00f9a4842bba29052e8af267bb8081cc9a8"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#f538c3b373ffec564f45e0a2c79e6b77e9fe6c23"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -2625,7 +2624,7 @@ checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 [[package]]
 name = "vm2"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#2882a1232a695ffc1ec4b796195f7aababeb6ab2"
+source = "git+https://github.com/matter-labs/vm2#952ecd419081d433ad609663752ce546ad6cc4e1"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
@@ -2986,7 +2985,7 @@ checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
 [[package]]
 name = "zk_evm"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zk_evm.git?branch=v1.5.0#0c5cdca00cca4fa0a8c49147a11048c24f8a4b12"
+source = "git+https://github.com/matter-labs/era-zk_evm?branch=v1.5.0#0c5cdca00cca4fa0a8c49147a11048c24f8a4b12"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -3042,6 +3041,25 @@ dependencies = [
  "serde",
  "sha2",
  "sha3",
+]
+
+[[package]]
+name = "zkevm_tester"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=az-cpr-1735-migrate-to-the-new-assembler#541e262211cf0bb4d9e43841597f7e14d3167ff0"
+dependencies = [
+ "anyhow",
+ "ethabi",
+ "futures",
+ "hex",
+ "num-bigint",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "vlog",
+ "zk_evm",
 ]
 
 [[package]]

@@ -2,14 +2,10 @@
 //! The EraVM compiler input.
 //!
 
-pub mod build;
-
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 use crate::test::instance::Instance;
-
-use self::build::Build;
 
 ///
 /// The EraVM compiler input.
@@ -17,7 +13,7 @@ use self::build::Build;
 #[derive(Debug, Clone)]
 pub struct Input {
     /// The contract builds.
-    pub builds: HashMap<String, Build>,
+    pub builds: HashMap<String, era_compiler_llvm_context::EraVMBuild>,
     /// The contracts method identifiers.
     pub method_identifiers: Option<BTreeMap<String, BTreeMap<String, u32>>>,
     /// The last contract name.
@@ -29,7 +25,7 @@ impl Input {
     /// A shortcut constructor.
     ///
     pub fn new(
-        builds: HashMap<String, Build>,
+        builds: HashMap<String, era_compiler_llvm_context::EraVMBuild>,
         method_identifiers: Option<BTreeMap<String, BTreeMap<String, u32>>>,
         last_contract: String,
     ) -> Self {
@@ -55,16 +51,11 @@ impl Input {
             let build = self.builds.get(name.as_str()).ok_or_else(|| {
                 anyhow::anyhow!("Library `{}` not found in the build artifacts", name)
             })?;
+            let code_hash = web3::types::U256::from_big_endian(build.bytecode_hash.as_slice());
 
             instances.insert(
                 name.clone(),
-                Instance::eravm(
-                    name,
-                    Some(address),
-                    false,
-                    true,
-                    build.bytecode_hash.to_owned(),
-                ),
+                Instance::eravm(name, Some(address), false, true, code_hash),
             );
         }
 
@@ -75,6 +66,9 @@ impl Input {
                     .ok_or_else(|| {
                         anyhow::anyhow!("Main contract not found in the compiler build artifacts")
                     })?;
+            let code_hash =
+                web3::types::U256::from_big_endian(main_contract_build.bytecode_hash.as_slice());
+
             instances.insert(
                 "Test".to_owned(),
                 Instance::eravm(
@@ -82,7 +76,7 @@ impl Input {
                     Some(main_address),
                     true,
                     false,
-                    main_contract_build.bytecode_hash,
+                    code_hash,
                 ),
             );
         } else {
@@ -90,15 +84,11 @@ impl Input {
                 let build = self.builds.get(path.as_str()).ok_or_else(|| {
                     anyhow::anyhow!("{} not found in the compiler build artifacts", path)
                 })?;
+                let code_hash = web3::types::U256::from_big_endian(build.bytecode_hash.as_slice());
+
                 instances.insert(
                     instance.to_owned(),
-                    Instance::eravm(
-                        path.to_owned(),
-                        None,
-                        false,
-                        false,
-                        build.bytecode_hash.to_owned(),
-                    ),
+                    Instance::eravm(path.to_owned(), None, false, false, code_hash),
                 );
             }
         }

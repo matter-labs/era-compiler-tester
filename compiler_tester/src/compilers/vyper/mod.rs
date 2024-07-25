@@ -15,7 +15,6 @@ use itertools::Itertools;
 use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
 use crate::vm::eravm::input::Input as EraVMInput;
 
 use self::cache_key::CacheKey;
@@ -239,17 +238,15 @@ impl Compiler for VyperCompiler {
             .contracts
             .into_iter()
             .map(|(path, contract)| {
-                zkevm_assembly::Assembly::from_string(
-                    contract.build.assembly.expect("Always exists"),
-                    contract.build.metadata_hash,
-                )
-                .map_err(anyhow::Error::new)
-                .and_then(|assembly| {
-                    EraVMBuild::new_with_hash(assembly, contract.build.bytecode_hash)
-                })
-                .map(|build| (path, build))
+                let build = era_compiler_llvm_context::EraVMBuild::new(
+                    contract.build.bytecode,
+                    contract.build.bytecode_hash,
+                    None,
+                    contract.build.assembly,
+                );
+                (path, build)
             })
-            .collect::<anyhow::Result<HashMap<String, EraVMBuild>>>()?;
+            .collect::<HashMap<String, era_compiler_llvm_context::EraVMBuild>>();
 
         Ok(EraVMInput::new(
             builds,

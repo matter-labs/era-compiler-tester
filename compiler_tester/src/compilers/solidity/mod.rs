@@ -17,7 +17,6 @@ use era_compiler_solidity::CollectableError;
 use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::build::Build as EVMBuild;
 use crate::vm::evm::input::Input as EVMInput;
@@ -392,6 +391,21 @@ impl Compiler for SolidityCompiler {
             None,
             debug_config,
         )?;
+        let builds = build
+            .contracts
+            .iter()
+            .map(|(path, build)| {
+                let build = build.to_owned().expect("Always valid");
+                let build = era_compiler_llvm_context::EraVMBuild::new(
+                    build.build.bytecode,
+                    build.build.bytecode_hash,
+                    None,
+                    build.build.assembly,
+                );
+                (path.to_owned(), build)
+            })
+            .collect();
+
         build.write_to_standard_json(
             &mut solc_output,
             Some(&era_compiler_solidity::SolcVersion::new(
@@ -402,30 +416,6 @@ impl Compiler for SolidityCompiler {
             &semver::Version::new(0, 0, 0),
         )?;
         solc_output.collect_errors()?;
-
-        let builds: HashMap<String, EraVMBuild> = solc_output
-            .contracts
-            .expect("Always exists")
-            .into_iter()
-            .flat_map(|(file_name, file)| {
-                file.into_iter()
-                    .filter_map(|(contract_name, contract)| {
-                        let name = format!("{}:{}", file_name, contract_name);
-                        let evm = contract.evm?;
-                        let assembly = zkevm_assembly::Assembly::from_string(evm.assembly?, None)
-                            .expect("Always valid");
-                        let build = match contract.hash {
-                            Some(bytecode_hash) => {
-                                EraVMBuild::new_with_hash(assembly, bytecode_hash)
-                                    .expect("Always valid")
-                            }
-                            None => EraVMBuild::new(assembly).expect("Always valid"),
-                        };
-                        Some((name, build))
-                    })
-                    .collect::<HashMap<String, EraVMBuild>>()
-            })
-            .collect();
 
         Ok(EraVMInput::new(
             builds,
@@ -475,9 +465,9 @@ impl Compiler for SolidityCompiler {
         let builds: HashMap<String, EVMBuild> = build
             .contracts
             .into_iter()
-            .map(|(path, build)| {
-                let build = build.expect("Always valid");
-                let build = EVMBuild::new(build.deploy_build, build.runtime_build);
+            .map(|(path, result)| {
+                let contract = result.expect("Always valid");
+                let build = EVMBuild::new(contract.deploy_build, contract.runtime_build);
                 (path, build)
             })
             .collect();

@@ -34,13 +34,13 @@ use self::system_contracts::ADDRESS_EVM_GAS_MANAGER;
 #[derive(Clone)]
 pub struct EraVM {
     /// The known contracts.
-    known_contracts: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
+    known_contracts: HashMap<web3::types::U256, Vec<u8>>,
     /// The default account abstraction contract code hash.
     default_aa_code_hash: web3::types::U256,
     /// The EVM interpreter contract code hash.
     evm_interpreter_code_hash: web3::types::U256,
     /// The deployed contracts.
-    deployed_contracts: HashMap<web3::types::Address, zkevm_assembly::Assembly>,
+    deployed_contracts: HashMap<web3::types::Address, Vec<u8>>,
     /// The published EVM bytecodes
     published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,
     /// The storage state.
@@ -115,36 +115,42 @@ impl EraVM {
 
         let mut vm = Self {
             known_contracts: HashMap::new(),
-            default_aa_code_hash: system_contracts.default_aa.bytecode_hash,
-            evm_interpreter_code_hash: system_contracts.evm_interpreter.bytecode_hash,
+            default_aa_code_hash: web3::types::U256::from_big_endian(
+                system_contracts.default_aa.bytecode_hash.as_slice(),
+            ),
+            evm_interpreter_code_hash: web3::types::U256::from_big_endian(
+                system_contracts.evm_interpreter.bytecode_hash.as_slice(),
+            ),
             deployed_contracts: HashMap::new(),
             storage,
             published_evm_bytecodes: HashMap::new(),
         };
 
         vm.add_known_contract(
-            system_contracts.default_aa.assembly,
-            system_contracts.default_aa.bytecode_hash,
+            system_contracts.default_aa.bytecode,
+            web3::types::U256::from_big_endian(
+                system_contracts.default_aa.bytecode_hash.as_slice(),
+            ),
         );
         vm.add_known_contract(
-            system_contracts.evm_interpreter.assembly,
-            system_contracts.evm_interpreter.bytecode_hash,
+            system_contracts.evm_interpreter.bytecode,
+            web3::types::U256::from_big_endian(
+                system_contracts.evm_interpreter.bytecode_hash.as_slice(),
+            ),
         );
         vm.add_known_contract(
-            zkevm_assembly::Assembly::from_string(
-                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_ASSEMBLY.to_owned(),
-                None,
-            )
-            .expect("Always valid"),
-            web3::types::U256::from_str_radix(
-                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_HASH.as_str(),
-                era_compiler_common::BASE_HEXADECIMAL,
-            )
-            .expect("Always valid"),
+            era_compiler_vyper::MINIMAL_PROXY_CONTRACT_BYTECODE.to_owned(),
+            web3::types::U256::from_big_endian(
+                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_HASH.as_slice(),
+            ),
         );
 
         for (address, build) in system_contracts.deployed_contracts {
-            vm.add_deployed_contract(address, build.bytecode_hash, Some(build.assembly));
+            vm.add_deployed_contract(
+                address,
+                web3::types::U256::from_big_endian(build.bytecode_hash.as_slice()),
+                Some(build.bytecode),
+            );
         }
 
         Ok(vm)
@@ -157,11 +163,11 @@ impl EraVM {
     ///
     pub fn clone_with_contracts(
         vm: Arc<Self>,
-        known_contracts: HashMap<web3::types::U256, zkevm_assembly::Assembly>,
+        known_contracts: HashMap<web3::types::U256, Vec<u8>>,
     ) -> Self {
         let mut new_vm = (*vm).clone();
-        for (bytecode_hash, assembly) in known_contracts.into_iter() {
-            new_vm.add_known_contract(assembly, bytecode_hash);
+        for (bytecode_hash, bytecode) in known_contracts.into_iter() {
+            new_vm.add_known_contract(bytecode, bytecode_hash);
         }
         new_vm
     }
@@ -209,7 +215,7 @@ impl EraVM {
                         (vm_launch_option, None)
                     }
                     None => (
-                        zkevm_tester::runners::compiler_tests::VmLaunchOption::Call,
+                        zkevm_tester::runners::compiler_tests::VmLaunchOption::Default,
                         None,
                     ),
                 }
@@ -219,7 +225,7 @@ impl EraVM {
                 }
 
                 (
-                    zkevm_tester::runners::compiler_tests::VmLaunchOption::Call,
+                    zkevm_tester::runners::compiler_tests::VmLaunchOption::Default,
                     value,
                 )
             };
@@ -438,11 +444,7 @@ impl EraVM {
     ///
     /// Adds a known contract.
     ///
-    fn add_known_contract(
-        &mut self,
-        assembly: zkevm_assembly::Assembly,
-        bytecode_hash: web3::types::U256,
-    ) {
+    fn add_known_contract(&mut self, bytecode: Vec<u8>, bytecode_hash: web3::types::U256) {
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(
@@ -452,7 +454,7 @@ impl EraVM {
             },
             web3::types::H256::from_low_u64_be(1),
         );
-        self.known_contracts.insert(bytecode_hash, assembly);
+        self.known_contracts.insert(bytecode_hash, bytecode);
     }
 
     ///
@@ -466,7 +468,7 @@ impl EraVM {
         &mut self,
         address: web3::types::Address,
         bytecode_hash: web3::types::U256,
-        assembly: Option<zkevm_assembly::Assembly>,
+        bytecode: Option<Vec<u8>>,
     ) {
         assert!(
             !self.deployed_contracts.contains_key(&address),
@@ -481,15 +483,15 @@ impl EraVM {
             },
             crate::utils::u256_to_h256(&bytecode_hash),
         );
-        let assembly = match assembly {
-            Some(assembly) => assembly,
+        let bytecode = match bytecode {
+            Some(bytecode) => bytecode,
             None => self
                 .known_contracts
                 .get(&bytecode_hash)
                 .expect("Contract not found in known contracts for deploy")
                 .clone(),
         };
-        self.deployed_contracts.insert(address, assembly);
+        self.deployed_contracts.insert(address, bytecode);
     }
 
     ///
@@ -532,14 +534,11 @@ impl EraVM {
     ///
     /// Returns known contract size by code_hash, None if not found.
     ///
-    pub fn get_contract_size(&self, code_hash: web3::types::U256) -> anyhow::Result<usize> {
-        let mut assembly = self
-            .known_contracts
+    pub fn get_contract_size(&self, code_hash: web3::types::U256) -> usize {
+        self.known_contracts
             .get(&code_hash)
-            .cloned()
-            .expect("Always exists");
-        Ok(assembly
-            .compile_to_bytecode_for_mode::<16, zkevm_assembly::zkevm_opcode_defs::decoding::encoding_mode_testing::EncodingModeTesting>()?.into_iter().flatten().count())
+            .expect("Always exists")
+            .len()
     }
 
     ///

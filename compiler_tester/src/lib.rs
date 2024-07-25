@@ -52,9 +52,6 @@ pub use crate::workflow::Workflow;
 /// The debug directory path.
 pub const DEBUG_DIRECTORY: &str = "./debug/";
 
-/// The trace directory path.
-pub const TRACE_DIRECTORY: &str = "./trace/";
-
 ///
 /// The compiler test generic representation.
 ///

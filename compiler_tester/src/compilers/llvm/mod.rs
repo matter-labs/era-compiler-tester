@@ -11,7 +11,6 @@ use era_compiler_solidity::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::build::Build as EVMBuild;
 use crate::vm::evm::input::Input as EVMInput;
@@ -81,18 +80,8 @@ impl Compiler for LLVMCompiler {
         let builds = build
             .contracts
             .into_iter()
-            .map(|(path, build)| {
-                let build = build.expect("Always valid");
-                let assembly = zkevm_assembly::Assembly::from_string(
-                    build.build.assembly.expect("Always exists"),
-                    build.build.metadata_hash,
-                )
-                .map_err(anyhow::Error::new)?;
-
-                let build = EraVMBuild::new_with_hash(assembly, build.build.bytecode_hash)?;
-                Ok((path, build))
-            })
-            .collect::<anyhow::Result<HashMap<String, EraVMBuild>>>()?;
+            .map(|(path, result)| Ok((path, result.expect("Always valid").build)))
+            .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 
         Ok(EraVMInput::new(builds, None, last_contract))
     }
