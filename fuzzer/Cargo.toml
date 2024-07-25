@@ -30,8 +30,7 @@ libfuzzer-sys = "0.4"
 anyhow = "1.0"
 semver = { version = "1.0", features = ["serde"] }
 
-zkevm-assembly = { git = "https://github.com/matter-labs/era-zkEVM-assembly", branch = "v1.5.0" }
-zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
+zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "az-cpr-1735-migrate-to-the-new-assembler" }
 
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-cpr-1735-migrate-to-the-new-assembler" }
 era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1735-migrate-to-the-new-assembler" }
