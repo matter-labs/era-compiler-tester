@@ -158,8 +158,8 @@ impl From<bool> for Output {
     }
 }
 
-impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
-    fn from(snapshot: zkevm_tester::runners::compiler_tests::VmSnapshot) -> Self {
+impl From<zkevm_tester::compiler_tests::VmSnapshot> for Output {
+    fn from(snapshot: zkevm_tester::compiler_tests::VmSnapshot) -> Self {
         let events = snapshot
             .events
             .into_iter()
@@ -175,7 +175,7 @@ impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
             .collect();
 
         match snapshot.execution_result {
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::Ok(return_data) => {
+            zkevm_tester::compiler_tests::VmExecutionResult::Ok(return_data) => {
                 let return_data = return_data
                     .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| {
@@ -200,7 +200,7 @@ impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
                     events,
                 }
             }
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::Revert(return_data) => {
+            zkevm_tester::compiler_tests::VmExecutionResult::Revert(return_data) => {
                 let return_data = return_data
                     .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| {
@@ -225,18 +225,18 @@ impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
                     events,
                 }
             }
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::Panic => Self {
+            zkevm_tester::compiler_tests::VmExecutionResult::Panic => Self {
                 return_data: vec![],
                 exception: true,
                 events,
             },
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::MostLikelyDidNotFinish {
-                ..
-            } => Self {
-                return_data: vec![],
-                exception: true,
-                events,
-            },
+            zkevm_tester::compiler_tests::VmExecutionResult::MostLikelyDidNotFinish { .. } => {
+                Self {
+                    return_data: vec![],
+                    exception: true,
+                    events,
+                }
+            }
         }
     }
 }

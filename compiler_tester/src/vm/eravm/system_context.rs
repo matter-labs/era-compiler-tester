@@ -78,8 +78,8 @@ impl SystemContext {
     ///
     /// Returns the storage values for the system context.
     ///
-    pub fn create_storage(
-    ) -> HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256> {
+    pub fn create_storage() -> HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>
+    {
         let mut system_context_values = vec![
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_CHAIN_ID_POSITION),
@@ -152,7 +152,7 @@ impl SystemContext {
 
         for (key, value) in system_context_values {
             storage.insert(
-                zkevm_tester::runners::compiler_tests::StorageKey {
+                zkevm_tester::compiler_tests::StorageKey {
                     address: web3::types::Address::from_low_u64_be(
                         zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
                     ),
