@@ -501,7 +501,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#162e12e6e7931229a1fbd155276b18075ac07ab4"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#1d9211cb1d94ac4b3f707cd5eec20c3247493a3e"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -518,7 +518,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#7d2bac4a6a6df10293decc2020ffa5379d8e6161"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#936e08767fea08159cda975ad84facdf33422711"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -546,7 +546,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#f538c3b373ffec564f45e0a2c79e6b77e9fe6c23"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#104b8958d5d9eae575ec188de318a8c2c55a93a0"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -2363,9 +2363,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.39.1"
+version = "1.39.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d040ac2b29ab03b09d4129c2f5bbd012a3ac2f79d38ff506a4bf8dd34b0eac8a"
+checksum = "daa4fb1bc778bd6f04cbfc4bb2d06a7396a8f299dc33ea1900cedaa316f467b1"
 dependencies = [
  "backtrace",
  "bytes",
@@ -2953,7 +2953,7 @@ dependencies = [
 [[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=az-cpr-1735-migrate-to-the-new-assembler#19448d83dfa16455f34115a3de64b2b23cfba96f"
+source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=az-cpr-1735-migrate-to-the-new-assembler#621320674d2e5f50dabad5ac290b401e3086fcd0"
 dependencies = [
  "anyhow",
  "ethabi",

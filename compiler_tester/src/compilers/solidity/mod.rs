@@ -56,7 +56,8 @@ lazy_static::lazy_static! {
             .into_iter()
             .cartesian_product(solc_pipeline_versions)
             .map(
-                |(llvm_optimizer_settings, (pipeline, optimize, via_ir, version))| {
+                |(mut llvm_optimizer_settings, (pipeline, optimize, via_ir, version))| {
+                    llvm_optimizer_settings.enable_fallback_to_size();
                     SolidityMode::new(
                         version,
                         pipeline,
