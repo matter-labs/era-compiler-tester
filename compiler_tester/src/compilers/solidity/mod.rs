@@ -391,6 +391,7 @@ impl Compiler for SolidityCompiler {
             None,
             debug_config,
         )?;
+        build.collect_errors()?;
         let builds = build
             .contracts
             .iter()

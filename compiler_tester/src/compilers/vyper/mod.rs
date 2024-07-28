@@ -233,7 +233,6 @@ impl Compiler for VyperCompiler {
             vec![],
             debug_config,
         )?;
-
         let builds = build
             .contracts
             .into_iter()
