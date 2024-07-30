@@ -160,6 +160,7 @@ impl From<bool> for Output {
 
 impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
     fn from(snapshot: zkevm_tester::runners::compiler_tests::VmSnapshot) -> Self {
+        println!("in compiler_tests::VmSnapshot");
         let events = snapshot
             .events
             .into_iter()
@@ -174,6 +175,7 @@ impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
             .map(Event::from)
             .collect();
 
+        println!("snapshot.execution_result: {:?}", snapshot.execution_result);
         match snapshot.execution_result {
             zkevm_tester::runners::compiler_tests::VmExecutionResult::Ok(return_data) => {
                 let return_data = return_data
