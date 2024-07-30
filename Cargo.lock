@@ -575,7 +575,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-fix-loop-bounds#09d05f301961c68014d69524930b5c583811d624"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#d60ac5c1fce77244303de46e9772da303be9a401"
 dependencies = [
  "anyhow",
  "era-compiler-common",
