@@ -12,9 +12,9 @@ concurrency:
 jobs:
 
   ccache-regen:
-    runs-on: ci-runner-compiler
+    runs-on: [ci-runner-compiler, Linux]
     container:
-      image: matterlabs/llvm_runner:ubuntu22-llvm17-latest
+      image: ghcr.io/matter-labs/llvm_runner/ubuntu22-llvm17:latest
       options: -m 110g
     steps:
 
@@ -24,7 +24,6 @@ jobs:
       - name: Build LLVM
         uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
         with:
-          extra-args: "\\-DLLVM_ENABLE_WERROR=On \\-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
           enable-tests: true
           enable-assertions: true
           ccache-key-type: static
