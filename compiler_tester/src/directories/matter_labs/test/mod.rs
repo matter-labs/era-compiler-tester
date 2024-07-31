@@ -513,7 +513,6 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         self.check_filters(filters, &mode, target)?;
-
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
         let sources = self.sources.to_owned();

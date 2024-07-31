@@ -189,6 +189,38 @@ impl CompilerTester {
     }
 
     ///
+    /// Runs all tests on REVM.
+    ///
+    pub fn run_revm(self, use_upstream_solc: bool) -> anyhow::Result<()> {
+        let tests = self.all_tests(Target::EVMEmulator, use_upstream_solc)?;
+
+        let _: Vec<()> = tests
+            .into_par_iter()
+            .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
+                if let Some(test) = test.build_for_evm(
+                    mode,
+                    compiler,
+                    Target::EVMEmulator,
+                    self.summary.clone(),
+                    &self.filters,
+                    specialized_debug_config,
+                ) {
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_revm(self.summary.clone())
+                    };
+                }
+            })
+            .collect();
+
+        Ok(())
+    }
+
+    ///
     /// Runs all tests on EVM interpreter.
     ///
     pub fn run_evm_interpreter<D, const M: bool>(
@@ -236,8 +268,8 @@ impl CompilerTester {
         ));
         let vyper_compiler = Arc::new(VyperCompiler::new());
         let yul_compiler = Arc::new(YulCompiler::new(use_upstream_solc));
-        let llvm_compiler = Arc::new(LLVMCompiler::default());
-        let eravm_compiler = Arc::new(EraVMCompiler::default());
+        let llvm_compiler = Arc::new(LLVMCompiler);
+        let eravm_compiler = Arc::new(EraVMCompiler);
 
         let mut tests = Vec::with_capacity(16384);
 

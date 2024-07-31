@@ -25,7 +25,7 @@ impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
     fn read_all(
-        target: Target,
+        _target: Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
@@ -46,7 +46,7 @@ impl Collection for MatterLabsDirectory {
 
             if entry_type.is_dir() {
                 tests.extend(Self::read_all(
-                    target,
+                    _target,
                     &path,
                     extension,
                     summary.clone(),

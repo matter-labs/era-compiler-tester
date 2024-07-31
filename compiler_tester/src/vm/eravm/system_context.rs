@@ -8,10 +8,24 @@ use std::str::FromStr;
 
 use crate::target::Target;
 
+use solidity_adapter::EVMVersion::{self, Lesser, LesserEquals};
+use solidity_adapter::EVM::Paris;
+
 ///
 /// The EraVM system context.
 ///
 pub struct SystemContext;
+
+pub struct EVMContext {
+    pub chain_id: u64,
+    pub coinbase: &'static str,
+    pub block_number: u128,
+    pub block_timestamp: u128,
+    pub block_gas_limit: u64,
+    pub block_difficulty: &'static str,
+    pub base_fee: u64,
+    pub zero_block_hash: &'static str,
+}
 
 impl SystemContext {
     /// The system context chain ID value position in the storage.
@@ -248,7 +262,7 @@ impl SystemContext {
 
             // Fund the 0x01 address with 1 token to match the behavior of upstream Solidity tests.
             let address_ecrecover = crate::utils::address_to_h256(
-                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
+                &web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ECRECOVER.into()),
             );
             let bytes = [
                 address_ecrecover.as_bytes(),
@@ -264,9 +278,52 @@ impl SystemContext {
             };
             let initial_balance = crate::utils::u256_to_h256(&web3::types::U256::one());
             storage.insert(storage_key, initial_balance);
-        }
+        };
 
         storage
+    }
+
+    ///
+    /// Returns constants for the specified EVM version.
+    ///
+    pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
+        match evm_version {
+            Some(Lesser(Paris) | LesserEquals(Paris)) => EVMContext {
+                chain_id: SystemContext::CHAIND_ID_EVM,
+                coinbase: &SystemContext::COIN_BASE_EVM[2..],
+                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
+                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
+                base_fee: SystemContext::BASE_FEE,
+                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
+            },
+            _ => EVMContext {
+                chain_id: SystemContext::CHAIND_ID_EVM,
+                coinbase: &SystemContext::COIN_BASE_EVM[2..],
+                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
+                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
+                base_fee: SystemContext::BASE_FEE,
+                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
+            },
+        }
+    }
+
+    ///
+    /// Returns addresses that must be funded for testing.
+    ///
+    pub fn get_rich_addresses() -> Vec<web3::types::Address> {
+        (0..=9)
+            .map(|address_id| {
+                format!(
+                    "0x121212121212121212121212121212000000{}{}",
+                    address_id, "012"
+                )
+            })
+            .map(|string| web3::types::Address::from_str(&string).unwrap())
+            .collect()
     }
 
     ///

@@ -166,7 +166,6 @@ impl From<zkevm_tester::runners::events::SolidityLikeEvent> for Event {
 
 impl From<evm::Log> for Event {
     fn from(log: evm::Log) -> Self {
-        let address = log.address;
         let topics = log
             .topics
             .into_iter()
@@ -190,7 +189,7 @@ impl From<evm::Log> for Event {
             })
             .collect();
         Self {
-            address: None,
+            address: Some(log.address),
             topics,
             values,
         }
