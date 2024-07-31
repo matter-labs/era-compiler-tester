@@ -42,7 +42,8 @@ impl TryFrom<&Path> for TestFile {
 
     fn try_from(value: &Path) -> Result<Self, Self::Error> {
         let mut file = fs::File::open(value)?;
-        println!("file in try_from: {:?}", file);
+//         println!("file in try_from: {:?}", file);
+//         panic!("try_from");
 
         let mut data = String::new();
         file.read_to_string(&mut data)
