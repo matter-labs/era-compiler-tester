@@ -10,8 +10,11 @@ use structopt::StructOpt;
 /// The tests updater's arguments.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "tests-updater", about = "Utility to copy changed test \
-    directories and report conflicts, and update an index of hashes.")]
+#[structopt(
+    name = "tests-updater",
+    about = "Utility to copy changed test \
+    directories and report conflicts, and update an index of hashes."
+)]
 pub struct Arguments {
     /// Path of the tests' index.
     #[structopt(
