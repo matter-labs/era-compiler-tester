@@ -176,6 +176,7 @@ impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
             .collect();
 
         println!("snapshot.execution_result: {:?}", snapshot.execution_result);
+//         panic!("AAAaaaaa!!!!");
         match snapshot.execution_result {
             zkevm_tester::runners::compiler_tests::VmExecutionResult::Ok(return_data) => {
                 let return_data = return_data
