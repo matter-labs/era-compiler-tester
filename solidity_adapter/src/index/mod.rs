@@ -46,6 +46,10 @@ impl FSEntity {
             let path = entry.path();
             let entry_type = entry.file_type()?;
 
+            if entry.file_name().to_string_lossy().starts_with('.') {
+                continue;
+            }
+
             if entry_type.is_dir() {
                 entries.insert(
                     path.file_name()
