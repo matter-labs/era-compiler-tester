@@ -292,9 +292,10 @@ impl FSEntity {
     /// Deletes files and folders from self.
     ///
     fn delete(&self, current: &Path) -> anyhow::Result<()> {
+//         println!("current in delete: {:?}", current);
         if let Self::Directory(_) = self {
             fs::remove_dir_all(current)
-                .map_err(|err| anyhow::anyhow!("Failed to delete directory: {}", err))?;
+                .map_err(|err| anyhow::anyhow!("Failed to delete directory ({:?}): {}", current, err))?;
         } else {
             fs::remove_file(current)
                 .map_err(|err| anyhow::anyhow!("Failed to delete file: {}", err))?;
