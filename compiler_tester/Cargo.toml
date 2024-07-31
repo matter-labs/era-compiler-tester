@@ -41,7 +41,7 @@ bincode = "1.3"
 evm = { git = "https://github.com/rust-ethereum/evm", rev = "f7a23df6c478ca6a151af5f60e62944800529a61" }
 
 zkevm_opcode_defs = { git = "https://github.com/matter-labs/era-zkevm_opcode_defs", branch = "v1.5.0" }
-zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "az-cpr-1735-migrate-to-the-new-assembler" }
+zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
 vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
