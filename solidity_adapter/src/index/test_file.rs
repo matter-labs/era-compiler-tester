@@ -47,7 +47,7 @@ impl TryFrom<&Path> for TestFile {
 
         let mut data = String::new();
         file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (2): {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to read test file (2, {:?}): {}", file, error))?;
 
         let hash = Self::md5(data.as_str());
 
