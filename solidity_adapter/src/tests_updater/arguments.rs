@@ -1,5 +1,5 @@
 //!
-//! The tests updater binary arguments.
+//! The tests updater's arguments.
 //!
 
 use std::path::PathBuf;
@@ -7,12 +7,13 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 ///
-/// The tests updater binary arguments.
+/// The tests updater's arguments.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "tests-updater", about = "The Solidity tests updater")]
+#[structopt(name = "tests-updater", about = "Utility to copy changed test \
+    directories and report conflicts, and update an index of hashes.")]
 pub struct Arguments {
-    /// The tests index path
+    /// Path of the tests' index.
     #[structopt(
         default_value = "tests/solidity/ethereum/index.yaml",
         short = "i",
@@ -20,7 +21,7 @@ pub struct Arguments {
     )]
     pub index: PathBuf,
 
-    /// The tests update source.
+    /// Source directory of changed tests.
     #[structopt(
         default_value = "solidity/test/libsolidity/semanticTests",
         short = "s",
@@ -28,7 +29,7 @@ pub struct Arguments {
     )]
     pub source: PathBuf,
 
-    /// The tests update destination.
+    /// Destination directory for tests to be updated.
     #[structopt(
         default_value = "tests/solidity/ethereum",
         short = "d",
