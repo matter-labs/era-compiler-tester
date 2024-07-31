@@ -42,12 +42,10 @@ impl TryFrom<&Path> for TestFile {
 
     fn try_from(value: &Path) -> Result<Self, Self::Error> {
         let mut file = fs::File::open(value)?;
-//         println!("file in try_from: {:?}", file);
-//         panic!("try_from");
 
         let mut data = String::new();
         file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (2, {:?}): {}", file, error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to read test file: {}", error))?;
 
         let hash = Self::md5(data.as_str());
 
@@ -75,7 +73,7 @@ impl TestFile {
         let mut file = fs::File::open(path)?;
         let mut data = String::new();
         file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (3): {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to read test file: {}", error))?;
         let actual_hash = Self::md5(data.as_str());
         Ok(!saved_hash.eq(&actual_hash))
     }
