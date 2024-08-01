@@ -296,7 +296,7 @@ impl Buildable for EthereumTest {
         let last_source = self.last_source(summary.clone(), &mode)?;
 
         let (contract_address, libraries_addresses, libraries) = match self.get_addresses(
-            EVMAddressIterator::new(false),
+            EVMAddressIterator::new(1),
             calls.as_slice(),
             last_source.as_str(),
         ) {

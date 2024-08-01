@@ -14,7 +14,7 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
 use crate::summary::Summary;
-use crate::target;
+use crate::target::Target;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
@@ -70,7 +70,7 @@ impl Case {
         case: &[solidity_adapter::FunctionCall],
         instances: BTreeMap<String, Instance>,
         last_source: &str,
-        target: &target::Target,
+        target: &Target,
     ) -> anyhow::Result<Self> {
         let mut inputs = Vec::with_capacity(case.len());
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);

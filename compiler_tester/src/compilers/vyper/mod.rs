@@ -7,7 +7,6 @@ pub mod mode;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -133,6 +132,10 @@ impl VyperCompiler {
         vyper.batch(
             &mode.vyper_version,
             paths,
+            &[
+                era_compiler_vyper::VyperSelection::IRJson,
+                era_compiler_vyper::VyperSelection::EraVMAssembly,
+            ],
             evm_version,
             true,
             mode.vyper_optimize,
@@ -166,12 +169,13 @@ impl VyperCompiler {
     ) -> anyhow::Result<BTreeMap<String, BTreeMap<String, u32>>> {
         let mut method_identifiers = BTreeMap::new();
         for (path, contract) in project.contracts.iter() {
-            let contract_abi = match contract {
-                era_compiler_vyper::Contract::Vyper(inner) => &inner.abi,
-                _ => unreachable!("Invalid contract type"),
-            };
             let mut contract_identifiers = BTreeMap::new();
-            for (entry, hash) in contract_abi.iter() {
+            for (entry, hash) in match contract {
+                era_compiler_vyper::Contract::Vyper(inner) => &inner.method_identifiers,
+                _ => unreachable!("Invalid contract type"),
+            }
+            .iter()
+            {
                 let selector =
                     u32::from_str_radix(hash.strip_prefix("0x").unwrap_or(hash), era_compiler_common::BASE_HEXADECIMAL)
                         .map_err(|error| {
@@ -184,39 +188,6 @@ impl VyperCompiler {
             method_identifiers.insert(path.clone(), contract_identifiers);
         }
         Ok(method_identifiers)
-    }
-
-    ///
-    /// Prints LLL IR if the flag is set.
-    ///
-    fn dump_lll(
-        sources: &[(String, String)],
-        debug_config: &era_compiler_llvm_context::DebugConfig,
-        mode: &VyperMode,
-    ) -> anyhow::Result<()> {
-        let vyper = Self::executable(&mode.vyper_version)?;
-
-        let evm_version = if mode.vyper_version >= semver::Version::new(0, 3, 10) {
-            Some(era_compiler_common::EVMVersion::Cancun)
-        } else {
-            None
-        };
-
-        let lll = sources
-            .iter()
-            .map(|(path_str, _)| {
-                let path = Path::new(path_str.as_str());
-                vyper
-                    .lll_debug(path, evm_version, true, mode.vyper_optimize)
-                    .map(|lll| (path_str.to_string(), lll))
-            })
-            .collect::<anyhow::Result<Vec<(String, String)>>>()?;
-
-        for (path, lll) in lll.iter() {
-            debug_config.dump_lll(path, None, lll)?;
-        }
-
-        Ok(())
     }
 }
 
@@ -232,10 +203,6 @@ impl Compiler for VyperCompiler {
     ) -> anyhow::Result<EraVMInput> {
         let mode = VyperMode::unwrap(mode);
 
-        if let Some(ref debug_config) = debug_config {
-            Self::dump_lll(&sources, debug_config, mode)?;
-        }
-
         let last_contract = sources
             .last()
             .ok_or_else(|| anyhow::anyhow!("The Vyper sources are empty"))?
@@ -246,6 +213,16 @@ impl Compiler for VyperCompiler {
             .get_project_cached(test_path, sources, mode)
             .map_err(|error| anyhow::anyhow!("Failed to get the Vyper project: {error}"))?;
 
+        for (path, contract) in project.contracts.iter() {
+            if let Some(ref debug_config) = debug_config {
+                debug_config.dump_lll(
+                    path,
+                    None,
+                    contract.ir_string().as_deref().expect("Always exists"),
+                )?;
+            }
+        }
+
         let method_identifiers = Self::get_method_identifiers(&project)
             .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {error}"))?;
 
@@ -254,7 +231,6 @@ impl Compiler for VyperCompiler {
             true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            true,
             zkevm_assembly::get_encoding_mode(),
             vec![],
             debug_config,
