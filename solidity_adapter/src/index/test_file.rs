@@ -73,7 +73,7 @@ impl TestFile {
         let mut file = fs::File::open(path)?;
         let mut data = String::new();
         file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (3): {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to read test file (3, {:?}): {}", file, error))?;
         let actual_hash = Self::md5(data.as_str());
         Ok(!saved_hash.eq(&actual_hash))
     }
