@@ -111,6 +111,7 @@ pub fn run_vm(
         entry_address,
         context_val.msg_sender,
         context_val.u128_value,
+        default_aa_code_hash.into(),
     );
 
     if abi_params.is_constructor {
