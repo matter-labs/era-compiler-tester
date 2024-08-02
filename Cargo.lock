@@ -180,9 +180,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.7.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fca2be1d5c43812bae364ee3f30b3afcb7877cf59f4aeb94c66f313a41d2fac9"
+checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
 
 [[package]]
 name = "cc"
@@ -518,7 +518,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#936e08767fea08159cda975ad84facdf33422711"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#1e06ac962ae27f40bf5ae2b66f6b5a89dc7ce1f5"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1054,9 +1054,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.2.6"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "168fb715dda47215e360912c096649d23d58bf392ac62f73919e831745e40f26"
+checksum = "de3fc2e30ba82dd1b3911c8de1ffc143c74a914a14e99514d7637e3099df5ea0"
 dependencies = [
  "equivalent",
  "hashbrown",
@@ -2064,9 +2064,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.121"
+version = "1.0.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ab380d7d9f22ef3f21ad3e6c1ebe8e4fc7a2000ccba2e4d71fc96f15b2cb609"
+checksum = "784b6203951c57ff748476b126ccb5e8e2959a5c19e5c617ab1956be3dbc68da"
 dependencies = [
  "itoa",
  "memchr",
@@ -2563,7 +2563,7 @@ checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 [[package]]
 name = "vm2"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#985a778e029a8574150c1d526aa75109b5844444"
+source = "git+https://github.com/matter-labs/vm2#a0cf04b03ac1c486a48e5f2e32422a00c27a1b9d"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
