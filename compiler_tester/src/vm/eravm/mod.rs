@@ -67,6 +67,9 @@ impl EraVM {
     pub const EVM_GAS_MANAGER_FIRST_STACK_FRAME: &'static str =
         "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
 
+    /// The EVM call gas limit.
+    pub const EVM_CALL_GAS_LIMIT: u64 = 1 << 32 - 1;
+
     ///
     /// Creates and initializes a new EraVM instance.
     ///
@@ -336,7 +339,7 @@ impl EraVM {
             web3::types::H256::from_low_u64_be(1),
         );
 
-        // set `evmStackFrames[0].isStatic` size to false
+        // set `evmStackFrames[0].isStatic` to false
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
@@ -345,13 +348,13 @@ impl EraVM {
             web3::types::H256::zero(),
         );
 
-        // set `evmStackFrames[0].passGas` size to 2^24
+        // set `evmStackFrames[0].passGas` to `EVM_CALL_GAS_LIMIT`
         self.storage.insert(
             zkevm_tester::runners::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME).add(1),
             },
-            web3::types::H256::from_low_u64_be(1 << 24),
+            web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
         );
 
         let mut result = self.execute::<M>(
@@ -371,7 +374,7 @@ impl EraVM {
             .remove(0)
             .unwrap_certain_as_ref()
             .as_u64();
-        result.gas = (1 << 24) - gas_left;
+        result.gas = Self::EVM_CALL_GAS_LIMIT - gas_left;
 
         Ok(result)
     }
