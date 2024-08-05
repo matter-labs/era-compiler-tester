@@ -44,8 +44,9 @@ impl TryFrom<&Path> for TestFile {
         let mut file = fs::File::open(value)?;
 
         let mut data = String::new();
-        file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (2, {:?}): {}", file, error))?;
+        file.read_to_string(&mut data).map_err(|error| {
+            anyhow::anyhow!("Failed to read test file (2, {:?}): {}", file, error)
+        })?;
 
         let hash = Self::md5(data.as_str());
 
@@ -72,8 +73,9 @@ impl TestFile {
             .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {:?}", path))?;
         let mut file = fs::File::open(path)?;
         let mut data = String::new();
-        file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (3, {:?}): {}", file, error))?;
+        file.read_to_string(&mut data).map_err(|error| {
+            anyhow::anyhow!("Failed to read test file (3, {:?}): {}", file, error)
+        })?;
         let actual_hash = Self::md5(data.as_str());
         Ok(!saved_hash.eq(&actual_hash))
     }
