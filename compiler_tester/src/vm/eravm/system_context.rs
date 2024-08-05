@@ -50,13 +50,13 @@ impl SystemContext {
     const SYSTEM_CONTEXT_BASE_FEE_POSITION: u64 = 6;
 
     /// The system context block hashes mapping position in the storage.
-    const SYSTEM_CONTEXT_BLOCK_HASH_POSITION: u64 = 8;
+    pub const SYSTEM_CONTEXT_BLOCK_HASH_POSITION: u64 = 8;
 
     /// The system context current virtual L2 block info value position in the storage.
-    const SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION: u64 = 268;
+    pub const SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION: u64 = 268;
 
     /// The system context virtual blocks upgrade info position in the storage.
-    const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
+    pub const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
 
     /// The ZKsync chain ID.
     const CHAIND_ID_ERAVM: u64 = 280;
@@ -97,18 +97,18 @@ impl SystemContext {
     /// The default current block number for EraVM tests.
     const CURRENT_BLOCK_NUMBER_ERAVM: u128 = 300;
     /// The default current block number for EVM tests.
-    const CURRENT_BLOCK_NUMBER_EVM: u128 = 1;
+    pub const INITIAL_BLOCK_NUMBER_EVM: u128 = 0;
 
     /// The default current block timestamp for EraVM tests.
     const CURRENT_BLOCK_TIMESTAMP_ERAVM: u128 = 0xdeadbeef;
-    /// The default current block timestamp for EVM tests.
-    const CURRENT_BLOCK_TIMESTAMP_EVM: u128 = 40;
+    /// The timestamp step for blocks in the EVM context.
+    pub const BLOCK_TIMESTAMP_EVM_STEP: u128 = 15;
 
     /// The default zero block hash for EraVM tests.
-    const ZERO_BLOCK_HASH_ERAVM: &'static str =
+    pub const ZERO_BLOCK_HASH_ERAVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
     /// The default zero block hash for EVM tests.
-    const ZERO_BLOCK_HASH_EVM: &'static str =
+    pub const ZERO_BLOCK_HASH_EVM: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
 
     ///
@@ -128,11 +128,11 @@ impl SystemContext {
 
         let block_number = match target {
             Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::CURRENT_BLOCK_NUMBER_EVM,
+            Target::EVM | Target::EVMEmulator => Self::INITIAL_BLOCK_NUMBER_EVM,
         };
         let block_timestamp = match target {
             Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::CURRENT_BLOCK_TIMESTAMP_EVM,
+            Target::EVM | Target::EVMEmulator => Self::BLOCK_TIMESTAMP_EVM_STEP,
         };
         let block_gas_limit = match target {
             Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
@@ -230,6 +230,35 @@ impl SystemContext {
         }
 
         if target == Target::EVM {
+            let padded_index = [[0u8; 16], 0_u128.to_be_bytes()].concat();
+            let padded_slot =
+                web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BLOCK_HASH_POSITION)
+                    .to_fixed_bytes()
+                    .to_vec();
+            let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
+
+            let mut hash = web3::types::U256::from_str(match target {
+                Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
+                Target::EVM | Target::EVMEmulator => Self::ZERO_BLOCK_HASH_EVM,
+            })
+            .expect("Invalid zero block hash const");
+
+            hash = hash.add(web3::types::U256::from(0));
+            let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
+            hash.to_big_endian(&mut hash_bytes);
+
+            storage.insert(
+                zkevm_tester::runners::compiler_tests::StorageKey {
+                    address: web3::types::Address::from_low_u64_be(
+                        zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                    ),
+                    key: web3::types::U256::from_big_endian(
+                        web3::types::H256::from(key).as_bytes(),
+                    ),
+                },
+                web3::types::H256::from_slice(hash_bytes.as_slice()),
+            );
+
             let rich_addresses: Vec<web3::types::Address> = (0..=9)
                 .map(|address_id| {
                     format!(
@@ -291,8 +320,8 @@ impl SystemContext {
             Some(Lesser(Paris) | LesserEquals(Paris)) => EVMContext {
                 chain_id: SystemContext::CHAIND_ID_EVM,
                 coinbase: &SystemContext::COIN_BASE_EVM[2..],
-                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
-                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
                 block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
                 block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
                 base_fee: SystemContext::BASE_FEE,
@@ -301,8 +330,8 @@ impl SystemContext {
             _ => EVMContext {
                 chain_id: SystemContext::CHAIND_ID_EVM,
                 coinbase: &SystemContext::COIN_BASE_EVM[2..],
-                block_number: SystemContext::CURRENT_BLOCK_NUMBER_EVM,
-                block_timestamp: SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM,
+                block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
+                block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
                 block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
                 block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
                 base_fee: SystemContext::BASE_FEE,

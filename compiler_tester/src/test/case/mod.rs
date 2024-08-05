@@ -210,6 +210,7 @@ impl Case {
         };
 
         for (index, input) in self.inputs.into_iter().enumerate() {
+            vm.increment_evm_block_number_and_timestamp();
             input.run_evm_interpreter::<_, M>(
                 summary.clone(),
                 &mut vm,
