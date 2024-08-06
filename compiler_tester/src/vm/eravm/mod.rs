@@ -181,7 +181,9 @@ impl EraVM {
         vm_clone
     }
 
+    ///
     /// Sets the given block number as the new current block number in storage.
+    ///
     pub fn increment_evm_block_number_and_timestamp(&mut self) {
         self.current_evm_block_number += 1;
         let mut system_context_values = vec![(
