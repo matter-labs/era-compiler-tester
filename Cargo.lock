@@ -256,7 +256,7 @@ dependencies = [
  "vm2",
  "web3",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
  "zkevm_tester",
 ]
 
@@ -501,7 +501,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#7be4f6d18fe4369a98c81fe4d0f9c95fa606729b"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1735-migrate-to-the-new-assembler#f9f499e1608e6df975a845e7edb810d2ad3eaab7"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -512,13 +512,13 @@ dependencies = [
  "semver",
  "serde",
  "sha3",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#5daab6311b3c56e96248512285ccbe47198b41d4"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1735-migrate-to-the-new-assembler#e157814f008bbb83ce9acee000702c7341f23a11"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -546,7 +546,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#6569eaa61eda2a7cda53040eb18c6c7b3a03f9b3"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1735-migrate-to-the-new-assembler#02f4a991dc933ee7c5f2100534da538e073451c8"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -564,7 +564,7 @@ dependencies = [
  "sha3",
  "structopt",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -2563,12 +2563,12 @@ checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 [[package]]
 name = "vm2"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#a0cf04b03ac1c486a48e5f2e32422a00c27a1b9d"
+source = "git+https://github.com/matter-labs/vm2#9a38900d7af9b1d72b47ce3be980e77c1239a61d"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
  "zk_evm_abstractions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2944,8 +2944,8 @@ checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
 
 [[package]]
 name = "zk_evm"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zk_evm?branch=v1.5.0#60dbfee86fcad6c0b75f80601595e5d4f7a30a36"
+version = "0.150.0"
+source = "git+https://github.com/matter-labs/era-zk_evm?branch=v1.5.0#b7caa02acc2119b2994730d92c8cb6b861f56484"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -2958,20 +2958,38 @@ dependencies = [
 
 [[package]]
 name = "zk_evm_abstractions"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zk_evm_abstractions.git?branch=v1.5.0#e464b2cf2b146d883be80e7d690c752bf670ff05"
+version = "0.150.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc313cea4ac9ef6b855264b1425cbe9de30dd8f009559dabcb6b2896122da5db"
 dependencies = [
  "anyhow",
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#28d2edabf902ea9b08f6a26a4506831fd89346b9"
+version = "0.150.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3328c012d444bdbfadb754a72c01a56879eb66584efc71eac457e89e7843608"
+dependencies = [
+ "bitflags 2.6.0",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2",
+ "sha3",
+]
+
+[[package]]
+name = "zkevm_opcode_defs"
+version = "0.150.0"
+source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#0d8b81f6339f0f4ccd8f0562aab0183804ca18e1"
 dependencies = [
  "bitflags 2.6.0",
  "blake2",
