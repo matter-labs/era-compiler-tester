@@ -101,7 +101,7 @@ pub fn run_vm(
 
     let initial_storage = storage.clone();
 
-    let initial_program = initial_decommit(&mut storage, entry_address);
+    let initial_program = initial_decommit(&mut storage, entry_address,evm_interpreter_code_hash.into());
 
     let context_val = context.unwrap();
 
@@ -112,6 +112,7 @@ pub fn run_vm(
         context_val.msg_sender,
         context_val.u128_value,
         default_aa_code_hash.into(),
+        evm_interpreter_code_hash.into(),
     );
 
     if abi_params.is_constructor {
@@ -160,6 +161,15 @@ pub fn run_vm(
             let mut bytes: [u8; 32] = [0;32];
             value.to_big_endian(&mut bytes);
             storage_changes.insert(StorageKey{address: key.address, key: key.key}, H256::from(bytes));
+        }
+
+        if key.address == *zkevm_assembly::zkevm_opcode_defs::system_params::DEPLOYER_SYSTEM_CONTRACT_ADDRESS {
+            let mut buffer = [0u8; 32];
+            key.key.to_big_endian(&mut buffer);
+            let deployed_address = web3::ethabi::Address::from_slice(&buffer[12..]);
+            if let Some(code) = known_contracts.get(&value) {
+                deployed_contracts.insert(deployed_address, code.clone());
+            }
         }
     }
 
