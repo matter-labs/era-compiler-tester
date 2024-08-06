@@ -185,7 +185,6 @@ impl EraVM {
     /// Sets the given block number as the new current block number in storage.
     ///
     pub fn increment_evm_block_number_and_timestamp(&mut self) {
-        self.current_evm_block_number += 1;
         let mut system_context_values = vec![(
             web3::types::H256::from_low_u64_be(
                 SystemContext::SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION,
@@ -239,6 +238,7 @@ impl EraVM {
                 value,
             );
         }
+        self.current_evm_block_number += 1;
     }
 
     ///

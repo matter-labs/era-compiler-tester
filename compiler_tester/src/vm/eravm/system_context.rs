@@ -97,7 +97,7 @@ impl SystemContext {
     /// The default current block number for EraVM tests.
     const CURRENT_BLOCK_NUMBER_ERAVM: u128 = 300;
     /// The default current block number for EVM tests.
-    pub const INITIAL_BLOCK_NUMBER_EVM: u128 = 0;
+    pub const INITIAL_BLOCK_NUMBER_EVM: u128 = 1;
 
     /// The default current block timestamp for EraVM tests.
     const CURRENT_BLOCK_TIMESTAMP_ERAVM: u128 = 0xdeadbeef;
@@ -230,32 +230,6 @@ impl SystemContext {
         }
 
         if target == Target::EVM {
-            let padded_index = [[0u8; 16], 0_u128.to_be_bytes()].concat();
-            let padded_slot =
-                web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BLOCK_HASH_POSITION)
-                    .to_fixed_bytes()
-                    .to_vec();
-            let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
-
-            let mut hash = web3::types::U256::from_str(Self::ZERO_BLOCK_HASH_EVM)
-                .expect("Invalid zero block hash const");
-
-            hash = hash.add(web3::types::U256::from(0));
-            let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
-            hash.to_big_endian(&mut hash_bytes);
-
-            storage.insert(
-                zkevm_tester::runners::compiler_tests::StorageKey {
-                    address: web3::types::Address::from_low_u64_be(
-                        zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
-                    ),
-                    key: web3::types::U256::from_big_endian(
-                        web3::types::H256::from(key).as_bytes(),
-                    ),
-                },
-                web3::types::H256::from_slice(hash_bytes.as_slice()),
-            );
-
             let rich_addresses: Vec<web3::types::Address> = (0..=9)
                 .map(|address_id| {
                     format!(
