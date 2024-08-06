@@ -237,11 +237,8 @@ impl SystemContext {
                     .to_vec();
             let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
 
-            let mut hash = web3::types::U256::from_str(match target {
-                Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
-                Target::EVM | Target::EVMEmulator => Self::ZERO_BLOCK_HASH_EVM,
-            })
-            .expect("Invalid zero block hash const");
+            let mut hash = web3::types::U256::from_str(Self::ZERO_BLOCK_HASH_EVM)
+                .expect("Invalid zero block hash const");
 
             hash = hash.add(web3::types::U256::from(0));
             let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
