@@ -137,9 +137,9 @@ pub fn run_vm(
         TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default()),
     );
 
-    let mut lambda_vm = EraVM::new(vm, Rc::new(RefCell::new(storage)));
-    let (result, final_vm) = lambda_vm.run_program_with_custom_bytecode();
-    let events = merge_events(&final_vm.events);
+    let mut era_vm = EraVM::new(vm, Rc::new(RefCell::new(storage)));
+    let result = era_vm.run_program_with_custom_bytecode();
+    let events = merge_events(&era_vm.state.events);
     let output = match result {
         ExecutionOutput::Ok(output) => Output {
             return_data: chunk_return_data(&output),
@@ -158,7 +158,7 @@ pub fn run_vm(
         },
     };
 
-    for (key, value) in lambda_vm
+    for (key, value) in era_vm
         .storage
         .borrow_mut()
         .get_state_storage()
