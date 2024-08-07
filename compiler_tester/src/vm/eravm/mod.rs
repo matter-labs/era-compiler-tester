@@ -49,6 +49,8 @@ pub struct EraVM {
     published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,
     /// The storage state.
     storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
+    /// The current EVM block number
+    current_evm_block_number: u128,
 }
 
 impl EraVM {
@@ -128,6 +130,7 @@ impl EraVM {
             deployed_contracts: HashMap::new(),
             storage,
             published_evm_bytecodes: HashMap::new(),
+            current_evm_block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
         };
 
         vm.add_known_contract(
@@ -176,6 +179,66 @@ impl EraVM {
             SystemContext::set_pre_paris_contracts(&mut vm_clone.storage);
         }
         vm_clone
+    }
+
+    ///
+    /// Sets the given block number as the new current block number in storage.
+    ///
+    pub fn increment_evm_block_number_and_timestamp(&mut self) {
+        let mut system_context_values = vec![(
+            web3::types::H256::from_low_u64_be(
+                SystemContext::SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION,
+            ),
+            web3::types::H256::from_low_u64_be(self.current_evm_block_number as u64),
+        )];
+
+        let block_timestamp =
+            SystemContext::BLOCK_TIMESTAMP_EVM_STEP * self.current_evm_block_number;
+
+        let block_info_bytes = [
+            self.current_evm_block_number.to_be_bytes(),
+            block_timestamp.to_be_bytes(),
+        ]
+        .concat();
+
+        system_context_values.push((
+            web3::types::H256::from_low_u64_be(
+                SystemContext::SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION,
+            ),
+            web3::types::H256::from_slice(block_info_bytes.as_slice()),
+        ));
+
+        let padded_index = [[0u8; 16], self.current_evm_block_number.to_be_bytes()].concat();
+        let padded_slot =
+            web3::types::H256::from_low_u64_be(SystemContext::SYSTEM_CONTEXT_BLOCK_HASH_POSITION)
+                .to_fixed_bytes()
+                .to_vec();
+        let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
+
+        let mut hash = web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH_EVM)
+            .expect("Invalid zero block hash const");
+
+        hash = hash.add(web3::types::U256::from(self.current_evm_block_number));
+        let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
+        hash.to_big_endian(&mut hash_bytes);
+
+        system_context_values.push((
+            web3::types::H256::from(key),
+            web3::types::H256::from_slice(hash_bytes.as_slice()),
+        ));
+
+        for (key, value) in system_context_values {
+            self.storage.insert(
+                zkevm_tester::runners::compiler_tests::StorageKey {
+                    address: web3::types::Address::from_low_u64_be(
+                        zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                    ),
+                    key: web3::types::U256::from_big_endian(key.as_bytes()),
+                },
+                value,
+            );
+        }
+        self.current_evm_block_number += 1;
     }
 
     ///
