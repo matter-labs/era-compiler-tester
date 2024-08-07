@@ -1,7 +1,7 @@
 name: Sanitizers tests
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       # For more information about the supported sanitizers in Rust, see:
       # https://rustc-dev-guide.rust-lang.org/sanitizers.html
@@ -46,7 +46,7 @@ jobs:
       - name: Build LLVM
         uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
         with:
-          builder-extra-args: "--sanitizer ${{ inputs.llvm-sanitizer }}"
+          sanitizer: ${{ inputs.llvm-sanitizer }}
           enable-assertions: true
 
       - name: Install rustc nightly
