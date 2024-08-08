@@ -55,7 +55,7 @@ jobs:
         env:
           RUSTFLAGS: "-Z sanitizer=${{ inputs.rust-sanitizer }}"
         run: |
-          rustup component add rust-src --toolchain "$(rustc --version | cut -d ' ' -f2)-${TARGET}"
+          rustup component add rust-src --toolchain 1.79.0-${TARGET}
           cargo build --target ${TARGET} -Zbuild-std --bin 'compiler-tester'
 
       - name: Build zksolc and zkvyper
@@ -73,7 +73,7 @@ jobs:
       - name: Run tests with sanitizers
         run: |
           set -x
-          ./target/${TARGET}/debug/compiler-tester \
+          ./target/${TARGET}/release/compiler-tester \
             --zksolc "./target-zksolc/${TARGET}/debug/zksolc" \
             --zkvyper "./target-zkvyper/${TARGET}/release/zkvyper" \
             --path '${{ inputs.path }}'
