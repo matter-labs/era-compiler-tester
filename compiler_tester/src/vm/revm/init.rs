@@ -3,7 +3,7 @@ use std::{convert::Infallible, str::FromStr};
 use revm::{
     db::{states::plain_account::PlainStorage, EmptyDBTyped},
     primitives::{
-        Address, EVMError, Env, FixedBytes, InvalidTransaction, TxKind, B256, KECCAK_EMPTY, U256,
+        Address, FixedBytes, TxKind, B256, U256,
     },
     Evm,
 };
@@ -14,7 +14,6 @@ use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::Sy
 use super::revm_type_conversions::{
     web3_address_to_revm_address, web3_u256_to_revm_address, web3_u256_to_revm_u256,
 };
-use revm::Database;
 
 #[derive(Debug)]
 pub struct Revm<'a> {
@@ -85,7 +84,7 @@ impl<'a> Revm<'a> {
         value: Option<u128>,
         evm_version: Option<EVMVersion>,
     ) -> Self {
-        let mut vm = self
+        let vm = self
             .state
             .modify()
             .modify_env(|env| {
@@ -120,7 +119,7 @@ impl<'a> Revm<'a> {
         evm_version: Option<EVMVersion>,
         deploy_code: Vec<u8>,
     ) -> Self {
-        let mut new_vm = self
+        let vm = self
             .state
             .modify()
             .modify_env(|env| {
@@ -145,6 +144,6 @@ impl<'a> Revm<'a> {
                 env.tx.transact_to = TxKind::Create;
             })
             .build();
-        Self { state: new_vm }
+        Self { state: vm }
     }
 }

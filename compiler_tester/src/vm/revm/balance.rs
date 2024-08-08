@@ -2,16 +2,11 @@ use std::str::FromStr;
 
 use revm::{
     db::states::plain_account::PlainStorage,
-    primitives::{EVMError, Env, InvalidTransaction, TxKind, B256, KECCAK_EMPTY, U256},
+    primitives::{EVMError, Env, InvalidTransaction, KECCAK_EMPTY, U256},
 };
-use solidity_adapter::EVMVersion;
-
-use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::SystemContext};
 
 use super::{
-    revm_type_conversions::{
-        web3_address_to_revm_address, web3_u256_to_revm_address, web3_u256_to_revm_u256,
-    },
+    revm_type_conversions::web3_address_to_revm_address,
     Revm,
 };
 use revm::Database;

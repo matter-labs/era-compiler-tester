@@ -26,6 +26,7 @@ use self::mode::Mode as YulMode;
 ///
 pub struct YulCompiler {
     /// Whether to use the upstream `solc`.
+    #[allow(dead_code)]
     use_upstream_solc: bool,
 }
 

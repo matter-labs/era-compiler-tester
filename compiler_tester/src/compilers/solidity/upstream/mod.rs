@@ -163,11 +163,12 @@ impl SolidityCompiler {
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
-        let mut solc = Self::executable(match mode {
+        let solc_version = match mode {
             Mode::SolidityUpstream(mode) => &mode.solc_version,
             Mode::YulUpstream(mode) => &mode.solc_version,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
-        })?;
+        };
+        let mut solc = Self::executable(solc_version)?;
 
         let output_selection = SolcStandardJsonInputSettingsSelection::new_required(match mode {
             Mode::SolidityUpstream(mode) => mode.solc_pipeline,
@@ -198,9 +199,15 @@ impl SolidityCompiler {
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
-        let debug = test_params.map(|test_params| {
-            SolcStandardJsonInputSettingsDebug::new(Some(test_params.revert_strings.to_string()))
-        });
+        let debug = if solc_version >= &semver::Version::new(0, 6, 3) {
+            test_params.map(|test_params| {
+                SolcStandardJsonInputSettingsDebug::new(Some(
+                    test_params.revert_strings.to_string(),
+                ))
+            })
+        } else {
+            None
+        };
 
         let solc_input = SolcStandardJsonInput::try_from_sources(
             language,
@@ -444,7 +451,9 @@ impl Compiler for SolidityCompiler {
                     .as_str();
                 let build = EVMBuild::new(
                     era_compiler_llvm_context::EVMBuild::new(
-                        hex::decode(bytecode_string).expect("Always valid"),
+                        hex::decode(bytecode_string).map_err(|error| {
+                            anyhow::anyhow!("EVM bytecode of the contract `{path}` is invalid: {error}")
+                        })?,
                         None,
                     ),
                     era_compiler_llvm_context::EVMBuild::default(),

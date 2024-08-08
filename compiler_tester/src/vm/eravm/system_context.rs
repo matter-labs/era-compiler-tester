@@ -24,7 +24,6 @@ pub struct EVMContext {
     pub block_gas_limit: u64,
     pub block_difficulty: &'static str,
     pub base_fee: u64,
-    pub zero_block_hash: &'static str,
 }
 
 impl SystemContext {
@@ -296,7 +295,6 @@ impl SystemContext {
                 block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
                 block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
                 base_fee: SystemContext::BASE_FEE,
-                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
             },
             _ => EVMContext {
                 chain_id: SystemContext::CHAIND_ID_EVM,
@@ -306,7 +304,6 @@ impl SystemContext {
                 block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
                 block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
                 base_fee: SystemContext::BASE_FEE,
-                zero_block_hash: SystemContext::ZERO_BLOCK_HASH_EVM,
             },
         }
     }

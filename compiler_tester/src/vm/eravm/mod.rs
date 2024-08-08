@@ -49,7 +49,7 @@ pub struct EraVM {
     published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,
     /// The storage state.
     storage: HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
-    /// The current EVM block number
+    /// The current EVM block number.
     current_evm_block_number: u128,
 }
 
