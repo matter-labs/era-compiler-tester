@@ -7,9 +7,10 @@ pub mod mode;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
+use era_compiler_solidity::CollectableError;
+
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::Input as EVMInput;
 
@@ -28,8 +29,8 @@ impl Compiler for EraVMCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         _mode: &Mode,
-        _llvm_options: Vec<String>,
-        _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        llvm_options: Vec<String>,
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let last_contract = sources
             .last()
@@ -37,15 +38,35 @@ impl Compiler for EraVMCompiler {
             .0
             .clone();
 
-        let builds = sources
+        let project = era_compiler_solidity::Project::try_from_eravm_assembly_sources(
+            sources
+                .into_iter()
+                .map(|(path, source)| {
+                    (
+                        path,
+                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                    )
+                })
+                .collect(),
+            None,
+        )?;
+
+        let build = project.compile_to_eravm(
+            &mut vec![],
+            true,
+            true,
+            era_compiler_llvm_context::OptimizerSettings::none(),
+            llvm_options,
+            true,
+            None,
+            debug_config.clone(),
+        )?;
+        build.collect_errors()?;
+        let builds = build
+            .contracts
             .into_iter()
-            .map(|(path, source_code)| {
-                zkevm_assembly::Assembly::try_from(source_code.to_owned())
-                    .map_err(anyhow::Error::new)
-                    .and_then(EraVMBuild::new)
-                    .map(|build| (path, build))
-            })
-            .collect::<anyhow::Result<HashMap<String, EraVMBuild>>>()?;
+            .map(|(path, result)| Ok((path, result.expect("Always valid").build)))
+            .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 
         Ok(EraVMInput::new(builds, None, last_contract))
     }

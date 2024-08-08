@@ -127,8 +127,8 @@ impl Event {
     }
 }
 
-impl From<zkevm_tester::runners::events::SolidityLikeEvent> for Event {
-    fn from(event: zkevm_tester::runners::events::SolidityLikeEvent) -> Self {
+impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
+    fn from(event: zkevm_tester::events::SolidityLikeEvent) -> Self {
         let mut topics: Vec<Value> = event
             .topics
             .into_iter()

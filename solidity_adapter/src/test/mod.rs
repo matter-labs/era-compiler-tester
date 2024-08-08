@@ -35,8 +35,9 @@ impl TryFrom<&Path> for Test {
         let mut file = fs::File::open(path)?;
 
         let mut data = String::new();
-        file.read_to_string(&mut data)
-            .map_err(|error| anyhow::anyhow!("Failed to read test file (1, {:?}): {}", file, error))?;
+        file.read_to_string(&mut data).map_err(|error| {
+            anyhow::anyhow!("Failed to read test file (1, {:?}): {}", file, error)
+        })?;
 
         let comment_start = if path
             .extension()

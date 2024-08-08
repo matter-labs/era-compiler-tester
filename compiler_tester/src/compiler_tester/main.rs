@@ -78,10 +78,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         None
     };
 
-    if arguments.trace > 0 {
-        std::fs::create_dir_all(compiler_tester::TRACE_DIRECTORY)?;
-    }
-
     let mut thread_pool_builder = rayon::ThreadPoolBuilder::new();
     if let Some(threads) = arguments.threads {
         thread_pool_builder = thread_pool_builder.num_threads(threads);
@@ -129,17 +125,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     match target {
         compiler_tester::Target::EraVM => {
-            zkevm_tester::runners::compiler_tests::set_tracing_mode(
-                zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(
-                    arguments.trace as u64,
-                ),
-            );
-
-            #[cfg(feature = "vm2")]
-            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
-            #[cfg(not(feature = "vm2"))]
-            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
-
             let system_contracts_debug_config = if arguments.dump_system {
                 debug_config
             } else {
@@ -174,13 +159,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             compiler_tester.run_evm(arguments.use_upstream_solc)
         }
         compiler_tester::Target::EVMInterpreter => {
-            zkevm_tester::runners::compiler_tests::set_tracing_mode(
-                zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(
-                    arguments.trace as u64,
-                ),
-            );
-            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
-
             let system_contract_debug_config = if arguments.dump_system {
                 debug_config
             } else {
@@ -231,17 +209,12 @@ mod tests {
 
     #[test]
     fn test_manually() {
-        zkevm_tester::runners::compiler_tests::set_tracing_mode(
-            zkevm_tester::runners::compiler_tests::VmTracingOptions::ManualVerbose,
-        );
-
         std::env::set_current_dir("..").expect("Change directory failed");
 
         let arguments = Arguments {
             verbosity: false,
             quiet: false,
             debug: false,
-            trace: 2,
             modes: vec!["Y+M3B3 0.8.24".to_owned()],
             paths: vec!["tests/solidity/simple/default.sol".to_owned()],
             groups: vec![],

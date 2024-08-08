@@ -485,7 +485,12 @@ impl Buildable for MatterLabsTest {
         let builds = eravm_input
             .builds
             .into_values()
-            .map(|build| (build.bytecode_hash, build.assembly))
+            .map(|build| {
+                (
+                    web3::types::U256::from_big_endian(build.bytecode_hash.as_slice()),
+                    build.bytecode,
+                )
+            })
             .collect();
 
         Some(Test::new(

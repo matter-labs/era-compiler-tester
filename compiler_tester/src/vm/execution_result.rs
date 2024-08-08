@@ -34,8 +34,8 @@ impl ExecutionResult {
     }
 }
 
-impl From<zkevm_tester::runners::compiler_tests::VmSnapshot> for ExecutionResult {
-    fn from(snapshot: zkevm_tester::runners::compiler_tests::VmSnapshot) -> Self {
+impl From<zkevm_tester::compiler_tests::VmSnapshot> for ExecutionResult {
+    fn from(snapshot: zkevm_tester::compiler_tests::VmSnapshot) -> Self {
         let cycles = snapshot.num_cycles_used;
         let ergs = snapshot.num_ergs_used as u64;
 

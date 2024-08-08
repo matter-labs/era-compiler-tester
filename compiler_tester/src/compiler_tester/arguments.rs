@@ -29,11 +29,6 @@ pub struct Arguments {
     #[structopt(short = "D", long = "debug")]
     pub debug: bool,
 
-    /// Saves all JSON traces produced by VM to `./trace/` directory.
-    /// If passed twice, dumps EraVM instructions and registers to the terminal.
-    #[structopt(short = "T", long = "trace", parse(from_occurrences))]
-    pub trace: usize,
-
     /// Runs tests only in modes that contain any string from the specified ones.
     #[structopt(short = "m", long = "mode")]
     pub modes: Vec<String>,

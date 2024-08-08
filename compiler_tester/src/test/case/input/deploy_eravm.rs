@@ -93,13 +93,7 @@ impl DeployEraVM {
         };
 
         if result.output == self.expected {
-            let build_size = match vm.get_contract_size(self.hash) {
-                Ok(size) => size,
-                Err(error) => {
-                    Summary::invalid(summary, Some(mode), name, error);
-                    return;
-                }
-            };
+            let build_size = vm.get_contract_size(self.hash);
             Summary::passed_deploy(
                 summary,
                 mode,

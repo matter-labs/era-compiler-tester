@@ -61,7 +61,15 @@ impl EraVMDeployer for DummyDeployer {
             caller,
             Some(context_u128_value),
             constructor_calldata,
-            Some(zkevm_tester::runners::compiler_tests::VmLaunchOption::Constructor),
+            Some(zkevm_tester::compiler_tests::VmLaunchOption::ManualCallABI(
+                zkevm_tester::compiler_tests::FullABIParams {
+                    is_constructor: true,
+                    is_system_call: false,
+                    r3_value: None,
+                    r4_value: None,
+                    r5_value: None,
+                },
+            )),
         )?;
 
         if result.output.exception {
