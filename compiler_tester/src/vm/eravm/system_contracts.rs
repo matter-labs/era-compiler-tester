@@ -253,10 +253,15 @@ impl SystemContracts {
         yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
-        let yul_llvm_options = vec!["-eravm-jump-table-density-threshold", "10"]
-            .into_iter()
-            .map(|option| option.to_owned())
-            .collect();
+        let yul_llvm_options = vec![
+            "-eravm-jump-table-density-threshold",
+            "10",
+            "-tail-merge-only-bbs-without-succ=true",
+            "-tail-dup-size=4",
+        ]
+        .into_iter()
+        .map(|option| option.to_owned())
+        .collect();
         let mut builds = Self::compile(
             YulCompiler,
             yul_file_paths,
