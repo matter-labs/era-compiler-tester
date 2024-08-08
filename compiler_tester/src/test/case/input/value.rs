@@ -111,12 +111,17 @@ impl Value {
                 )
                 .expect("Always valid"),
             }
-        } else if value == "$BLOCK_HASH" {
+        } else if value.starts_with("$BLOCK_HASH") {
+            let offset: u64 = value
+                .split(':')
+                .last()
+                .and_then(|value| value.parse().ok())
+                .unwrap_or_default();
             match target {
                 Target::EraVM => web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_ERAVM),
                 Target::EVM | Target::EVMEmulator => {
-                    web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_EVM)
-                        .checked_add(web3::types::U256::one())
+                    { web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_EVM) }
+                        .checked_add(web3::types::U256::from(offset))
                         .expect("Always valid")
                 }
             }
