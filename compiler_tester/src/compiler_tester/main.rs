@@ -134,9 +134,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     arguments.trace as u64,
                 ),
             );
-
             #[cfg(feature = "lambda_vm")]
-            zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
+            zkevm_assembly::set_encoding_mode(match arguments.test_encoding {
+                true => (zkevm_assembly::RunningVmEncodingMode::Testing),
+                false => (zkevm_assembly::RunningVmEncodingMode::Production),
+            });
             #[cfg(feature = "vm2")]
             zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Production);
             #[cfg(not(any(feature = "vm2", feature = "lambda_vm")))]
@@ -265,6 +267,7 @@ mod tests {
             llvm_verify_each: false,
             llvm_debug_logging: false,
             workflow: compiler_tester::Workflow::BuildAndRun,
+            test_encoding: false,
         };
 
         crate::main_inner(arguments).expect("Manual testing failed");

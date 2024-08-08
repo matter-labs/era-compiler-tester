@@ -138,7 +138,13 @@ pub fn run_vm(
     );
 
     let mut era_vm = EraVM::new(vm, Rc::new(RefCell::new(storage)));
-    let result = era_vm.run_program_with_custom_bytecode();
+
+    let result = match zkevm_assembly::get_encoding_mode() {
+        zkevm_assembly::RunningVmEncodingMode::Testing => era_vm.run_program_with_test_encode(),
+        zkevm_assembly::RunningVmEncodingMode::Production => {
+            era_vm.run_program_with_custom_bytecode()
+        }
+    };
     let events = merge_events(&era_vm.state.events);
     let output = match result {
         ExecutionOutput::Ok(output) => Output {
@@ -158,12 +164,7 @@ pub fn run_vm(
         },
     };
 
-    for (key, value) in era_vm
-        .storage
-        .borrow_mut()
-        .get_state_storage()
-        .into_iter()
-    {
+    for (key, value) in era_vm.storage.borrow_mut().get_state_storage().into_iter() {
         if initial_storage.storage_read(key.clone())? != Some(value.clone()) {
             let mut bytes: [u8; 32] = [0; 32];
             value.to_big_endian(&mut bytes);
