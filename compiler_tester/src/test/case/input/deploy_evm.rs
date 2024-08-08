@@ -146,7 +146,7 @@ impl DeployEVM {
         let mut vm =
             vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, deploy_code);
 
-        let res = match vm.state.transact_commit() {
+        let result = match vm.state.transact_commit() {
             Ok(res) => res,
             Err(error) => {
                 match error {
@@ -195,7 +195,7 @@ impl DeployEVM {
             }
         };
 
-        let output = match res {
+        let output = match result {
             ExecutionResult::Success {
                 reason: _,
                 gas_used: _,
@@ -229,7 +229,7 @@ impl DeployEVM {
             );
         }
 
-        return vm;
+        vm
     }
 
     ///

@@ -249,7 +249,7 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, &last_source, &target) {
+        let case = match Case::try_from_ethereum(&calls, instances, last_source.as_str(), target) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(
@@ -341,7 +341,7 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, &last_source, &target) {
+        let case = match Case::try_from_ethereum(&calls, instances, last_source.as_str(), target) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(

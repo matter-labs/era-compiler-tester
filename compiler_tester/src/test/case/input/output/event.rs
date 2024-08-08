@@ -7,6 +7,7 @@ use std::str::FromStr;
 
 use serde::Serialize;
 
+use crate::target::Target;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::extended::event::Event as MatterLabsTestExpectedEvent;
 use crate::test::instance::Instance;
 use crate::test::case::input::value::Value;
@@ -46,10 +47,11 @@ impl Event {
     pub fn try_from_matter_labs(
         event: MatterLabsTestExpectedEvent,
         instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<Self> {
-        let topics = Value::try_from_vec_matter_labs(event.topics, instances)
+        let topics = Value::try_from_vec_matter_labs(event.topics, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid topics: {}", error))?;
-        let values = Value::try_from_vec_matter_labs(event.values, instances)
+        let values = Value::try_from_vec_matter_labs(event.values, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid values: {}", error))?;
 
         let address = match event.address {

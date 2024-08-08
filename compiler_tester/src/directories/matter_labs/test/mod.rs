@@ -333,6 +333,8 @@ impl MatterLabsTest {
                                 false,
                             ),
                         ),
+                        expected_eravm: None,
+                        expected_evm: None,
                     },
                     MatterLabsCaseInput {
                         comment: None,
@@ -347,6 +349,8 @@ impl MatterLabsTest {
                                 false,
                             ),
                         ),
+                        expected_eravm: None,
+                        expected_evm: None,
                     },
                     MatterLabsCaseInput {
                         comment: None,
@@ -361,13 +365,17 @@ impl MatterLabsTest {
                                 exception,
                             ),
                         ),
+                        expected_eravm: None,
+                        expected_evm: None,
                     },
                 ],
-                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(
-                    exception,
-                ),
                 ignore: false,
                 cycles: None,
+                expected: Some(
+                    MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(exception),
+                ),
+                expected_eravm: None,
+                expected_evm: None,
             })
         }
         metadata_cases
@@ -454,7 +462,7 @@ impl Buildable for MatterLabsTest {
                 }
             };
 
-            match case.set_instance_addresses(
+            match case.set_variables(
                 &mut instances,
                 eravm_address_iterator.clone(),
                 evm_address_iterator.clone(),
@@ -473,6 +481,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &eravm_input.method_identifiers,
+                target,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {
@@ -564,7 +573,7 @@ impl Buildable for MatterLabsTest {
                 }
             };
 
-            match case.set_instance_addresses(
+            match case.set_variables(
                 &mut instances,
                 EraVMAddressIterator::new(),
                 evm_address_iterator.clone(),
@@ -583,6 +592,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &evm_input.method_identifiers,
+                target,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {

@@ -452,7 +452,9 @@ impl Compiler for SolidityCompiler {
                 let build = EVMBuild::new(
                     era_compiler_llvm_context::EVMBuild::new(
                         hex::decode(bytecode_string).map_err(|error| {
-                            anyhow::anyhow!("EVM bytecode of the contract `{path}` is invalid: {error}")
+                            anyhow::anyhow!(
+                                "EVM bytecode of the contract `{path}` is invalid: {error}"
+                            )
                         })?,
                         None,
                     ),

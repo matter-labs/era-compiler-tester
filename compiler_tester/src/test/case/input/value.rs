@@ -8,7 +8,9 @@ use std::str::FromStr;
 use serde::Serialize;
 use serde::Serializer;
 
+use crate::target::Target;
 use crate::test::instance::Instance;
+use crate::vm::eravm::system_context::SystemContext;
 
 ///
 /// The compiler test value.
@@ -42,6 +44,7 @@ impl Value {
     pub fn try_from_matter_labs(
         value: String,
         instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -73,6 +76,66 @@ impl Value {
         } else if let Some(value) = value.strip_prefix("0x") {
             web3::types::U256::from_str(value)
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
+        } else if value == "$CHAIN_ID" {
+            match target {
+                Target::EraVM => web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM),
+                Target::EVM | Target::EVMEmulator => {
+                    web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
+                }
+            }
+        } else if value == "$GAS_LIMIT" {
+            match target {
+                Target::EraVM => web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM),
+                Target::EVM | Target::EVMEmulator => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM)
+                }
+            }
+        } else if value == "$COINBASE" {
+            match target {
+                Target::EraVM => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_ERAVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+                Target::EVM | Target::EVMEmulator => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_EVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+            }
+            .expect("Always valid")
+        } else if value == "$DIFFICULTY" {
+            match target {
+                Target::EraVM => web3::types::U256::from(SystemContext::BLOCK_DIFFICULTY_ERAVM),
+                Target::EVM | Target::EVMEmulator => web3::types::U256::from_str_radix(
+                    SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                )
+                .expect("Always valid"),
+            }
+        } else if value == "$BLOCK_HASH" {
+            match target {
+                Target::EraVM => web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_ERAVM),
+                Target::EVM | Target::EVMEmulator => {
+                    web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_EVM)
+                        .checked_add(web3::types::U256::one())
+                        .expect("Always valid")
+                }
+            }
+        } else if value == "$BLOCK_NUMBER" {
+            match target {
+                Target::EraVM => web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_ERAVM),
+                Target::EVM | Target::EVMEmulator => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_EVM)
+                }
+            }
+        } else if value == "$BLOCK_TIMESTAMP" {
+            match target {
+                Target::EraVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
+                }
+                Target::EVM | Target::EVMEmulator => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
+                }
+            }
         } else {
             web3::types::U256::from_dec_str(value.as_str())
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
@@ -87,12 +150,13 @@ impl Value {
     pub fn try_from_vec_matter_labs(
         values: Vec<String>,
         instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<Vec<Self>> {
         values
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value, instances)
+                Self::try_from_matter_labs(value, instances, target)
                     .map_err(|error| anyhow::anyhow!("Value {} is invalid: {}", index, error))
             })
             .collect::<anyhow::Result<Vec<Self>>>()

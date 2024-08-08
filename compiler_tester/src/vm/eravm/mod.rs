@@ -70,7 +70,7 @@ impl EraVM {
         "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
 
     /// The EVM call gas limit.
-    pub const EVM_CALL_GAS_LIMIT: u64 = 1 << 32 - 1;
+    pub const EVM_CALL_GAS_LIMIT: u64 = u32::MAX as u64;
 
     ///
     /// Creates and initializes a new EraVM instance.

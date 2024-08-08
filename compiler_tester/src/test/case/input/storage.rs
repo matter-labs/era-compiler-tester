@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::directories::matter_labs::test::metadata::case::input::storage::Storage as MatterLabsTestContractStorage;
+use crate::target::Target;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 
@@ -26,6 +27,7 @@ impl Storage {
     pub fn try_from_matter_labs(
         storage: HashMap<String, MatterLabsTestContractStorage>,
         instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<Self> {
         let mut result = HashMap::new();
 
@@ -54,14 +56,14 @@ impl Storage {
                 MatterLabsTestContractStorage::Map(map) => map.clone(),
             };
             for (key, value) in contract_storage.into_iter() {
-                let key = match Value::try_from_matter_labs(key, instances)
+                let key = match Value::try_from_matter_labs(key, instances, target)
                     .map_err(|error| anyhow::anyhow!("Invalid storage key: {}", error))?
                 {
                     Value::Certain(value) => value,
                     Value::Any => anyhow::bail!("Storage key can not be `*`"),
                 };
 
-                let value = match Value::try_from_matter_labs(value, instances)
+                let value = match Value::try_from_matter_labs(value, instances, target)
                     .map_err(|error| anyhow::anyhow!("Invalid storage value: {}", error))?
                 {
                     Value::Certain(value) => value,

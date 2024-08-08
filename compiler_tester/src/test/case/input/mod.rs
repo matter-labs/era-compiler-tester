@@ -67,6 +67,7 @@ impl Input {
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
+        target: Target,
     ) -> anyhow::Result<Self> {
         let caller = web3::types::Address::from_str(input.caller.as_str())
             .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
@@ -89,16 +90,22 @@ impl Input {
             None => None,
         };
 
-        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances)
+        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid calldata: {}", error))?;
 
-        let expected = match input.expected {
-            Some(expected) => Output::try_from_matter_labs_expected(expected, mode, instances)
-                .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?,
+        let expected = match target {
+            Target::EraVM => input.expected_eravm.or(input.expected),
+            Target::EVM | Target::EVMEmulator => input.expected_evm.or(input.expected),
+        };
+        let expected = match expected {
+            Some(expected) => {
+                Output::try_from_matter_labs_expected(expected, mode, instances, target)
+                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?
+            }
             None => Output::default(),
         };
 
-        let storage = Storage::try_from_matter_labs(input.storage, instances)
+        let storage = Storage::try_from_matter_labs(input.storage, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid storage: {}", error))?;
 
         let instance = instances
@@ -212,7 +219,7 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
-        target: &Target,
+        target: Target,
     ) -> anyhow::Result<Option<Self>> {
         let main_contract_instance = instances
             .values()

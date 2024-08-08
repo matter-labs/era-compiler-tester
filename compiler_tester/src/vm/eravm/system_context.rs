@@ -28,25 +28,25 @@ pub struct EVMContext {
 
 impl SystemContext {
     /// The system context chain ID value position in the storage.
-    const SYSTEM_CONTEXT_CHAIN_ID_POSITION: u64 = 0;
+    pub const SYSTEM_CONTEXT_CHAIN_ID_POSITION: u64 = 0;
 
     /// The system context origin value position in the storage.
-    const SYSTEM_CONTEXT_ORIGIN_POSITION: u64 = 1;
+    pub const SYSTEM_CONTEXT_ORIGIN_POSITION: u64 = 1;
 
     /// The system context gas price value position in the storage.
-    const SYSTEM_CONTEXT_GAS_PRICE_POSITION: u64 = 2;
+    pub const SYSTEM_CONTEXT_GAS_PRICE_POSITION: u64 = 2;
 
     /// The system context block gas limit value position in the storage.
-    const SYSTEM_CONTEXT_BLOCK_GAS_LIMIT_POSITION: u64 = 3;
+    pub const SYSTEM_CONTEXT_BLOCK_GAS_LIMIT_POSITION: u64 = 3;
 
     /// The system context coinbase value position in the storage.
-    const SYSTEM_CONTEXT_COINBASE_POSITION: u64 = 4;
+    pub const SYSTEM_CONTEXT_COINBASE_POSITION: u64 = 4;
 
     /// The system context difficulty value position in the storage.
-    const SYSTEM_CONTEXT_DIFFICULTY_POSITION: u64 = 5;
+    pub const SYSTEM_CONTEXT_DIFFICULTY_POSITION: u64 = 5;
 
     /// The system context base fee value position in the storage.
-    const SYSTEM_CONTEXT_BASE_FEE_POSITION: u64 = 6;
+    pub const SYSTEM_CONTEXT_BASE_FEE_POSITION: u64 = 6;
 
     /// The system context block hashes mapping position in the storage.
     pub const SYSTEM_CONTEXT_BLOCK_HASH_POSITION: u64 = 8;
@@ -58,48 +58,52 @@ impl SystemContext {
     pub const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
 
     /// The ZKsync chain ID.
-    const CHAIND_ID_ERAVM: u64 = 280;
+    pub const CHAIND_ID_ERAVM: u64 = 280;
     /// The Ethereum chain ID.
-    const CHAIND_ID_EVM: u64 = 1;
+    pub const CHAIND_ID_EVM: u64 = 1;
 
     /// The default origin for tests.
-    const TX_ORIGIN: &'static str =
+    pub const TX_ORIGIN: &'static str =
         "0x0000000000000000000000009292929292929292929292929292929292929292";
 
     /// The default gas price for tests.
-    const GAS_PRICE: u64 = 3000000000;
+    pub const GAS_PRICE: u64 = 3000000000;
 
     /// The default block gas limit for EraVM tests.
-    const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
+    pub const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
     /// The default block gas limit for EVM tests.
-    const BLOCK_GAS_LIMIT_EVM: u64 = 20000000;
+    pub const BLOCK_GAS_LIMIT_EVM: u64 = 20000000;
 
     /// The default coinbase for EraVM tests.
-    const COIN_BASE_ERAVM: &'static str =
+    pub const COIN_BASE_ERAVM: &'static str =
         "0x0000000000000000000000000000000000000000000000000000000000008001";
     /// The default coinbase for EVM tests.
-    const COIN_BASE_EVM: &'static str =
+    pub const COIN_BASE_EVM: &'static str =
         "0x0000000000000000000000007878787878787878787878787878787878787878";
 
     /// The default block difficulty for EraVM tests.
-    const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
+    pub const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
     /// The block difficulty for EVM tests using a post paris version.
-    const BLOCK_DIFFICULTY_EVM_POST_PARIS: &'static str =
+    pub const BLOCK_DIFFICULTY_EVM_POST_PARIS: &'static str =
         "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
     /// The block difficulty for EVM tests using a pre paris version.
-    const BLOCK_DIFFICULTY_EVM_PRE_PARIS: &'static str =
+    pub const BLOCK_DIFFICULTY_EVM_PRE_PARIS: &'static str =
         "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
-    const BASE_FEE: u64 = 7;
+    pub const BASE_FEE: u64 = 7;
 
     /// The default current block number for EraVM tests.
-    const CURRENT_BLOCK_NUMBER_ERAVM: u128 = 300;
+    pub const CURRENT_BLOCK_NUMBER_ERAVM: u128 = 300;
     /// The default current block number for EVM tests.
     pub const INITIAL_BLOCK_NUMBER_EVM: u128 = 1;
+    /// The default current block number for EVM tests.
+    pub const CURRENT_BLOCK_NUMBER_EVM: u128 = 2;
 
     /// The default current block timestamp for EraVM tests.
-    const CURRENT_BLOCK_TIMESTAMP_ERAVM: u128 = 0xdeadbeef;
+    pub const CURRENT_BLOCK_TIMESTAMP_ERAVM: u128 = 0xdeadbeef;
+    /// The default current block timestamp for EVM tests.
+    pub const CURRENT_BLOCK_TIMESTAMP_EVM: u128 = 30;
     /// The timestamp step for blocks in the EVM context.
     pub const BLOCK_TIMESTAMP_EVM_STEP: u128 = 15;
 

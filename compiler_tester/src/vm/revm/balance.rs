@@ -5,21 +5,20 @@ use revm::{
     primitives::{EVMError, Env, InvalidTransaction, KECCAK_EMPTY, U256},
 };
 
-use super::{
-    revm_type_conversions::web3_address_to_revm_address,
-    Revm,
-};
+use super::{revm_type_conversions::web3_address_to_revm_address, Revm};
 use revm::Database;
 
 impl<'a> Revm<'a> {
-    /// All accounts used to deploy the test contracts should have a balance of U256::MAX
+    ///
+    /// All accounts used to deploy the test contracts should have a balance of U256::MAX.
+    ///
     pub fn update_deploy_balance(mut self, account: &web3::types::Address) -> Revm<'a> {
-        let address = web3_address_to_revm_address(&account);
+        let address = web3_address_to_revm_address(account);
         let nonce = match self.state.db_mut().basic(address) {
             Ok(Some(acc)) => acc.nonce,
             _ => 1,
         };
-        let acc_info = revm::primitives::AccountInfo {
+        let account_info = revm::primitives::AccountInfo {
             balance: U256::MAX,
             code_hash: revm::primitives::KECCAK_EMPTY,
             code: None,
@@ -29,7 +28,7 @@ impl<'a> Revm<'a> {
             .state
             .modify()
             .modify_db(|db| {
-                db.insert_account(address, acc_info.clone());
+                db.insert_account(address, account_info.clone());
             })
             .modify_env(|env| env.clone_from(&Box::new(Env::default())))
             .build();
@@ -37,10 +36,14 @@ impl<'a> Revm<'a> {
         Revm { state: new_state }
     }
 
+    ///
+    /// Updates balances of runtime calls.
+    ///
     pub fn update_runtime_balance(self, caller: web3::types::Address) -> Self {
         let address = web3_address_to_revm_address(&caller);
         let acc_info = revm::primitives::AccountInfo {
-            balance: (U256::from(1) << 100) + U256::from_str("63615000000000").unwrap(),
+            balance: (U256::from(1) << 100)
+                + U256::from_str("63615000000000").expect("Always valid"),
             code_hash: revm::primitives::KECCAK_EMPTY,
             code: None,
             nonce: 1,
@@ -102,13 +105,11 @@ impl<'a> Revm<'a> {
             .context
             .evm
             .balance(web3_address_to_revm_address(&caller))
-            .map_err(|e| self.state.context.evm.error = Err(e))
-            .ok()
-            .unwrap()
+            .expect("Always exists")
             .0;
         let acc_info = revm::primitives::AccountInfo {
             balance: U256::from(self.state.tx().gas_limit) * self.state.tx().gas_price
-                - (post_balance + U256::from_str("63615000000000").unwrap()),
+                - (post_balance + U256::from_str("63615000000000").expect("Always valid")),
             code_hash: KECCAK_EMPTY,
             code: None,
             nonce: 1,

@@ -2,9 +2,7 @@ use std::{convert::Infallible, str::FromStr};
 
 use revm::{
     db::{states::plain_account::PlainStorage, EmptyDBTyped},
-    primitives::{
-        Address, FixedBytes, TxKind, B256, U256,
-    },
+    primitives::{Address, FixedBytes, TxKind, B256, U256},
     Evm,
 };
 use solidity_adapter::EVMVersion;
@@ -20,7 +18,16 @@ pub struct Revm<'a> {
     pub state: Evm<'a, (), revm::State<EmptyDBTyped<Infallible>>>,
 }
 
+impl<'a> Default for Revm<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> Revm<'a> {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new() -> Self {
         let mut cache = revm::CacheState::new(false);
         // Precompile 0x01 needs to have its code hash
@@ -29,7 +36,7 @@ impl<'a> Revm<'a> {
             code_hash: FixedBytes::from_str(
                 "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
             )
-            .unwrap(),
+            .expect("Always valid"),
             code: None,
             nonce: 1,
         };
