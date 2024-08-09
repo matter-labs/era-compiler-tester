@@ -83,8 +83,8 @@ pub fn run_vm(
         lambda_storage.insert(lambda_storage_key, value_u256);
     }
 
-    for (_, contract) in contracts {
-        let bytecode = contract.clone().compile_to_bytecode()?;
+    for (_, mut contract) in contracts {
+        let bytecode = contract.compile_to_bytecode()?;
         let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)
             .map_err(|()| anyhow!("Failed to hash bytecode"))?;
         known_contracts.insert(U256::from_big_endian(&hash), contract);
