@@ -8,13 +8,15 @@ use std::collections::HashMap;
 
 use crate::vm::execution_result::ExecutionResult;
 use anyhow::anyhow;
-use lambda_vm;
 use lambda_vm::state::VMState;
 use lambda_vm::store::initial_decommit;
 use lambda_vm::store::InMemory;
 use lambda_vm::store::Storage;
 use lambda_vm::value::TaggedValue;
-use lambda_vm::ExecutionOutput;
+use lambda_vm::vm::ExecutionOutput;
+use lambda_vm::EraVM;
+use std::cell::RefCell;
+use std::rc::Rc;
 use web3::types::H160;
 use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{H256, U256};
@@ -144,9 +146,15 @@ pub fn run_vm(
         TaggedValue::new_raw_integer(abi_params.r5_value.unwrap_or_default()),
     );
 
-    let (result, final_vm, blob_tracer) =
-        lambda_vm::run_program_with_custom_bytecode(vm, &mut storage);
-    let events = merge_events(&final_vm.events);
+    let mut era_vm = EraVM::new(vm, Rc::new(RefCell::new(storage)));
+
+    let (result, blob_tracer) = match zkevm_assembly::get_encoding_mode() {
+        zkevm_assembly::RunningVmEncodingMode::Testing => era_vm.run_program_with_test_encode(),
+        zkevm_assembly::RunningVmEncodingMode::Production => {
+            era_vm.run_program_with_custom_bytecode()
+        }
+    };
+    let events = merge_events(&era_vm.state.events);
     let output = match result {
         ExecutionOutput::Ok(output) => Output {
             return_data: chunk_return_data(&output),
@@ -167,8 +175,8 @@ pub fn run_vm(
 
     let deployed_blobs = blob_tracer.blobs.clone();
 
-    for (key, value) in storage.state_storage.into_iter() {
-        if initial_storage.storage_read(key).unwrap() != Some(value) {
+    for (key, value) in era_vm.storage.borrow_mut().get_state_storage().into_iter() {
+        if initial_storage.storage_read(key.clone())? != Some(value.clone()) {
             let mut bytes: [u8; 32] = [0; 32];
             value.to_big_endian(&mut bytes);
             storage_changes.insert(

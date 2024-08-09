@@ -113,6 +113,11 @@ pub struct Arguments {
     /// Choose between `build` to compile tests only without running them, and `run` to compile and run them.
     #[structopt(long = "workflow", default_value = "run")]
     pub workflow: Workflow,
+
+    /// Use the alternative encoding for 128 bit long opcodes,
+    /// only available with lambda's era vm.
+    #[structopt(long = "use-test-encoding")]
+    pub test_encoding: bool,
 }
 
 impl Arguments {
