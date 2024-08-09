@@ -656,10 +656,13 @@ dependencies = [
 name = "era_vm"
 version = "0.1.0"
 dependencies = [
+ "ethabi",
  "hex",
  "primitive-types",
  "rocksdb",
+ "serde_json",
  "thiserror",
+ "zk_evm_abstractions 1.5.1",
  "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs.git?branch=v1.5.1)",
 ]
 
@@ -1311,7 +1314,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e310b3a6b5907f99202fcdb4960ff45b93735d7c7d96b760fcff8db2dc0e103d"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.5",
 ]
 
 [[package]]
@@ -2278,11 +2281,12 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.117"
+version = "1.0.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "455182ea6142b14f93f4bc5320a2b31c1f266b66a4a5c858b013302a5d8cbfc3"
+checksum = "784b6203951c57ff748476b126ccb5e8e2959a5c19e5c617ab1956be3dbc68da"
 dependencies = [
  "itoa",
+ "memchr",
  "ryu",
  "serde",
 ]
@@ -2797,11 +2801,10 @@ checksum = "2266fcb904c50fb17fda4c9a751a1715629ecf8b21f4c9d78b4890fb71525d71"
 [[package]]
 name = "vm2"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#9342db726462b76aa7e4ed246684b1316ea79c21"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions",
+ "zk_evm_abstractions 1.5.0",
  "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
 ]
 
@@ -3166,7 +3169,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions",
+ "zk_evm_abstractions 1.5.0",
 ]
 
 [[package]]
@@ -3179,6 +3182,18 @@ dependencies = [
  "serde",
  "static_assertions",
  "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "1.5.1"
+source = "git+https://github.com/matter-labs/era-zk_evm_abstractions.git?branch=v1.5.1#eecb28df7d6dbcb728d4e9106933d288e4cb267e"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 1.5.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs.git?branch=v1.5.1)",
 ]
 
 [[package]]
