@@ -45,14 +45,13 @@ jobs:
   cargo-check:
     runs-on: [ci-runner-compiler, Linux]
     container:
-      image: ghcr.io/matter-labs/llvm_runner/ubuntu22-llvm17:latest
+      image: ghcr.io/matter-labs/zksync-llvm-runner:latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Build LLVM
         uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
         with:
-          enable-tests: true
           enable-assertions: true
           ccache-key-type: static
 
@@ -61,22 +60,62 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+
+  # Define target for integration tests and benchmarks
+  # based on PR title labels
+  target-machine:
+    runs-on: ubuntu-latest
+    outputs:
+      evm: ${{ steps.evm.outputs.machine }}
+      eravm: ${{ steps.eravm.outputs.machine }}
+      default: ${{ steps.default.outputs.machine }}
+    steps:
+
+      - name: Check for EraVM target
+        id: eravm
+        if: contains(github.event.pull_request.title, '(EraVM)')
+        run: echo "machine=EraVM" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Check for EVM target
+        id: evm
+        if: contains(github.event.pull_request.title, '(EVM)')
+        run: echo "machine=EVM" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Check for default target
+        id: default
+        shell: bash -ex {0}
+        run: |
+          if [[ "${{ join(steps.*.outputs.*) }}" == "" ]]; then
+            echo "machine=default" | tee -a "${GITHUB_OUTPUT}"
+          fi
+
   # Integration tests workflow call from the era-compiler-ci repository
   # This is a common part of the integration tests workflow for all repositories
   # If you would like to make a change to the integration tests workflow, please do it in the era-compiler-ci repository
   integration-tests:
+    needs: target-machine
     uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@v1
     secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ needs.target-machine.outputs.* }}
     with:
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }} # required to properly test forks
       ccache-key-type: static
+      target-machine: ${{ matrix.target }}
 
   # Benchmarks workflow call from the era-compiler-ci repository
   # This is a common part of the benchmarks workflow for all repositories
   # If you would like to make a change to the benchmarks workflow, please do it in the era-compiler-ci repository
   benchmarks:
+    needs: target-machine
     uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@v1
     secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ needs.target-machine.outputs.* }}
     with:
       compiler_tester_reference_branch: ${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}
       compiler_tester_candidate_branch: ${{ github.event.inputs.compiler_tester_candidate_branch || '' }}
@@ -86,6 +125,7 @@ jobs:
       compiler_llvm_benchmark_path: ${{ github.event.inputs.compiler_llvm_benchmark_path || '' }}
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }}
       ccache-key-type: static
+      target-machine: ${{ matrix.target }}
 
   # Special job that allows some of the jobs to be skipped or failed
   # requiring others to be successful

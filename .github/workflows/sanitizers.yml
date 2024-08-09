@@ -32,10 +32,11 @@ jobs:
   run-with-sanitizers:
     runs-on: [ci-runner-compiler, Linux]
     container:
-      image: ghcr.io/matter-labs/llvm_runner/ubuntu22-llvm17:latest
+      image: ghcr.io/matter-labs/zksync-llvm-runner:latest
       options: -m 110g
     env:
       TARGET: x86_64-unknown-linux-gnu
+      RUSTC_BOOTSTRAP: 1
     steps:
 
       - name: Checkout compiler-tester
@@ -49,33 +50,30 @@ jobs:
           sanitizer: ${{ inputs.llvm-sanitizer }}
           enable-assertions: true
 
-      - name: Install rustc nightly
-        run: |
-          rustup install nightly-${TARGET}
-          rustup component add rust-src --toolchain nightly-${TARGET}
-
       - name: Build compiler-tester
         env:
           RUSTFLAGS: "-Z sanitizer=${{ inputs.rust-sanitizer }}"
-        run: cargo +nightly build --release --target ${TARGET} -Zbuild-std --bin 'compiler-tester'
+        run: |
+          rustup component add rust-src --toolchain "$(rustc --version | cut -d ' ' -f2)-${TARGET}"
+          cargo build --target ${TARGET} -Zbuild-std --bin 'compiler-tester'
 
       - name: Build zksolc and zkvyper
         env:
           CARGO_CHECKOUT_DIR: /usr/local/cargo/git/checkouts
           RUSTFLAGS: "-Z sanitizer=${{ inputs.rust-sanitizer }}"
         run: |
-          cargo +nightly build --release --target ${TARGET} -Zbuild-std \
+          cargo build --target ${TARGET} -Zbuild-std \
             --manifest-path ${CARGO_CHECKOUT_DIR}/era-compiler-solidity-*/*/Cargo.toml \
             --target-dir './target-zksolc/'
-          cargo +nightly build --release --target ${TARGET} -Zbuild-std \
+          cargo build --target ${TARGET} -Zbuild-std \
             --manifest-path ${CARGO_CHECKOUT_DIR}/era-compiler-vyper-*/*/Cargo.toml \
             --target-dir './target-zkvyper/'
 
       - name: Run tests with sanitizers
         run: |
           set -x
-          ./target/${TARGET}/release/compiler-tester \
-            --zksolc "./target-zksolc/${TARGET}/release/zksolc" \
-            --zkvyper "./target-zkvyper/${TARGET}/release/zkvyper" \
+          ./target/${TARGET}/debug/compiler-tester \
+            --zksolc "./target-zksolc/${TARGET}/debug/zksolc" \
+            --zkvyper "./target-zkvyper/${TARGET}/debug/zkvyper" \
             --path '${{ inputs.path }}'
             --mode '${{ inputs.mode }}'
