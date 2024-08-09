@@ -128,7 +128,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     };
 
     match target {
-        compiler_tester::Target::EraVM => {
+        target @ compiler_tester::Target::EraVM => {
             zkevm_tester::runners::compiler_tests::set_tracing_mode(
                 zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(
                     arguments.trace as u64,
@@ -151,6 +151,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 system_contracts_debug_config,
                 arguments.system_contracts_load_path,
                 arguments.system_contracts_save_path,
+                target,
             )?;
 
             match (
@@ -169,11 +170,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm),
             }
         }
-        compiler_tester::Target::EVM => {
+        compiler_tester::Target::EVMEmulator => {
             compiler_tester::EVM::download(binary_download_config_paths)?;
-            compiler_tester.run_evm(arguments.use_upstream_solc)
+            compiler_tester.run_revm(arguments.use_upstream_solc)
         }
-        compiler_tester::Target::EVMInterpreter => {
+        target @ compiler_tester::Target::EVM => {
             zkevm_tester::runners::compiler_tests::set_tracing_mode(
                 zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(
                     arguments.trace as u64,
@@ -192,10 +193,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 system_contract_debug_config,
                 arguments.system_contracts_load_path,
                 arguments.system_contracts_save_path,
+                target,
             )?;
 
             compiler_tester
-                .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, false>(
+                .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, true>(
                     vm,
                     arguments.use_upstream_solc,
                 )

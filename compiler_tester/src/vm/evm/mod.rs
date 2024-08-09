@@ -79,7 +79,7 @@ impl<'evm> EVM<'evm> {
     ///
     pub fn execute_deploy_code(
         &mut self,
-        test_name: String,
+        _test_name: String,
         path: &str,
         caller: web3::types::Address,
         value: Option<u128>,
@@ -122,7 +122,7 @@ impl<'evm> EVM<'evm> {
             Ok(evm::standard::TransactValue::Call { .. }) => {
                 unreachable!("The `Create` transaction must be executed above")
             }
-            Err(error) => (web3::types::Address::zero(), true),
+            Err(_error) => (web3::types::Address::zero(), true),
         };
 
         let mut return_data = vec![
@@ -143,7 +143,7 @@ impl<'evm> EVM<'evm> {
     ///
     pub fn execute_runtime_code(
         &mut self,
-        test_name: String,
+        _test_name: String,
         address: web3::types::Address,
         caller: web3::types::Address,
         value: Option<u128>,
@@ -181,7 +181,7 @@ impl<'evm> EVM<'evm> {
             Ok(evm::standard::TransactValue::Create { .. }) => {
                 unreachable!("The `Call` transaction must be executed above")
             }
-            Err(error) => (vec![], true),
+            Err(_error) => (vec![], true),
         };
 
         let events = self.runtime.logs.drain(..).collect();

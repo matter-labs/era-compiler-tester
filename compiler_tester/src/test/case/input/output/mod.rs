@@ -12,6 +12,7 @@ use serde::Serialize;
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::Variant as MatterLabsTestExpectedVariant;
 use crate::directories::matter_labs::test::metadata::case::input::expected::Expected as MatterLabsTestExpected;
+use crate::target::Target;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 use crate::vm::evm::output::Output as EVMOutput;
@@ -50,6 +51,7 @@ impl Output {
         expected: MatterLabsTestExpected,
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<Self> {
         let variants = match expected {
             MatterLabsTestExpected::Single(variant) => vec![variant],
@@ -81,7 +83,7 @@ impl Output {
                     .into_iter()
                     .enumerate()
                     .map(|(index, event)| {
-                        Event::try_from_matter_labs(event, instances).map_err(|error| {
+                        Event::try_from_matter_labs(event, instances, target).map_err(|error| {
                             anyhow::anyhow!("Event #{} is invalid: {}", index, error)
                         })
                     })
@@ -90,7 +92,7 @@ impl Output {
                 (return_data, exception, events)
             }
         };
-        let return_data = Value::try_from_vec_matter_labs(return_data, instances)
+        let return_data = Value::try_from_vec_matter_labs(return_data, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid return data: {error}"))?;
 
         Ok(Self {
@@ -108,15 +110,18 @@ impl Output {
         exception: bool,
         events: &[solidity_adapter::Event],
         contract_address: &web3::types::Address,
+        target: Target,
     ) -> Self {
         let return_data = expected
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
-                value_str = value_str.replace(
-                    solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
-                    &crate::utils::address_as_string(contract_address),
-                );
+                if let Target::EraVM = target {
+                    value_str = value_str.replace(
+                        solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
+                        &crate::utils::address_as_string(contract_address),
+                    );
+                }
                 Value::Certain(
                     web3::types::U256::from_str(&value_str)
                         .expect("Solidity adapter default contract address constant is invalid"),

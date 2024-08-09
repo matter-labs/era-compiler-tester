@@ -39,8 +39,13 @@ pub struct Input {
     /// The initial contracts storage.
     #[serde(default)]
     pub storage: HashMap<String, Storage>,
+
     /// The expected return data.
     pub expected: Option<Expected>,
+    /// The expected return data for EraVM.
+    pub expected_eravm: Option<Expected>,
+    /// The expected return data for EVM.
+    pub expected_evm: Option<Expected>,
 }
 
 impl Input {
@@ -51,12 +56,15 @@ impl Input {
         Self {
             comment: None,
             instance: instance.clone(),
-            calldata: Calldata::default(),
-            value: None,
             caller: default_caller_address(),
-            expected: Some(Expected::successful_deployer_expected(instance)),
+            calldata: Calldata::default(),
             method: "#deployer".to_string(),
+            value: None,
             storage: HashMap::new(),
+
+            expected: Some(Expected::successful_deployer_expected(instance.clone())),
+            expected_eravm: Some(Expected::successful_deployer_expected(instance.clone())),
+            expected_evm: Some(Expected::successful_deployer_expected(instance)),
         }
     }
 }

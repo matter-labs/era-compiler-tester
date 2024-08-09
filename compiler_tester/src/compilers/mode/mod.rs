@@ -12,6 +12,7 @@ use crate::compilers::solidity::mode::Mode as SolidityMode;
 use crate::compilers::solidity::upstream::mode::Mode as SolidityUpstreamMode;
 use crate::compilers::vyper::mode::Mode as VyperMode;
 use crate::compilers::yul::mode::Mode as YulMode;
+use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 
 ///
 /// The compiler mode.
@@ -25,6 +26,8 @@ pub enum Mode {
     SolidityUpstream(SolidityUpstreamMode),
     /// The `Yul` mode.
     Yul(YulMode),
+    /// The `Yul` upstream mode.
+    YulUpstream(YulUpstreamMode),
     /// The `Vyper` mode.
     Vyper(VyperMode),
     /// The `LLVM` mode.
@@ -128,6 +131,7 @@ impl Mode {
             Mode::Solidity(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::SolidityUpstream(_mode) => None,
             Mode::Yul(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::YulUpstream(_mode) => None,
             Mode::Vyper(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::LLVM(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::EraVM(_mode) => None,
@@ -184,7 +188,10 @@ impl Mode {
 
         if filter.starts_with('^') {
             match self {
-                Self::Solidity(_) | Self::SolidityUpstream(_) | Self::Vyper(_) => {
+                Self::Solidity(_)
+                | Self::SolidityUpstream(_)
+                | Self::YulUpstream(_)
+                | Self::Vyper(_) => {
                     current = regex::Regex::new("[+]")
                         .expect("Always valid")
                         .replace_all(current.as_str(), "^")
@@ -222,6 +229,12 @@ impl From<YulMode> for Mode {
     }
 }
 
+impl From<YulUpstreamMode> for Mode {
+    fn from(inner: YulUpstreamMode) -> Self {
+        Self::YulUpstream(inner)
+    }
+}
+
 impl From<VyperMode> for Mode {
     fn from(inner: VyperMode) -> Self {
         Self::Vyper(inner)
@@ -246,6 +259,7 @@ impl std::fmt::Display for Mode {
             Self::Solidity(inner) => write!(f, "{inner}"),
             Self::SolidityUpstream(inner) => write!(f, "{inner}"),
             Self::Yul(inner) => write!(f, "{inner}"),
+            Self::YulUpstream(inner) => write!(f, "{inner}"),
             Self::Vyper(inner) => write!(f, "{inner}"),
             Self::LLVM(inner) => write!(f, "{inner}"),
             Self::EraVM(inner) => write!(f, "{inner}"),

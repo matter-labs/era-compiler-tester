@@ -32,13 +32,18 @@ pub struct Case {
     pub modes: Option<Vec<String>>,
     /// The case inputs.
     pub inputs: Vec<Input>,
-    /// The expected return data.
-    pub expected: Expected,
     /// If the test case must be ignored.
     #[serde(default)]
     pub ignore: bool,
     /// Overrides the default number of cycles.
     pub cycles: Option<usize>,
+
+    /// The expected return data.
+    pub expected: Option<Expected>,
+    /// The expected return data for EraVM.
+    pub expected_eravm: Option<Expected>,
+    /// The expected return data for EVM.
+    pub expected_evm: Option<Expected>,
 }
 
 impl Case {
@@ -130,15 +135,21 @@ impl Case {
     pub fn normalize_expected(&mut self) {
         if let Some(input) = self.inputs.last_mut() {
             if input.expected.is_none() {
-                input.expected = Some(self.expected.clone());
+                input.expected.clone_from(&self.expected);
+            }
+            if input.expected_eravm.is_none() {
+                input.expected_eravm.clone_from(&self.expected_eravm);
+            }
+            if input.expected_evm.is_none() {
+                input.expected_evm.clone_from(&self.expected_evm);
             }
         }
     }
 
     ///
-    /// Returns all the instances addresses, except libraries.
+    /// Sets all variables, including instance addresses, but except libraries.
     ///
-    pub fn set_instance_addresses(
+    pub fn set_variables(
         &self,
         instances: &mut BTreeMap<String, Instance>,
         mut eravm_address_iterator: EraVMAddressIterator,

@@ -28,25 +28,26 @@ impl Type {
     }
 }
 
-impl ToString for Type {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &self.variant {
-            Variant::String => "string".to_owned(),
-            Variant::Boolean => "bool".to_owned(),
-            Variant::Address => "address".to_owned(),
-            Variant::Function => "function".to_owned(),
+            Variant::String => write!(f, "string"),
+            Variant::Boolean => write!(f, "bool"),
+            Variant::Address => write!(f, "address"),
+            Variant::Function => write!(f, "function"),
             Variant::Bytes { byte_length } => match byte_length {
-                Some(byte_length) => format!("bytes{byte_length}"),
-                None => "bytes".to_owned(),
+                Some(byte_length) => write!(f, "bytes{byte_length}"),
+                None => write!(f, "bytes"),
             },
-            Variant::IntegerUnsigned { bit_length } => format!("uint{bit_length}"),
-            Variant::IntegerSigned { bit_length } => format!("int{bit_length}"),
+            Variant::IntegerUnsigned { bit_length } => write!(f, "uint{bit_length}"),
+            Variant::IntegerSigned { bit_length } => write!(f, "int{bit_length}"),
             Variant::Array { inner, size } => match size {
-                Some(size) => format!("{}[{}]", inner.to_string(), size),
-                None => format!("{}[]", inner.to_string()),
+                Some(size) => write!(f, "{inner}[{size}]"),
+                None => write!(f, "{inner}[]"),
             },
             Variant::Tuple { inners } => {
-                format!(
+                write!(
+                    f,
                     "({})",
                     inners
                         .iter()

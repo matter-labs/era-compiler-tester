@@ -20,14 +20,16 @@ use self::evm_contract::EVMContract;
 pub struct Metadata {
     /// The test cases.
     pub cases: Vec<Case>,
+    /// The target filter.
+    pub targets: Option<Vec<Target>>,
     /// The mode filter.
     pub modes: Option<Vec<String>>,
-    /// The test contracts.
-    /// The format is `instance -> path`.
+    /// The test group.
+    pub group: Option<String>,
+    /// The test contracts as `instance -> path`.
     #[serde(default)]
     pub contracts: BTreeMap<String, String>,
-    /// The EVM auxiliary contracts.
-    /// The format is `instance -> init code`.
+    /// The EVM auxiliary contracts as `instance -> init code`.
     #[serde(default)]
     pub evm_contracts: BTreeMap<String, EVMContract>,
     /// The test libraries for linking.
@@ -36,13 +38,9 @@ pub struct Metadata {
     /// Enable the EraVM extensions.
     #[serde(default)]
     pub enable_eravm_extensions: bool,
-    /// The target to run the test on.
-    pub target: Option<Target>,
     /// If the entire test file must be ignored.
     #[serde(default)]
     pub ignore: bool,
-    /// The test group.
-    pub group: Option<String>,
 }
 
 impl FromStr for Metadata {

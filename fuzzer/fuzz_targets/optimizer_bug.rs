@@ -1,3 +1,7 @@
+//!
+//! This module contains the fuzzing target for the simple contract.
+//!
+
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;

@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use crate::directories::matter_labs::test::metadata::case::input::calldata::Calldata as MatterLabsTestInputCalldata;
+use crate::target::Target;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 
@@ -24,6 +25,7 @@ impl Calldata {
     pub fn try_from_matter_labs(
         calldata: MatterLabsTestInputCalldata,
         instances: &BTreeMap<String, Instance>,
+        target: Target,
     ) -> anyhow::Result<Self> {
         let calldata = match calldata {
             MatterLabsTestInputCalldata::Value(value) => {
@@ -37,7 +39,7 @@ impl Calldata {
             }
             MatterLabsTestInputCalldata::List(values) => {
                 let mut result = Vec::with_capacity(values.len());
-                let calldata = Value::try_from_vec_matter_labs(values, instances)?;
+                let calldata = Value::try_from_vec_matter_labs(values, instances, target)?;
                 for value in calldata.into_iter() {
                     let value = match value {
                         Value::Certain(value) => value,

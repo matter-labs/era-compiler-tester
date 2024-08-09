@@ -5,7 +5,6 @@
 pub mod standard_json;
 
 use std::io::Write;
-use std::path::Path;
 
 use self::standard_json::input::Input as StandardJsonInput;
 use self::standard_json::output::Output as StandardJsonOutput;
@@ -114,27 +113,5 @@ impl Compiler {
         })?;
 
         Ok(output)
-    }
-
-    ///
-    /// The `solc` Yul validator.
-    ///
-    pub fn validate_yul(&self, path: &Path) -> anyhow::Result<()> {
-        let mut command = std::process::Command::new(self.executable.as_str());
-        command.arg("--strict-assembly");
-        command.arg(path);
-
-        let output = command.output().map_err(|error| {
-            anyhow::anyhow!("{} subprocess error: {:?}", self.executable, error)
-        })?;
-        if !output.status.success() {
-            anyhow::bail!(
-                "{} error: {}",
-                self.executable,
-                String::from_utf8_lossy(output.stderr.as_slice()).to_string()
-            );
-        }
-
-        Ok(())
     }
 }

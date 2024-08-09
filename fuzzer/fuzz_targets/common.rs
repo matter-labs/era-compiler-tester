@@ -1,3 +1,9 @@
+//!
+//! Common fuzzer code.
+//!
+
+#![allow(dead_code)]
+
 use std::{path::PathBuf, sync::Arc};
 
 use compiler_tester::{
@@ -202,6 +208,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
                 None,
                 Some(PathBuf::from("system-contracts-stable-build")),
                 Some(PathBuf::from("system-contracts-stable-build")),
+                compiler_tester::Target::EraVM,
             )?),
         );
     }

@@ -51,6 +51,16 @@ pub fn u256_to_address(value: &web3::types::U256) -> web3::types::Address {
 }
 
 ///
+/// Converts `Address` into `H256`.
+///
+pub fn address_to_h256(address: &web3::types::Address) -> web3::types::H256 {
+    let mut buffer = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
+    buffer[era_compiler_common::BYTE_LENGTH_FIELD - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS..]
+        .copy_from_slice(address.as_bytes());
+    web3::types::H256(buffer)
+}
+
+///
 /// Converts `U256` into `H256`.
 ///
 pub fn u256_to_h256(value: &web3::types::U256) -> web3::types::H256 {
