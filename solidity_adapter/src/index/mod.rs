@@ -46,6 +46,10 @@ impl FSEntity {
             let path = entry.path();
             let entry_type = entry.file_type()?;
 
+            if entry.file_name().to_string_lossy().starts_with('.') {
+                continue;
+            }
+
             if entry_type.is_dir() {
                 entries.insert(
                     path.file_name()
@@ -289,11 +293,12 @@ impl FSEntity {
     ///
     fn delete(&self, current: &Path) -> anyhow::Result<()> {
         if let Self::Directory(_) = self {
-            fs::remove_dir_all(current)
-                .map_err(|err| anyhow::anyhow!("Failed to delete directory: {}", err))?;
+            fs::remove_dir_all(current).map_err(|err| {
+                anyhow::anyhow!("Failed to delete directory {:?}: {}", current, err)
+            })?;
         } else {
             fs::remove_file(current)
-                .map_err(|err| anyhow::anyhow!("Failed to delete file: {}", err))?;
+                .map_err(|err| anyhow::anyhow!("Failed to delete file {:?}: {}", current, err))?;
         }
 
         Ok(())
