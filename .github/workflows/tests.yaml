@@ -110,7 +110,7 @@ jobs:
   # If you would like to make a change to the benchmarks workflow, please do it in the era-compiler-ci repository
   benchmarks:
     needs: target-machine
-    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@v1
+    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@aba-upstream-solc-evm
     secrets: inherit
     strategy:
       fail-fast: false
