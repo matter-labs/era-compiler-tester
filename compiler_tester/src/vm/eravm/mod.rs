@@ -309,18 +309,20 @@ impl EraVM {
         }
         #[cfg(feature = "lambda_vm")]
         {
-            let (result, storage_changes, deployed_contracts) = lambda_vm_adapter::run_vm(
-                self.deployed_contracts.clone(),
-                &calldata,
-                self.storage.clone(),
-                entry_address,
-                Some(context),
-                vm_launch_option,
-                self.known_contracts.clone(),
-                self.default_aa_code_hash,
-                self.evm_interpreter_code_hash,
-            )
-            .map_err(|error| anyhow::anyhow!("EraVM failure: {}", error))?;
+            let (result, storage_changes, deployed_contracts, deployed_blobs) =
+                lambda_vm_adapter::run_vm(
+                    self.deployed_contracts.clone(),
+                    self.published_evm_bytecodes.clone(),
+                    &calldata,
+                    self.storage.clone(),
+                    entry_address,
+                    Some(context),
+                    vm_launch_option,
+                    self.known_contracts.clone(),
+                    self.default_aa_code_hash,
+                    self.evm_interpreter_code_hash,
+                )
+                .map_err(|error| anyhow::anyhow!("EraVM failure: {}", error))?;
 
             for (key, value) in storage_changes.into_iter() {
                 self.storage.insert(key, value);
@@ -332,6 +334,8 @@ impl EraVM {
 
                 self.deployed_contracts.insert(address, assembly);
             }
+
+            self.published_evm_bytecodes.extend(deployed_blobs);
 
             Ok(result)
         }
