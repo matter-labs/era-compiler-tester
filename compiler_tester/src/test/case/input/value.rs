@@ -117,14 +117,12 @@ impl Value {
                 .last()
                 .and_then(|value| value.parse().ok())
                 .unwrap_or_default();
-            match target {
-                Target::EraVM => web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_ERAVM),
-                Target::EVM | Target::EVMEmulator => {
-                    { web3::types::U256::from(SystemContext::ZERO_BLOCK_HASH_EVM) }
-                        .checked_add(web3::types::U256::from(offset))
-                        .expect("Always valid")
-                }
+            let mut hash =
+                web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
+            if let Target::EVM | Target::EVMEmulator = target {
+                hash += web3::types::U256::from(offset);
             }
+            hash
         } else if value == "$BLOCK_NUMBER" {
             match target {
                 Target::EraVM => web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_ERAVM),

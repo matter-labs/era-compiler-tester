@@ -107,12 +107,9 @@ impl SystemContext {
     /// The timestamp step for blocks in the EVM context.
     pub const BLOCK_TIMESTAMP_EVM_STEP: u128 = 15;
 
-    /// The default zero block hash for EraVM tests.
-    pub const ZERO_BLOCK_HASH_ERAVM: &'static str =
+    /// The default zero block hash.
+    pub const ZERO_BLOCK_HASH: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
-    /// The default zero block hash for EVM tests.
-    pub const ZERO_BLOCK_HASH_EVM: &'static str =
-        "0x3737373737373737373737373737373737373737373737373737373737373738";
 
     ///
     /// Returns the storage values for the system context.
@@ -131,7 +128,7 @@ impl SystemContext {
 
         let block_number = match target {
             Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::INITIAL_BLOCK_NUMBER_EVM,
+            Target::EVM | Target::EVMEmulator => Self::CURRENT_BLOCK_NUMBER_EVM,
         };
         let block_timestamp = match target {
             Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
@@ -203,11 +200,8 @@ impl SystemContext {
                     .to_vec();
             let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
 
-            let mut hash = web3::types::U256::from_str(match target {
-                Target::EraVM => Self::ZERO_BLOCK_HASH_ERAVM,
-                Target::EVM | Target::EVMEmulator => Self::ZERO_BLOCK_HASH_EVM,
-            })
-            .expect("Invalid zero block hash const");
+            let mut hash =
+                web3::types::U256::from_str(Self::ZERO_BLOCK_HASH).expect("Always valid");
             hash = hash.add(web3::types::U256::from(index));
             let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
             hash.to_big_endian(&mut hash_bytes);
