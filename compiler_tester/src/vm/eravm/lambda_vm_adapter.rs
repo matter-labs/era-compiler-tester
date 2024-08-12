@@ -18,6 +18,7 @@ use lambda_vm::EraVM;
 use std::cell::RefCell;
 use std::rc::Rc;
 use web3::types::H160;
+use zkevm_assembly::zkevm_opcode_defs::decoding::{EncodingModeProduction, EncodingModeTesting};
 use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{H256, U256};
 use zkevm_tester::runners::compiler_tests::FullABIParams;
@@ -83,10 +84,24 @@ pub fn run_vm(
         lambda_storage.insert(lambda_storage_key, value_u256);
     }
 
-    for (_, mut contract) in contracts {
+    let bytecode_to_hash = match zkevm_assembly::get_encoding_mode() {
+        zkevm_assembly::RunningVmEncodingMode::Testing => |bytecode: &[[u8; 32]]| {
+            zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash_for_mode::<
+                16,
+                EncodingModeTesting,
+            >(bytecode)
+        },
+        zkevm_assembly::RunningVmEncodingMode::Production => |bytecode: &[[u8; 32]]| {
+            zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash_for_mode::<
+                8,
+                EncodingModeProduction,
+            >(bytecode)
+        },
+    };
+
+    for (key, mut contract) in contracts {
         let bytecode = contract.compile_to_bytecode()?;
-        let hash = zkevm_assembly::zkevm_opcode_defs::bytecode_to_code_hash(&bytecode)
-            .map_err(|()| anyhow!("Failed to hash bytecode"))?;
+        let hash = bytecode_to_hash(&bytecode).map_err(|()| anyhow!("Failed to hash bytecode"))?;
         known_contracts.insert(U256::from_big_endian(&hash), contract);
     }
 
