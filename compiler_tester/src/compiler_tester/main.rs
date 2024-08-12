@@ -19,13 +19,15 @@ const RAYON_WORKER_STACK_SIZE: usize = 16 * 1024 * 1024;
 /// The application entry point.
 ///
 fn main() {
-    match main_inner(Arguments::new()) {
-        Ok(()) => std::process::exit(0),
+    let exit_code = match main_inner(Arguments::new()) {
+        Ok(()) => era_compiler_common::EXIT_CODE_SUCCESS,
         Err(error) => {
             eprintln!("{error:?}");
-            std::process::exit(1)
+            era_compiler_common::EXIT_CODE_FAILURE
         }
-    }
+    };
+    unsafe { inkwell::support::shutdown_llvm() };
+    std::process::exit(exit_code);
 }
 
 ///
