@@ -14,10 +14,10 @@ use vm2::Program;
 use vm2::World;
 use zkevm_assembly::Assembly;
 use zkevm_opcode_defs::ethereum_types::{BigEndianHash, H256, U256};
-use zkevm_tester::runners::compiler_tests::FullABIParams;
-use zkevm_tester::runners::compiler_tests::StorageKey;
-use zkevm_tester::runners::compiler_tests::VmExecutionContext;
-use zkevm_tester::runners::compiler_tests::VmLaunchOption;
+use zkevm_tester::compiler_tests::FullABIParams;
+use zkevm_tester::compiler_tests::StorageKey;
+use zkevm_tester::compiler_tests::VmExecutionContext;
+use zkevm_tester::compiler_tests::VmLaunchOption;
 
 use crate::test::case::input::{
     output::{event::Event, Output},

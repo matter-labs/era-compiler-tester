@@ -177,10 +177,6 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
         None,
         Workflow::BuildAndRun,
     )?;
-    zkevm_tester::runners::compiler_tests::set_tracing_mode(
-        zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(0),
-    );
-    zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
 
     // Compile and run test
     if let Some(test) = test.build_for_eravm(
