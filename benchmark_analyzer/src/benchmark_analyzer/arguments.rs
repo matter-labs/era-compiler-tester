@@ -10,7 +10,10 @@ use structopt::StructOpt;
 /// The benchmark analyzer arguments.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "benchmark-analyzer", about = "ZKsync toolchain benchmark analyzer")]
+#[structopt(
+    name = "benchmark-analyzer",
+    about = "ZKsync toolchain benchmark analyzer"
+)]
 pub struct Arguments {
     /// The reference build benchmark.
     #[structopt(long = "reference", default_value = "reference.json")]

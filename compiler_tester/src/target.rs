@@ -1,13 +1,13 @@
 //!
-//! The compiler tester target to run tests on.
+//! The compiler tester environment to run tests on.
 //!
 
 ///
-/// The compiler tester target to run tests on.
+/// The compiler tester environment to run tests on.
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize)]
 pub enum Target {
-    /// The EraVM target.
+    /// The EraVM / zk_evm.
     EraVM,
     /// The EVM interpreter within EraVM System Contracts.
     EVM,
