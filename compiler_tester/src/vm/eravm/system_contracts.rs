@@ -17,7 +17,6 @@ use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
 
 pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
 
@@ -27,11 +26,11 @@ pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct SystemContracts {
     /// The deployed system contracts builds.
-    pub deployed_contracts: Vec<(web3::types::Address, EraVMBuild)>,
+    pub deployed_contracts: Vec<(web3::types::Address, era_compiler_llvm_context::EraVMBuild)>,
     /// The default account abstraction contract build.
-    pub default_aa: EraVMBuild,
+    pub default_aa: era_compiler_llvm_context::EraVMBuild,
     /// The EVM interpreter contract build.
-    pub evm_interpreter: EraVMBuild,
+    pub evm_interpreter: era_compiler_llvm_context::EraVMBuild,
 }
 
 impl SystemContracts {
@@ -385,7 +384,7 @@ impl SystemContracts {
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<HashMap<String, EraVMBuild>>
+    ) -> anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>
     where
         C: Compiler,
     {

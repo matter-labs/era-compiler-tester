@@ -59,16 +59,15 @@ impl EraVMDeployer for SystemContractDeployer {
                 );
             }
 
-            let vm_launch_option =
-                zkevm_tester::runners::compiler_tests::VmLaunchOption::ManualCallABI(
-                    zkevm_tester::runners::compiler_tests::FullABIParams {
-                        is_constructor: false,
-                        is_system_call: true,
-                        r3_value: r3,
-                        r4_value: r4,
-                        r5_value: r5,
-                    },
-                );
+            let vm_launch_option = zkevm_tester::compiler_tests::VmLaunchOption::ManualCallABI(
+                zkevm_tester::compiler_tests::FullABIParams {
+                    is_constructor: false,
+                    is_system_call: true,
+                    r3_value: r3,
+                    r4_value: r4,
+                    r5_value: r5,
+                },
+            );
             (vm_launch_option, 0)
         } else {
             let context_u128_value = if let Some(value) = value {
@@ -82,16 +81,15 @@ impl EraVMDeployer for SystemContractDeployer {
             } else {
                 0
             };
-            let vm_launch_option =
-                zkevm_tester::runners::compiler_tests::VmLaunchOption::ManualCallABI(
-                    zkevm_tester::runners::compiler_tests::FullABIParams {
-                        is_constructor: false,
-                        is_system_call: true,
-                        r3_value: None,
-                        r4_value: None,
-                        r5_value: None,
-                    },
-                );
+            let vm_launch_option = zkevm_tester::compiler_tests::VmLaunchOption::ManualCallABI(
+                zkevm_tester::compiler_tests::FullABIParams {
+                    is_constructor: false,
+                    is_system_call: true,
+                    r3_value: None,
+                    r4_value: None,
+                    r5_value: None,
+                },
+            );
             (vm_launch_option, context_u128_value)
         };
 
@@ -158,8 +156,8 @@ impl EraVMDeployer for SystemContractDeployer {
                 );
             }
 
-            vm_launch_option = zkevm_tester::runners::compiler_tests::VmLaunchOption::ManualCallABI(
-                zkevm_tester::runners::compiler_tests::FullABIParams {
+            vm_launch_option = zkevm_tester::compiler_tests::VmLaunchOption::ManualCallABI(
+                zkevm_tester::compiler_tests::FullABIParams {
                     is_constructor: false,
                     is_system_call: true,
                     r3_value: r3,
@@ -180,8 +178,8 @@ impl EraVMDeployer for SystemContractDeployer {
                 context_u128_value = 0;
             }
 
-            vm_launch_option = zkevm_tester::runners::compiler_tests::VmLaunchOption::ManualCallABI(
-                zkevm_tester::runners::compiler_tests::FullABIParams {
+            vm_launch_option = zkevm_tester::compiler_tests::VmLaunchOption::ManualCallABI(
+                zkevm_tester::compiler_tests::FullABIParams {
                     is_constructor: false,
                     is_system_call: true,
                     r3_value: None,

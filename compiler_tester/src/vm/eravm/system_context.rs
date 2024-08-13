@@ -116,7 +116,7 @@ impl SystemContext {
     ///
     pub fn create_storage(
         target: Target,
-    ) -> HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256> {
+    ) -> HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256> {
         let chain_id = match target {
             Target::EraVM => Self::CHAIND_ID_ERAVM,
             Target::EVM | Target::EVMEmulator => Self::CHAIND_ID_EVM,
@@ -216,7 +216,7 @@ impl SystemContext {
 
         for (key, value) in system_context_values {
             storage.insert(
-                zkevm_tester::runners::compiler_tests::StorageKey {
+                zkevm_tester::compiler_tests::StorageKey {
                     address: web3::types::Address::from_low_u64_be(
                         zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
                     ),
@@ -246,7 +246,7 @@ impl SystemContext {
                 ]
                 .concat();
                 let key = web3::signing::keccak256(&bytes).into();
-                let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+                let storage_key = zkevm_tester::compiler_tests::StorageKey {
                     address: web3::types::Address::from_low_u64_be(
                         zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
                     ),
@@ -267,7 +267,7 @@ impl SystemContext {
             ]
             .concat();
             let key = web3::signing::keccak256(&bytes).into();
-            let storage_key = zkevm_tester::runners::compiler_tests::StorageKey {
+            let storage_key = zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),
                 ),
@@ -325,10 +325,10 @@ impl SystemContext {
     /// Sets the storage values for the system context to the pre-Paris values.
     ///
     pub fn set_pre_paris_contracts(
-        storage: &mut HashMap<zkevm_tester::runners::compiler_tests::StorageKey, web3::types::H256>,
+        storage: &mut HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
     ) {
         storage.insert(
-            zkevm_tester::runners::compiler_tests::StorageKey {
+            zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
                 ),
