@@ -181,7 +181,7 @@ impl Benchmark {
             };
 
             let mut group_results = Group::compare(reference_group, candidate_group);
-            if group_name.starts_with(Self::EVM_INTERPRETER_GROUP_NAME_CYCLES) {
+            if  group_name.starts_with(Self::EVM_INTERPRETER_GROUP_NAME_CYCLES) {
                 if let (Some(reference_ratios), Some(candidate_ratios)) = (
                     reference
                         .groups

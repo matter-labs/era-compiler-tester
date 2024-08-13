@@ -126,29 +126,23 @@ impl Group {
             size_factors.push(size_factor);
         }
 
-        let size_geomean = math::mean::geometric(size_factors.as_slice());
         let size_total = (size_total_candidate as f64) / (size_total_reference as f64);
 
-        let cycles_geomean = math::mean::geometric(cycles_factors.as_slice());
         let cycles_total = (cycles_total_candidate as f64) / (cycles_total_reference as f64);
 
-        let ergs_geomean = math::mean::geometric(ergs_factors.as_slice());
         let ergs_total = (ergs_total_candidate as f64) / (ergs_total_reference as f64);
 
         Results::new(
-            size_geomean,
             size_min,
             size_max,
             size_total,
             size_negatives,
             size_positives,
-            cycles_geomean,
             cycles_min,
             cycles_max,
             cycles_total,
             cycles_negatives,
             cycles_positives,
-            ergs_geomean,
             ergs_min,
             ergs_max,
             ergs_total,
