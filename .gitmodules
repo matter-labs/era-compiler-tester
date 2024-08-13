@@ -8,5 +8,5 @@
 	branch = develop
 [submodule "era-contracts"]
 	path = era-contracts
-	url = https://github.com/lambdaclass/era-contracts
-	branch = nonce-address-fix
+	url = https://github.com/matter-labs/era-contracts
+	branch = evm-equivalence-yul
