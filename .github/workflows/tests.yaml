@@ -120,8 +120,8 @@ jobs:
       compiler_tester_reference_branch: ${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}
       compiler_tester_candidate_branch: ${{ github.event.inputs.compiler_tester_candidate_branch || '' }}
       compiler_llvm_candidate_branch: ${{ github.event.inputs.compiler_llvm_candidate_branch || '' }}
-      compiler_llvm_reference_branch: ${{ github.event.inputs.compiler_llvm_reference_branch || 'main' }}
-      compiler_llvm_benchmark_mode: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3AAA' }}
+      compiler_llvm_reference_branch: ${{ github.event.inputs.compiler_llvm_reference_branch || 'badbranch' }}
+      compiler_llvm_benchmark_mode: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3' }}
       compiler_llvm_benchmark_path: ${{ github.event.inputs.compiler_llvm_benchmark_path || '' }}
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }}
       ccache-key-type: static
