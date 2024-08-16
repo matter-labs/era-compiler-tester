@@ -42,9 +42,9 @@ impl AddressIterator for EVMAddressIterator {
 
         let hash = era_compiler_common::Hash::keccak256(&stream.out());
         let address = web3::types::Address::from_str(
-            &hash.to_string()[(era_compiler_common::BYTE_LENGTH_FIELD
-                - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS)
-                * 2..],
+            &hash.to_string()[2 + 2
+                * (era_compiler_common::BYTE_LENGTH_FIELD
+                    - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS)..],
         )
         .expect("Always valid");
 
