@@ -166,7 +166,7 @@ impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
 
 impl From<evm::Log> for Event {
     fn from(log: evm::Log) -> Self {
-        let address = log.address;
+        let _address = log.address;
         let topics = log
             .topics
             .into_iter()
