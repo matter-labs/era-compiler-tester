@@ -164,7 +164,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     ));
 
     // Initialization
-    era_compiler_llvm_context::initialize_target(era_compiler_llvm_context::Target::EraVM);
+    era_compiler_llvm_context::initialize_target(era_compiler_common::Target::EraVM);
     era_compiler_solidity::EXECUTABLE
         .set(PathBuf::from(
             era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,

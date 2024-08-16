@@ -44,8 +44,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     inkwell::support::enable_llvm_pretty_stack_trace();
     for target in [
-        era_compiler_llvm_context::Target::EraVM,
-        era_compiler_llvm_context::Target::EVM,
+        era_compiler_common::Target::EraVM,
+        era_compiler_common::Target::EVM,
     ]
     .into_iter()
     {
