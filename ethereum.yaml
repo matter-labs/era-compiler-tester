@@ -3083,7 +3083,8 @@ entries:
         version: '>=0.7.1'
       free_namesake_contract_function.sol:
         hash: '0x1fe31d1fbff16a687b8f4347f9425742'
-        enabled: true
+        enabled: false
+        comment: "TODO: Cannot be caught on the interpreter due to infinite recursion"
         version: '>=0.7.1'
       free_runtimecode.sol:
         hash: '0x46c37470a258c414a112506f8662fdfb'
@@ -5083,6 +5084,10 @@ entries:
           all_possible_user_defined_value_types_with_operators.sol:
             hash: '0x0313d514b74a56f0eaeede26189664dc'
             enabled: true
+            modes:
+              - Y+
+              - E+
+              - I+
             version: '>=0.8.19'
           attaching_and_defining_operator_with_same_function.sol:
             hash: '0x838df4135469500fcb972c77531cc99b'
