@@ -303,7 +303,7 @@ dependencies = [
  "benchmark-analyzer",
  "bincode",
  "colored",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester)",
+ "era-compiler-common",
  "era-compiler-llvm-context",
  "era-compiler-solidity",
  "era-compiler-vyper",
@@ -340,7 +340,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "compiler-tester",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester)",
+ "era-compiler-common",
  "era-compiler-llvm-context",
  "era-compiler-solidity",
  "libfuzzer-sys",
@@ -388,7 +388,7 @@ name = "coverage-watcher"
 version = "1.5.0"
 dependencies = [
  "anyhow",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester)",
+ "era-compiler-common",
  "serde",
  "serde_yaml",
  "structopt",
@@ -606,7 +606,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester#0a48b442bc765bec38477cfe82bc4ba96f186b52"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#8c92a59f925f0b8d83c5f074aa0965aeb58b6ad8"
 dependencies = [
  "anyhow",
  "base58",
@@ -619,23 +619,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "era-compiler-common"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#bf1a68d27d7aca5bb2e9dbcc99062f50dd14d2f7"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "serde_stacker",
-]
-
-[[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1794-split-target-parameter-of-compiler-tester#560190e9ddb0b095a62bbc0051b43c223fc9a14f"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#149a06491d2ed526e39c659b5c5634b370f28b02"
 dependencies = [
  "anyhow",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester)",
+ "era-compiler-common",
  "inkwell",
  "itertools",
  "num",
@@ -647,10 +636,10 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1794-split-target-parameter-of-compiler-tester#6f48cf347a705824525085d8f4bb9451402d5704"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#1e0cade31feb2e9a87f55ab561dd86959e1641f9"
 dependencies = [
  "anyhow",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester)",
+ "era-compiler-common",
  "era-compiler-llvm-context",
  "hex",
  "inkwell",
@@ -675,10 +664,10 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1794-split-target-parameter-of-compiler-tester#5dce1243e5fc6d78b570eb4ca6f5270bd1b7be52"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#08f97d35442cbb30d6384d3aaeea3ca8976f1cda"
 dependencies = [
  "anyhow",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-cpr-1794-split-target-parameter-of-compiler-tester)",
+ "era-compiler-common",
  "era-compiler-llvm-context",
  "hex",
  "inkwell",
@@ -2442,7 +2431,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "colored",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=main)",
+ "era-compiler-common",
  "md5",
  "regex",
  "semver",
