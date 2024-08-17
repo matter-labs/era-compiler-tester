@@ -16,13 +16,17 @@ pub enum Workflow {
 }
 
 impl FromStr for Workflow {
-    type Err = &'static str;
+    type Err = anyhow::Error;
 
     fn from_str(day: &str) -> Result<Self, Self::Err> {
         match day {
             "build" => Ok(Workflow::BuildOnly),
             "run" => Ok(Workflow::BuildAndRun),
-            _ => Err("Could not parse workflow. Supported workflows: build, run."),
+            string => anyhow::bail!(
+                "Unknown workflow `{}`. Supported workflows: {:?}",
+                string,
+                vec![Self::BuildOnly, Self::BuildAndRun]
+            ),
         }
     }
 }

@@ -8,7 +8,7 @@ pub mod evm_contract;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-use crate::target::Target;
+use crate::environment::Environment;
 
 use self::case::Case;
 use self::evm_contract::EVMContract;
@@ -36,8 +36,8 @@ pub struct Metadata {
     /// Enable the EraVM extensions.
     #[serde(default)]
     pub enable_eravm_extensions: bool,
-    /// The target to run the test on.
-    pub target: Option<Target>,
+    /// The environment to run the tests on.
+    pub environment: Option<Environment>,
     /// If the entire test file must be ignored.
     #[serde(default)]
     pub ignore: bool,

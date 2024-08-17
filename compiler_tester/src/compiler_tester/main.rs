@@ -102,10 +102,10 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     let binary_download_config_paths = vec![
         arguments.solc_bin_config_path.unwrap_or_else(|| {
-            PathBuf::from(if arguments.use_upstream_solc {
-                "./configs/solc-bin-upstream.json"
-            } else {
-                "./configs/solc-bin-default.json"
+            PathBuf::from(match arguments.toolchain {
+                compiler_tester::Toolchain::IrLLVM => "./configs/solc-bin-default.json",
+                compiler_tester::Toolchain::Solc => "./configs/solc-bin-upstream.json",
+                compiler_tester::Toolchain::SolcLLVM => todo!(),
             })
         }),
         arguments
@@ -120,13 +120,32 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         rayon::current_num_threads(),
     );
 
-    let target = match arguments.target {
-        Some(target) => compiler_tester::Target::from_str(target.as_str())?,
-        None => compiler_tester::Target::EraVM,
+    let environment = match (arguments.target, arguments.environment) {
+        (
+            era_compiler_common::Target::EraVM,
+            Some(environment @ compiler_tester::Environment::ZkEVM),
+        ) => environment,
+        (era_compiler_common::Target::EraVM, Some(compiler_tester::Environment::FastVM)) => {
+            todo!("FastVM is implemented as a crate feature")
+        }
+        (era_compiler_common::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
+        (
+            era_compiler_common::Target::EVM,
+            Some(environment @ compiler_tester::Environment::EVMInterpreter),
+        ) => environment,
+        (
+            era_compiler_common::Target::EVM,
+            Some(environment @ compiler_tester::Environment::REVM),
+        ) => environment,
+        (era_compiler_common::Target::EVM, None) => compiler_tester::Environment::EVMInterpreter,
+        (target, Some(environment)) => anyhow::bail!(
+            "Target `{}` and environment `{}` combination is not supported",
+            target,
+            environment,
+        ),
     };
-
-    match target {
-        compiler_tester::Target::EraVM => {
+    match environment {
+        compiler_tester::Environment::ZkEVM => {
             let system_contracts_debug_config = if arguments.dump_system {
                 debug_config
             } else {
@@ -156,11 +175,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm),
             }
         }
-        compiler_tester::Target::EVM => {
-            compiler_tester::EVM::download(binary_download_config_paths)?;
-            compiler_tester.run_evm(arguments.use_upstream_solc)
-        }
-        compiler_tester::Target::EVMInterpreter => {
+        compiler_tester::Environment::FastVM => todo!(),
+        compiler_tester::Environment::EVMInterpreter => {
             let system_contract_debug_config = if arguments.dump_system {
                 debug_config
             } else {
@@ -177,8 +193,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             compiler_tester
                 .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, false>(
                     vm,
-                    arguments.use_upstream_solc,
+                    arguments.toolchain,
                 )
+        }
+        compiler_tester::Environment::REVM => {
+            compiler_tester::EVM::download(binary_download_config_paths)?;
+            compiler_tester.run_evm(arguments.toolchain)
         }
     }?;
 
@@ -217,7 +237,7 @@ mod tests {
             verbosity: false,
             quiet: false,
             debug: false,
-            modes: vec!["Y+M3B3 0.8.24".to_owned()],
+            modes: vec!["Y+M3B3 0.8.26".to_owned()],
             paths: vec!["tests/solidity/simple/default.sol".to_owned()],
             groups: vec![],
             benchmark: None,
@@ -229,15 +249,16 @@ mod tests {
                 era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
             )),
             zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
-            target: Some(compiler_tester::Target::EraVM.to_string()),
-            use_upstream_solc: false,
+            toolchain: compiler_tester::Toolchain::IrLLVM,
+            target: era_compiler_common::Target::EraVM,
+            environment: None,
+            workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),
             vyper_bin_config_path: Some(PathBuf::from("./configs/vyper-bin-default.json")),
             system_contracts_load_path: Some(PathBuf::from("system-contracts-stable-build")),
             system_contracts_save_path: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
-            workflow: compiler_tester::Workflow::BuildAndRun,
         };
 
         crate::main_inner(arguments).expect("Manual testing failed");
