@@ -265,7 +265,7 @@ impl EraVM {
             }
 
             for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
-                if self.published_evm_bytecodes.contains_key(&hash) {
+                if self.published_evm_bytecodes.contains_key(hash) {
                     continue;
                 }
 
