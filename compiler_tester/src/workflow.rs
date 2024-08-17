@@ -23,10 +23,23 @@ impl FromStr for Workflow {
             "build" => Ok(Workflow::BuildOnly),
             "run" => Ok(Workflow::BuildAndRun),
             string => anyhow::bail!(
-                "Unknown workflow `{}`. Supported workflows: {:?}",
+                "Unknown workflow `{}`. Supported workflows: {}",
                 string,
                 vec![Self::BuildOnly, Self::BuildAndRun]
+                    .into_iter()
+                    .map(|element| element.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
             ),
+        }
+    }
+}
+
+impl std::fmt::Display for Workflow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Workflow::BuildOnly => write!(f, "build"),
+            Workflow::BuildAndRun => write!(f, "run"),
         }
     }
 }

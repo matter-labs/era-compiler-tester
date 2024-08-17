@@ -606,7 +606,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#8c92a59f925f0b8d83c5f074aa0965aeb58b6ad8"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#503b2edb28958f6b096427aaabf05cf7994b4cb4"
 dependencies = [
  "anyhow",
  "base58",
@@ -621,7 +621,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#149a06491d2ed526e39c659b5c5634b370f28b02"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#1125125c396719d489f07d97a5cbd0195cd61c4b"
 dependencies = [
  "anyhow",
  "era-compiler-common",

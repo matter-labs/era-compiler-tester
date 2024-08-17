@@ -30,6 +30,10 @@ impl std::str::FromStr for Environment {
                 "Unknown environment `{}`. Supported environments: {:?}",
                 string,
                 vec![Self::ZkEVM, Self::FastVM, Self::EVMInterpreter, Self::REVM]
+                    .into_iter()
+                    .map(|element| element.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
             ),
         }
     }

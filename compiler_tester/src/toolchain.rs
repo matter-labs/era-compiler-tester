@@ -24,9 +24,13 @@ impl std::str::FromStr for Toolchain {
             "solc" => Ok(Self::Solc),
             "solc-LLVM" => Ok(Self::SolcLLVM),
             string => anyhow::bail!(
-                "Unknown target `{}`. Supported targets: {:?}",
+                "Unknown target `{}`. Supported targets: {}",
                 string,
                 vec![Self::IrLLVM, Self::Solc, Self::SolcLLVM]
+                    .into_iter()
+                    .map(|element| element.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
             ),
         }
     }

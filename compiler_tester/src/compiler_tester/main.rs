@@ -139,9 +139,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         ) => environment,
         (era_compiler_common::Target::EVM, None) => compiler_tester::Environment::EVMInterpreter,
         (target, Some(environment)) => anyhow::bail!(
-            "Target `{}` and environment `{}` combination is not supported",
-            target,
-            environment,
+            "Target `{target}` and environment `{environment}` combination is not supported"
         ),
     };
     match environment {
