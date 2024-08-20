@@ -621,7 +621,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1793-add-noinline-attribute-to-call-instructions-in-o0#ec496be61f963285a20163cd9d4613c8164c586c"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#8809df8ecd952972a9cba078b5f368df5c153c58"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -636,7 +636,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.2"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1793-add-noinline-attribute-to-call-instructions-in-o0#fd6b61cd7a995234f16ac7a06ece3e3270dde495"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#6268b72eafd3fd13c8dc71895e933710bdd3320b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -664,7 +664,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.3"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1793-add-noinline-attribute-to-call-instructions-in-o0#36000c14b0936cebbda434c3ce38ad66a4fed86c"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#27126d0f95854274568aaaa0eb7a8964435647ad"
 dependencies = [
  "anyhow",
  "era-compiler-common",
