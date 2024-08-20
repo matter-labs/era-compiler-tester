@@ -73,13 +73,13 @@ jobs:
 
       - name: Check for EraVM target
         id: eravm
-        if: contains(github.event.pull_request.title, '(EraVM)')
-        run: echo "machine=EraVM" | tee -a "${GITHUB_OUTPUT}"
+        if: contains(github.event.pull_request.title, '(eravm)')
+        run: echo "machine=eravm" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Check for EVM target
         id: evm
-        if: contains(github.event.pull_request.title, '(EVM)')
-        run: echo "machine=EVM" | tee -a "${GITHUB_OUTPUT}"
+        if: contains(github.event.pull_request.title, '(evm)')
+        run: echo "machine=evm" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Check for default target
         id: default
@@ -94,7 +94,7 @@ jobs:
   # If you would like to make a change to the integration tests workflow, please do it in the era-compiler-ci repository
   integration-tests:
     needs: target-machine
-    uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@az-cpr-1794-split-target-parameter-of-compiler-tester
+    uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@v1
     secrets: inherit
     strategy:
       fail-fast: false
@@ -110,7 +110,7 @@ jobs:
   # If you would like to make a change to the benchmarks workflow, please do it in the era-compiler-ci repository
   benchmarks:
     needs: target-machine
-    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@az-cpr-1794-split-target-parameter-of-compiler-tester
+    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@v1
     secrets: inherit
     strategy:
       fail-fast: false
