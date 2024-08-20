@@ -15,9 +15,9 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::directories::Buildable;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::case::Case;
 use crate::test::instance::Instance;
 use crate::test::Test;
@@ -374,7 +374,7 @@ impl Buildable for MatterLabsTest {
         &self,
         mut mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -388,7 +388,7 @@ impl Buildable for MatterLabsTest {
 
         let mut eravm_address_iterator = EraVMAddressIterator::new();
         let evm_address_iterator =
-            EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
+            EVMAddressIterator::new(matches!(environment, Environment::EVMInterpreter));
 
         let (libraries, library_addresses) = self.get_libraries(&mut eravm_address_iterator);
 
@@ -442,7 +442,7 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let case = match case.normalize(&contracts, &instances, target) {
+            let case = match case.normalize(&contracts, &instances, environment) {
                 Ok(case) => case,
                 Err(error) => {
                     Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
@@ -507,7 +507,7 @@ impl Buildable for MatterLabsTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -519,7 +519,7 @@ impl Buildable for MatterLabsTest {
         let sources = self.sources.to_owned();
 
         let mut evm_address_iterator =
-            EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
+            EVMAddressIterator::new(matches!(environment, Environment::EVMInterpreter));
 
         let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
 
@@ -557,7 +557,10 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let case = match case.to_owned().normalize(&contracts, &instances, target) {
+            let case = match case
+                .to_owned()
+                .normalize(&contracts, &instances, environment)
+            {
                 Ok(case) => case,
                 Err(error) => {
                     Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);

@@ -554,8 +554,9 @@ impl EraVM {
         key_preimage.extend_from_slice(address.as_bytes());
         key_preimage.extend(vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD]);
 
-        let key_string = era_compiler_llvm_context::eravm_utils::keccak256(key_preimage.as_slice());
-        let key = web3::types::U256::from_str(key_string.as_str()).expect("Always valid");
+        let key_string = era_compiler_common::Hash::keccak256(key_preimage.as_slice());
+        let key =
+            web3::types::U256::from_str(key_string.to_string().as_str()).expect("Always valid");
         zkevm_tester::compiler_tests::StorageKey {
             address: web3::types::Address::from_low_u64_be(
                 zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),

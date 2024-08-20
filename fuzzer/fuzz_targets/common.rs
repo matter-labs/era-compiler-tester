@@ -164,7 +164,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     ));
 
     // Initialization
-    era_compiler_llvm_context::initialize_target(era_compiler_llvm_context::Target::EraVM);
+    era_compiler_llvm_context::initialize_target(era_compiler_common::Target::EraVM);
     era_compiler_solidity::EXECUTABLE
         .set(PathBuf::from(
             era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
@@ -182,7 +182,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     if let Some(test) = test.build_for_eravm(
         mode,
         Arc::new(SolidityCompiler::new()),
-        compiler_tester::Target::EraVM,
+        compiler_tester::Environment::ZkEVM,
         compiler_tester.summary.clone(),
         &compiler_tester.filters,
         compiler_tester.debug_config.clone(),
