@@ -9,10 +9,11 @@
 
 pub(crate) mod compilers;
 pub(crate) mod directories;
+pub(crate) mod environment;
 pub(crate) mod filters;
 pub(crate) mod summary;
-pub(crate) mod target;
 pub(crate) mod test;
+pub(crate) mod toolchain;
 pub(crate) mod utils;
 pub(crate) mod vm;
 pub(crate) mod workflow;
@@ -41,9 +42,10 @@ pub use crate::directories::ethereum::EthereumDirectory;
 pub use crate::directories::matter_labs::MatterLabsDirectory;
 pub use crate::directories::Buildable;
 pub use crate::directories::Collection;
+pub use crate::environment::Environment;
 pub use crate::filters::Filters;
 pub use crate::summary::Summary;
-pub use crate::target::Target;
+pub use crate::toolchain::Toolchain;
 pub use crate::vm::eravm::deployers::dummy_deployer::DummyDeployer as EraVMNativeDeployer;
 pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
 pub use crate::vm::eravm::deployers::EraVMDeployer;
@@ -125,7 +127,7 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(Target::EraVM, false)?;
+        let tests = self.all_tests(era_compiler_common::Target::EraVM, Toolchain::IrLLVM)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -139,7 +141,7 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_eravm(
                     mode,
                     compiler,
-                    Target::EraVM,
+                    Environment::ZkEVM,
                     self.summary.clone(),
                     &self.filters,
                     specialized_debug_config,
@@ -157,8 +159,8 @@ impl CompilerTester {
     ///
     /// Runs all tests on EVM emulator.
     ///
-    pub fn run_evm_emulator(self, use_upstream_solc: bool) -> anyhow::Result<()> {
-        let tests = self.all_tests(Target::EVMEmulator, use_upstream_solc)?;
+    pub fn run_evm(self, toolchain: Toolchain) -> anyhow::Result<()> {
+        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -171,7 +173,7 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
-                    Target::EVMEmulator,
+                    Environment::REVM,
                     self.summary.clone(),
                     &self.filters,
                     specialized_debug_config,
@@ -189,8 +191,8 @@ impl CompilerTester {
     ///
     /// Runs all tests on REVM.
     ///
-    pub fn run_revm(self, use_upstream_solc: bool) -> anyhow::Result<()> {
-        let tests = self.all_tests(Target::EVMEmulator, use_upstream_solc)?;
+    pub fn run_revm(self, toolchain: Toolchain) -> anyhow::Result<()> {
+        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -203,7 +205,7 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
-                    Target::EVMEmulator,
+                    Environment::REVM,
                     self.summary.clone(),
                     &self.filters,
                     specialized_debug_config,
@@ -224,12 +226,12 @@ impl CompilerTester {
     pub fn run_evm_interpreter<D, const M: bool>(
         self,
         vm: EraVM,
-        use_upstream_solc: bool,
+        toolchain: Toolchain,
     ) -> anyhow::Result<()>
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(Target::EVM, use_upstream_solc)?;
+        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -238,7 +240,7 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
-                    Target::EVM,
+                    Environment::EVMInterpreter,
                     self.summary.clone(),
                     &self.filters,
                     self.debug_config.clone(),
@@ -256,7 +258,11 @@ impl CompilerTester {
     ///
     /// Returns all tests from all directories.
     ///
-    fn all_tests(&self, target: Target, use_upstream_solc: bool) -> anyhow::Result<Vec<Test>> {
+    fn all_tests(
+        &self,
+        target: era_compiler_common::Target,
+        toolchain: Toolchain,
+    ) -> anyhow::Result<Vec<Test>> {
         let solidity_compiler = Arc::new(SolidityCompiler::new());
         let solidity_upstream_compiler = Arc::new(SolidityUpstreamCompiler::new(
             SolcStandardJsonInputLanguage::Solidity,
@@ -265,7 +271,7 @@ impl CompilerTester {
             SolcStandardJsonInputLanguage::Yul,
         ));
         let vyper_compiler = Arc::new(VyperCompiler::new());
-        let yul_compiler = Arc::new(YulCompiler::new(use_upstream_solc));
+        let yul_compiler = Arc::new(YulCompiler::new(toolchain));
         let llvm_compiler = Arc::new(LLVMCompiler);
         let eravm_compiler = Arc::new(EraVMCompiler);
 
@@ -275,13 +281,13 @@ impl CompilerTester {
             target,
             Self::SOLIDITY_SIMPLE,
             era_compiler_common::EXTENSION_SOLIDITY,
-            if use_upstream_solc {
-                solidity_upstream_compiler.clone()
-            } else {
-                solidity_compiler.clone()
+            match toolchain {
+                Toolchain::IrLLVM => solidity_compiler.clone(),
+                Toolchain::Solc => solidity_upstream_compiler.clone(),
+                Toolchain::SolcLLVM => todo!(),
             },
         )?);
-        if let Target::EraVM = target {
+        if let era_compiler_common::Target::EraVM = target {
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
                 Self::VYPER_SIMPLE,
@@ -293,10 +299,10 @@ impl CompilerTester {
             target,
             Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
-            if use_upstream_solc {
-                solidity_upstream_yul_compiler
-            } else {
-                yul_compiler
+            match toolchain {
+                Toolchain::IrLLVM => yul_compiler.clone(),
+                Toolchain::Solc => solidity_upstream_yul_compiler.clone(),
+                Toolchain::SolcLLVM => todo!(),
             },
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
@@ -316,13 +322,13 @@ impl CompilerTester {
             target,
             Self::SOLIDITY_COMPLEX,
             era_compiler_common::EXTENSION_JSON,
-            if use_upstream_solc {
-                solidity_upstream_compiler.clone()
-            } else {
-                solidity_compiler.clone()
+            match toolchain {
+                Toolchain::IrLLVM => solidity_compiler.clone(),
+                Toolchain::Solc => solidity_upstream_compiler.clone(),
+                Toolchain::SolcLLVM => todo!(),
             },
         )?);
-        if let Target::EraVM = target {
+        if let era_compiler_common::Target::EraVM = target {
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
                 Self::VYPER_COMPLEX,
@@ -334,17 +340,17 @@ impl CompilerTester {
         tests.extend(self.directory::<EthereumDirectory>(
             target,
             match target {
-                Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                Target::EVM | Target::EVMEmulator => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+                era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
             },
             era_compiler_common::EXTENSION_SOLIDITY,
-            if use_upstream_solc {
-                solidity_upstream_compiler
-            } else {
-                solidity_compiler
+            match toolchain {
+                Toolchain::IrLLVM => solidity_compiler.clone(),
+                Toolchain::Solc => solidity_upstream_compiler.clone(),
+                Toolchain::SolcLLVM => todo!(),
             },
         )?);
-        if let Target::EraVM = target {
+        if let era_compiler_common::Target::EraVM = target {
             tests.extend(self.directory::<EthereumDirectory>(
                 target,
                 Self::VYPER_ETHEREUM,
@@ -361,7 +367,7 @@ impl CompilerTester {
     ///
     fn directory<T>(
         &self,
-        target: Target,
+        target: era_compiler_common::Target,
         path: &str,
         extension: &'static str,
         compiler: Arc<dyn Compiler>,

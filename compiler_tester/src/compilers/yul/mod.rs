@@ -14,6 +14,7 @@ use crate::compilers::mode::Mode;
 use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
 use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
 use crate::compilers::Compiler;
+use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::build::Build as EVMBuild;
 use crate::vm::evm::input::Input as EVMInput;
@@ -24,9 +25,9 @@ use self::mode::Mode as YulMode;
 /// The Yul compiler.
 ///
 pub struct YulCompiler {
-    /// Whether to use the upstream `solc`.
+    /// The compiler toolchain to use.
     #[allow(dead_code)]
-    use_upstream_solc: bool,
+    toolchain: Toolchain,
 }
 
 lazy_static::lazy_static! {
@@ -45,8 +46,8 @@ impl YulCompiler {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(use_upstream_solc: bool) -> Self {
-        Self { use_upstream_solc }
+    pub fn new(toolchain: Toolchain) -> Self {
+        Self { toolchain }
     }
 }
 

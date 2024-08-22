@@ -7,12 +7,9 @@ pub mod event;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-use serde::Serialize;
-
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::Variant as MatterLabsTestExpectedVariant;
 use crate::directories::matter_labs::test::metadata::case::input::expected::Expected as MatterLabsTestExpected;
-use crate::target::Target;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 use crate::vm::evm::output::Output as EVMOutput;
@@ -22,7 +19,7 @@ use self::event::Event;
 ///
 /// The compiler test outcome data.
 ///
-#[derive(Debug, Default, Serialize, Clone)]
+#[derive(Debug, Default, Clone, serde::Serialize)]
 pub struct Output {
     /// The return data values.
     pub return_data: Vec<Value>,
@@ -51,7 +48,7 @@ impl Output {
         expected: MatterLabsTestExpected,
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let variants = match expected {
             MatterLabsTestExpected::Single(variant) => vec![variant],
@@ -110,13 +107,13 @@ impl Output {
         exception: bool,
         events: &[solidity_adapter::Event],
         contract_address: &web3::types::Address,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> Self {
         let return_data = expected
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
-                if let Target::EraVM = target {
+                if let era_compiler_common::Target::EraVM = target {
                     value_str = value_str.replace(
                         solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
                         &crate::utils::address_as_string(contract_address),

@@ -10,9 +10,9 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::directories::Buildable;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::case::Case;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
@@ -192,7 +192,7 @@ impl Buildable for EthereumTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        _environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -249,7 +249,12 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, last_source.as_str(), target) {
+        let case = match Case::try_from_ethereum(
+            &calls,
+            instances,
+            last_source.as_str(),
+            era_compiler_common::Target::EraVM,
+        ) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(
@@ -288,7 +293,7 @@ impl Buildable for EthereumTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        _environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -346,7 +351,12 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, last_source.as_str(), target) {
+        let case = match Case::try_from_ethereum(
+            &calls,
+            instances,
+            last_source.as_str(),
+            era_compiler_common::Target::EVM,
+        ) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(

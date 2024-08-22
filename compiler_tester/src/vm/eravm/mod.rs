@@ -23,14 +23,11 @@ use colored::Colorize;
 use solidity_adapter::EVMVersion;
 
 use crate::compilers::downloader::Downloader as CompilerDownloader;
-use crate::target::Target;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::system_context::SystemContext;
 use self::system_contracts::SystemContracts;
 use self::system_contracts::ADDRESS_EVM_GAS_MANAGER;
-use solidity_adapter::EVMVersion::{Lesser, LesserEquals};
-use solidity_adapter::EVM::Paris;
 
 ///
 /// The EraVM interface.
@@ -81,7 +78,7 @@ impl EraVM {
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
@@ -181,7 +178,11 @@ impl EraVM {
         for (bytecode_hash, bytecode) in known_contracts.into_iter() {
             vm_clone.add_known_contract(bytecode, bytecode_hash);
         }
-        if let Some(Lesser(Paris) | LesserEquals(Paris)) = evm_version {
+        if let Some(
+            solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
+            | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
+        ) = evm_version
+        {
             SystemContext::set_pre_paris_contracts(&mut vm_clone.storage);
         }
         vm_clone
@@ -628,8 +629,9 @@ impl EraVM {
         key_preimage.extend_from_slice(address.as_bytes());
         key_preimage.extend(vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD]);
 
-        let key_string = era_compiler_llvm_context::eravm_utils::keccak256(key_preimage.as_slice());
-        let key = web3::types::U256::from_str(key_string.as_str()).expect("Always valid");
+        let key_string = era_compiler_common::Hash::keccak256(key_preimage.as_slice());
+        let key =
+            web3::types::U256::from_str(key_string.to_string().as_str()).expect("Always valid");
         zkevm_tester::compiler_tests::StorageKey {
             address: web3::types::Address::from_low_u64_be(
                 zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),

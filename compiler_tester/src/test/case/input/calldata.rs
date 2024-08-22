@@ -5,7 +5,6 @@
 use std::collections::BTreeMap;
 
 use crate::directories::matter_labs::test::metadata::case::input::calldata::Calldata as MatterLabsTestInputCalldata;
-use crate::target::Target;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 
@@ -25,7 +24,7 @@ impl Calldata {
     pub fn try_from_matter_labs(
         calldata: MatterLabsTestInputCalldata,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let calldata = match calldata {
             MatterLabsTestInputCalldata::Value(value) => {

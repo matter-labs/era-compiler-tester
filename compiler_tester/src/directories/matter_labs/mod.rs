@@ -12,7 +12,6 @@ use std::sync::Mutex;
 use crate::directories::Collection;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 
 use self::test::MatterLabsTest;
 
@@ -25,7 +24,7 @@ impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
     fn read_all(
-        _target: Target,
+        _target: era_compiler_common::Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,

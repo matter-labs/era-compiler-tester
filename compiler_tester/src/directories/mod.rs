@@ -11,9 +11,9 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::Test;
 
 ///
@@ -29,7 +29,7 @@ pub trait Collection {
     /// Returns all directory tests.
     ///
     fn read_all(
-        target: Target,
+        target: era_compiler_common::Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
@@ -48,7 +48,7 @@ pub trait Buildable: Send + Sync + 'static {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -61,7 +61,7 @@ pub trait Buildable: Send + Sync + 'static {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,

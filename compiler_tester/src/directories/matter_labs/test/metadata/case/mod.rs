@@ -10,7 +10,7 @@ use std::str::FromStr;
 use serde::Deserialize;
 
 use crate::compilers::mode::Mode;
-use crate::target::Target;
+use crate::environment::Environment;
 use crate::test::instance::Instance;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
@@ -54,9 +54,9 @@ impl Case {
         mut self,
         contracts: &BTreeMap<String, String>,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
-        self.normalize_deployer_calls(contracts, instances, target)?;
+        self.normalize_deployer_calls(contracts, instances, environment)?;
         self.normalize_expected();
         Ok(self)
     }
@@ -68,7 +68,7 @@ impl Case {
         &mut self,
         contracts: &BTreeMap<String, String>,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        environment: Environment,
     ) -> anyhow::Result<()> {
         let mut contracts = contracts.clone();
         for (index, input) in self.inputs.iter().enumerate() {
@@ -101,7 +101,7 @@ impl Case {
             }
         }
 
-        if let Target::EraVM = target {
+        if let era_compiler_common::Target::EraVM = environment.into() {
             for (name, instance) in instances.iter() {
                 if let Instance::EraVM { .. } = instance {
                     continue;

@@ -6,11 +6,6 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
-use crate::target::Target;
-
-use solidity_adapter::EVMVersion::{self, Lesser, LesserEquals};
-use solidity_adapter::EVM::Paris;
-
 ///
 /// The EraVM system context.
 ///
@@ -115,28 +110,28 @@ impl SystemContext {
     /// Returns the storage values for the system context.
     ///
     pub fn create_storage(
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256> {
         let chain_id = match target {
-            Target::EraVM => Self::CHAIND_ID_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::CHAIND_ID_EVM,
+            era_compiler_common::Target::EraVM => Self::CHAIND_ID_ERAVM,
+            era_compiler_common::Target::EVM => Self::CHAIND_ID_EVM,
         };
         let coinbase = match target {
-            Target::EraVM => Self::COIN_BASE_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::COIN_BASE_EVM,
+            era_compiler_common::Target::EraVM => Self::COIN_BASE_ERAVM,
+            era_compiler_common::Target::EVM => Self::COIN_BASE_EVM,
         };
 
         let block_number = match target {
-            Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::CURRENT_BLOCK_NUMBER_EVM,
+            era_compiler_common::Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
+            era_compiler_common::Target::EVM => Self::CURRENT_BLOCK_NUMBER_EVM,
         };
         let block_timestamp = match target {
-            Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::BLOCK_TIMESTAMP_EVM_STEP,
+            era_compiler_common::Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
+            era_compiler_common::Target::EVM => Self::BLOCK_TIMESTAMP_EVM_STEP,
         };
         let block_gas_limit = match target {
-            Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
-            Target::EVM | Target::EVMEmulator => Self::BLOCK_GAS_LIMIT_EVM,
+            era_compiler_common::Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
+            era_compiler_common::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
         };
 
         let mut system_context_values = vec![
@@ -163,11 +158,11 @@ impl SystemContext {
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
                 match target {
-                    Target::EraVM => {
+                    era_compiler_common::Target::EraVM => {
                         web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
                     }
                     // This block difficulty is set by default, but it can be overridden if the test needs it.
-                    Target::EVM | Target::EVMEmulator => {
+                    era_compiler_common::Target::EVM => {
                         web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM_POST_PARIS)
                             .expect("Always valid")
                     }
@@ -226,7 +221,7 @@ impl SystemContext {
             );
         }
 
-        if target == Target::EVM {
+        if target == era_compiler_common::Target::EVM {
             let rich_addresses: Vec<web3::types::Address> = (0..=9)
                 .map(|address_id| {
                     format!(
@@ -283,9 +278,12 @@ impl SystemContext {
     ///
     /// Returns constants for the specified EVM version.
     ///
-    pub fn get_constants_evm(evm_version: Option<EVMVersion>) -> EVMContext {
+    pub fn get_constants_evm(evm_version: Option<solidity_adapter::EVMVersion>) -> EVMContext {
         match evm_version {
-            Some(Lesser(Paris) | LesserEquals(Paris)) => EVMContext {
+            Some(
+                solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
+                | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
+            ) => EVMContext {
                 chain_id: SystemContext::CHAIND_ID_EVM,
                 coinbase: &SystemContext::COIN_BASE_EVM[2..],
                 block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,

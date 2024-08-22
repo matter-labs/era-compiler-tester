@@ -15,9 +15,9 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::directories::Buildable;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::case::Case;
 use crate::test::instance::Instance;
 use crate::test::Test;
@@ -180,7 +180,12 @@ impl MatterLabsTest {
     ///
     /// Checks if the test is not filtered out.
     ///
-    fn check_filters(&self, filters: &Filters, mode: &Mode, target: Target) -> Option<()> {
+    fn check_filters(
+        &self,
+        filters: &Filters,
+        mode: &Mode,
+        target: era_compiler_common::Target,
+    ) -> Option<()> {
         if let Some(targets) = self.metadata.targets.as_ref() {
             if !targets.contains(&target) {
                 return None;
@@ -387,14 +392,14 @@ impl Buildable for MatterLabsTest {
         &self,
         mut mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
 
-        self.check_filters(filters, &mode, target)?;
+        self.check_filters(filters, &mode, era_compiler_common::Target::EraVM)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -454,7 +459,7 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let case = match case.normalize(&contracts, &instances, target) {
+            let case = match case.normalize(&contracts, &instances, environment) {
                 Ok(case) => case,
                 Err(error) => {
                     Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
@@ -481,7 +486,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &eravm_input.method_identifiers,
-                target,
+                era_compiler_common::Target::EraVM,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {
@@ -521,12 +526,12 @@ impl Buildable for MatterLabsTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode, target)?;
+        self.check_filters(filters, &mode, era_compiler_common::Target::EVM)?;
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
         let sources = self.sources.to_owned();
@@ -570,7 +575,10 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let case = match case.to_owned().normalize(&contracts, &instances, target) {
+            let case = match case
+                .to_owned()
+                .normalize(&contracts, &instances, environment)
+            {
                 Ok(case) => case,
                 Err(error) => {
                     Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
@@ -597,7 +605,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &evm_input.method_identifiers,
-                target,
+                era_compiler_common::Target::EVM,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {

@@ -24,7 +24,6 @@ use solidity_adapter::EVMVersion;
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
@@ -67,7 +66,7 @@ impl Input {
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let caller = web3::types::Address::from_str(input.caller.as_str())
             .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
@@ -94,8 +93,8 @@ impl Input {
             .map_err(|error| anyhow::anyhow!("Invalid calldata: {}", error))?;
 
         let expected = match target {
-            Target::EraVM => input.expected_eravm.or(input.expected),
-            Target::EVM | Target::EVMEmulator => input.expected_evm.or(input.expected),
+            era_compiler_common::Target::EraVM => input.expected_eravm.or(input.expected),
+            era_compiler_common::Target::EVM => input.expected_evm.or(input.expected),
         };
         let expected = match expected {
             Some(expected) => {
@@ -219,7 +218,7 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Option<Self>> {
         let main_contract_instance = instances
             .values()

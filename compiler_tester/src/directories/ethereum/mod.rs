@@ -12,7 +12,6 @@ use std::sync::Mutex;
 use crate::directories::Collection;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 
 use self::test::EthereumTest;
 
@@ -50,19 +49,19 @@ impl Collection for EthereumDirectory {
     type Test = EthereumTest;
 
     fn read_all(
-        target: Target,
+        target: era_compiler_common::Target,
         directory_path: &Path,
         _extension: &'static str,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
     ) -> anyhow::Result<Vec<Self::Test>> {
         let index_path = match target {
-            Target::EraVM => {
+            era_compiler_common::Target::EraVM => {
                 let mut index_path = directory_path.to_path_buf();
                 index_path.push(Self::INDEX_NAME_ZKSYNC);
                 index_path
             }
-            Target::EVM | Target::EVMEmulator => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
+            era_compiler_common::Target::EVM => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
         };
 
         Ok(Self::read_index(index_path.as_path())?

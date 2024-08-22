@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::directories::matter_labs::test::metadata::case::input::storage::Storage as MatterLabsTestContractStorage;
-use crate::target::Target;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 
@@ -27,7 +26,7 @@ impl Storage {
     pub fn try_from_matter_labs(
         storage: HashMap<String, MatterLabsTestContractStorage>,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let mut result = HashMap::new();
 
