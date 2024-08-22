@@ -1,3 +1,7 @@
+//!
+//! This module contains the fuzzing target for the simple contract.
+//!
+
 #![no_main]
 
 /// This module contains the fuzzing target for the simple contract.

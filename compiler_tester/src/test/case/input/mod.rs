@@ -13,9 +13,13 @@ pub mod storage_empty;
 pub mod value;
 
 use std::collections::BTreeMap;
+use std::collections::HashMap;
+use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
@@ -23,7 +27,9 @@ use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
+use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
+use crate::vm::revm::Revm;
 
 use self::balance::Balance;
 use self::calldata::Calldata;
@@ -60,6 +66,7 @@ impl Input {
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let caller = web3::types::Address::from_str(input.caller.as_str())
             .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
@@ -82,16 +89,22 @@ impl Input {
             None => None,
         };
 
-        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances)
+        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid calldata: {}", error))?;
 
-        let expected = match input.expected {
-            Some(expected) => Output::try_from_matter_labs_expected(expected, mode, instances)
-                .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?,
+        let expected = match target {
+            era_compiler_common::Target::EraVM => input.expected_eravm.or(input.expected),
+            era_compiler_common::Target::EVM => input.expected_evm.or(input.expected),
+        };
+        let expected = match expected {
+            Some(expected) => {
+                Output::try_from_matter_labs_expected(expected, mode, instances, target)
+                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?
+            }
             None => Output::default(),
         };
 
-        let storage = Storage::try_from_matter_labs(input.storage, instances)
+        let storage = Storage::try_from_matter_labs(input.storage, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid storage: {}", error))?;
 
         let instance = instances
@@ -205,6 +218,7 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Option<Self>> {
         let main_contract_instance = instances
             .values()
@@ -234,6 +248,7 @@ impl Input {
                     false,
                     events,
                     main_contract_address,
+                    target,
                 );
 
                 match main_contract_instance {
@@ -277,6 +292,7 @@ impl Input {
                     false,
                     &[],
                     main_contract_address,
+                    target,
                 );
 
                 match instance {
@@ -330,6 +346,7 @@ impl Input {
                     *failure,
                     events,
                     main_contract_address,
+                    target,
                 );
 
                 Some(Input::Runtime(Runtime::new(
@@ -388,9 +405,9 @@ impl Input {
     }
 
     ///
-    /// Runs the input on EVM.
+    /// Runs the input on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
@@ -401,17 +418,64 @@ impl Input {
     ) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on EVM"),
-            Self::DeployEVM(deploy) => deploy.run_evm(summary, vm, mode, test_group, name_prefix),
+            Self::DeployEVM(deploy) => {
+                deploy.run_evm_emulator(summary, vm, mode, test_group, name_prefix)
+            }
             Self::Runtime(runtime) => {
-                runtime.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                runtime.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Balance(balance_check) => {
-                balance_check.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                balance_check.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
         };
+    }
+
+    ///
+    /// Runs the input on REVM.
+    ///
+    pub fn run_revm<'a>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        mut vm: Revm<'a>,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+        evm_builds: &HashMap<String, Build, RandomState>,
+        evm_version: Option<EVMVersion>,
+    ) -> Revm<'a> {
+        match self {
+            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
+            Self::DeployEVM(deploy) => deploy.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                evm_builds,
+                evm_version,
+            ),
+            Self::Runtime(runtime) => runtime.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                index,
+                evm_version,
+            ),
+            Self::StorageEmpty(storage_empty) => {
+                storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
+            }
+            Self::Balance(balance_check) => {
+                balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
+            }
+        }
     }
 
     ///

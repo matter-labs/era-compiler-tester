@@ -3,6 +3,7 @@
 //!
 
 pub mod mode;
+pub mod mode_upstream;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -10,8 +11,10 @@ use std::collections::HashMap;
 use era_compiler_solidity::CollectableError;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::solidity::SolidityCompiler;
+use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
+use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
 use crate::compilers::Compiler;
+use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::build::Build as EVMBuild;
 use crate::vm::evm::input::Input as EVMInput;
@@ -21,8 +24,11 @@ use self::mode::Mode as YulMode;
 ///
 /// The Yul compiler.
 ///
-#[derive(Default)]
-pub struct YulCompiler;
+pub struct YulCompiler {
+    /// The compiler toolchain to use.
+    #[allow(dead_code)]
+    toolchain: Toolchain,
+}
 
 lazy_static::lazy_static! {
     ///
@@ -34,6 +40,15 @@ lazy_static::lazy_static! {
             .map(|llvm_optimizer_settings| YulMode::new(llvm_optimizer_settings, false).into())
             .collect::<Vec<Mode>>()
     };
+}
+
+impl YulCompiler {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(toolchain: Toolchain) -> Self {
+        Self { toolchain }
+    }
 }
 
 impl Compiler for YulCompiler {
@@ -51,12 +66,9 @@ impl Compiler for YulCompiler {
         let solc_version = if mode.enable_eravm_extensions {
             None
         } else {
-            Some(
-                SolidityCompiler::executable(
-                    &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-                )?
-                .version,
-            )
+            Some(era_compiler_solidity::SolcVersion::new_simple(
+                era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+            ))
         };
 
         let last_contract = sources
@@ -112,21 +124,42 @@ impl Compiler for YulCompiler {
 
     fn compile_for_evm(
         &self,
-        _test_path: String,
+        test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
-        llvm_options: Vec<String>,
-        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        test_params: Option<&solidity_adapter::Params>,
+        _llvm_options: Vec<String>,
+        _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let mode = YulMode::unwrap(mode);
+        let language = SolcStandardJsonInputLanguage::Yul;
 
-        let solc_version = Some(
-            SolidityCompiler::executable(
-                &era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
-            )?
-            .version,
-        );
+        let solc_compiler = SolidityUpstreamCompiler::new(language);
+
+        let solc_output = solc_compiler.standard_json_output_cached(
+            test_path,
+            language,
+            &sources,
+            &libraries,
+            mode,
+            test_params,
+        )?;
+
+        if let Some(errors) = solc_output.errors.as_deref() {
+            let mut has_errors = false;
+            let mut error_messages = Vec::with_capacity(errors.len());
+
+            for error in errors.iter() {
+                if error.severity.as_str() == "error" {
+                    has_errors = true;
+                    error_messages.push(error.formatted_message.to_owned());
+                }
+            }
+
+            if has_errors {
+                anyhow::bail!("`solc` errors found: {:?}", error_messages);
+            }
+        }
 
         let last_contract = sources
             .last()
@@ -134,40 +167,37 @@ impl Compiler for YulCompiler {
             .0
             .clone();
 
-        let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources
-                .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
-                .collect(),
-            BTreeMap::new(),
-            None,
-            solc_version.as_ref(),
-            debug_config.as_ref(),
-        )?;
-
-        let build = project.compile_to_evm(
-            &mut vec![],
-            mode.llvm_optimizer_settings.to_owned(),
-            llvm_options,
-            true,
-            None,
-            debug_config.clone(),
-        )?;
-        build.collect_errors()?;
-        let builds: HashMap<String, EVMBuild> = build
+        let contracts = solc_output
             .contracts
-            .into_iter()
-            .map(|(path, build)| {
-                let build = build.expect("Always valid");
-                let build = EVMBuild::new(build.deploy_build, build.runtime_build);
-                (path, build)
-            })
-            .collect();
+            .ok_or_else(|| anyhow::anyhow!("Solidity contracts not found in the output"))?;
+
+        let mut builds = HashMap::with_capacity(contracts.len());
+        for (file, contracts) in contracts.into_iter() {
+            for (name, contract) in contracts.into_iter() {
+                let path = format!("{file}:{name}");
+                let bytecode_string = contract
+                    .evm
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                    })?
+                    .bytecode
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                    })?
+                    .object
+                    .as_str();
+                let build = EVMBuild::new(
+                    era_compiler_llvm_context::EVMBuild::new(
+                        hex::decode(bytecode_string).expect("Always valid"),
+                        None,
+                    ),
+                    era_compiler_llvm_context::EVMBuild::default(),
+                );
+                builds.insert(path, build);
+            }
+        }
 
         Ok(EVMInput::new(builds, None, last_contract))
     }

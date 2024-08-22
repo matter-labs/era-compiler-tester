@@ -12,8 +12,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "tests-updater",
-    about = "Utility to copy changed test \
-    directories and report conflicts, and update an index of hashes."
+    about = "ZKsync toolchain test updater for Ethereum Solidity tests"
 )]
 pub struct Arguments {
     /// Path of the tests' index.

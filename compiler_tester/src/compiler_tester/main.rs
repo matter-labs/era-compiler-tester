@@ -155,6 +155,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 system_contracts_debug_config,
                 arguments.system_contracts_load_path,
                 arguments.system_contracts_save_path,
+                arguments.target,
             )?;
 
             match (
@@ -186,17 +187,18 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 system_contract_debug_config,
                 arguments.system_contracts_load_path,
                 arguments.system_contracts_save_path,
+                arguments.target,
             )?;
 
             compiler_tester
-                .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, false>(
+                .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, true>(
                     vm,
                     arguments.toolchain,
                 )
         }
         compiler_tester::Environment::REVM => {
             compiler_tester::EVM::download(binary_download_config_paths)?;
-            compiler_tester.run_evm(arguments.toolchain)
+            compiler_tester.run_revm(arguments.toolchain)
         }
     }?;
 

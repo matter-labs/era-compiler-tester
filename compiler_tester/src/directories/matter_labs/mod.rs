@@ -24,6 +24,7 @@ impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
     fn read_all(
+        _target: era_compiler_common::Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
@@ -43,7 +44,13 @@ impl Collection for MatterLabsDirectory {
             })?;
 
             if entry_type.is_dir() {
-                tests.extend(Self::read_all(&path, extension, summary.clone(), filters)?);
+                tests.extend(Self::read_all(
+                    _target,
+                    &path,
+                    extension,
+                    summary.clone(),
+                    filters,
+                )?);
                 continue;
             } else if !entry_type.is_file() {
                 anyhow::bail!("Invalid type of file `{}`", path.to_string_lossy());

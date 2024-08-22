@@ -17,7 +17,9 @@ use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
+use crate::toolchain::Toolchain;
 
+/// The EVMGasManager system contract address.
 pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
 
 ///
@@ -257,7 +259,7 @@ impl SystemContracts {
             .map(|option| option.to_owned())
             .collect();
         let mut builds = Self::compile(
-            YulCompiler,
+            YulCompiler::new(Toolchain::IrLLVM),
             yul_file_paths,
             &yul_mode,
             yul_llvm_options,

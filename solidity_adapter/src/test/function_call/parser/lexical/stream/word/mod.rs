@@ -31,16 +31,16 @@ pub enum State {
 /// Parses a word. The word can result into several token types:
 ///
 /// 1. An identifier
-///    'value'
-///    Any valid identifier which is not a keyword.
+///     Example: 'value'
+///     Any valid identifier which is not a keyword.
 ///
 /// 2. A boolean literal
-///    'true'
-///    The literal is also a keyword, but is was decided to treat literals as a separate token type.
+///     Example: 'true'
+///     The literal is also a keyword, but is was decided to treat literals as a separate token type.
 ///
 /// 3. A keyword
-///    'emit'
-///    Any keyword which is not a boolean literal.
+///     Example: 'emit'
+///     Any keyword which is not a boolean literal.
 ///
 pub fn parse(input: &str) -> Output {
     let mut state = State::Start;
