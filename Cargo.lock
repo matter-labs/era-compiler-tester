@@ -898,7 +898,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#e1cf94f275b4bac66f0341dec60508226e962a3c"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#da3a2ca37e9e2693d5d974346667276d0c90b6a8"
 dependencies = [
  "anyhow",
  "base58",
