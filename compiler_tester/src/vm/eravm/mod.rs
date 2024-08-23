@@ -45,6 +45,8 @@ pub struct EraVM {
     published_evm_bytecodes: HashMap<web3::types::U256, Vec<web3::types::U256>>,
     /// The storage state.
     storage: HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
+    /// The transient storage state.
+    storage_transient: HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
 }
 
 impl EraVM {
@@ -112,6 +114,7 @@ impl EraVM {
         )?;
 
         let storage = SystemContext::create_storage();
+        let storage_transient = HashMap::new();
 
         let mut vm = Self {
             known_contracts: HashMap::new(),
@@ -123,6 +126,7 @@ impl EraVM {
             ),
             deployed_contracts: HashMap::new(),
             storage,
+            storage_transient,
             published_evm_bytecodes: HashMap::new(),
         };
 
@@ -245,6 +249,7 @@ impl EraVM {
                 self.deployed_contracts.clone(),
                 &calldata,
                 self.storage.clone(),
+                self.storage_transient.clone(),
                 entry_address,
                 Some(context),
                 vm_launch_option,
