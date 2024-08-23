@@ -3,6 +3,11 @@ name: Sanitizers tests
 on:
   workflow_dispatch:
     inputs:
+      llvm-branch:
+        description: 'Custom LLVM branch to use. If not specified, the branch from `LLVM.lock` file is used.'
+        required: false
+        default: ''
+        type: string
       # For more information about the supported sanitizers in Rust, see:
       # https://rustc-dev-guide.rust-lang.org/sanitizers.html
       rust-sanitizer:
@@ -44,9 +49,18 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Checkout llvm
+        if: inputs.llvm-branch != ''
+        uses: actions/checkout@v4
+        with:
+          repository: matter-labs/era-compiler-llvm
+          ref: ${{ inputs.llvm-branch }}
+          path: llvm
+
       - name: Build LLVM
         uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
         with:
+          clone-llvm: ${{ inputs.llvm-branch == '' }}
           sanitizer: ${{ inputs.llvm-sanitizer }}
           enable-assertions: true
 
