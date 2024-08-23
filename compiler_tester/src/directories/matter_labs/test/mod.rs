@@ -15,9 +15,9 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::directories::Buildable;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::case::Case;
 use crate::test::instance::Instance;
 use crate::test::Test;
@@ -180,7 +180,17 @@ impl MatterLabsTest {
     ///
     /// Checks if the test is not filtered out.
     ///
-    fn check_filters(&self, filters: &Filters, mode: &Mode) -> Option<()> {
+    fn check_filters(
+        &self,
+        filters: &Filters,
+        mode: &Mode,
+        target: era_compiler_common::Target,
+    ) -> Option<()> {
+        if let Some(targets) = self.metadata.targets.as_ref() {
+            if !targets.contains(&target) {
+                return None;
+            }
+        }
         if !filters.check_mode(mode) {
             return None;
         }
@@ -328,6 +338,8 @@ impl MatterLabsTest {
                                 false,
                             ),
                         ),
+                        expected_eravm: None,
+                        expected_evm: None,
                     },
                     MatterLabsCaseInput {
                         comment: None,
@@ -342,6 +354,8 @@ impl MatterLabsTest {
                                 false,
                             ),
                         ),
+                        expected_eravm: None,
+                        expected_evm: None,
                     },
                     MatterLabsCaseInput {
                         comment: None,
@@ -356,13 +370,17 @@ impl MatterLabsTest {
                                 exception,
                             ),
                         ),
+                        expected_eravm: None,
+                        expected_evm: None,
                     },
                 ],
-                expected: MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(
-                    exception,
-                ),
                 ignore: false,
                 cycles: None,
+                expected: Some(
+                    MatterLabsCaseInputExpected::successful_evm_interpreter_benchmark(exception),
+                ),
+                expected_eravm: None,
+                expected_evm: None,
             })
         }
         metadata_cases
@@ -374,21 +392,20 @@ impl Buildable for MatterLabsTest {
         &self,
         mut mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
 
-        self.check_filters(filters, &mode)?;
+        self.check_filters(filters, &mode, era_compiler_common::Target::EraVM)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
 
         let mut eravm_address_iterator = EraVMAddressIterator::new();
-        let evm_address_iterator =
-            EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
+        let evm_address_iterator = EVMAddressIterator::new(2);
 
         let (libraries, library_addresses) = self.get_libraries(&mut eravm_address_iterator);
 
@@ -442,7 +459,7 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let case = match case.normalize(&contracts, &instances, target) {
+            let case = match case.normalize(&contracts, &instances, environment) {
                 Ok(case) => case,
                 Err(error) => {
                     Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
@@ -450,7 +467,7 @@ impl Buildable for MatterLabsTest {
                 }
             };
 
-            match case.set_instance_addresses(
+            match case.set_variables(
                 &mut instances,
                 eravm_address_iterator.clone(),
                 evm_address_iterator.clone(),
@@ -469,6 +486,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &eravm_input.method_identifiers,
+                era_compiler_common::Target::EraVM,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {
@@ -495,11 +513,12 @@ impl Buildable for MatterLabsTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.metadata.group.clone(),
+            cases,
             mode,
+            self.metadata.group.clone(),
             builds,
             HashMap::new(),
-            cases,
+            None,
         ))
     }
 
@@ -507,19 +526,17 @@ impl Buildable for MatterLabsTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        target: Target,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode)?;
-
+        self.check_filters(filters, &mode, era_compiler_common::Target::EVM)?;
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
         let sources = self.sources.to_owned();
 
-        let mut evm_address_iterator =
-            EVMAddressIterator::new(matches!(target, Target::EVMInterpreter));
+        let mut evm_address_iterator = EVMAddressIterator::new(1);
 
         let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
 
@@ -529,6 +546,7 @@ impl Buildable for MatterLabsTest {
                 sources,
                 libraries,
                 &mode,
+                None,
                 vec![],
                 debug_config,
             )
@@ -557,7 +575,10 @@ impl Buildable for MatterLabsTest {
                 }
             }
 
-            let case = match case.to_owned().normalize(&contracts, &instances, target) {
+            let case = match case
+                .to_owned()
+                .normalize(&contracts, &instances, environment)
+            {
                 Ok(case) => case,
                 Err(error) => {
                     Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
@@ -565,7 +586,7 @@ impl Buildable for MatterLabsTest {
                 }
             };
 
-            match case.set_instance_addresses(
+            match case.set_variables(
                 &mut instances,
                 EraVMAddressIterator::new(),
                 evm_address_iterator.clone(),
@@ -584,6 +605,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &evm_input.method_identifiers,
+                era_compiler_common::Target::EVM,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {
@@ -599,11 +621,12 @@ impl Buildable for MatterLabsTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.metadata.group.clone(),
+            cases,
             mode,
+            self.metadata.group.clone(),
             HashMap::new(),
             evm_input.builds,
-            cases,
+            None,
         ))
     }
 }

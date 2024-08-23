@@ -10,9 +10,9 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::directories::Buildable;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::target::Target;
 use crate::test::case::Case;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
@@ -192,7 +192,7 @@ impl Buildable for EthereumTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        _target: Target,
+        _environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -218,6 +218,7 @@ impl Buildable for EthereumTest {
             }
         };
 
+        let evm_version = self.test.params.evm_version;
         let eravm_input = match compiler
             .compile_for_eravm(
                 self.identifier.to_owned(),
@@ -248,7 +249,12 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, &last_source) {
+        let case = match Case::try_from_ethereum(
+            &calls,
+            instances,
+            last_source.as_str(),
+            era_compiler_common::Target::EraVM,
+        ) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(
@@ -274,11 +280,12 @@ impl Buildable for EthereumTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.index_entity.group.clone(),
+            vec![case],
             mode,
+            self.index_entity.group.clone(),
             builds,
             HashMap::new(),
-            vec![case],
+            Some(evm_version),
         ))
     }
 
@@ -286,7 +293,7 @@ impl Buildable for EthereumTest {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
-        _target: Target,
+        _environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -299,7 +306,7 @@ impl Buildable for EthereumTest {
         let last_source = self.last_source(summary.clone(), &mode)?;
 
         let (contract_address, libraries_addresses, libraries) = match self.get_addresses(
-            EVMAddressIterator::new(false),
+            EVMAddressIterator::new(1),
             calls.as_slice(),
             last_source.as_str(),
         ) {
@@ -312,12 +319,14 @@ impl Buildable for EthereumTest {
             }
         };
 
+        let evm_version = self.test.params.evm_version;
         let evm_input = match compiler
             .compile_for_evm(
                 self.identifier.to_owned(),
                 self.test.sources.clone(),
                 libraries,
                 &mode,
+                Some(&self.test.params),
                 vec![],
                 debug_config,
             )
@@ -342,7 +351,12 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let case = match Case::try_from_ethereum(&calls, instances, &last_source) {
+        let case = match Case::try_from_ethereum(
+            &calls,
+            instances,
+            last_source.as_str(),
+            era_compiler_common::Target::EVM,
+        ) {
             Ok(case) => case,
             Err(error) => {
                 Summary::invalid(
@@ -357,11 +371,12 @@ impl Buildable for EthereumTest {
 
         Some(Test::new(
             self.identifier.to_owned(),
-            self.index_entity.group.clone(),
+            vec![case],
             mode,
+            self.index_entity.group.clone(),
             HashMap::new(),
             evm_input.builds,
-            vec![case],
+            Some(evm_version),
         ))
     }
 }

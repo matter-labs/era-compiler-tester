@@ -10,7 +10,7 @@ use std::str::FromStr;
 use serde::Deserialize;
 
 use crate::compilers::mode::Mode;
-use crate::target::Target;
+use crate::environment::Environment;
 use crate::test::instance::Instance;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
@@ -32,13 +32,18 @@ pub struct Case {
     pub modes: Option<Vec<String>>,
     /// The case inputs.
     pub inputs: Vec<Input>,
-    /// The expected return data.
-    pub expected: Expected,
     /// If the test case must be ignored.
     #[serde(default)]
     pub ignore: bool,
     /// Overrides the default number of cycles.
     pub cycles: Option<usize>,
+
+    /// The expected return data.
+    pub expected: Option<Expected>,
+    /// The expected return data for EraVM.
+    pub expected_eravm: Option<Expected>,
+    /// The expected return data for EVM.
+    pub expected_evm: Option<Expected>,
 }
 
 impl Case {
@@ -49,9 +54,9 @@ impl Case {
         mut self,
         contracts: &BTreeMap<String, String>,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
-        self.normalize_deployer_calls(contracts, instances, target)?;
+        self.normalize_deployer_calls(contracts, instances, environment)?;
         self.normalize_expected();
         Ok(self)
     }
@@ -63,7 +68,7 @@ impl Case {
         &mut self,
         contracts: &BTreeMap<String, String>,
         instances: &BTreeMap<String, Instance>,
-        target: Target,
+        environment: Environment,
     ) -> anyhow::Result<()> {
         let mut contracts = contracts.clone();
         for (index, input) in self.inputs.iter().enumerate() {
@@ -96,7 +101,7 @@ impl Case {
             }
         }
 
-        if let Target::EraVM = target {
+        if let era_compiler_common::Target::EraVM = environment.into() {
             for (name, instance) in instances.iter() {
                 if let Instance::EraVM { .. } = instance {
                     continue;
@@ -130,15 +135,21 @@ impl Case {
     pub fn normalize_expected(&mut self) {
         if let Some(input) = self.inputs.last_mut() {
             if input.expected.is_none() {
-                input.expected = Some(self.expected.clone());
+                input.expected.clone_from(&self.expected);
+            }
+            if input.expected_eravm.is_none() {
+                input.expected_eravm.clone_from(&self.expected_eravm);
+            }
+            if input.expected_evm.is_none() {
+                input.expected_evm.clone_from(&self.expected_evm);
             }
         }
     }
 
     ///
-    /// Returns all the instances addresses, except libraries.
+    /// Sets all variables, including instance addresses, but except libraries.
     ///
-    pub fn set_instance_addresses(
+    pub fn set_variables(
         &self,
         instances: &mut BTreeMap<String, Instance>,
         mut eravm_address_iterator: EraVMAddressIterator,

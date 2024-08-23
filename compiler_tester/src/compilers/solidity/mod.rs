@@ -368,7 +368,7 @@ impl Compiler for SolidityCompiler {
         let last_contract = Self::get_last_contract(&solc_output, &sources)
             .map_err(|error| anyhow::anyhow!("Failed to get the last contract: {}", error))?;
 
-        let mut solc_compiler = if mode.is_system_contracts_mode {
+        let solc_compiler = if mode.is_system_contracts_mode {
             SolidityCompiler::system_contract_executable()
         } else {
             SolidityCompiler::executable(&mode.solc_version)
@@ -378,7 +378,7 @@ impl Compiler for SolidityCompiler {
             libraries,
             mode.solc_pipeline,
             &mut solc_output,
-            &mut solc_compiler,
+            &solc_compiler,
             debug_config.as_ref(),
         )?;
 
@@ -432,6 +432,7 @@ impl Compiler for SolidityCompiler {
         sources: Vec<(String, String)>,
         libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
@@ -445,13 +446,13 @@ impl Compiler for SolidityCompiler {
 
         let last_contract = Self::get_last_contract(&solc_output, &sources)?;
 
-        let mut solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
+        let solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
         let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
             mode.solc_pipeline,
             &mut solc_output,
-            &mut solc_compiler,
+            &solc_compiler,
             debug_config.as_ref(),
         )?;
 

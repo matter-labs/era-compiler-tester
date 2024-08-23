@@ -10,8 +10,6 @@ use std::cmp;
 ///
 #[derive(Debug)]
 pub struct Results<'a> {
-    /// The size geometric mean.
-    pub size_mean: f64,
     /// The size best result.
     pub size_best: f64,
     /// The size worst result.
@@ -23,8 +21,6 @@ pub struct Results<'a> {
     /// The size positive result test names.
     pub size_positives: Vec<(f64, &'a str)>,
 
-    /// The cycles geometric mean.
-    pub cycles_mean: f64,
     /// The cycles best result.
     pub cycles_best: f64,
     /// The cycles worst result.
@@ -36,8 +32,6 @@ pub struct Results<'a> {
     /// The cycles positive result test names.
     pub cycles_positives: Vec<(f64, &'a str)>,
 
-    /// The ergs geometric mean.
-    pub ergs_mean: f64,
     /// The ergs best result.
     pub ergs_best: f64,
     /// The ergs worst result.
@@ -61,21 +55,18 @@ impl<'a> Results<'a> {
     ///
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        size_mean: f64,
         size_best: f64,
         size_worst: f64,
         size_total: f64,
         size_negatives: Vec<(f64, &'a str)>,
         size_positives: Vec<(f64, &'a str)>,
 
-        cycles_mean: f64,
         cycles_best: f64,
         cycles_worst: f64,
         cycles_total: f64,
         cycles_negatives: Vec<(f64, &'a str)>,
         cycles_positives: Vec<(f64, &'a str)>,
 
-        ergs_mean: f64,
         ergs_best: f64,
         ergs_worst: f64,
         ergs_total: f64,
@@ -83,21 +74,18 @@ impl<'a> Results<'a> {
         ergs_positives: Vec<(f64, &'a str)>,
     ) -> Self {
         Self {
-            size_mean,
             size_best,
             size_worst,
             size_total,
             size_negatives,
             size_positives,
 
-            cycles_mean,
             cycles_best,
             cycles_worst,
             cycles_total,
             cycles_negatives,
             cycles_positives,
 
-            ergs_mean,
             ergs_best,
             ergs_worst,
             ergs_total,
@@ -180,7 +168,7 @@ impl<'a> Results<'a> {
             self.size_negatives.len()
         );
         for (value, path) in self.size_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_geomean(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path);
         }
         println!();
         println!(
@@ -190,7 +178,7 @@ impl<'a> Results<'a> {
             self.cycles_negatives.len()
         );
         for (value, path) in self.cycles_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_geomean(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path);
         }
         println!();
         println!(
@@ -200,7 +188,7 @@ impl<'a> Results<'a> {
             self.ergs_negatives.len()
         );
         for (value, path) in self.ergs_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_geomean(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path);
         }
         println!();
         println!(
@@ -210,7 +198,7 @@ impl<'a> Results<'a> {
             self.size_positives.len()
         );
         for (value, path) in self.size_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_geomean(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path);
         }
         println!();
         println!(
@@ -220,7 +208,7 @@ impl<'a> Results<'a> {
             self.cycles_positives.len()
         );
         for (value, path) in self.cycles_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_geomean(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path);
         }
         println!();
         println!(
@@ -230,22 +218,9 @@ impl<'a> Results<'a> {
             self.ergs_positives.len()
         );
         for (value, path) in self.ergs_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_geomean(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path);
         }
         println!();
-    }
-
-    ///
-    /// Formats and colorizes a mean value.
-    ///
-    fn format_geomean(value: f64) -> colored::ColoredString {
-        if value > 1.0 {
-            format!("{:7.3}", 100.0 - value * 100.0).bright_red()
-        } else if value == 1.0 {
-            format!("{:7.3}", 100.0 - value * 100.0).white()
-        } else {
-            format!("{:7.3}", 100.0 - value * 100.0).green()
-        }
     }
 
     ///
@@ -265,26 +240,20 @@ impl<'a> Results<'a> {
         writeln!(
             w,
             "║ {:33} {:07} ║",
-            "Mean".bright_white(),
-            Self::format_geomean(self.size_mean)
-        )?;
-        writeln!(
-            w,
-            "║ {:33} {:07} ║",
             "Best".bright_white(),
-            Self::format_geomean(self.size_best)
+            Self::format_f64(self.size_best)
         )?;
         writeln!(
             w,
             "║ {:33} {:07} ║",
             "Worst".bright_white(),
-            Self::format_geomean(self.size_worst)
+            Self::format_f64(self.size_worst)
         )?;
         writeln!(
             w,
             "║ {:33} {:07} ║",
             "Total".bright_white(),
-            Self::format_geomean(self.size_total)
+            Self::format_f64(self.size_total)
         )?;
         writeln!(
             w,
@@ -296,26 +265,20 @@ impl<'a> Results<'a> {
         writeln!(
             w,
             "║ {:33} {:07} ║",
-            "Mean".bright_white(),
-            Self::format_geomean(self.cycles_mean)
-        )?;
-        writeln!(
-            w,
-            "║ {:33} {:07} ║",
             "Best".bright_white(),
-            Self::format_geomean(self.cycles_best)
+            Self::format_f64(self.cycles_best)
         )?;
         writeln!(
             w,
             "║ {:33} {:07} ║",
             "Worst".bright_white(),
-            Self::format_geomean(self.cycles_worst)
+            Self::format_f64(self.cycles_worst)
         )?;
         writeln!(
             w,
             "║ {:33} {:07} ║",
             "Total".bright_white(),
-            Self::format_geomean(self.cycles_total)
+            Self::format_f64(self.cycles_total)
         )?;
         writeln!(
             w,
@@ -327,26 +290,20 @@ impl<'a> Results<'a> {
         writeln!(
             w,
             "║ {:33} {:07} ║",
-            "Mean".bright_white(),
-            Self::format_geomean(self.ergs_mean)
-        )?;
-        writeln!(
-            w,
-            "║ {:33} {:07} ║",
             "Best".bright_white(),
-            Self::format_geomean(self.ergs_best)
+            Self::format_f64(self.ergs_best)
         )?;
         writeln!(
             w,
             "║ {:33} {:07} ║",
             "Worst".bright_white(),
-            Self::format_geomean(self.ergs_worst)
+            Self::format_f64(self.ergs_worst)
         )?;
         writeln!(
             w,
             "║ {:33} {:07} ║",
             "Total".bright_white(),
-            Self::format_geomean(self.ergs_total)
+            Self::format_f64(self.ergs_total)
         )?;
         if let (Some(gas_reference_ratios), Some(gas_candidate_ratios)) = (
             self.evm_interpreter_reference_ratios.as_deref(),
@@ -443,5 +400,18 @@ impl<'a> Results<'a> {
         writeln!(w, "╚═══════════════════════════════════════════╝")?;
 
         Ok(())
+    }
+
+    ///
+    /// Formats and colorizes an `f64` value.
+    ///
+    fn format_f64(value: f64) -> colored::ColoredString {
+        if value > 1.0 {
+            format!("{:7.3}", 100.0 - value * 100.0).bright_red()
+        } else if value == 1.0 {
+            format!("{:7.3}", 100.0 - value * 100.0).white()
+        } else {
+            format!("{:7.3}", 100.0 - value * 100.0).green()
+        }
     }
 }

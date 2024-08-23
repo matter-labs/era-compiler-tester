@@ -9,6 +9,7 @@ use serde::Serialize;
 use serde::Serializer;
 
 use crate::test::instance::Instance;
+use crate::vm::eravm::system_context::SystemContext;
 
 ///
 /// The compiler test value.
@@ -42,6 +43,7 @@ impl Value {
     pub fn try_from_matter_labs(
         value: String,
         instances: &BTreeMap<String, Instance>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -73,6 +75,77 @@ impl Value {
         } else if let Some(value) = value.strip_prefix("0x") {
             web3::types::U256::from_str(value)
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
+        } else if value == "$CHAIN_ID" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
+                }
+            }
+        } else if value == "$GAS_LIMIT" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM)
+                }
+            }
+        } else if value == "$COINBASE" {
+            match target {
+                era_compiler_common::Target::EraVM => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_ERAVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_EVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+            }
+            .expect("Always valid")
+        } else if value == "$DIFFICULTY" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_DIFFICULTY_ERAVM)
+                }
+                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
+                    SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                )
+                .expect("Always valid"),
+            }
+        } else if value.starts_with("$BLOCK_HASH") {
+            let offset: u64 = value
+                .split(':')
+                .last()
+                .and_then(|value| value.parse().ok())
+                .unwrap_or_default();
+            let mut hash =
+                web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
+            if let era_compiler_common::Target::EVM = target {
+                hash += web3::types::U256::from(offset);
+            }
+            hash
+        } else if value == "$BLOCK_NUMBER" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_EVM)
+                }
+            }
+        } else if value == "$BLOCK_TIMESTAMP" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
+                }
+            }
         } else {
             web3::types::U256::from_dec_str(value.as_str())
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
@@ -87,12 +160,13 @@ impl Value {
     pub fn try_from_vec_matter_labs(
         values: Vec<String>,
         instances: &BTreeMap<String, Instance>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Vec<Self>> {
         values
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value, instances)
+                Self::try_from_matter_labs(value, instances, target)
                     .map_err(|error| anyhow::anyhow!("Value {} is invalid: {}", index, error))
             })
             .collect::<anyhow::Result<Vec<Self>>>()

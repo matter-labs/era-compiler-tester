@@ -92,6 +92,7 @@ impl Compiler for LLVMCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
+        _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {

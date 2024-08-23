@@ -140,14 +140,9 @@ impl Summary {
             }
 
             let group_key = format!("{} {}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME, mode);
-            benchmark
-                .groups
-                .get_mut(
-                    group_key.as_str(),
-                )
-                .ok_or_else(|| anyhow::anyhow!("Group `{group_key}` not found. Only M3 and Mz groups are allowed in benchmarking"))?
-                .elements
-                .insert(key, benchmark_element);
+            if let Some(group) = benchmark.groups.get_mut(group_key.as_str()) {
+                group.elements.insert(key, benchmark_element);
+            }
         }
         Ok(benchmark)
     }

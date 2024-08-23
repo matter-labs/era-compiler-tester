@@ -5,6 +5,7 @@
 pub mod case;
 pub mod instance;
 
+use solidity_adapter::EVMVersion;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -26,16 +27,18 @@ use crate::vm::evm::EVM;
 pub struct Test {
     /// The test name.
     name: String,
-    /// The test group.
-    group: Option<String>,
+    /// The test cases.
+    cases: Vec<Case>,
     /// The test mode.
     mode: Mode,
+    /// The test group.
+    group: Option<String>,
     /// The EraVM contract builds.
     eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
     /// The EVM contract builds.
     evm_builds: HashMap<String, EVMBuild>,
-    /// The test cases.
-    cases: Vec<Case>,
+    /// The EVM version.
+    evm_version: Option<EVMVersion>,
 }
 
 impl Test {
@@ -44,19 +47,21 @@ impl Test {
     ///
     pub fn new(
         name: String,
-        group: Option<String>,
+        cases: Vec<Case>,
         mode: Mode,
+        group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
         evm_builds: HashMap<String, EVMBuild>,
-        cases: Vec<Case>,
+        evm_version: Option<EVMVersion>,
     ) -> Self {
         Self {
             name,
-            group,
+            cases,
             mode,
+            group,
             eravm_builds,
             evm_builds,
-            cases,
+            evm_version,
         }
     }
 
@@ -68,7 +73,7 @@ impl Test {
         D: EraVMDeployer,
     {
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone());
+            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone(), None);
             case.run_eravm::<D, M>(
                 summary.clone(),
                 vm.clone(),
@@ -80,9 +85,9 @@ impl Test {
     }
 
     ///
-    /// Runs the test on EVM.
+    /// Runs the test on EVM emulator.
     ///
-    pub fn run_evm(self, summary: Arc<Mutex<Summary>>) {
+    pub fn run_evm_emulator(self, summary: Arc<Mutex<Summary>>) {
         for case in self.cases {
             let config = evm::standard::Config::shanghai();
             let etable =
@@ -92,12 +97,28 @@ impl Test {
             let invoker = EVMInvoker::new(&config, &resolver);
 
             let vm = EVM::new(self.evm_builds.clone(), invoker);
-            case.run_evm(
+            case.run_evm_emulator(
                 summary.clone(),
                 vm,
                 &self.mode,
                 self.name.clone(),
                 self.group.clone(),
+            );
+        }
+    }
+
+    ///
+    /// Runs the test on REVM.
+    ///
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>) {
+        for case in self.cases {
+            case.run_revm(
+                summary.clone(),
+                &self.mode,
+                self.name.clone(),
+                self.group.clone(),
+                self.evm_builds.clone(),
+                self.evm_version,
             );
         }
     }
@@ -110,10 +131,14 @@ impl Test {
         D: EraVMDeployer,
     {
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone());
+            let vm = EraVM::clone_with_contracts(
+                vm.clone(),
+                self.eravm_builds.clone(),
+                self.evm_version,
+            );
             case.run_evm_interpreter::<D, M>(
                 summary.clone(),
-                vm.clone(),
+                vm,
                 &self.mode,
                 self.name.clone(),
                 self.group.clone(),

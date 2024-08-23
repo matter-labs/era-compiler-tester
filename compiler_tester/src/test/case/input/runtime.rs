@@ -2,16 +2,26 @@
 //! The contract call input variant.
 //!
 
+use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use revm::primitives::EVMError;
+use revm::primitives::ExecutionResult;
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
+use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
+
+use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
+use crate::vm::revm::revm_type_conversions::transform_success_output;
+use crate::vm::revm::Revm;
 
 ///
 /// The contract call input variant.
@@ -118,9 +128,9 @@ impl Runtime {
     }
 
     ///
-    /// Runs the call on EVM.
+    /// Runs the call on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
@@ -165,6 +175,139 @@ impl Runtime {
             );
         }
     }
+
+    ///
+    /// Runs the call on REVM.
+    ///
+    pub fn run_revm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: Revm,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+        evm_version: Option<EVMVersion>,
+    ) -> Revm {
+        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+
+        // On revm we can't send a tx with a tx_origin different from the tx_sender,
+        // this specific test expects tx_origin to be that value, so we change the sender
+        let mut caller = self.caller;
+        if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
+                .unwrap();
+        }
+
+        let rich_addresses = SystemContext::get_rich_addresses();
+        let vm = if rich_addresses.contains(&caller) {
+            vm.update_runtime_balance(caller)
+        } else {
+            vm
+        };
+
+        let mut vm = vm.fill_runtime_new_transaction(
+            self.address,
+            caller,
+            self.calldata.clone(),
+            self.value,
+            evm_version,
+        );
+        dbg!(&vm);
+
+        vm = vm.update_balance_if_lack_of_funds(caller);
+
+        let result = match vm.state.transact_commit() {
+            Ok(result) => result,
+            Err(error) => {
+                match error {
+                    EVMError::Transaction(error) => {
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Transaction: {error:?}"),
+                        );
+                    }
+                    EVMError::Header(error) => {
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Header: {error:?}"),
+                        );
+                    }
+                    EVMError::Database(_error) => {
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            "Error on Database",
+                        );
+                    }
+                    EVMError::Custom(error) => {
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Custom: {error:?}"),
+                        );
+                    }
+                    EVMError::Precompile(error) => {
+                        Summary::invalid(
+                            summary.clone(),
+                            Some(mode.clone()),
+                            name.clone(),
+                            format!("Error on Precompile: {error:?}"),
+                        );
+                    }
+                }
+                return vm;
+            }
+        };
+        let output = match result {
+            ExecutionResult::Success {
+                reason: _,
+                gas_used: _,
+                gas_refunded: _,
+                logs,
+                output,
+            } => {
+                vm = if !SystemContext::get_rich_addresses().contains(&caller) {
+                    vm.non_rich_update_balance(caller)
+                } else {
+                    vm
+                };
+                transform_success_output(output, logs)
+            }
+            ExecutionResult::Revert {
+                gas_used: _,
+                output,
+            } => {
+                let return_data_value = revm_bytes_to_vec_value(output);
+                Output::new(return_data_value, true, vec![])
+            }
+            ExecutionResult::Halt {
+                reason: _,
+                gas_used: _,
+            } => Output::new(vec![], true, vec![]),
+        };
+
+        if output == self.expected {
+            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, 0);
+        } else {
+            Summary::failed(
+                summary,
+                mode,
+                name,
+                self.expected,
+                output,
+                self.calldata.inner,
+            );
+        };
+        vm
+    }
+
     ///
     /// Runs the call on EVM interpreter.
     ///

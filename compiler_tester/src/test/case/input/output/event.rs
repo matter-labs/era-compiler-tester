@@ -5,8 +5,6 @@
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-use serde::Serialize;
-
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::extended::event::Event as MatterLabsTestExpectedEvent;
 use crate::test::instance::Instance;
 use crate::test::case::input::value::Value;
@@ -14,7 +12,7 @@ use crate::test::case::input::value::Value;
 ///
 /// The compiler test outcome event.
 ///
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct Event {
     /// The event address.
     address: Option<web3::types::Address>,
@@ -46,10 +44,11 @@ impl Event {
     pub fn try_from_matter_labs(
         event: MatterLabsTestExpectedEvent,
         instances: &BTreeMap<String, Instance>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
-        let topics = Value::try_from_vec_matter_labs(event.topics, instances)
+        let topics = Value::try_from_vec_matter_labs(event.topics, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid topics: {}", error))?;
-        let values = Value::try_from_vec_matter_labs(event.values, instances)
+        let values = Value::try_from_vec_matter_labs(event.values, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid values: {}", error))?;
 
         let address = match event.address {
@@ -166,7 +165,7 @@ impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
 
 impl From<evm::Log> for Event {
     fn from(log: evm::Log) -> Self {
-        let address = log.address;
+        let _address = log.address;
         let topics = log
             .topics
             .into_iter()
@@ -190,7 +189,7 @@ impl From<evm::Log> for Event {
             })
             .collect();
         Self {
-            address: None,
+            address: Some(log.address),
             topics,
             values,
         }

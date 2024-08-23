@@ -38,11 +38,13 @@ once_cell = "1.19"
 rayon = "1.10"
 lazy_static = "1.4"
 bincode = "1.3"
+
 evm = { git = "https://github.com/rust-ethereum/evm", rev = "f7a23df6c478ca6a151af5f60e62944800529a61" }
+revm = { git = "https://github.com/bluealloy/revm" }
+vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
 zkevm_opcode_defs = { git = "https://github.com/matter-labs/era-zkevm_opcode_defs", branch = "v1.5.0" }
 zkevm_tester = { git = "https://github.com/0xVolosnikov/era-zkevm_tester", branch = "vv-add-transient-storage-param" }
-vm2 = { git = "https://github.com/matter-labs/vm2", optional = true }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }

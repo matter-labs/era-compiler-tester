@@ -15,17 +15,17 @@ pub struct EVMAddressIterator {
     /// The accounts create nonces.
     nonces: HashMap<web3::types::Address, usize>,
     /// Whether to start nonce from zero.
-    start_nonce_from_zero: bool,
+    start_nonce_from: usize,
 }
 
 impl EVMAddressIterator {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(start_nonce_from_zero: bool) -> Self {
+    pub fn new(start_nonce_from: usize) -> Self {
         Self {
             nonces: HashMap::new(),
-            start_nonce_from_zero,
+            start_nonce_from,
         }
     }
 }
@@ -40,11 +40,11 @@ impl AddressIterator for EVMAddressIterator {
         stream.append(caller);
         stream.append(&self.nonce(caller));
 
-        let hash = era_compiler_llvm_context::eravm_utils::keccak256(&stream.out());
+        let hash = era_compiler_common::Hash::keccak256(&stream.out());
         let address = web3::types::Address::from_str(
-            &hash[(era_compiler_common::BYTE_LENGTH_FIELD
-                - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS)
-                * 2..],
+            &hash.to_string()[2 + 2
+                * (era_compiler_common::BYTE_LENGTH_FIELD
+                    - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS)..],
         )
         .expect("Always valid");
 
@@ -56,17 +56,11 @@ impl AddressIterator for EVMAddressIterator {
     }
 
     fn increment_nonce(&mut self, caller: &web3::types::Address) {
-        let nonce = self
-            .nonces
-            .entry(*caller)
-            .or_insert(if self.start_nonce_from_zero { 0 } else { 1 });
+        let nonce = self.nonces.entry(*caller).or_insert(self.start_nonce_from);
         *nonce += 1;
     }
 
     fn nonce(&mut self, caller: &web3::types::Address) -> usize {
-        *self
-            .nonces
-            .entry(*caller)
-            .or_insert(if self.start_nonce_from_zero { 0 } else { 1 })
+        *self.nonces.entry(*caller).or_insert(self.start_nonce_from)
     }
 }

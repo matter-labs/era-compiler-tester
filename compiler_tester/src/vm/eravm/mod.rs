@@ -20,6 +20,7 @@ use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::vm::execution_result::ExecutionResult;
@@ -47,6 +48,8 @@ pub struct EraVM {
     storage: HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
     /// The transient storage state.
     storage_transient: HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
+    /// The current EVM block number.
+    current_evm_block_number: u128,
 }
 
 impl EraVM {
@@ -65,6 +68,9 @@ impl EraVM {
     pub const EVM_GAS_MANAGER_FIRST_STACK_FRAME: &'static str =
         "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
 
+    /// The EVM call gas limit.
+    pub const EVM_CALL_GAS_LIMIT: u64 = u32::MAX as u64;
+
     ///
     /// Creates and initializes a new EraVM instance.
     ///
@@ -74,6 +80,7 @@ impl EraVM {
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
@@ -113,7 +120,7 @@ impl EraVM {
             system_contracts_save_path,
         )?;
 
-        let storage = SystemContext::create_storage();
+        let storage = SystemContext::create_storage(target);
         let storage_transient = HashMap::new();
 
         let mut vm = Self {
@@ -128,6 +135,7 @@ impl EraVM {
             storage,
             storage_transient,
             published_evm_bytecodes: HashMap::new(),
+            current_evm_block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
         };
 
         vm.add_known_contract(
@@ -168,12 +176,79 @@ impl EraVM {
     pub fn clone_with_contracts(
         vm: Arc<Self>,
         known_contracts: HashMap<web3::types::U256, Vec<u8>>,
+        evm_version: Option<EVMVersion>,
     ) -> Self {
-        let mut new_vm = (*vm).clone();
+        let mut vm_clone = (*vm).clone();
         for (bytecode_hash, bytecode) in known_contracts.into_iter() {
-            new_vm.add_known_contract(bytecode, bytecode_hash);
+            vm_clone.add_known_contract(bytecode, bytecode_hash);
         }
-        new_vm
+        if let Some(
+            solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
+            | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
+        ) = evm_version
+        {
+            SystemContext::set_pre_paris_contracts(&mut vm_clone.storage);
+        }
+        vm_clone
+    }
+
+    ///
+    /// Sets the given block number as the new current block number in storage.
+    ///
+    pub fn increment_evm_block_number_and_timestamp(&mut self) {
+        let mut system_context_values = vec![(
+            web3::types::H256::from_low_u64_be(
+                SystemContext::SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION,
+            ),
+            web3::types::H256::from_low_u64_be(self.current_evm_block_number as u64),
+        )];
+
+        let block_timestamp =
+            SystemContext::BLOCK_TIMESTAMP_EVM_STEP * self.current_evm_block_number;
+
+        let block_info_bytes = [
+            self.current_evm_block_number.to_be_bytes(),
+            block_timestamp.to_be_bytes(),
+        ]
+        .concat();
+
+        system_context_values.push((
+            web3::types::H256::from_low_u64_be(
+                SystemContext::SYSTEM_CONTEXT_VIRTUAL_L2_BLOCK_INFO_POSITION,
+            ),
+            web3::types::H256::from_slice(block_info_bytes.as_slice()),
+        ));
+
+        let padded_index = [[0u8; 16], self.current_evm_block_number.to_be_bytes()].concat();
+        let padded_slot =
+            web3::types::H256::from_low_u64_be(SystemContext::SYSTEM_CONTEXT_BLOCK_HASH_POSITION)
+                .to_fixed_bytes()
+                .to_vec();
+        let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
+
+        let mut hash = web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH)
+            .expect("Invalid zero block hash constant");
+        hash = hash.add(web3::types::U256::from(self.current_evm_block_number));
+        let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
+        hash.to_big_endian(&mut hash_bytes);
+
+        system_context_values.push((
+            web3::types::H256::from(key),
+            web3::types::H256::from_slice(hash_bytes.as_slice()),
+        ));
+
+        for (key, value) in system_context_values {
+            self.storage.insert(
+                zkevm_tester::compiler_tests::StorageKey {
+                    address: web3::types::Address::from_low_u64_be(
+                        zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
+                    ),
+                    key: web3::types::U256::from_big_endian(key.as_bytes()),
+                },
+                value,
+            );
+        }
+        self.current_evm_block_number += 1;
     }
 
     ///
@@ -270,14 +345,14 @@ impl EraVM {
             }
 
             for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
-                if self.published_evm_bytecodes.contains_key(&hash) {
+                if self.published_evm_bytecodes.contains_key(hash) {
                     continue;
                 }
 
                 self.published_evm_bytecodes.insert(*hash, preimage.clone());
             }
 
-            self.storage = snapshot.storage.clone();
+            self.storage.clone_from(&snapshot.storage);
 
             Ok(snapshot.into())
         }
@@ -332,7 +407,7 @@ impl EraVM {
             web3::types::H256::from_low_u64_be(1),
         );
 
-        // set `evmStackFrames[0].isStatic` size to false
+        // set `evmStackFrames[0].isStatic` to false
         self.storage.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
@@ -341,13 +416,13 @@ impl EraVM {
             web3::types::H256::zero(),
         );
 
-        // set `evmStackFrames[0].passGas` size to 2^24
+        // set `evmStackFrames[0].passGas` to `EVM_CALL_GAS_LIMIT`
         self.storage.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME).add(1),
             },
-            web3::types::H256::from_low_u64_be(1 << 24),
+            web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
         );
 
         let mut result = self.execute::<M>(
@@ -367,7 +442,7 @@ impl EraVM {
             .remove(0)
             .unwrap_certain_as_ref()
             .as_u64();
-        result.gas = (1 << 24) - gas_left;
+        result.gas = Self::EVM_CALL_GAS_LIMIT - gas_left;
 
         Ok(result)
     }
@@ -559,8 +634,9 @@ impl EraVM {
         key_preimage.extend_from_slice(address.as_bytes());
         key_preimage.extend(vec![0u8; era_compiler_common::BYTE_LENGTH_FIELD]);
 
-        let key_string = era_compiler_llvm_context::eravm_utils::keccak256(key_preimage.as_slice());
-        let key = web3::types::U256::from_str(key_string.as_str()).expect("Always valid");
+        let key_string = era_compiler_common::Hash::keccak256(key_preimage.as_slice());
+        let key =
+            web3::types::U256::from_str(key_string.to_string().as_str()).expect("Always valid");
         zkevm_tester::compiler_tests::StorageKey {
             address: web3::types::Address::from_low_u64_be(
                 zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into(),

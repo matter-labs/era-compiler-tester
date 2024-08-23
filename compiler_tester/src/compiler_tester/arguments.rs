@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use compiler_tester::Workflow;
-
 ///
 /// The compiler tester arguments.
 ///
@@ -71,15 +69,28 @@ pub struct Arguments {
     #[structopt(long = "zkvyper")]
     pub zkvyper: Option<PathBuf>,
 
-    /// Specify the target machine.
-    /// Available arguments: `EraVM`, `EVM`, `EVMInterpreter`.
+    /// Specify the compiler toolchain.
+    /// Available arguments: `IR-LLVM`, `solc`, `solc-LLVM`.
     /// The default is `EraVM`.
-    #[structopt(long = "target")]
-    pub target: Option<String>,
+    #[structopt(long = "toolchain", default_value = "IR-LLVM")]
+    pub toolchain: compiler_tester::Toolchain,
 
-    /// Use the upstream `solc` compiler.
-    #[structopt(long = "use-upstream-solc")]
-    pub use_upstream_solc: bool,
+    /// Specify the target architecture.
+    /// Available arguments: `eravm`, `evm`.
+    /// The default is `eravm`.
+    #[structopt(long = "target", default_value = "eravm")]
+    pub target: era_compiler_common::Target,
+
+    /// Specify the environment to run tests on.
+    /// Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.
+    /// The default for `EraVM` target is `zk_evm`.
+    /// The default for `EVM` target is `EVMInterpreter`.
+    #[structopt(long = "environment")]
+    pub environment: Option<compiler_tester::Environment>,
+
+    /// Choose between `build` to compile tests only without running, and `run` to compile and run.
+    #[structopt(long = "workflow", default_value = "run")]
+    pub workflow: compiler_tester::Workflow,
 
     /// Path to the default `solc` binaries download configuration file.
     #[structopt(long = "solc-bin-config-path")]
@@ -104,10 +115,6 @@ pub struct Arguments {
     /// Sets the `debug logging` option in LLVM.
     #[structopt(long = "llvm-debug-logging")]
     pub llvm_debug_logging: bool,
-
-    /// Choose between `build` to compile tests only without running them, and `run` to compile and run them.
-    #[structopt(long = "workflow", default_value = "run")]
-    pub workflow: Workflow,
 }
 
 impl Arguments {

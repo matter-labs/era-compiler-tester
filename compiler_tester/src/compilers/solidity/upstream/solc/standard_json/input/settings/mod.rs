@@ -2,6 +2,7 @@
 //! The `solc --standard-json` input settings.
 //!
 
+pub mod debug;
 pub mod optimizer;
 pub mod selection;
 
@@ -10,6 +11,7 @@ use std::collections::BTreeSet;
 
 use serde::Serialize;
 
+use self::debug::Debug;
 use self::optimizer::Optimizer;
 use self::selection::Selection;
 
@@ -40,6 +42,9 @@ pub struct Settings {
     pub via_ir: Option<bool>,
     /// The optimizer settings.
     pub optimizer: Optimizer,
+    /// The debug settings.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub debug: Option<Debug>,
 }
 
 impl Settings {
@@ -53,6 +58,7 @@ impl Settings {
         output_selection: Selection,
         via_ir: bool,
         optimizer: Optimizer,
+        debug: Option<Debug>,
     ) -> Self {
         Self {
             evm_version,
@@ -61,6 +67,7 @@ impl Settings {
             output_selection: Some(output_selection),
             via_ir: if via_ir { Some(true) } else { None },
             optimizer,
+            debug,
         }
     }
 }
