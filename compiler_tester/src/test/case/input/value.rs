@@ -124,19 +124,10 @@ impl Value {
                 .unwrap_or_default();
             let mut hash =
                 web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
-            if let era_compiler_common::Target::EVM = target {
-                hash += web3::types::U256::from(offset);
-            }
+            hash += web3::types::U256::from(offset);
             hash
         } else if value == "$BLOCK_NUMBER" {
-            match target {
-                era_compiler_common::Target::EraVM => {
-                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_ERAVM)
-                }
-                era_compiler_common::Target::EVM => {
-                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER_EVM)
-                }
-            }
+            web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER)
         } else if value == "$BLOCK_TIMESTAMP" {
             match target {
                 era_compiler_common::Target::EraVM => {

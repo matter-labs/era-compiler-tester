@@ -135,7 +135,7 @@ impl EraVM {
             storage,
             storage_transient,
             published_evm_bytecodes: HashMap::new(),
-            current_evm_block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
+            current_evm_block_number: SystemContext::INITIAL_BLOCK_NUMBER,
         };
 
         vm.add_known_contract(

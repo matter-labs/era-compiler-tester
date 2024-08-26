@@ -88,12 +88,10 @@ impl SystemContext {
     /// The default base fee for tests.
     pub const BASE_FEE: u64 = 7;
 
-    /// The default current block number for EraVM tests.
-    pub const CURRENT_BLOCK_NUMBER_ERAVM: u128 = 300;
-    /// The default current block number for EVM tests.
-    pub const INITIAL_BLOCK_NUMBER_EVM: u128 = 1;
-    /// The default current block number for EVM tests.
-    pub const CURRENT_BLOCK_NUMBER_EVM: u128 = 2;
+    /// The default current block number.
+    pub const INITIAL_BLOCK_NUMBER: u128 = 1;
+    /// The default current block number.
+    pub const CURRENT_BLOCK_NUMBER: u128 = 2;
 
     /// The default current block timestamp for EraVM tests.
     pub const CURRENT_BLOCK_TIMESTAMP_ERAVM: u128 = 0xdeadbeef;
@@ -121,10 +119,7 @@ impl SystemContext {
             era_compiler_common::Target::EVM => Self::COIN_BASE_EVM,
         };
 
-        let block_number = match target {
-            era_compiler_common::Target::EraVM => Self::CURRENT_BLOCK_NUMBER_ERAVM,
-            era_compiler_common::Target::EVM => Self::CURRENT_BLOCK_NUMBER_EVM,
-        };
+        let block_number = Self::CURRENT_BLOCK_NUMBER;
         let block_timestamp = match target {
             era_compiler_common::Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
             era_compiler_common::Target::EVM => Self::BLOCK_TIMESTAMP_EVM_STEP,
@@ -279,28 +274,22 @@ impl SystemContext {
     /// Returns constants for the specified EVM version.
     ///
     pub fn get_constants_evm(evm_version: Option<solidity_adapter::EVMVersion>) -> EVMContext {
-        match evm_version {
+        let block_difficulty = match evm_version {
             Some(
                 solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
                 | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
-            ) => EVMContext {
-                chain_id: SystemContext::CHAIND_ID_EVM,
-                coinbase: &SystemContext::COIN_BASE_EVM[2..],
-                block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
-                block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
-                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
-                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
-                base_fee: SystemContext::BASE_FEE,
-            },
-            _ => EVMContext {
-                chain_id: SystemContext::CHAIND_ID_EVM,
-                coinbase: &SystemContext::COIN_BASE_EVM[2..],
-                block_number: SystemContext::INITIAL_BLOCK_NUMBER_EVM,
-                block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
-                block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
-                block_difficulty: &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
-                base_fee: SystemContext::BASE_FEE,
-            },
+            ) => &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
+            _ => &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
+        };
+
+        EVMContext {
+            chain_id: SystemContext::CHAIND_ID_EVM,
+            coinbase: &SystemContext::COIN_BASE_EVM[2..],
+            block_number: SystemContext::INITIAL_BLOCK_NUMBER,
+            block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
+            block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
+            block_difficulty,
+            base_fee: SystemContext::BASE_FEE,
         }
     }
 
