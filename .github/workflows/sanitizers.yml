@@ -35,6 +35,7 @@ on:
 
 jobs:
   run-with-sanitizers:
+    timeout-minutes: 720
     runs-on: [ci-runner-compiler, Linux]
     container:
       image: ghcr.io/matter-labs/zksync-llvm-runner:latest
@@ -89,5 +90,5 @@ jobs:
           ./target/${TARGET}/debug/compiler-tester \
             --zksolc "./target-zksolc/${TARGET}/debug/zksolc" \
             --zkvyper "./target-zkvyper/${TARGET}/debug/zkvyper" \
-            --path '${{ inputs.path }}'
+            --path '${{ inputs.path }}' \
             --mode '${{ inputs.mode }}'
