@@ -124,9 +124,7 @@ impl Value {
                 .unwrap_or_default();
             let mut hash =
                 web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
-            if let era_compiler_common::Target::EVM = target {
-                hash += web3::types::U256::from(offset);
-            }
+            hash += web3::types::U256::from(offset);
             hash
         } else if value == "$BLOCK_NUMBER" {
             match target {
