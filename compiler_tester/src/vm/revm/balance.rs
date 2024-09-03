@@ -106,7 +106,7 @@ impl<'a> Revm<'a> {
             .evm
             .balance(web3_address_to_revm_address(&caller))
             .expect("Always exists")
-            .0;
+            .data;
         let acc_info = revm::primitives::AccountInfo {
             balance: U256::from(self.state.tx().gas_limit) * self.state.tx().gas_price
                 - (post_balance + U256::from_str("63615000000000").expect("Always valid")),
