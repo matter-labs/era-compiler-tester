@@ -98,7 +98,7 @@ impl Balance {
             .balance(web3_address_to_revm_address(&self.address));
         match found {
             Ok(found) => {
-                let u256_found = U256::from(found.0.to_be_bytes());
+                let u256_found = U256::from(found.data.to_be_bytes());
                 if u256_found == self.balance {
                     Summary::passed_special(summary, mode, name, test_group);
                 } else {
