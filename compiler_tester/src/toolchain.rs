@@ -20,9 +20,9 @@ impl std::str::FromStr for Toolchain {
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         match string {
-            "IR-LLVM" => Ok(Self::IrLLVM),
+            "ir-llvm" => Ok(Self::IrLLVM),
             "solc" => Ok(Self::Solc),
-            "solc-LLVM" => Ok(Self::SolcLLVM),
+            "solc-llvm" => Ok(Self::SolcLLVM),
             string => anyhow::bail!(
                 "Unknown target `{}`. Supported targets: {}",
                 string,
@@ -39,9 +39,9 @@ impl std::str::FromStr for Toolchain {
 impl std::fmt::Display for Toolchain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::IrLLVM => write!(f, "IR-LLVM"),
+            Self::IrLLVM => write!(f, "ir-llvm"),
             Self::Solc => write!(f, "solc"),
-            Self::SolcLLVM => write!(f, "solc-LLVM"),
+            Self::SolcLLVM => write!(f, "solc-llvm"),
         }
     }
 }

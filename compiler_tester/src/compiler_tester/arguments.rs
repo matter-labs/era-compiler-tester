@@ -70,10 +70,11 @@ pub struct Arguments {
     pub zkvyper: Option<PathBuf>,
 
     /// Specify the compiler toolchain.
-    /// Available arguments: `IR-LLVM`, `solc`, `solc-LLVM`.
-    /// The default is `EraVM`.
-    #[structopt(long = "toolchain", default_value = "IR-LLVM")]
-    pub toolchain: compiler_tester::Toolchain,
+    /// Available arguments: `ir-llvm`, `solc`, `solc-llvm`.
+    /// The default for `EraVM` target is `ir-llvm`.
+    /// The default for `EVM` target is `solc`.
+    #[structopt(long = "toolchain")]
+    pub toolchain: Option<compiler_tester::Toolchain>,
 
     /// Specify the target architecture.
     /// Available arguments: `eravm`, `evm`.

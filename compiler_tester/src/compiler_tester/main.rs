@@ -100,9 +100,15 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         arguments.workflow,
     )?;
 
+    let toolchain = match (arguments.target, arguments.toolchain) {
+        (era_compiler_common::Target::EraVM, Some(toolchain)) => toolchain,
+        (era_compiler_common::Target::EraVM, None) => compiler_tester::Toolchain::IrLLVM,
+        (era_compiler_common::Target::EVM, Some(toolchain)) => toolchain,
+        (era_compiler_common::Target::EVM, None) => compiler_tester::Toolchain::Solc,
+    };
     let binary_download_config_paths = vec![
         arguments.solc_bin_config_path.unwrap_or_else(|| {
-            PathBuf::from(match arguments.toolchain {
+            PathBuf::from(match toolchain {
                 compiler_tester::Toolchain::IrLLVM => "./configs/solc-bin-default.json",
                 compiler_tester::Toolchain::Solc => "./configs/solc-bin-upstream.json",
                 compiler_tester::Toolchain::SolcLLVM => todo!(),
@@ -112,14 +118,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             .vyper_bin_config_path
             .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
     ];
-
-    let run_time_start = Instant::now();
-    println!(
-        "     {} tests with {} worker threads",
-        "Running".bright_green().bold(),
-        rayon::current_num_threads(),
-    );
-
     let environment = match (arguments.target, arguments.environment) {
         (
             era_compiler_common::Target::EraVM,
@@ -142,6 +140,14 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),
     };
+
+    let run_time_start = Instant::now();
+    println!(
+        "     {} tests with {} worker threads",
+        "Running".bright_green().bold(),
+        rayon::current_num_threads(),
+    );
+
     match environment {
         compiler_tester::Environment::ZkEVM => {
             let system_contracts_debug_config = if arguments.dump_system {
@@ -192,13 +198,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
             compiler_tester
                 .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, true>(
-                    vm,
-                    arguments.toolchain,
+                    vm, toolchain,
                 )
         }
         compiler_tester::Environment::REVM => {
             compiler_tester::EVM::download(binary_download_config_paths)?;
-            compiler_tester.run_revm(arguments.toolchain)
+            compiler_tester.run_revm(toolchain)
         }
     }?;
 
@@ -249,7 +254,7 @@ mod tests {
                 era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
             )),
             zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
-            toolchain: compiler_tester::Toolchain::IrLLVM,
+            toolchain: Some(compiler_tester::Toolchain::IrLLVM),
             target: era_compiler_common::Target::EraVM,
             environment: None,
             workflow: compiler_tester::Workflow::BuildAndRun,
