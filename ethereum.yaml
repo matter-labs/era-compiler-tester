@@ -2422,7 +2422,7 @@ entries:
         modes:
         - Y
         version: '>=0.8.26'
-      require_evaluation_order.sol:
+      require_error_evaluation_order_1.sol:
         hash: '0x0a819267c6aa47c095d68fed729adafd'
         enabled: true
         modes:
