@@ -46,7 +46,7 @@ impl SystemContracts {
 
     /// The EVM interpreter system contract implementation path.
     const PATH_EVM_INTERPRETER: &'static str =
-        "era-contracts/system-contracts/contracts/EvmInterpreterPreprocessed.yul";
+        "era-contracts/system-contracts/contracts/EvmInterpreter.yul";
 
     /// The `keccak256` system contract implementation path.
     const PATH_KECCAK256: &'static str =
@@ -110,7 +110,7 @@ impl SystemContracts {
 
     /// The base token system contract implementation path.
     const PATH_BASE_TOKEN: &'static str =
-        "era-contracts/system-contracts/contracts/L2EthToken.sol:L2EthToken";
+        "era-contracts/system-contracts/contracts/L2BaseToken.sol:L2BaseToken";
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
