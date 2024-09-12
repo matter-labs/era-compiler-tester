@@ -54,7 +54,7 @@ impl Compiler for EraVMCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            true,
+            era_compiler_common::HashType::Ipfs,
             era_compiler_llvm_context::OptimizerSettings::none(),
             llvm_options,
             true,
