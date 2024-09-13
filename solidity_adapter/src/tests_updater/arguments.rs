@@ -24,17 +24,11 @@ pub struct Arguments {
     pub source: PathBuf,
 
     /// Path of the tests' index.
-    #[structopt(
-        short = "i",
-        long = "index"
-    )]
+    #[structopt(short = "i", long = "index")]
     pub index: PathBuf,
 
     /// Destination directory for tests to be updated.
-    #[structopt(
-        short = "d",
-        long = "destination"
-    )]
+    #[structopt(short = "d", long = "destination")]
     pub destination: PathBuf,
 
     /// Whether to only update the index, and do not touch the files.

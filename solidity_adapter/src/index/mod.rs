@@ -80,7 +80,12 @@ impl FSEntity {
     ///
     /// Updates the new index, tests and returns changes.
     ///
-    pub fn update(&self, new: &mut FSEntity, initial: &Path, index_only: bool) -> anyhow::Result<Changes> {
+    pub fn update(
+        &self,
+        new: &mut FSEntity,
+        initial: &Path,
+        index_only: bool,
+    ) -> anyhow::Result<Changes> {
         let mut changes = Changes::default();
         self.update_recursive(new, initial, &mut changes, index_only)?;
         Ok(changes)
@@ -216,7 +221,7 @@ impl FSEntity {
             } else {
                 entity.list_recursive(&current, &mut changes.deleted);
                 if !index_only {
-                entity.delete(&current)?;
+                    entity.delete(&current)?;
                 }
             }
         }
@@ -226,7 +231,7 @@ impl FSEntity {
                 current.push(name);
                 entity.list_recursive(&current, &mut changes.created);
                 if !index_only {
-                entity.create_recursive(&current)?;
+                    entity.create_recursive(&current)?;
                 }
             }
         }
