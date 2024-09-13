@@ -942,7 +942,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#d0c93a797fe850fd81d2c778b0a557fce58f2b3c"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#666de17f795f20530423bb88c912efe45d5a092e"
 dependencies = [
  "anyhow",
  "base58",
@@ -3038,7 +3038,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
