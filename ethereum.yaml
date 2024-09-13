@@ -3662,6 +3662,10 @@ entries:
         hash: '0x6df4ccce923e76ce7753a971f62a4949'
         enabled: true
         version: '>=0.8.21'
+        modes:
+        - Y >=0.8.27
+        - E
+        - I >=0.8.27
       increment_decrement.sol:
         hash: '0x55119edb85c106990d395a15dc809aa7'
         enabled: true
