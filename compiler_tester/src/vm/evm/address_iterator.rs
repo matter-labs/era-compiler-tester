@@ -10,21 +10,10 @@ use crate::vm::address_iterator::AddressIterator;
 ///
 /// The EVM deploy address iterator.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct EVMAddressIterator {
     /// The accounts create nonces.
     nonces: HashMap<web3::types::Address, usize>,
-}
-
-impl EVMAddressIterator {
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new() -> Self {
-        Self {
-            nonces: HashMap::new(),
-        }
-    }
 }
 
 impl AddressIterator for EVMAddressIterator {

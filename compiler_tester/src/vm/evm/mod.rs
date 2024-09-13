@@ -15,7 +15,6 @@ use std::time::Instant;
 
 use colored::Colorize;
 
-use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::input::build::Build as EVMBuild;
@@ -62,7 +61,8 @@ impl<'evm> EVM<'evm> {
         let download_time_start = Instant::now();
         println!(" {} compiler binaries", "Downloading".bright_green().bold());
         for config_path in binary_download_config_paths.into_iter() {
-            CompilerDownloader::new(http_client.clone()).download(config_path.as_path())?;
+            era_compiler_downloader::Downloader::new(http_client.clone())
+                .download(config_path.as_path())?;
         }
         println!(
             "    {} downloading compiler binaries in {}m{:02}s",

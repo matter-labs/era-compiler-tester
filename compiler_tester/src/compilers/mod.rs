@@ -3,7 +3,6 @@
 //!
 
 pub mod cache;
-pub mod downloader;
 pub mod eravm;
 pub mod llvm;
 pub mod mode;
