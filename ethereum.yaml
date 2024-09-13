@@ -2351,6 +2351,7 @@ entries:
       error_in_library_and_interface.sol:
         hash: '0x7b8ff351f222b8efa8a9f79c465b8b05'
         enabled: true
+        comment: Uses library inlining
         modes:
         - Y+
         - E
@@ -2391,60 +2392,100 @@ entries:
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       require_error_condition_evaluated_only_once.sol:
         hash: '0x4051eaf42e39e94295b8ccb341db2d74'
         enabled: true
+        modes:
+        - Y
+        - E >=0.8.27
+        - I
+        version: '>=0.8.26'
       require_error_evaluation_order_1.sol:
         hash: '0x3e05e011dffa6a687b4a7d23341d994c'
         enabled: true
+        modes:
+        - Y
+        - E >=0.8.27
+        - I
+        version: '>=0.8.26'
       require_error_evaluation_order_2.sol:
         hash: '0xdd7fb8aad3de7913a24e87eb5c2cee8f'
         enabled: true
+        modes:
+        - Y
+        - E >=0.8.27
+        - I
+        version: '>=0.8.26'
       require_error_evaluation_order_3.sol:
         hash: '0x11844763e982e5c1f37e2d4020ac0d34'
         enabled: true
+        version: '>=0.4.22'
       require_error_function_join_control_flow.sol:
         hash: '0x52dd0f3597958be2e53903b3848d8939'
         enabled: true
+        modes:
+        - Y
+        - E >=0.8.27
+        - I
+        version: '>=0.8.26'
       require_error_function_pointer_parameter.sol:
         hash: '0xd2dac934e0720b1705b3e81f7fa64ffd'
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       require_error_multiple_arguments.sol:
         hash: '0x4403d41af1c63477fe55536a44e53849'
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       require_error_stack_check.sol:
         hash: '0x15b037200bd9f68689281ce45fdc91b4'
         enabled: true
+        modes:
+        - Y
+        - E >=0.8.27
+        - I
+        version: '>=0.8.26'
       require_error_string_literal.sol:
         hash: '0x2a0b66b5fd373951172d736e0126a849'
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       require_error_string_memory.sol:
         hash: '0xc83e1f1bc989d6bd2483d98dbb2df9d0'
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       require_error_uint256.sol:
         hash: '0x696b57a34dff35ebbdcf51c9d4d591c6'
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       require_inherited_error.sol:
         hash: '0xdaf4d0488d62abed098d076f49d4cde7'
         enabled: true
         modes:
         - Y
+        - E >=0.8.27
+        - I
         version: '>=0.8.26'
       revert_conversion.sol:
         hash: '0x902639f8c247113d96104e98ca073907'
@@ -3620,6 +3661,7 @@ entries:
       immutable_tag_too_large_bug.sol:
         hash: '0x6df4ccce923e76ce7753a971f62a4949'
         enabled: true
+        version: '>=0.8.21'
       increment_decrement.sol:
         hash: '0x55119edb85c106990d395a15dc809aa7'
         enabled: true
