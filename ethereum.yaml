@@ -6990,6 +6990,7 @@ entries:
       transient_storage_reentrancy_lock.sol:
         hash: '0x7edb71cf3075e7ddbcc6672f3ebe892c'
         enabled: true
+        version: '>=0.8.27'
       tuples.sol:
         hash: '0xbd8afa8671e0a31c4726453fde7251ca'
         enabled: true
