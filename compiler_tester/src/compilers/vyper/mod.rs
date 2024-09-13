@@ -227,7 +227,7 @@ impl Compiler for VyperCompiler {
 
         let build = project.compile(
             None,
-            true,
+            era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             vec![],

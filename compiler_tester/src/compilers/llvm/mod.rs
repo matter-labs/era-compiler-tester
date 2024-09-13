@@ -69,7 +69,7 @@ impl Compiler for LLVMCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            true,
+            era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
@@ -121,7 +121,7 @@ impl Compiler for LLVMCompiler {
             &mut vec![],
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            true,
+            era_compiler_common::HashType::Ipfs,
             None,
             debug_config.clone(),
         )?;
