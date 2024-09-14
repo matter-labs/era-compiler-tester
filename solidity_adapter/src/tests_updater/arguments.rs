@@ -15,14 +15,6 @@ use structopt::StructOpt;
     about = "ZKsync toolchain test updater for Ethereum Solidity tests"
 )]
 pub struct Arguments {
-    /// Path of the tests' index.
-    #[structopt(
-        default_value = "tests/solidity/ethereum/index.yaml",
-        short = "i",
-        long = "index"
-    )]
-    pub index: PathBuf,
-
     /// Source directory of changed tests.
     #[structopt(
         default_value = "solidity/test/libsolidity/semanticTests",
@@ -31,13 +23,17 @@ pub struct Arguments {
     )]
     pub source: PathBuf,
 
+    /// Path of the tests' index.
+    #[structopt(short = "i", long = "index")]
+    pub index: PathBuf,
+
     /// Destination directory for tests to be updated.
-    #[structopt(
-        default_value = "tests/solidity/ethereum",
-        short = "d",
-        long = "destination"
-    )]
+    #[structopt(short = "d", long = "destination")]
     pub destination: PathBuf,
+
+    /// Whether to only update the index, and do not touch the files.
+    #[structopt(long = "index-only")]
+    pub index_only: bool,
 }
 
 impl Arguments {

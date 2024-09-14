@@ -29,7 +29,11 @@ fn main() {
     let mut new_index =
         solidity_adapter::FSEntity::index(&arguments.source).expect("Failed to update index");
     let changes = old_index
-        .update(&mut new_index, arguments.destination.as_path())
+        .update(
+            &mut new_index,
+            arguments.destination.as_path(),
+            arguments.index_only,
+        )
         .expect("Failed to update tests");
 
     println!("{} files created:\n", changes.created.len());

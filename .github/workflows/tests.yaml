@@ -66,9 +66,8 @@ jobs:
   target-machine:
     runs-on: ubuntu-latest
     outputs:
-      evm: ${{ steps.evm.outputs.machine }}
-      eravm: ${{ steps.eravm.outputs.machine }}
-      default: ${{ steps.default.outputs.machine }}
+      evm: ${{ steps.evm.outputs.machine || steps.default.outputs.evm }}
+      eravm: ${{ steps.eravm.outputs.machine || steps.default.outputs.eravm }}
     steps:
 
       - name: Check for EraVM target
@@ -86,7 +85,8 @@ jobs:
         shell: bash -ex {0}
         run: |
           if [[ "${{ join(steps.*.outputs.*) }}" == "" ]]; then
-            echo "machine=default" | tee -a "${GITHUB_OUTPUT}"
+            echo "eravm=eravm" | tee -a "${GITHUB_OUTPUT}"
+            echo "evm=evm" | tee -a "${GITHUB_OUTPUT}"
           fi
 
   # Integration tests workflow call from the era-compiler-ci repository
@@ -110,7 +110,7 @@ jobs:
   # If you would like to make a change to the benchmarks workflow, please do it in the era-compiler-ci repository
   benchmarks:
     needs: target-machine
-    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@v1
+    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@aba-fix-benchmarks-json
     secrets: inherit
     strategy:
       fail-fast: false

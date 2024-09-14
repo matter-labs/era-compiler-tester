@@ -213,8 +213,6 @@ impl Runtime {
             self.value,
             evm_version,
         );
-        dbg!(&vm);
-
         vm = vm.update_balance_if_lack_of_funds(caller);
 
         let result = match vm.state.transact_commit() {
