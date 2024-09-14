@@ -3617,12 +3617,6 @@ entries:
         - E
         - I
         version: '>=0.7.0'
-      transient_value_types.sol:
-        hash: '0xa4b416ff0a4532321a46c06c6d3b292d'
-        enabled: true
-      transient_value_types_multi_frame_call.sol:
-        hash: '0xb7f67ba4265cabd6bff6c9b6b4211ee6'
-        enabled: true
       value_types.sol:
         hash: '0xba12d166de3a7cf7e09fb51f7bb45240'
         enabled: true
@@ -3661,11 +3655,11 @@ entries:
       immutable_tag_too_large_bug.sol:
         hash: '0x6df4ccce923e76ce7753a971f62a4949'
         enabled: true
-        version: '>=0.8.21'
         modes:
         - Y >=0.8.27
         - E
         - I >=0.8.27
+        version: '>=0.8.21'
       increment_decrement.sol:
         hash: '0x55119edb85c106990d395a15dc809aa7'
         enabled: true
@@ -4000,9 +3994,6 @@ entries:
         hash: '0x04cc5fce661ac43a24ff58258ddbdc00'
         enabled: true
         version: '>=0.4.12'
-      inline_assembly_transient_storage_access_inside_function.sol:
-        hash: '0x029ee932cb52c1c89c488e484b8c4732'
-        enabled: true
       inline_assembly_write_to_stack.sol:
         hash: '0xfef6d721eb252e69d0f9b2d50938ba14'
         enabled: true
@@ -4969,9 +4960,6 @@ entries:
         hash: '0x1b5e6e137084de716e0d9d8446564dc7'
         enabled: true
         version: '>=0.4.12'
-      compound_assign_transient_storage.sol:
-        hash: '0xa2c4092eb740647d6500e8ac7b0e7499'
-        enabled: true
       shifts:
         enabled: true
         entries:
@@ -5147,9 +5135,6 @@ entries:
             hash: '0x4e8524a65fb68db9368603447805c15a'
             enabled: true
             version: '>=0.4.21'
-      transient_storage_variable_increment_decrement.sol:
-        hash: '0x0f520b220259222a123bc6dee1e40fd8'
-        enabled: true
       userDefined:
         enabled: true
         entries:
@@ -6631,9 +6616,6 @@ entries:
         hash: '0x03f114444079f9008d577cb44bca08f1'
         enabled: true
         version: '>=0.4.12'
-      delete_transient_state_variable.sol:
-        hash: '0x9f0d73c57cc5dca8b2632bc098d2cfd9'
-        enabled: true
       mapping_local_assignment.sol:
         hash: '0x6e2c8c62d5b866f8b2058c2fac97b584'
         enabled: true
@@ -6670,33 +6652,6 @@ entries:
         hash: '0xae0630569bf5603ed696749ab21c00bc'
         enabled: true
         version: '>=0.4.21'
-      transient_function_type_state_variable.sol:
-        hash: '0x5aea888669583cd53c2544e02f66a0fa'
-        enabled: true
-      transient_state_address_variable_members.sol:
-        hash: '0x12c445ffd4eb1246e242e94d9a0fda13'
-        enabled: true
-      transient_state_enum_variable.sol:
-        hash: '0x1e4e3ea5314f485c01866e9f61d1da8f'
-        enabled: true
-      transient_state_variable.sol:
-        hash: '0x4009a2195d7a2b4a4854623e50e04cd4'
-        enabled: true
-      transient_state_variable_cleanup_assignment.sol:
-        hash: '0xee5eb631abc7cb67bfeb375a3e39ebdc'
-        enabled: true
-      transient_state_variable_cleanup_tstore.sol:
-        hash: '0xb1bbcbcb1d61dea99e1dea5eec5596c5'
-        enabled: true
-      transient_state_variable_slot_inline_assembly.sol:
-        hash: '0x3f38e915c4071089d1b5a05914e5b89c'
-        enabled: true
-      transient_state_variable_tuple_assignment.sol:
-        hash: '0x807ba3738658acb7bf7206a317ebc710'
-        enabled: true
-      transient_state_variable_udvt.sol:
-        hash: '0xf03358bc6390ae8e3145e0a5610ef1eb'
-        enabled: true
   various:
     enabled: true
     entries:
@@ -6987,10 +6942,6 @@ entries:
         hash: '0x4051de6e556f6a42d4486dadce1e24bd'
         enabled: true
         version: '>=0.5.0'
-      transient_storage_reentrancy_lock.sol:
-        hash: '0x7edb71cf3075e7ddbcc6672f3ebe892c'
-        enabled: true
-        version: '>=0.8.27'
       tuples.sol:
         hash: '0xbd8afa8671e0a31c4726453fde7251ca'
         enabled: true
