@@ -1,5 +1,5 @@
 //!
-//! The compiler tester binary.
+//! The compiler tester executable.
 //!
 
 pub(crate) mod arguments;
@@ -106,12 +106,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         (era_compiler_common::Target::EVM, Some(toolchain)) => toolchain,
         (era_compiler_common::Target::EVM, None) => compiler_tester::Toolchain::Solc,
     };
-    let binary_download_config_paths = vec![
+    let executable_download_config_paths = vec![
         arguments.solc_bin_config_path.unwrap_or_else(|| {
             PathBuf::from(match toolchain {
                 compiler_tester::Toolchain::IrLLVM => "./configs/solc-bin-default.json",
                 compiler_tester::Toolchain::Solc => "./configs/solc-bin-upstream.json",
-                compiler_tester::Toolchain::SolcLLVM => todo!(),
+                compiler_tester::Toolchain::SolcLLVM => "./configs/solc-bin-llvm.json",
             })
         }),
         arguments
@@ -156,7 +156,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 None
             };
             let vm = compiler_tester::EraVM::new(
-                binary_download_config_paths,
+                executable_download_config_paths,
                 PathBuf::from("./configs/solc-bin-system-contracts.json"),
                 system_contracts_debug_config,
                 arguments.system_contracts_load_path,
@@ -169,15 +169,15 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 arguments.disable_value_simulator,
             ) {
                 (true, true) => {
-                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm)
+                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm, toolchain)
                 }
                 (true, false) => {
-                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm)
+                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm, toolchain)
                 }
                 (false, true) => compiler_tester
-                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(vm),
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(vm, toolchain),
                 (false, false) => compiler_tester
-                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm),
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm, toolchain),
             }
         }
         compiler_tester::Environment::FastVM => todo!(),
@@ -188,7 +188,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 None
             };
             let vm = compiler_tester::EraVM::new(
-                binary_download_config_paths,
+                executable_download_config_paths,
                 PathBuf::from("./configs/solc-bin-system-contracts.json"),
                 system_contract_debug_config,
                 arguments.system_contracts_load_path,
@@ -202,7 +202,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 )
         }
         compiler_tester::Environment::REVM => {
-            compiler_tester::EVM::download(binary_download_config_paths)?;
+            compiler_tester::EVM::download(executable_download_config_paths)?;
             compiler_tester.run_revm(toolchain)
         }
     }?;

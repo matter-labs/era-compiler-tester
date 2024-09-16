@@ -14,9 +14,10 @@ use crate::compilers::mode::Mode;
 use crate::compilers::solidity::cache_key::CacheKey;
 use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::build::Build as EVMBuild;
+use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::Input as EVMInput;
+use crate::toolchain::Toolchain;
 
 use self::mode::Mode as SolidityUpstreamMode;
 use self::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
@@ -33,6 +34,9 @@ use self::solc::Compiler as SolcUpstreamCompiler;
 pub struct SolidityCompiler {
     /// The language the compiler will compile.
     language: SolcStandardJsonInputLanguage,
+    /// The toolchain identifier.
+    /// Only `solc` and `solc-llvm` are supported.
+    toolchain: Toolchain,
     /// The `solc` process output cache.
     cache: Cache<CacheKey, SolcStandardJsonOutput>,
 }
@@ -54,7 +58,7 @@ lazy_static::lazy_static! {
             (era_compiler_solidity::SolcPipeline::Yul, true, true),
         ] {
             for version in SolidityCompiler::all_versions(pipeline, via_ir).expect("`solc` versions analysis error") {
-                modes.push(SolidityUpstreamMode::new(version, pipeline, via_ir, optimize).into());
+                modes.push(SolidityUpstreamMode::new(version, pipeline, via_ir, false, optimize).into());
             }
         }
         modes
@@ -71,16 +75,41 @@ lazy_static::lazy_static! {
             false, true
         ] {
             for version in SolidityCompiler::all_versions(era_compiler_solidity::SolcPipeline::Yul, true).expect("`solc` versions analysis error") {
-                modes.push(YulUpstreamMode::new(version, optimize).into());
+                modes.push(YulUpstreamMode::new(version, false, optimize).into());
             }
         }
+        modes
+    };
+
+    ///
+    /// The supported Solidity modes for MLIR codegen.
+    ///
+    /// All compilers must be downloaded before initialization.
+    ///
+    static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
+        let mut modes = Vec::new();
+        modes.push(SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_compiler_solidity::SolcPipeline::Yul, false, true, false).into());
+        modes
+    };
+
+    ///
+    /// The supported Yul modes for MLIR codegen.
+    ///
+    /// All compilers must be downloaded before initialization.
+    ///
+    static ref YUL_MLIR_MODES: Vec<Mode> = {
+        let mut modes = Vec::new();
+        modes.push(YulUpstreamMode::new(semver::Version::new(0, 8, 26), true, false).into());
         modes
     };
 }
 
 impl SolidityCompiler {
-    /// The compiler binaries directory.
-    const DIRECTORY: &'static str = "solc-bin-upstream/";
+    /// The upstream compiler executables directory.
+    const DIRECTORY_UPSTREAM: &'static str = "solc-bin-upstream/";
+
+    /// The LLVM-fork compiler executables directory.
+    const DIRECTORY_LLVM: &'static str = "solc-bin-llvm/";
 
     /// The solc allow paths argument value.
     const SOLC_ALLOW_PATHS: &'static str = "tests";
@@ -88,9 +117,10 @@ impl SolidityCompiler {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(language: SolcStandardJsonInputLanguage) -> Self {
+    pub fn new(language: SolcStandardJsonInputLanguage, toolchain: Toolchain) -> Self {
         Self {
             language,
+            toolchain,
             cache: Cache::new(),
         }
     }
@@ -98,8 +128,13 @@ impl SolidityCompiler {
     ///
     /// Returns the `solc` executable by its version.
     ///
-    pub fn executable(version: &semver::Version) -> anyhow::Result<SolcUpstreamCompiler> {
-        SolcUpstreamCompiler::new(format!("{}/solc-{}", Self::DIRECTORY, version))
+    pub fn executable(toolchain: Toolchain, version: &semver::Version) -> anyhow::Result<SolcUpstreamCompiler> {
+        let directory = match toolchain {
+            Toolchain::Solc => Self::DIRECTORY_UPSTREAM,
+            Toolchain::SolcLLVM => Self::DIRECTORY_LLVM,
+            toolchain => panic!("Unsupported toolchain: {toolchain}"),
+        };
+        SolcUpstreamCompiler::new(format!("{}/solc-{}", directory, version))
     }
 
     ///
@@ -110,7 +145,7 @@ impl SolidityCompiler {
         via_ir: bool,
     ) -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
-        for entry in std::fs::read_dir(Self::DIRECTORY)? {
+        for entry in std::fs::read_dir(Self::DIRECTORY_UPSTREAM)? {
             let entry = entry?;
             let path = entry.path();
             let entry_type = entry.file_type().map_err(|error| {
@@ -122,7 +157,7 @@ impl SolidityCompiler {
             })?;
             if !entry_type.is_file() {
                 anyhow::bail!(
-                    "Invalid `solc` binary file type: {}",
+                    "Invalid `solc` executable file type: {}",
                     path.to_string_lossy()
                 );
             }
@@ -158,6 +193,7 @@ impl SolidityCompiler {
     ///
     pub fn standard_json_output(
         language: SolcStandardJsonInputLanguage,
+        toolchain: Toolchain,
         sources: &[(String, String)],
         libraries: &BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
@@ -168,7 +204,7 @@ impl SolidityCompiler {
             Mode::YulUpstream(mode) => &mode.solc_version,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
-        let mut solc = Self::executable(solc_version)?;
+        let mut solc = Self::executable(toolchain, solc_version)?;
 
         let output_selection = SolcStandardJsonInputSettingsSelection::new_required(match mode {
             Mode::SolidityUpstream(mode) => mode.solc_pipeline,
@@ -199,6 +235,12 @@ impl SolidityCompiler {
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
+        let via_mlir = match mode {
+            Mode::SolidityUpstream(mode) => mode.via_mlir,
+            Mode::YulUpstream(_mode) => true,
+            mode => anyhow::bail!("Unsupported mode: {mode}"),
+        };
+
         let debug = if solc_version >= &semver::Version::new(0, 6, 3) {
             test_params.map(|test_params| {
                 SolcStandardJsonInputSettingsDebug::new(Some(
@@ -217,6 +259,7 @@ impl SolidityCompiler {
             None,
             output_selection,
             via_ir,
+            via_mlir,
             optimizer,
             debug,
         )
@@ -263,7 +306,7 @@ impl SolidityCompiler {
 
         if !self.cache.contains(&cache_key) {
             self.cache.evaluate(cache_key.clone(), || {
-                Self::standard_json_output(language, sources, libraries, mode, test_params)
+                Self::standard_json_output(language, self.toolchain, sources, libraries, mode, test_params)
             });
         }
 
@@ -374,14 +417,95 @@ impl SolidityCompiler {
 impl Compiler for SolidityCompiler {
     fn compile_for_eravm(
         &self,
-        _test_path: String,
-        _sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
-        _mode: &Mode,
+        test_path: String,
+        sources: Vec<(String, String)>,
+        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        mode: &Mode,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
-        anyhow::bail!("The upstream Solidity compiler cannot compile for EraVM");
+        let solc_output = self.standard_json_output_cached(
+            test_path,
+            self.language,
+            &sources,
+            &libraries,
+            mode,
+            None,
+        )?;
+
+        if let Some(errors) = solc_output.errors.as_deref() {
+            let mut has_errors = false;
+            let mut error_messages = Vec::with_capacity(errors.len());
+
+            for error in errors.iter() {
+                if error.severity.as_str() == "error" {
+                    has_errors = true;
+                    error_messages.push(error.formatted_message.to_owned());
+                }
+            }
+
+            if has_errors {
+                anyhow::bail!("`solc` errors found: {:?}", error_messages);
+            }
+        }
+
+        let method_identifiers = match self.language {
+            SolcStandardJsonInputLanguage::Solidity => {
+                Some(Self::get_method_identifiers(&solc_output)?)
+            }
+            SolcStandardJsonInputLanguage::Yul => None,
+        };
+
+        let last_contract = Self::get_last_contract(self.language, &solc_output, &sources)?;
+
+        let contracts = solc_output
+            .contracts
+            .ok_or_else(|| anyhow::anyhow!("Solidity contracts not found in the output"))?;
+
+        let mut builds = HashMap::with_capacity(contracts.len());
+        for (file, contracts) in contracts.into_iter() {
+            for (name, contract) in contracts.into_iter() {
+                let path = format!("{file}:{name}");
+                let bytecode_string = contract
+                    .evm
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                    })?
+                    .bytecode
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                    })?
+                    .object
+                    .as_str();
+                let bytecode = hex::decode(bytecode_string).map_err(|error| {
+                    anyhow::anyhow!(
+                        "EVM bytecode of the contract `{path}` is invalid: {error}"
+                    )
+                })?;
+                let bytecode_words: Vec<[u8; era_compiler_common::BYTE_LENGTH_FIELD]> =
+                    bytecode
+                    .as_slice()
+                    .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
+                    .map(|word| word.try_into().expect("Always valid"))
+                    .collect();
+                let bytecode_hash = zkevm_opcode_defs::utils::bytecode_to_code_hash_for_mode::<
+                    { era_compiler_common::BYTE_LENGTH_X64 },
+                    zkevm_opcode_defs::decoding::EncodingModeProduction,
+                >(bytecode_words.as_slice())
+                .map_err(|_| anyhow::anyhow!("EVM bytecode of the contract `{path}` hashing error"))?;
+                let build = era_compiler_llvm_context::EraVMBuild::new(
+                    bytecode,
+                    bytecode_hash,
+                    None, 
+                    None,
+                );
+                builds.insert(path, build);
+            }
+        }
+
+        Ok(EraVMInput::new(builds, method_identifiers, last_contract))
     }
 
     fn compile_for_evm(
@@ -468,9 +592,11 @@ impl Compiler for SolidityCompiler {
     }
 
     fn all_modes(&self) -> Vec<Mode> {
-        match self.language {
-            SolcStandardJsonInputLanguage::Solidity => SOLIDITY_MODES.clone(),
-            SolcStandardJsonInputLanguage::Yul => YUL_MODES.clone(),
+        match (self.language, self.toolchain) {
+            (SolcStandardJsonInputLanguage::Solidity, Toolchain::SolcLLVM) => SOLIDITY_MLIR_MODES.clone(),
+            (SolcStandardJsonInputLanguage::Solidity, _) => SOLIDITY_MODES.clone(),
+            (SolcStandardJsonInputLanguage::Yul, Toolchain::SolcLLVM) => YUL_MLIR_MODES.clone(),
+            (SolcStandardJsonInputLanguage::Yul, _) => YUL_MODES.clone(),
         }
     }
 

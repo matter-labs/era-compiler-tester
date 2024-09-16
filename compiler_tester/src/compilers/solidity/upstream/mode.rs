@@ -17,6 +17,8 @@ pub struct Mode {
     pub solc_pipeline: era_compiler_solidity::SolcPipeline,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
+    /// Whether to enable the MLIR codegen.
+    pub via_mlir: bool,
     /// Whether to run the Solidity compiler optimizer.
     pub solc_optimize: bool,
 }
@@ -29,12 +31,14 @@ impl Mode {
         solc_version: semver::Version,
         solc_pipeline: era_compiler_solidity::SolcPipeline,
         via_ir: bool,
+        via_mlir: bool,
         solc_optimize: bool,
     ) -> Self {
         Self {
             solc_version,
             solc_pipeline,
             via_ir,
+            via_mlir,
             solc_optimize,
         }
     }
@@ -111,6 +115,10 @@ impl Mode {
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.via_mlir {
+            return write!(f, "L {}", self.solc_version);
+        }
+
         write!(
             f,
             "{}{} {}",

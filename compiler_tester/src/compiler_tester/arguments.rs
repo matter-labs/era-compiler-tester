@@ -59,12 +59,12 @@ pub struct Arguments {
     #[structopt(long = "disable-value-simulator")]
     pub disable_value_simulator: bool,
 
-    /// Path to the `zksolc` binary.
+    /// Path to the `zksolc` executable.
     /// Is set to `zksolc` by default.
     #[structopt(long = "zksolc")]
     pub zksolc: Option<PathBuf>,
 
-    /// Path to the `zkvyper` binary.
+    /// Path to the `zkvyper` executable.
     /// Is set to `zkvyper` by default.
     #[structopt(long = "zkvyper")]
     pub zkvyper: Option<PathBuf>,
@@ -93,11 +93,11 @@ pub struct Arguments {
     #[structopt(long = "workflow", default_value = "run")]
     pub workflow: compiler_tester::Workflow,
 
-    /// Path to the default `solc` binaries download configuration file.
+    /// Path to the default `solc` executables download configuration file.
     #[structopt(long = "solc-bin-config-path")]
     pub solc_bin_config_path: Option<PathBuf>,
 
-    /// Path to the default `vyper` binaries download configuration file.
+    /// Path to the default `vyper` executables download configuration file.
     #[structopt(long = "vyper-bin-config-path")]
     pub vyper_bin_config_path: Option<PathBuf>,
 

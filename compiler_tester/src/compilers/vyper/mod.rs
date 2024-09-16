@@ -55,7 +55,7 @@ impl Default for VyperCompiler {
 }
 
 impl VyperCompiler {
-    /// The compiler binaries directory.
+    /// The compiler executables directory.
     pub const DIRECTORY: &'static str = "vyper-bin/";
 
     ///
@@ -88,7 +88,7 @@ impl VyperCompiler {
                 .file_type()
                 .map_err(|error| anyhow::anyhow!("File {path:?} type getting error: {error}"))?;
             if !entry_type.is_file() {
-                anyhow::bail!("Invalid `vyper` binary file type: {path:?}");
+                anyhow::bail!("Invalid `vyper` executable file type: {path:?}");
             }
 
             let file_name = entry.file_name().to_string_lossy().to_string();

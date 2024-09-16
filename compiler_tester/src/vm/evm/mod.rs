@@ -49,9 +49,9 @@ impl<'evm> EVM<'evm> {
     }
 
     ///
-    /// Downloads the necessary compiler binaries.
+    /// Downloads the necessary compiler executables.
     ///
-    pub fn download(binary_download_config_paths: Vec<PathBuf>) -> anyhow::Result<()> {
+    pub fn download(executable_download_config_paths: Vec<PathBuf>) -> anyhow::Result<()> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
         http_client_builder = http_client_builder.pool_idle_timeout(Duration::from_secs(60));
@@ -59,13 +59,13 @@ impl<'evm> EVM<'evm> {
         let http_client = http_client_builder.build()?;
 
         let download_time_start = Instant::now();
-        println!(" {} compiler binaries", "Downloading".bright_green().bold());
-        for config_path in binary_download_config_paths.into_iter() {
+        println!(" {} compiler executables", "Downloading".bright_green().bold());
+        for config_path in executable_download_config_paths.into_iter() {
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(config_path.as_path())?;
         }
         println!(
-            "    {} downloading compiler binaries in {}m{:02}s",
+            "    {} downloading compiler executables in {}m{:02}s",
             "Finished".bright_green().bold(),
             download_time_start.elapsed().as_secs() / 60,
             download_time_start.elapsed().as_secs() % 60,

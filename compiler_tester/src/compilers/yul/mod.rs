@@ -26,7 +26,6 @@ use self::mode::Mode as YulMode;
 ///
 pub struct YulCompiler {
     /// The compiler toolchain to use.
-    #[allow(dead_code)]
     toolchain: Toolchain,
 }
 
@@ -134,7 +133,7 @@ impl Compiler for YulCompiler {
     ) -> anyhow::Result<EVMInput> {
         let language = SolcStandardJsonInputLanguage::Yul;
 
-        let solc_compiler = SolidityUpstreamCompiler::new(language);
+        let solc_compiler = SolidityUpstreamCompiler::new(language, self.toolchain);
 
         let solc_output = solc_compiler.standard_json_output_cached(
             test_path,
