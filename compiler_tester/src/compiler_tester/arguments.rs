@@ -78,8 +78,7 @@ pub struct Arguments {
 
     /// Specify the target architecture.
     /// Available arguments: `eravm`, `evm`.
-    /// The default is `eravm`.
-    #[structopt(long = "target", default_value = "eravm")]
+    #[structopt(long = "target")]
     pub target: era_compiler_common::Target,
 
     /// Specify the environment to run tests on.
