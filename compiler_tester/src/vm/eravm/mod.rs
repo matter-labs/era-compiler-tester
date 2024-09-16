@@ -88,7 +88,10 @@ impl EraVM {
         let http_client = http_client_builder.build()?;
 
         let download_time_start = Instant::now();
-        println!(" {} compiler executables", "Downloading".bright_green().bold());
+        println!(
+            " {} compiler executables",
+            "Downloading".bright_green().bold()
+        );
         let system_contracts_solc_downloader_config =
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(system_contracts_solc_downloader_config_path.as_path())?;

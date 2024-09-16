@@ -14,10 +14,10 @@ use crate::compilers::mode::Mode;
 use crate::compilers::solidity::cache_key::CacheKey;
 use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 use crate::compilers::Compiler;
-use crate::vm::evm::input::build::Build as EVMBuild;
-use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::Input as EVMInput;
 use crate::toolchain::Toolchain;
+use crate::vm::eravm::input::Input as EraVMInput;
+use crate::vm::evm::input::build::Build as EVMBuild;
+use crate::vm::evm::input::Input as EVMInput;
 
 use self::mode::Mode as SolidityUpstreamMode;
 use self::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
@@ -87,9 +87,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
-        let mut modes = Vec::new();
-        modes.push(SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_compiler_solidity::SolcPipeline::Yul, false, true, false).into());
-        modes
+        vec![SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_compiler_solidity::SolcPipeline::Yul, false, true, false).into()]
     };
 
     ///
@@ -98,9 +96,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref YUL_MLIR_MODES: Vec<Mode> = {
-        let mut modes = Vec::new();
-        modes.push(YulUpstreamMode::new(semver::Version::new(0, 8, 26), true, false).into());
-        modes
+        vec![YulUpstreamMode::new(semver::Version::new(0, 8, 26), true, false).into()]
     };
 }
 
@@ -128,7 +124,10 @@ impl SolidityCompiler {
     ///
     /// Returns the `solc` executable by its version.
     ///
-    pub fn executable(toolchain: Toolchain, version: &semver::Version) -> anyhow::Result<SolcUpstreamCompiler> {
+    pub fn executable(
+        toolchain: Toolchain,
+        version: &semver::Version,
+    ) -> anyhow::Result<SolcUpstreamCompiler> {
         let directory = match toolchain {
             Toolchain::Solc => Self::DIRECTORY_UPSTREAM,
             Toolchain::SolcLLVM => Self::DIRECTORY_LLVM,
@@ -237,7 +236,7 @@ impl SolidityCompiler {
 
         let via_mlir = match mode {
             Mode::SolidityUpstream(mode) => mode.via_mlir,
-            Mode::YulUpstream(_mode) => true,
+            Mode::YulUpstream(mode) => mode.via_mlir,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
@@ -306,7 +305,14 @@ impl SolidityCompiler {
 
         if !self.cache.contains(&cache_key) {
             self.cache.evaluate(cache_key.clone(), || {
-                Self::standard_json_output(language, self.toolchain, sources, libraries, mode, test_params)
+                Self::standard_json_output(
+                    language,
+                    self.toolchain,
+                    sources,
+                    libraries,
+                    mode,
+                    test_params,
+                )
             });
         }
 
@@ -470,22 +476,19 @@ impl Compiler for SolidityCompiler {
                     .evm
                     .as_ref()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                        anyhow::anyhow!("EraVM object of the contract `{path}` not found")
                     })?
                     .bytecode
                     .as_ref()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                        anyhow::anyhow!("EraVM bytecode of the contract `{path}` not found")
                     })?
                     .object
                     .as_str();
                 let bytecode = hex::decode(bytecode_string).map_err(|error| {
-                    anyhow::anyhow!(
-                        "EVM bytecode of the contract `{path}` is invalid: {error}"
-                    )
+                    anyhow::anyhow!("EraVM bytecode of the contract `{path}` is invalid: {error}")
                 })?;
-                let bytecode_words: Vec<[u8; era_compiler_common::BYTE_LENGTH_FIELD]> =
-                    bytecode
+                let bytecode_words: Vec<[u8; era_compiler_common::BYTE_LENGTH_FIELD]> = bytecode
                     .as_slice()
                     .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| word.try_into().expect("Always valid"))
@@ -494,13 +497,11 @@ impl Compiler for SolidityCompiler {
                     { era_compiler_common::BYTE_LENGTH_X64 },
                     zkevm_opcode_defs::decoding::EncodingModeProduction,
                 >(bytecode_words.as_slice())
-                .map_err(|_| anyhow::anyhow!("EVM bytecode of the contract `{path}` hashing error"))?;
-                let build = era_compiler_llvm_context::EraVMBuild::new(
-                    bytecode,
-                    bytecode_hash,
-                    None, 
-                    None,
-                );
+                .map_err(|_| {
+                    anyhow::anyhow!("EraVM bytecode of the contract `{path}` hashing error")
+                })?;
+                let build =
+                    era_compiler_llvm_context::EraVMBuild::new(bytecode, bytecode_hash, None, None);
                 builds.insert(path, build);
             }
         }
@@ -593,7 +594,9 @@ impl Compiler for SolidityCompiler {
 
     fn all_modes(&self) -> Vec<Mode> {
         match (self.language, self.toolchain) {
-            (SolcStandardJsonInputLanguage::Solidity, Toolchain::SolcLLVM) => SOLIDITY_MLIR_MODES.clone(),
+            (SolcStandardJsonInputLanguage::Solidity, Toolchain::SolcLLVM) => {
+                SOLIDITY_MLIR_MODES.clone()
+            }
             (SolcStandardJsonInputLanguage::Solidity, _) => SOLIDITY_MODES.clone(),
             (SolcStandardJsonInputLanguage::Yul, Toolchain::SolcLLVM) => YUL_MLIR_MODES.clone(),
             (SolcStandardJsonInputLanguage::Yul, _) => YUL_MODES.clone(),

@@ -59,7 +59,10 @@ impl<'evm> EVM<'evm> {
         let http_client = http_client_builder.build()?;
 
         let download_time_start = Instant::now();
-        println!(" {} compiler executables", "Downloading".bright_green().bold());
+        println!(
+            " {} compiler executables",
+            "Downloading".bright_green().bold()
+        );
         for config_path in executable_download_config_paths.into_iter() {
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(config_path.as_path())?;

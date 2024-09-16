@@ -168,14 +168,14 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 arguments.disable_deployer,
                 arguments.disable_value_simulator,
             ) {
-                (true, true) => {
-                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm, toolchain)
-                }
-                (true, false) => {
-                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm, toolchain)
-                }
+                (true, true) => compiler_tester
+                    .run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm, toolchain),
+                (true, false) => compiler_tester
+                    .run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm, toolchain),
                 (false, true) => compiler_tester
-                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(vm, toolchain),
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(
+                        vm, toolchain,
+                    ),
                 (false, false) => compiler_tester
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm, toolchain),
             }
