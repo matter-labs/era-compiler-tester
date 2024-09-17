@@ -411,7 +411,7 @@ impl SystemContracts {
                 )
             })?;
 
-            if file_path == "era-contracts/system-contracts/contracts/Constants.sol" {
+            if file_path == "era-contracts\\system-contracts\\contracts\\Constants.sol" {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 

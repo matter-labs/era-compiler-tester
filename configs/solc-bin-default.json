@@ -491,6 +491,7 @@
     "linux-amd64": "linux-amd64",
     "linux-arm64": "linux-arm64",
     "macos-amd64": "macosx-amd64",
-    "macos-arm64": "macosx-arm64"
+    "macos-arm64": "macosx-arm64",
+    "windows-amd64": "windows-amd64"
   }
 }
