@@ -74,7 +74,7 @@ impl EraVM {
     /// Creates and initializes a new EraVM instance.
     ///
     pub fn new(
-        binary_download_config_paths: Vec<PathBuf>,
+        executable_download_config_paths: Vec<PathBuf>,
         system_contracts_solc_downloader_config_path: PathBuf,
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
@@ -88,16 +88,19 @@ impl EraVM {
         let http_client = http_client_builder.build()?;
 
         let download_time_start = Instant::now();
-        println!(" {} compiler binaries", "Downloading".bright_green().bold());
+        println!(
+            " {} compiler executables",
+            "Downloading".bright_green().bold()
+        );
         let system_contracts_solc_downloader_config =
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(system_contracts_solc_downloader_config_path.as_path())?;
-        for config_path in binary_download_config_paths.into_iter() {
+        for config_path in executable_download_config_paths.into_iter() {
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(config_path.as_path())?;
         }
         println!(
-            "    {} downloading compiler binaries in {}m{:02}s",
+            "    {} downloading compiler executables in {}m{:02}s",
             "Finished".bright_green().bold(),
             download_time_start.elapsed().as_secs() / 60,
             download_time_start.elapsed().as_secs() % 60,

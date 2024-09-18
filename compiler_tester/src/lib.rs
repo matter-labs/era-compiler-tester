@@ -123,11 +123,11 @@ impl CompilerTester {
     ///
     /// Runs all tests on EraVM.
     ///
-    pub fn run_eravm<D, const M: bool>(self, vm: EraVM) -> anyhow::Result<()>
+    pub fn run_eravm<D, const M: bool>(self, vm: EraVM, toolchain: Toolchain) -> anyhow::Result<()>
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(era_compiler_common::Target::EraVM, Toolchain::IrLLVM)?;
+        let tests = self.all_tests(era_compiler_common::Target::EraVM, toolchain)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -266,12 +266,14 @@ impl CompilerTester {
         let solidity_compiler = Arc::new(SolidityCompiler::new());
         let solidity_upstream_compiler = Arc::new(SolidityUpstreamCompiler::new(
             SolcStandardJsonInputLanguage::Solidity,
+            toolchain,
         ));
         let solidity_upstream_yul_compiler = Arc::new(SolidityUpstreamCompiler::new(
             SolcStandardJsonInputLanguage::Yul,
+            toolchain,
         ));
-        let vyper_compiler = Arc::new(VyperCompiler::new());
         let yul_compiler = Arc::new(YulCompiler::new(toolchain));
+        let vyper_compiler = Arc::new(VyperCompiler::new());
         let llvm_compiler = Arc::new(LLVMCompiler);
         let eravm_compiler = Arc::new(EraVMCompiler);
 
@@ -283,8 +285,7 @@ impl CompilerTester {
             era_compiler_common::EXTENSION_SOLIDITY,
             match toolchain {
                 Toolchain::IrLLVM => solidity_compiler.clone(),
-                Toolchain::Solc => solidity_upstream_compiler.clone(),
-                Toolchain::SolcLLVM => todo!(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
             },
         )?);
         if let era_compiler_common::Target::EraVM = target {
@@ -301,8 +302,7 @@ impl CompilerTester {
             era_compiler_common::EXTENSION_YUL,
             match toolchain {
                 Toolchain::IrLLVM => yul_compiler.clone(),
-                Toolchain::Solc => solidity_upstream_yul_compiler.clone(),
-                Toolchain::SolcLLVM => todo!(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_yul_compiler.clone(),
             },
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
@@ -324,8 +324,7 @@ impl CompilerTester {
             era_compiler_common::EXTENSION_JSON,
             match toolchain {
                 Toolchain::IrLLVM => solidity_compiler.clone(),
-                Toolchain::Solc => solidity_upstream_compiler.clone(),
-                Toolchain::SolcLLVM => todo!(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
             },
         )?);
         if let era_compiler_common::Target::EraVM = target {
@@ -346,8 +345,7 @@ impl CompilerTester {
             era_compiler_common::EXTENSION_SOLIDITY,
             match toolchain {
                 Toolchain::IrLLVM => solidity_compiler.clone(),
-                Toolchain::Solc => solidity_upstream_compiler.clone(),
-                Toolchain::SolcLLVM => todo!(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
             },
         )?);
         if let era_compiler_common::Target::EraVM = target {

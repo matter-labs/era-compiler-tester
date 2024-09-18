@@ -49,6 +49,7 @@ impl Input {
         remappings: Option<BTreeSet<String>>,
         output_selection: SolcStandardJsonInputSettingsSelection,
         via_ir: bool,
+        via_mlir: bool,
         optimizer: SolcStandardJsonInputSettingsOptimizer,
         debug: Option<SolcStandardJsonInputSettingsDebug>,
     ) -> anyhow::Result<Self> {
@@ -66,6 +67,7 @@ impl Input {
                 remappings,
                 output_selection,
                 via_ir,
+                via_mlir,
                 optimizer,
                 debug,
             ),

@@ -81,7 +81,7 @@ impl Default for SolidityCompiler {
 }
 
 impl SolidityCompiler {
-    /// The compiler binaries directory.
+    /// The compiler executables directory.
     const DIRECTORY: &'static str = "solc-bin/";
 
     /// The solc allow paths argument value.
@@ -136,7 +136,7 @@ impl SolidityCompiler {
             })?;
             if !entry_type.is_file() {
                 anyhow::bail!(
-                    "Invalid `solc` binary file type: {}",
+                    "Invalid `solc` executable file type: {}",
                     path.to_string_lossy()
                 );
             }
