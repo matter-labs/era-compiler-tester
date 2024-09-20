@@ -67,9 +67,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-eips"
-version = "0.3.3"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c35df7b972b06f1b2f4e8b7a53328522fa788054a9d3e556faf2411c5a51d5a"
+checksum = "f923dd5fca5f67a43d81ed3ebad0880bd41f6dd0ada930030353ac356c54cd0f"
 dependencies = [
  "alloy-eip2930",
  "alloy-eip7702",
@@ -127,9 +127,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.88"
+version = "1.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e1496f8fb1fbf272686b8d37f523dab3e4a7443300055e74cdaa449f3114356"
+checksum = "86fdf8605db99b54d3cd748a44c6d04df638eb5dafb219b135d0149bd0db01f6"
 
 [[package]]
 name = "arbitrary"
@@ -263,9 +263,9 @@ dependencies = [
 
 [[package]]
 name = "arrayref"
-version = "0.3.8"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d151e35f61089500b617991b791fc8bfd237ae50cd5950803758a179b41e67a"
+checksum = "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb"
 
 [[package]]
 name = "arrayvec"
@@ -501,9 +501,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.7.1"
+version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
+checksum = "428d9aa8fbc0670b7b8d6030a7fadd0f86151cae55e4dbbece15f3780a3dfaf3"
 
 [[package]]
 name = "c-kzg"
@@ -522,9 +522,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.18"
+version = "1.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62ac837cdb5cb22e10a256099b4fc502b1dfe560cb282963a974d7abd80e476"
+checksum = "07b1695e2c7e8fc85310cde85aeaab7e3097f593c91d209d3f9df76c928100f0"
 dependencies = [
  "jobserver",
  "libc",
@@ -944,7 +944,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#666de17f795f20530423bb88c912efe45d5a092e"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#20f20ca069c9bfea46e97d2cdadeac10ff198947"
 dependencies = [
  "anyhow",
  "base58",
@@ -960,7 +960,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#666de17f795f20530423bb88c912efe45d5a092e"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#20f20ca069c9bfea46e97d2cdadeac10ff198947"
 dependencies = [
  "anyhow",
  "colored",
@@ -973,7 +973,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#7c1ba758b7f68c9391c16db766f69df47834f4ea"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#5115154ce6f5de89105cd8b7d6af51ee83acab48"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -988,7 +988,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.4"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#62830743e1dbdeea99798e35d700f6a792c151f1"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1805-supporting-post-compiler-time-library-linkage-in-eravm#11e212f561601cb369c5835b4546ec1a5e1b659c"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1017,7 +1017,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#f353939d6b056a5f456af7ed5ec6e6d785031d15"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#55037e0350904eeb4c8eea11a4f872fc34973d52"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1040,7 +1040,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.4"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#62830743e1dbdeea99798e35d700f6a792c151f1"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1805-supporting-post-compiler-time-library-linkage-in-eravm#11e212f561601cb369c5835b4546ec1a5e1b659c"
 dependencies = [
  "anyhow",
  "regex",
@@ -1607,7 +1607,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#fd415e819f185f5a4b5ed60cff4e67814b9c9b53"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b14cce489f226f0f5fa3b02ad13ecd52ea7a4d41"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1622,7 +1622,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#fd415e819f185f5a4b5ed60cff4e67814b9c9b53"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b14cce489f226f0f5fa3b02ad13ecd52ea7a4d41"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1810,7 +1810,7 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#a0eca916803d6123b22d9a67d1e7d2cd07227d26"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#c0c0d150e465f901854b566f82adbb9b83146d79"
 dependencies = [
  "anyhow",
  "cc",
@@ -2206,9 +2206,9 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "pest"
-version = "2.7.12"
+version = "2.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c73c26c01b8c87956cea613c907c9d6ecffd8d18a2a5908e5de0adfaa185cea"
+checksum = "fdbef9d1d47087a895abd220ed25eb4ad973a5e26f6a4367b038c25e28dfc2d9"
 dependencies = [
  "memchr",
  "thiserror",
@@ -2310,7 +2310,7 @@ version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ecf48c7ca261d60b74ab1a7b20da18bede46776b2e55535cb958eb595c5fa7b"
 dependencies = [
- "toml_edit 0.22.20",
+ "toml_edit 0.22.21",
 ]
 
 [[package]]
@@ -3442,9 +3442,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.22.20"
+version = "0.22.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "583c44c02ad26b0c3f3066fe629275e50627026c51ac2e595cca4c230ce1ce1d"
+checksum = "3b072cee73c449a636ffd6f32bd8de3a9f7119139aff882f44943ce2986dc5cf"
 dependencies = [
  "indexmap",
  "toml_datetime",
@@ -3538,30 +3538,30 @@ checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
 
 [[package]]
 name = "unicode-normalization"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
+checksum = "5033c97c4262335cded6d6fc3e5c18ab755e1a3dc96376350f3d8e9f009ad956"
 dependencies = [
  "tinyvec",
 ]
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
+checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unicode-width"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
+checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
 
 [[package]]
 name = "unicode-xid"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "229730647fbc343e3a80e463c1db7f78f3855d3f3739bee0dda773c9a037c90a"
+checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unsafe-libyaml"
@@ -4086,7 +4086,7 @@ dependencies = [
 [[package]]
 name = "zksync_vm2"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#cd6136c42ec56856e0abcf2a98d1a9e120161482"
+source = "git+https://github.com/matter-labs/vm2#74577d9be13b1bff9d1a712389731f669b179e47"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
@@ -4098,7 +4098,7 @@ dependencies = [
 [[package]]
 name = "zksync_vm2_interface"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/vm2#cd6136c42ec56856e0abcf2a98d1a9e120161482"
+source = "git+https://github.com/matter-labs/vm2#74577d9be13b1bff9d1a712389731f669b179e47"
 dependencies = [
  "primitive-types",
 ]

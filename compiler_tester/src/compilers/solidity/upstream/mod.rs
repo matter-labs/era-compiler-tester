@@ -500,8 +500,12 @@ impl Compiler for SolidityCompiler {
                 .map_err(|_| {
                     anyhow::anyhow!("EraVM bytecode of the contract `{path}` hashing error")
                 })?;
-                let build =
-                    era_compiler_llvm_context::EraVMBuild::new(bytecode, bytecode_hash, None, None);
+                let build = era_compiler_llvm_context::EraVMBuild::new(
+                    bytecode,
+                    Some(bytecode_hash),
+                    None,
+                    None,
+                );
                 builds.insert(path, build);
             }
         }

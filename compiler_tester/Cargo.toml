@@ -49,7 +49,7 @@ zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1805-supporting-post-compiler-time-library-linkage-in-eravm" }
 era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
 
 # era-compiler-common = { path = "../../era-compiler-common" }
