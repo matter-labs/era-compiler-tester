@@ -130,10 +130,18 @@ impl EraVM {
         let mut vm = Self {
             known_contracts: HashMap::new(),
             default_aa_code_hash: web3::types::U256::from_big_endian(
-                system_contracts.default_aa.bytecode_hash.as_slice(),
+                system_contracts
+                    .default_aa
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
             evm_interpreter_code_hash: web3::types::U256::from_big_endian(
-                system_contracts.evm_interpreter.bytecode_hash.as_slice(),
+                system_contracts
+                    .evm_interpreter
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
             deployed_contracts: HashMap::new(),
             storage,
@@ -145,13 +153,21 @@ impl EraVM {
         vm.add_known_contract(
             system_contracts.default_aa.bytecode,
             web3::types::U256::from_big_endian(
-                system_contracts.default_aa.bytecode_hash.as_slice(),
+                system_contracts
+                    .default_aa
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
         );
         vm.add_known_contract(
             system_contracts.evm_interpreter.bytecode,
             web3::types::U256::from_big_endian(
-                system_contracts.evm_interpreter.bytecode_hash.as_slice(),
+                system_contracts
+                    .evm_interpreter
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
         );
         vm.add_known_contract(
@@ -164,7 +180,9 @@ impl EraVM {
         for (address, build) in system_contracts.deployed_contracts {
             vm.add_deployed_contract(
                 address,
-                web3::types::U256::from_big_endian(build.bytecode_hash.as_slice()),
+                web3::types::U256::from_big_endian(
+                    build.bytecode_hash.expect("Always exists").as_slice(),
+                ),
                 Some(build.bytecode),
             );
         }

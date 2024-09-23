@@ -105,16 +105,16 @@ made, and there is no point in running tests in all LLVM optimization modes.
 </details>
 
 <details>
-<summary>5. Build zksolc and zkvyper compilers.</summary>
+<summary>5. Build compiler executables.</summary>
 
    * Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
 
 </details>
 
 <details>
-<summary>6. Build era-compiler-tester.</summary>
+<summary>6. Build the main application.</summary>
 
-   * Build the Tester with `cargo`:
+   * Build era-compiler-tester with `cargo`:
       ```shell
       cargo build --release
       ```
@@ -130,9 +130,9 @@ The `era-compiler-tester` is integrated into the GitHub Actions workflows of the
 * [era-compiler-llvm](https://github.com/matter-labs/era-compiler-llvm)
 * [era-solidity](https://github.com/matter-labs/era-solidity/)
 
-To allow testing custom FE and VM changes in the Pull Requests (PRs) of these repositories, two additional tags are supported:
-* `era-solidity-test`
+To allow testing custom FE and VM changes in Pull Requests (PRs) of these repositories, two additional tags are supported:
 * `era-compiler-llvm-test`
+* `era-solidity-test`
 
 If these tags exist, the tester from these tags will be used by the workflows instead of the default `main` branch.
 

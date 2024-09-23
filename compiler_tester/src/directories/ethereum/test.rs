@@ -272,7 +272,9 @@ impl Buildable for EthereumTest {
             .into_values()
             .map(|build| {
                 (
-                    web3::types::U256::from_big_endian(build.bytecode_hash.as_slice()),
+                    web3::types::U256::from_big_endian(
+                        build.bytecode_hash.expect("Always exists").as_slice(),
+                    ),
                     build.bytecode,
                 )
             })
