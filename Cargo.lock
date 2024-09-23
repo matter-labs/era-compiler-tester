@@ -988,7 +988,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.4"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1805-supporting-post-compiler-time-library-linkage-in-eravm#13e267fddacd48a7e6b01a3c41c2380a74d5c7a7"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#eacc6130a8e5aa815320b9f34707ff8f62c47130"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1040,7 +1040,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.4"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1805-supporting-post-compiler-time-library-linkage-in-eravm#13e267fddacd48a7e6b01a3c41c2380a74d5c7a7"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#eacc6130a8e5aa815320b9f34707ff8f62c47130"
 dependencies = [
  "anyhow",
  "regex",
