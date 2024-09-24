@@ -38,83 +38,83 @@ pub struct SystemContracts {
 impl SystemContracts {
     /// The empty contract implementation path.
     const PATH_EMPTY_CONTRACT: &'static str =
-        "era-contracts/system-contracts/contracts/EmptyContract.sol:EmptyContract";
+        r"era-contracts\system-contracts\contracts\EmptyContract.sol:EmptyContract";
 
     /// The default account abstraction contract implementation path.
     const PATH_DEFAULT_AA: &'static str =
-        "era-contracts/system-contracts/contracts/DefaultAccount.sol:DefaultAccount";
+        r"era-contracts\system-contracts\contracts\DefaultAccount.sol:DefaultAccount";
 
     /// The EVM interpreter system contract implementation path.
     const PATH_EVM_INTERPRETER: &'static str =
-        "era-contracts/system-contracts/contracts/EvmInterpreter.yul";
+        r"era-contracts\system-contracts\contracts\EvmInterpreter.yul";
 
     /// The `keccak256` system contract implementation path.
     const PATH_KECCAK256: &'static str =
-        "era-contracts/system-contracts/contracts/precompiles/Keccak256.yul";
+        r"era-contracts\system-contracts\contracts\precompiles\Keccak256.yul";
 
     /// The `ecrecover` system contract implementation path.
     const PATH_ECRECOVER: &'static str =
-        "era-contracts/system-contracts/contracts/precompiles/Ecrecover.yul";
+        r"era-contracts\system-contracts\contracts\precompiles\Ecrecover.yul";
 
     /// The `sha256` system contract implementation path.
     const PATH_SHA256: &'static str =
-        "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
+        r"era-contracts\system-contracts\contracts\precompiles\SHA256.yul";
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
-        "era-contracts/system-contracts/contracts/precompiles/EcAdd.yul";
+        r"era-contracts\system-contracts\contracts\precompiles\EcAdd.yul";
 
     /// The `ecmul` system contract implementation path.
     const PATH_ECMUL: &'static str =
-        "era-contracts/system-contracts/contracts/precompiles/EcMul.yul";
+        r"era-contracts\system-contracts\contracts\precompiles\EcMul.yul";
 
     /// The account code storage system contract implementation path.
     const PATH_ACCOUNT_CODE_STORAGE: &'static str =
-        "era-contracts/system-contracts/contracts/AccountCodeStorage.sol:AccountCodeStorage";
+        r"era-contracts\system-contracts\contracts\AccountCodeStorage.sol:AccountCodeStorage";
 
     /// The contract deployer system contract implementation path.
     const PATH_CONTRACT_DEPLOYER: &'static str =
-        "era-contracts/system-contracts/contracts/ContractDeployer.sol:ContractDeployer";
+        r"era-contracts\system-contracts\contracts\ContractDeployer.sol:ContractDeployer";
 
     /// The nonce holder system contract implementation path.
     const PATH_NONCE_HOLDER: &'static str =
-        "era-contracts/system-contracts/contracts/NonceHolder.sol:NonceHolder";
+        r"era-contracts\system-contracts\contracts\NonceHolder.sol:NonceHolder";
 
     /// The knows codes storage system contract implementation path.
     const PATH_KNOWN_CODES_STORAGE: &'static str =
-        "era-contracts/system-contracts/contracts/KnownCodesStorage.sol:KnownCodesStorage";
+        r"era-contracts\system-contracts\contracts\KnownCodesStorage.sol:KnownCodesStorage";
 
     /// The immutable simulator system contract implementation path.
     const PATH_IMMUTABLE_SIMULATOR: &'static str =
-        "era-contracts/system-contracts/contracts/ImmutableSimulator.sol:ImmutableSimulator";
+        r"era-contracts\system-contracts\contracts\ImmutableSimulator.sol:ImmutableSimulator";
 
     /// The L1-messenger system contract implementation path.
     const PATH_L1_MESSENGER: &'static str =
-        "era-contracts/system-contracts/contracts/L1Messenger.sol:L1Messenger";
+        r"era-contracts\system-contracts\contracts\L1Messenger.sol:L1Messenger";
 
     /// The `msg.value` simulator system contract implementation path.
     const PATH_MSG_VALUE_SIMULATOR: &'static str =
-        "era-contracts/system-contracts/contracts/MsgValueSimulator.sol:MsgValueSimulator";
+        r"era-contracts\system-contracts\contracts\MsgValueSimulator.sol:MsgValueSimulator";
 
     /// The system context system contract implementation path.
     const PATH_SYSTEM_CONTEXT: &'static str =
-        "era-contracts/system-contracts/contracts/SystemContext.sol:SystemContext";
+        r"era-contracts\system-contracts\contracts\SystemContext.sol:SystemContext";
 
     /// The event writer system contract implementation path.
     const PATH_EVENT_WRITER: &'static str =
-        "era-contracts/system-contracts/contracts/EventWriter.yul";
+        r"era-contracts\system-contracts\contracts\EventWriter.yul";
 
     /// The code oracle system contract implementation path.
     const PATH_CODE_ORACLE: &'static str =
-        "era-contracts/system-contracts/contracts/precompiles/CodeOracle.yul";
+        r"era-contracts\system-contracts\contracts\precompiles/CodeOracle.yul";
 
     /// The base token system contract implementation path.
     const PATH_BASE_TOKEN: &'static str =
-        "era-contracts/system-contracts/contracts/L2BaseToken.sol:L2BaseToken";
+        r"era-contracts\system-contracts\contracts\L2BaseToken.sol:L2BaseToken";
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
-        "era-contracts/system-contracts/contracts/EvmGasManager.sol:EvmGasManager";
+        r"era-contracts\system-contracts\contracts\EvmGasManager.sol:EvmGasManager";
 
     ///
     /// Loads or builds the system contracts.
@@ -411,7 +411,7 @@ impl SystemContracts {
                 )
             })?;
 
-            if file_path == "era-contracts\\system-contracts\\contracts\\Constants.sol" {
+            if file_path == r"era-contracts\system-contracts\contracts\Constants.sol" {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
