@@ -420,45 +420,8 @@ impl EraVM {
         calldata: Vec<u8>,
         vm_launch_option: Option<zkevm_tester::compiler_tests::VmLaunchOption>,
     ) -> anyhow::Result<ExecutionResult> {
-        // legacy EvmGasManager.sol compatibility
-        // set `evmStackFrames` size to 1
-        self.storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT),
-            },
-            web3::types::H256::from_low_u64_be(1),
-        );
-
-        // set `evmStackFrames[0].isStatic` to false
-        self.storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME),
-            },
-            web3::types::H256::zero(),
-        );
-
-        // set `evmStackFrames[0].passGas` to `EVM_CALL_GAS_LIMIT`
-        self.storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME).add(1),
-            },
-            web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
-        );
-
-        // updated EvmGasManager.sol compatibility
-        // set `evmStackFrames` size to 1
-        self.storage_transient.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT),
-            },
-            web3::types::H256::from_low_u64_be(1),
-        );
-
-        // set `evmStackFrames[0].passGas` to `EVM_CALL_GAS_LIMIT`
+        // add initial frame data in EvmGasManager
+        // set `passGas` to `EVM_CALL_GAS_LIMIT`
         self.storage_transient.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
@@ -467,13 +430,13 @@ impl EraVM {
             web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
         );
 
-        // set `evmStackFrames[0].isStatic` to false
+        // set `isActiveFrame` to true
         self.storage_transient.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
                 key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT).add(3),
             },
-            web3::types::H256::zero(),
+            web3::types::H256::from_low_u64_be(2),
         );
 
         let mut result = self.execute::<M>(
