@@ -32,6 +32,11 @@ on:
         type: string
         default: 'Y+M3B3 0.8.26'
         description: 'Mode filter for the era-compiler-tester. For example: Y+M3B3 0.8.26'
+      target:
+        required: false
+        type: string
+        default: 'eravm'
+        description: 'Target filter for the era-compiler-tester. Possible values are: `eravm` or `evm`'
 
 jobs:
   run-with-sanitizers:
@@ -88,6 +93,7 @@ jobs:
         run: |
           set -x
           ./target/${TARGET}/debug/compiler-tester \
+            --target "${{ inputs.target }}" \
             --zksolc "./target-zksolc/${TARGET}/debug/zksolc" \
             --zkvyper "./target-zkvyper/${TARGET}/debug/zkvyper" \
             --path '${{ inputs.path }}' \
