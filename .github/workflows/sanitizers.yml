@@ -30,8 +30,8 @@ on:
       mode:
         required: false
         type: string
-        default: 'Y+M3B3 0.8.26'
-        description: 'Mode filter for the era-compiler-tester. For example: Y+M3B3 0.8.26'
+        default: 'Y+M3B3 0.8.27'
+        description: 'Mode filter for the era-compiler-tester. For example: Y+M3B3 0.8.27'
       target:
         required: false
         type: string
