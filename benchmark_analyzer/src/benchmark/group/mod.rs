@@ -10,13 +10,15 @@ use std::collections::BTreeMap;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::benchmark::Benchmark;
+
 use self::element::Element;
 use self::results::Results;
 
 ///
 /// The benchmark group representation.
 ///
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Group {
     /// The group elements.
     pub elements: BTreeMap<String, Element>,
@@ -54,6 +56,11 @@ impl Group {
         let mut ergs_total_candidate: u64 = 0;
 
         for (path, reference) in reference.elements.iter() {
+            if path.contains("tests/solidity/complex/interpreter/test.json")
+                && path.contains("#deployer")
+            {
+                continue;
+            }
             let candidate = match candidate.elements.get(path.as_str()) {
                 Some(candidate) => candidate,
                 None => continue,
@@ -76,8 +83,8 @@ impl Group {
             }
             cycles_factors.push(cycles_factor);
 
-            ergs_total_reference += reference.ergs as u64;
-            ergs_total_candidate += candidate.ergs as u64;
+            ergs_total_reference += reference.ergs;
+            ergs_total_candidate += candidate.ergs;
             let ergs_factor = (candidate.ergs as f64) / (reference.ergs as f64);
             if ergs_factor > 1.0 {
                 ergs_negatives.push((ergs_factor, path.as_str()));
@@ -119,34 +126,54 @@ impl Group {
             size_factors.push(size_factor);
         }
 
-        let size_geomean = math::mean::geometric(size_factors.as_slice());
         let size_total = (size_total_candidate as f64) / (size_total_reference as f64);
 
-        let cycles_geomean = math::mean::geometric(cycles_factors.as_slice());
         let cycles_total = (cycles_total_candidate as f64) / (cycles_total_reference as f64);
 
-        let ergs_geomean = math::mean::geometric(ergs_factors.as_slice());
         let ergs_total = (ergs_total_candidate as f64) / (ergs_total_reference as f64);
 
         Results::new(
-            size_geomean,
             size_min,
             size_max,
             size_total,
             size_negatives,
             size_positives,
-            cycles_geomean,
             cycles_min,
             cycles_max,
             cycles_total,
             cycles_negatives,
             cycles_positives,
-            ergs_geomean,
             ergs_min,
             ergs_max,
             ergs_total,
             ergs_negatives,
             ergs_positives,
         )
+    }
+
+    ///
+    /// Returns the EVM interpreter ergs/gas ratio.
+    ///
+    pub fn evm_interpreter_ratios(&self) -> Vec<(String, f64)> {
+        let mut results = Vec::with_capacity(Benchmark::EVM_OPCODES.len());
+        for evm_opcode in Benchmark::EVM_OPCODES.into_iter() {
+            let name_substring = format!("test.json::{evm_opcode}[");
+            let [full, template]: [Element; 2] = self
+                .elements
+                .iter()
+                .filter(|element| element.0.contains(name_substring.as_str()))
+                .rev()
+                .take(2)
+                .map(|element| (element.1.to_owned()))
+                .collect::<Vec<Element>>()
+                .try_into()
+                .expect("Always valid");
+
+            let ergs_difference = full.ergs - template.ergs;
+            let gas_difference = full.gas - template.gas;
+            let ergs_gas_ratio = (ergs_difference as f64) / (gas_difference as f64);
+            results.push((evm_opcode.to_owned(), ergs_gas_ratio));
+        }
+        results
     }
 }

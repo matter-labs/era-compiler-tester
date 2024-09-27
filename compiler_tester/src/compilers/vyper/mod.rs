@@ -1,37 +1,36 @@
 //!
-//! The Vyper compiler wrapper.
+//! The Vyper compiler.
 //!
 
-pub mod vyper_cache_key;
+pub mod cache_key;
+pub mod mode;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use itertools::Itertools;
 
-use super::cache::Cache;
-use super::mode::vyper::Mode as VyperMode;
-use super::mode::Mode;
-use super::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
+use crate::compilers::cache::Cache;
+use crate::compilers::mode::Mode;
+use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
 
-use self::vyper_cache_key::VyperCacheKey;
+use self::cache_key::CacheKey;
+use self::mode::Mode as VyperMode;
 
 ///
-/// The Vyper compiler wrapper.
+/// The Vyper compiler.
 ///
 pub struct VyperCompiler {
     /// The vyper process output cache.
-    cache: Cache<VyperCacheKey, era_compiler_vyper::Project>,
+    cache: Cache<CacheKey, era_compiler_vyper::Project>,
 }
 
 lazy_static::lazy_static! {
     ///
-    /// The Vyper compiler supported modes.
+    /// All supported modes.
     ///
     static ref MODES: Vec<Mode> = {
         let vyper_versions = VyperCompiler::all_versions().expect("`vyper` versions analysis error");
@@ -49,8 +48,14 @@ lazy_static::lazy_static! {
     };
 }
 
+impl Default for VyperCompiler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl VyperCompiler {
-    /// The compiler binaries directory.
+    /// The compiler executables directory.
     pub const DIRECTORY: &'static str = "vyper-bin/";
 
     ///
@@ -63,13 +68,11 @@ impl VyperCompiler {
     }
 
     ///
-    /// Returns the Vyper compiler instance by version.
+    /// Returns the Vyper executable by its version.
     ///
-    fn get_vyper_by_version(
-        version: &semver::Version,
-    ) -> anyhow::Result<era_compiler_vyper::VyperCompiler> {
+    fn executable(version: &semver::Version) -> anyhow::Result<era_compiler_vyper::VyperCompiler> {
         era_compiler_vyper::VyperCompiler::new(
-            format!("{}/vyper-{}", Self::DIRECTORY, version).as_str(),
+            format!("{}/vyper-{version}", Self::DIRECTORY).as_str(),
         )
     }
 
@@ -78,21 +81,14 @@ impl VyperCompiler {
     ///
     fn all_versions() -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
-        for entry in std::fs::read_dir("./vyper-bin/")? {
+        for entry in std::fs::read_dir(Self::DIRECTORY)? {
             let entry = entry?;
             let path = entry.path();
-            let entry_type = entry.file_type().map_err(|error| {
-                anyhow::anyhow!(
-                    "File `{}` type getting error: {}",
-                    path.to_string_lossy(),
-                    error
-                )
-            })?;
+            let entry_type = entry
+                .file_type()
+                .map_err(|error| anyhow::anyhow!("File {path:?} type getting error: {error}"))?;
             if !entry_type.is_file() {
-                anyhow::bail!(
-                    "Invalid `vyper` binary file type: {}",
-                    path.to_string_lossy()
-                );
+                anyhow::bail!("Invalid `vyper` executable file type: {path:?}");
             }
 
             let file_name = entry.file_name().to_string_lossy().to_string();
@@ -110,145 +106,87 @@ impl VyperCompiler {
     }
 
     ///
-    /// Runs the vyper subprocess and returns the project.
+    /// Runs the `vyper` subprocess and returns the project.
     ///
-    fn run_vyper(
-        sources: &[(String, String)],
+    fn get_project(
+        sources: Vec<(String, String)>,
         mode: &VyperMode,
     ) -> anyhow::Result<era_compiler_vyper::Project> {
-        let vyper = Self::get_vyper_by_version(&mode.vyper_version)?;
+        let vyper = Self::executable(&mode.vyper_version)?;
 
         let paths = sources
-            .iter()
+            .into_iter()
             .map(|(path, _)| {
-                PathBuf::from_str(path).map_err(|error| anyhow::anyhow!("Invalid path: {}", error))
+                PathBuf::from_str(path.as_str())
+                    .map_err(|error| anyhow::anyhow!("Invalid source code path `{path}`: {error}"))
             })
             .collect::<anyhow::Result<Vec<PathBuf>>>()?;
 
-        // TODO: set Cancun for v0.3.10
-        let evm_version = if mode.vyper_version == semver::Version::new(0, 3, 10) {
-            Some(era_compiler_common::EVMVersion::Shanghai)
+        let evm_version = if mode.vyper_version >= semver::Version::new(0, 3, 10) {
+            Some(era_compiler_common::EVMVersion::Cancun)
         } else {
             None
         };
 
-        vyper.batch(&mode.vyper_version, paths, evm_version, mode.vyper_optimize)
+        vyper.batch(
+            &mode.vyper_version,
+            paths,
+            &[
+                era_compiler_vyper::VyperSelection::IRJson,
+                era_compiler_vyper::VyperSelection::EraVMAssembly,
+            ],
+            evm_version,
+            true,
+            mode.vyper_optimize,
+        )
     }
 
     ///
-    /// Computes or loads from the cache vyper project. Updates the cache if needed.
+    /// Evaluates the Vyper project or loads it from the cache.
     ///
-    fn run_vyper_cached(
+    fn get_project_cached(
         &self,
         test_path: String,
-        sources: &[(String, String)],
+        sources: Vec<(String, String)>,
         mode: &VyperMode,
     ) -> anyhow::Result<era_compiler_vyper::Project> {
-        let cache_key =
-            VyperCacheKey::new(test_path, mode.vyper_version.clone(), mode.vyper_optimize);
+        let cache_key = CacheKey::new(test_path, mode.vyper_version.clone(), mode.vyper_optimize);
 
         if !self.cache.contains(&cache_key) {
             self.cache
-                .compute(cache_key.clone(), || Self::run_vyper(sources, mode));
+                .evaluate(cache_key.clone(), || Self::get_project(sources, mode));
         }
 
         self.cache.get_cloned(&cache_key)
     }
 
     ///
-    /// Compile the vyper project.
-    ///
-    fn compile(
-        project: era_compiler_vyper::Project,
-        mode: &VyperMode,
-        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<HashMap<String, EraVMBuild>> {
-        let build = project.compile(
-            None,
-            mode.llvm_optimizer_settings.to_owned(),
-            true,
-            zkevm_assembly::get_encoding_mode(),
-            vec![],
-            debug_config,
-        )?;
-        build
-            .contracts
-            .into_iter()
-            .map(|(path, contract)| {
-                let assembly = zkevm_assembly::Assembly::from_string(
-                    contract.build.assembly_text,
-                    contract.build.metadata_hash,
-                )
-                .expect("Always valid");
-                Ok((
-                    path,
-                    EraVMBuild::new_with_hash(assembly, contract.build.bytecode_hash)?,
-                ))
-            })
-            .collect()
-    }
-
-    ///
-    /// Get the method identifiers from the solc output.
+    /// Get the method identifiers from the `vyper` output.
     ///
     fn get_method_identifiers(
         project: &era_compiler_vyper::Project,
     ) -> anyhow::Result<BTreeMap<String, BTreeMap<String, u32>>> {
         let mut method_identifiers = BTreeMap::new();
         for (path, contract) in project.contracts.iter() {
-            let contract_abi = match contract {
-                era_compiler_vyper::Contract::Vyper(inner) => &inner.abi,
-                era_compiler_vyper::Contract::LLVMIR(_inner) => {
-                    panic!("Only used in the Vyper CLI")
-                }
-                era_compiler_vyper::Contract::ZKASM(_inner) => panic!("Only used in the Vyper CLI"),
-            };
             let mut contract_identifiers = BTreeMap::new();
-            for (entry, hash) in contract_abi.iter() {
+            for (entry, hash) in match contract {
+                era_compiler_vyper::Contract::Vyper(inner) => &inner.method_identifiers,
+                _ => unreachable!("Invalid contract type"),
+            }
+            .iter()
+            {
                 let selector =
-                    u32::from_str_radix(&hash[2..], era_compiler_common::BASE_HEXADECIMAL)
+                    u32::from_str_radix(hash.strip_prefix("0x").unwrap_or(hash), era_compiler_common::BASE_HEXADECIMAL)
                         .map_err(|error| {
-                            anyhow::anyhow!("Invalid selector from the Vyper compiler: {}", error)
+                            anyhow::anyhow!(
+                                "Invalid selector `{hash}` in contract `{path}` received from the Vyper compiler: {error}"
+                            )
                         })?;
                 contract_identifiers.insert(entry.clone(), selector);
             }
             method_identifiers.insert(path.clone(), contract_identifiers);
         }
         Ok(method_identifiers)
-    }
-
-    ///
-    /// Prints LLL IR if the flag is set.
-    ///
-    fn dump_lll(
-        sources: &[(String, String)],
-        debug_config: &era_compiler_llvm_context::DebugConfig,
-        mode: &VyperMode,
-    ) -> anyhow::Result<()> {
-        let vyper = Self::get_vyper_by_version(&mode.vyper_version)?;
-
-        // TODO: set Cancun for v0.3.10
-        let evm_version = if mode.vyper_version == semver::Version::new(0, 3, 10) {
-            Some(era_compiler_common::EVMVersion::Shanghai)
-        } else {
-            None
-        };
-
-        let lll = sources
-            .iter()
-            .map(|(path_str, _)| {
-                let path = Path::new(path_str.as_str());
-                vyper
-                    .lll_debug(path, evm_version, mode.vyper_optimize)
-                    .map(|lll| (path_str.to_string(), lll))
-            })
-            .collect::<anyhow::Result<Vec<(String, String)>>>()?;
-
-        for (path, lll) in lll.iter() {
-            debug_config.dump_lll(path, None, lll)?;
-        }
-
-        Ok(())
     }
 }
 
@@ -259,31 +197,55 @@ impl Compiler for VyperCompiler {
         sources: Vec<(String, String)>,
         _libraries: BTreeMap<String, BTreeMap<String, String>>,
         mode: &Mode,
-        _is_system_mode: bool,
-        _is_system_contracts_mode: bool,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EraVMInput> {
         let mode = VyperMode::unwrap(mode);
 
-        if let Some(ref debug_config) = debug_config {
-            Self::dump_lll(&sources, debug_config, mode)?;
-        }
-
-        let project = self
-            .run_vyper_cached(test_path, &sources, mode)
-            .map_err(|error| anyhow::anyhow!("Failed to get vyper project: {}", error))?;
-
-        let method_identifiers = Self::get_method_identifiers(&project)
-            .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {}", error))?;
-
         let last_contract = sources
             .last()
-            .ok_or_else(|| anyhow::anyhow!("Sources is empty"))?
+            .ok_or_else(|| anyhow::anyhow!("The Vyper sources are empty"))?
             .0
             .clone();
 
-        let builds = Self::compile(project, mode, debug_config)
-            .map_err(|error| anyhow::anyhow!("Failed to compile the contracts: {}", error))?;
+        let project = self
+            .get_project_cached(test_path, sources, mode)
+            .map_err(|error| anyhow::anyhow!("Failed to get the Vyper project: {error}"))?;
+
+        for (path, contract) in project.contracts.iter() {
+            if let Some(ref debug_config) = debug_config {
+                debug_config.dump_lll(
+                    path,
+                    None,
+                    contract.ir_string().as_deref().expect("Always exists"),
+                )?;
+            }
+        }
+
+        let method_identifiers = Self::get_method_identifiers(&project)
+            .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {error}"))?;
+
+        let build = project.compile(
+            None,
+            era_compiler_common::HashType::Ipfs,
+            mode.llvm_optimizer_settings.to_owned(),
+            llvm_options,
+            vec![],
+            debug_config,
+        )?;
+        let builds = build
+            .contracts
+            .into_iter()
+            .map(|(path, contract)| {
+                let build = era_compiler_llvm_context::EraVMBuild::new(
+                    contract.build.bytecode,
+                    contract.build.bytecode_hash,
+                    None,
+                    contract.build.assembly,
+                );
+                (path, build)
+            })
+            .collect::<HashMap<String, era_compiler_llvm_context::EraVMBuild>>();
 
         Ok(EraVMInput::new(
             builds,
@@ -294,20 +256,22 @@ impl Compiler for VyperCompiler {
 
     fn compile_for_evm(
         &self,
-        test_path: String,
-        sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
-        mode: &Mode,
-        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        _test_path: String,
+        _sources: Vec<(String, String)>,
+        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        _mode: &Mode,
+        _test_params: Option<&solidity_adapter::Params>,
+        _llvm_options: Vec<String>,
+        _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<crate::vm::evm::input::Input> {
         todo!()
     }
 
-    fn modes(&self) -> Vec<Mode> {
+    fn all_modes(&self) -> Vec<Mode> {
         MODES.clone()
     }
 
-    fn has_multiple_contracts(&self) -> bool {
+    fn allows_multi_contract_files(&self) -> bool {
         false
     }
 }

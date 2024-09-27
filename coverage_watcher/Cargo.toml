@@ -1,13 +1,13 @@
 [package]
 name = "coverage-watcher"
-version = "1.4.1"
+version = "1.5.0"
 authors = [
     "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
     "Anton Dyadyuk <a.dyadyuk@matterlabs.dev>",
 ]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-description = "The integration tests coverage watcher"
+description = "ZKsync toolchain test coverage watcher"
 
 [[bin]]
 name = "coverage-watcher"

@@ -9,4 +9,4 @@
 [submodule "era-contracts"]
 	path = era-contracts
 	url = https://github.com/matter-labs/era-contracts
-	branch = main
+	branch = stable/evm-emulator

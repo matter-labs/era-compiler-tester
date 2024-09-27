@@ -1,5 +1,5 @@
 //!
-//! The fuzzer demo.
+//! This module contains the fuzzing target for the simple contract.
 //!
 
 #![no_main]
@@ -7,12 +7,12 @@
 /// This module contains the fuzzing target for the simple contract.
 use libfuzzer_sys::fuzz_target;
 
-pub(crate) mod common;
+mod common;
 
 fuzz_target!(|data: u8| {
     // Fuzzing case definition
     let case = common::FuzzingCase {
-        contract_path: String::from("fuzz/fuzz_contracts/demo/demo.sol"),
+        contract_path: String::from("fuzzer/fuzz_contracts/demo/demo.sol"),
         function_name: String::from("should_always_return_0"),
         input_types: vec![common::TypeVariant::integer_unsigned(8)],
         inputs: vec![common::integer_literal(data)],

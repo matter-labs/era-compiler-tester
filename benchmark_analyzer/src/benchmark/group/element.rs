@@ -15,14 +15,21 @@ pub struct Element {
     /// The number of cycles.
     pub cycles: usize,
     /// The number of ergs.
-    pub ergs: u32,
+    pub ergs: u64,
+    /// The number of EVM gas.
+    pub gas: u64,
 }
 
 impl Element {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(size: Option<usize>, cycles: usize, ergs: u32) -> Self {
-        Self { size, cycles, ergs }
+    pub fn new(size: Option<usize>, cycles: usize, ergs: u64, gas: u64) -> Self {
+        Self {
+            size,
+            cycles,
+            ergs,
+            gas,
+        }
     }
 }

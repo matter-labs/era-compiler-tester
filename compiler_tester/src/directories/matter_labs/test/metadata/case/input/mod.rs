@@ -8,8 +8,6 @@ pub mod storage;
 
 use std::collections::HashMap;
 
-use serde::Deserialize;
-
 use crate::directories::matter_labs::test::default_caller_address;
 use crate::directories::matter_labs::test::simple_tests_instance;
 
@@ -20,7 +18,7 @@ use self::storage::Storage;
 ///
 /// The Matter Labs compiler test metadata case input.
 ///
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct Input {
     /// The comment to an entry.
     pub comment: Option<String>,
@@ -41,8 +39,13 @@ pub struct Input {
     /// The initial contracts storage.
     #[serde(default)]
     pub storage: HashMap<String, Storage>,
+
     /// The expected return data.
     pub expected: Option<Expected>,
+    /// The expected return data for EraVM.
+    pub expected_eravm: Option<Expected>,
+    /// The expected return data for EVM.
+    pub expected_evm: Option<Expected>,
 }
 
 impl Input {
@@ -53,12 +56,15 @@ impl Input {
         Self {
             comment: None,
             instance: instance.clone(),
-            calldata: Calldata::default(),
-            value: None,
             caller: default_caller_address(),
-            expected: Some(Expected::successful_deployer_expected(instance)),
+            calldata: Calldata::default(),
             method: "#deployer".to_string(),
+            value: None,
             storage: HashMap::new(),
+
+            expected: Some(Expected::successful_deployer_expected(instance.clone())),
+            expected_eravm: Some(Expected::successful_deployer_expected(instance.clone())),
+            expected_evm: Some(Expected::successful_deployer_expected(instance)),
         }
     }
 }

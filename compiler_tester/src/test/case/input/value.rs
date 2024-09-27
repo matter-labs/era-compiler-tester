@@ -2,13 +2,14 @@
 //! The compiler test value.
 //!
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use serde::Serialize;
 use serde::Serializer;
 
 use crate::test::instance::Instance;
+use crate::vm::eravm::system_context::SystemContext;
 
 ///
 /// The compiler test value.
@@ -32,7 +33,7 @@ impl Value {
     pub fn unwrap_certain_as_ref(&self) -> &web3::types::U256 {
         match self {
             Self::Certain(value) => value,
-            Self::Any => panic!("Value in any"),
+            Self::Any => panic!("Value is unknown"),
         }
     }
 
@@ -40,8 +41,9 @@ impl Value {
     /// Try convert from Matter Labs compiler test metadata value.
     ///
     pub fn try_from_matter_labs(
-        value: &str,
-        instances: &HashMap<String, Instance>,
+        value: String,
+        instances: &BTreeMap<String, Instance>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -52,7 +54,7 @@ impl Value {
                 instances
                     .get(instance)
                     .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
-                    .address
+                    .address()
                     .ok_or_else(|| {
                         anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
                     })?
@@ -73,10 +75,73 @@ impl Value {
         } else if let Some(value) = value.strip_prefix("0x") {
             web3::types::U256::from_str(value)
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
+        } else if value == "$CHAIN_ID" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
+                }
+            }
+        } else if value == "$GAS_LIMIT" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM)
+                }
+            }
+        } else if value == "$COINBASE" {
+            match target {
+                era_compiler_common::Target::EraVM => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_ERAVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_EVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+            }
+            .expect("Always valid")
+        } else if value == "$DIFFICULTY" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_DIFFICULTY_ERAVM)
+                }
+                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
+                    SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                )
+                .expect("Always valid"),
+            }
+        } else if value.starts_with("$BLOCK_HASH") {
+            let offset: u64 = value
+                .split(':')
+                .last()
+                .and_then(|value| value.parse().ok())
+                .unwrap_or_default();
+            let mut hash =
+                web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
+            hash += web3::types::U256::from(offset);
+            hash
+        } else if value == "$BLOCK_NUMBER" {
+            web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER)
+        } else if value == "$BLOCK_TIMESTAMP" {
+            match target {
+                era_compiler_common::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
+                }
+                era_compiler_common::Target::EVM => {
+                    web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
+                }
+            }
         } else {
-            web3::types::U256::from_dec_str(value)
+            web3::types::U256::from_dec_str(value.as_str())
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
         };
+
         Ok(Self::Certain(value))
     }
 
@@ -84,14 +149,15 @@ impl Value {
     /// Try convert into vec of self from vec of Matter Labs compiler test metadata values.
     ///
     pub fn try_from_vec_matter_labs(
-        values: &[String],
-        instances: &HashMap<String, Instance>,
+        values: Vec<String>,
+        instances: &BTreeMap<String, Instance>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Vec<Self>> {
         values
-            .iter()
+            .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value, instances)
+                Self::try_from_matter_labs(value, instances, target)
                     .map_err(|error| anyhow::anyhow!("Value {} is invalid: {}", index, error))
             })
             .collect::<anyhow::Result<Vec<Self>>>()

@@ -28,7 +28,7 @@ pub enum State {
     /// The `gas` has been parsed so far.
     Variant,
     /// The `gas {variant}` has been parsed so far.
-    ColonOrCode,
+    CodeOrColon,
     /// The `gas {variant}` has been parsed so far.
     Colon,
     /// The `gas {variant}:` has been parsed so far.
@@ -95,7 +95,7 @@ impl Parser {
                         ..
                     } => {
                         self.builder.set_keyword(keyword);
-                        self.state = State::ColonOrCode;
+                        self.state = State::CodeOrColon;
                     }
                     Token { lexeme, location } => {
                         return Err(SyntaxError::new(
@@ -106,12 +106,13 @@ impl Parser {
                         .into());
                     }
                 },
-                State::ColonOrCode => match parser::take_or_next(self.next.take(), stream.clone())?
+                State::CodeOrColon => match parser::take_or_next(self.next.take(), stream.clone())?
                 {
                     Token {
                         lexeme: Lexeme::Keyword(Keyword::Code),
-                        ..
+                        location,
                     } => {
+                        self.builder.set_location(location);
                         self.state = State::Colon;
                     }
                     Token {

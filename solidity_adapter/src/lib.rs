@@ -2,6 +2,8 @@
 //! The Solidity adapter library.
 //!
 
+#![allow(clippy::assigning_clones)]
+
 pub mod index;
 pub mod test;
 

@@ -11,10 +11,31 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
-use crate::test::eravm::Test as EraVMTest;
-use crate::test::evm::Test as EVMTest;
+use crate::test::Test;
+
+///
+/// The compiler tests directory trait.
+///
+pub trait Collection {
+    ///
+    /// The test type.
+    ///
+    type Test: Buildable + std::fmt::Debug;
+
+    ///
+    /// Returns all directory tests.
+    ///
+    fn read_all(
+        target: era_compiler_common::Target,
+        directory_path: &Path,
+        extension: &'static str,
+        summary: Arc<Mutex<Summary>>,
+        filters: &Filters,
+    ) -> anyhow::Result<Vec<Self::Test>>;
+}
 
 ///
 /// The buildable compiler test trait.
@@ -27,10 +48,11 @@ pub trait Buildable: Send + Sync + 'static {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> Option<EraVMTest>;
+    ) -> Option<Test>;
 
     ///
     /// Builds the test for EVM.
@@ -39,39 +61,9 @@ pub trait Buildable: Send + Sync + 'static {
         &self,
         mode: Mode,
         compiler: Arc<dyn Compiler>,
+        environment: Environment,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> Option<EVMTest>;
-}
-
-///
-/// The compiler tests directory trait.
-///
-pub trait TestsDirectory {
-    ///
-    /// The test type.
-    ///
-    type Test: Buildable;
-
-    ///
-    /// Returns all directory tests.
-    ///
-    fn all_tests(
-        directory_path: &Path,
-        extension: &'static str,
-        summary: Arc<Mutex<Summary>>,
-        filters: &Filters,
-    ) -> anyhow::Result<Vec<Self::Test>>;
-
-    ///
-    /// Returns a single test.
-    ///
-    fn single_test(
-        directory_path: &Path,
-        test_path: &Path,
-        extension: &'static str,
-        summary: Arc<Mutex<Summary>>,
-        filters: &Filters,
-    ) -> anyhow::Result<Option<Self::Test>>;
+    ) -> Option<Test>;
 }

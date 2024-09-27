@@ -10,33 +10,40 @@ use crate::vm::evm::output::Output as EVMOutput;
 ///
 #[derive(Debug, Clone)]
 pub struct ExecutionResult {
-    /// The actual snapshot result data.
+    /// The VM snapshot execution result.
     pub output: Output,
     /// The number of executed cycles.
     pub cycles: usize,
-    /// The amount of gas used.
-    pub gas: u32,
+    /// The number of EraVM ergs used.
+    pub ergs: u64,
+    /// The number of gas used.
+    pub gas: u64,
 }
 
 impl ExecutionResult {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(output: Output, cycles: usize, gas: u32) -> Self {
+    pub fn new(output: Output, cycles: usize, ergs: u64, gas: u64) -> Self {
         Self {
             output,
             cycles,
+            ergs,
             gas,
         }
     }
 }
 
-impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for ExecutionResult {
-    fn from(snapshot: &zkevm_tester::runners::compiler_tests::VmSnapshot) -> Self {
+impl From<zkevm_tester::compiler_tests::VmSnapshot> for ExecutionResult {
+    fn from(snapshot: zkevm_tester::compiler_tests::VmSnapshot) -> Self {
+        let cycles = snapshot.num_cycles_used;
+        let ergs = snapshot.num_ergs_used as u64;
+
         Self {
             output: Output::from(snapshot),
-            cycles: snapshot.num_cycles_used,
-            gas: snapshot.num_ergs_used,
+            cycles,
+            ergs,
+            gas: 0,
         }
     }
 }
@@ -46,6 +53,7 @@ impl From<EVMOutput> for ExecutionResult {
         Self {
             output: Output::from(output),
             cycles: 0,
+            ergs: 0,
             gas: 0,
         }
     }

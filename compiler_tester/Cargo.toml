@@ -1,13 +1,13 @@
 [package]
 name = "compiler-tester"
-version = "1.4.1"
+version = "1.5.0"
 authors = [
     "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
     "Anton Dyadyuk <a.dyadyuk@matterlabs.dev>",
 ]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-description = "Matter Labs Compiler Integration Testing Framework"
+description = "Integration testing framework for ZKsync compilers"
 
 [[bin]]
 name = "compiler-tester"
@@ -19,6 +19,7 @@ doctest = false
 [dependencies]
 structopt = { version = "0.3", default-features = false }
 anyhow = "1.0"
+which = "6.0"
 colored = "2.1"
 
 serde = { version = "1.0", features = ["derive"] }
@@ -28,21 +29,25 @@ md5 = "0.7"
 hex = "0.4"
 sha3 = "0.10"
 ron = "0.8"
-regex = "1.9"
+rlp = "0.5"
+regex = "1.10"
 glob = "0.3"
 semver = { version = "1.0", features = ["serde"] }
-itertools = "0.12"
+itertools = "0.13"
 once_cell = "1.19"
-rayon = "1.8"
+rayon = "1.10"
 lazy_static = "1.4"
 bincode = "1.3"
-evm = { git = "https://github.com/rust-ethereum/evm", branch = "master" }
 
-zkevm-assembly = { git = "https://github.com/matter-labs/era-zkEVM-assembly", branch = "v1.4.1" }
-zkevm_opcode_defs = { git = "https://github.com/matter-labs/era-zkevm_opcode_defs", branch = "v1.4.1" }
-zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.4.1" }
+evm = { git = "https://github.com/rust-ethereum/evm", rev = "f7a23df6c478ca6a151af5f60e62944800529a61" }
+revm = { git = "https://github.com/bluealloy/revm", rev = "fa5650ee8a4d802f4f3557014dd157adfb074460" }
+vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "zksync_vm2" }
+
+zkevm_opcode_defs = { git = "https://github.com/matter-labs/era-zkevm_opcode_defs", branch = "v1.5.0" }
+zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
+era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-cpr-1664-support-linking-deploy-and-runtime-code" }
 era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1664-support-linking-deploy-and-runtime-code" }
 era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-cpr-1664-support-linking-deploy-and-runtime-code" }

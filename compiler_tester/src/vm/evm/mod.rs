@@ -1,8 +1,8 @@
 //!
-//! The EVM wrapper.
+//! The EVM emulator.
 //!
 
-pub mod address_predictor;
+pub mod address_iterator;
 pub mod input;
 pub mod invoker;
 pub mod output;
@@ -15,7 +15,6 @@ use std::time::Instant;
 
 use colored::Colorize;
 
-use crate::compilers::downloader::Downloader as CompilerDownloader;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::input::build::Build as EVMBuild;
@@ -24,14 +23,13 @@ use self::output::Output as EVMOutput;
 use self::runtime::Runtime as EVMRuntime;
 
 ///
-/// The EVM wrapper.
+/// The EVM emulator.
 ///
-#[allow(non_camel_case_types)]
 pub struct EVM<'evm> {
     /// The EVM runtime.
     runtime: EVMRuntime,
-    /// The known contracts.
-    known_contracts: HashMap<web3::types::Address, EVMBuild>,
+    /// The builds to deploy.
+    builds: HashMap<String, EVMBuild>,
     /// The EVM invoker.
     invoker: EVMInvoker<'evm>,
 }
@@ -40,23 +38,20 @@ impl<'evm> EVM<'evm> {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(
-        known_contracts: HashMap<web3::types::Address, EVMBuild>,
-        invoker: EVMInvoker<'evm>,
-    ) -> Self {
+    pub fn new(builds: HashMap<String, EVMBuild>, invoker: EVMInvoker<'evm>) -> Self {
         let runtime = EVMRuntime::default();
 
         Self {
             runtime,
-            known_contracts,
+            builds,
             invoker,
         }
     }
 
     ///
-    /// Downloads the necessary compiler binaries.
+    /// Downloads the necessary compiler executables.
     ///
-    pub fn download(binary_download_config_paths: Vec<PathBuf>) -> anyhow::Result<()> {
+    pub fn download(executable_download_config_paths: Vec<PathBuf>) -> anyhow::Result<()> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
         http_client_builder = http_client_builder.pool_idle_timeout(Duration::from_secs(60));
@@ -64,12 +59,16 @@ impl<'evm> EVM<'evm> {
         let http_client = http_client_builder.build()?;
 
         let download_time_start = Instant::now();
-        println!(" {} compiler binaries", "Downloading".bright_green().bold());
-        for config_path in binary_download_config_paths.into_iter() {
-            CompilerDownloader::new(http_client.clone()).download(config_path.as_path())?;
+        println!(
+            " {} compiler executables",
+            "Downloading".bright_green().bold()
+        );
+        for config_path in executable_download_config_paths.into_iter() {
+            era_compiler_downloader::Downloader::new(http_client.clone())
+                .download(config_path.as_path())?;
         }
         println!(
-            "    {} downloading compiler binaries in {}m{:02}s",
+            "    {} downloading compiler executables in {}m{:02}s",
             "Finished".bright_green().bold(),
             download_time_start.elapsed().as_secs() / 60,
             download_time_start.elapsed().as_secs() % 60,
@@ -83,15 +82,15 @@ impl<'evm> EVM<'evm> {
     ///
     pub fn execute_deploy_code(
         &mut self,
-        test_name: String,
+        _test_name: String,
+        path: &str,
         caller: web3::types::Address,
         value: Option<u128>,
         constructor_args: Vec<u8>,
     ) -> anyhow::Result<ExecutionResult> {
-        let bytecode = self.known_contracts.values().next().unwrap();
-        let mut deploy_code = bytecode.deploy_build.to_owned();
+        let build = self.builds.get(path).expect("Always valid");
+        let mut deploy_code = build.deploy_build.to_owned();
         deploy_code.extend(constructor_args);
-        let runtime_code = bytecode.runtime_build.to_owned();
 
         self.runtime
             .balances
@@ -120,16 +119,13 @@ impl<'evm> EVM<'evm> {
             &self.invoker,
         ) {
             Ok(evm::standard::TransactValue::Create { succeed, address }) => match succeed {
-                evm::ExitSucceed::Returned => {
-                    self.runtime.codes.insert(address, runtime_code.clone());
-                    (address, false)
-                }
+                evm::ExitSucceed::Returned => (address, false),
                 _ => (web3::types::Address::zero(), true),
             },
             Ok(evm::standard::TransactValue::Call { .. }) => {
-                panic!("Unreachable due to the `Create` transaction sent above")
+                unreachable!("The `Create` transaction must be executed above")
             }
-            Err(error) => (web3::types::Address::zero(), true),
+            Err(_error) => (web3::types::Address::zero(), true),
         };
 
         let mut return_data = vec![
@@ -150,16 +146,15 @@ impl<'evm> EVM<'evm> {
     ///
     pub fn execute_runtime_code(
         &mut self,
-        test_name: String,
+        _test_name: String,
+        address: web3::types::Address,
         caller: web3::types::Address,
         value: Option<u128>,
         calldata: Vec<u8>,
     ) -> anyhow::Result<ExecutionResult> {
         self.runtime
             .balances
-            .insert(caller, web3::types::U256::max_value());
-
-        let address = self.runtime.codes.iter().next().unwrap().0.to_owned();
+            .insert(caller, web3::types::U256::max_value()); // TODO
 
         let (return_data, exception) = match evm::transact(
             evm::standard::TransactArgs::Call {
@@ -187,7 +182,7 @@ impl<'evm> EVM<'evm> {
                 (retval, succeed != evm::ExitSucceed::Returned)
             }
             Ok(evm::standard::TransactValue::Create { .. }) => {
-                panic!("Unreachable due to the `Call` transaction sent above")
+                unreachable!("The `Call` transaction must be executed above")
             }
             Err(_error) => (vec![], true),
         };

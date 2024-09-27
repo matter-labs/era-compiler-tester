@@ -10,32 +10,43 @@ use std::str::FromStr;
 use std::time::Instant;
 
 use colored::Colorize;
-use serde::Deserialize;
-use serde::Serialize;
 
-use crate::compilers::mode::solidity::Mode as SolidityMode;
-use crate::compilers::mode::yul::Mode as YulMode;
 use crate::compilers::mode::Mode;
+use crate::compilers::solidity::mode::Mode as SolidityMode;
 use crate::compilers::solidity::SolidityCompiler;
+use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
-use crate::vm::eravm::input::build::Build as EraVMBuild;
+use crate::toolchain::Toolchain;
+
+/// The EVMGasManager system contract address.
+pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
 
 ///
 /// The EraVM system contracts.
 ///
-#[derive(Serialize, Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SystemContracts {
     /// The deployed system contracts builds.
-    pub deployed_contracts: Vec<(web3::types::Address, EraVMBuild)>,
+    pub deployed_contracts: Vec<(web3::types::Address, era_compiler_llvm_context::EraVMBuild)>,
     /// The default account abstraction contract build.
-    pub default_aa: EraVMBuild,
+    pub default_aa: era_compiler_llvm_context::EraVMBuild,
+    /// The EVM interpreter contract build.
+    pub evm_interpreter: era_compiler_llvm_context::EraVMBuild,
 }
 
 impl SystemContracts {
     /// The empty contract implementation path.
     const PATH_EMPTY_CONTRACT: &'static str =
         "era-contracts/system-contracts/contracts/EmptyContract.sol:EmptyContract";
+
+    /// The default account abstraction contract implementation path.
+    const PATH_DEFAULT_AA: &'static str =
+        "era-contracts/system-contracts/contracts/DefaultAccount.sol:DefaultAccount";
+
+    /// The EVM interpreter system contract implementation path.
+    const PATH_EVM_INTERPRETER: &'static str =
+        "era-contracts/system-contracts/contracts/EvmInterpreter.yul";
 
     /// The `keccak256` system contract implementation path.
     const PATH_KECCAK256: &'static str =
@@ -93,16 +104,20 @@ impl SystemContracts {
     const PATH_EVENT_WRITER: &'static str =
         "era-contracts/system-contracts/contracts/EventWriter.yul";
 
-    /// The ETH token system contract implementation path.
-    const PATH_ETH_TOKEN: &'static str =
-        "era-contracts/system-contracts/contracts/L2EthToken.sol:L2EthToken";
+    /// The code oracle system contract implementation path.
+    const PATH_CODE_ORACLE: &'static str =
+        "era-contracts/system-contracts/contracts/precompiles/CodeOracle.yul";
 
-    /// The default account abstraction contract implementation path.
-    const PATH_DEFAULT_AA: &'static str =
-        "era-contracts/system-contracts/contracts/DefaultAccount.sol:DefaultAccount";
+    /// The base token system contract implementation path.
+    const PATH_BASE_TOKEN: &'static str =
+        "era-contracts/system-contracts/contracts/L2BaseToken.sol:L2BaseToken";
+
+    /// The EVM gas manager system contract implementation path.
+    const PATH_EVM_GAS_MANAGER: &'static str =
+        "era-contracts/system-contracts/contracts/EvmGasManager.sol:EvmGasManager";
 
     ///
-    /// Load or build the system contracts.
+    /// Loads or builds the system contracts.
     ///
     pub fn load_or_build(
         solc_version: semver::Version,
@@ -152,13 +167,13 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(
-                    0x06, /* TODO: zkevm_opcode_defs::ADDRESS_ECADD.into() */
+                    zkevm_opcode_defs::system_params::ADDRESS_ECADD.into(),
                 ),
                 Self::PATH_ECADD,
             ),
             (
                 web3::types::Address::from_low_u64_be(
-                    0x07, /* TODO: zkevm_opcode_defs::ADDRESS_ECMUL.into() */
+                    zkevm_opcode_defs::system_params::ADDRESS_ECMUL.into(),
                 ),
                 Self::PATH_ECMUL,
             ),
@@ -167,6 +182,10 @@ impl SystemContracts {
                     zkevm_opcode_defs::ADDRESS_EVENT_WRITER.into(),
                 ),
                 Self::PATH_EVENT_WRITER,
+            ),
+            (
+                web3::types::Address::from_low_u64_be(0x8012),
+                Self::PATH_CODE_ORACLE,
             ),
         ];
 
@@ -220,44 +239,80 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
-                Self::PATH_ETH_TOKEN,
+                Self::PATH_BASE_TOKEN,
+            ),
+            (
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                Self::PATH_EVM_GAS_MANAGER,
             ),
         ];
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
-        for (_, path) in yul_system_contracts.iter() {
-            let file_path = path.split(':').next().expect("Always valid");
-            yul_file_paths.push(file_path.to_owned());
+        for (_, path) in yul_system_contracts.into_iter() {
+            yul_file_paths.push(path.to_owned());
         }
-        let yul_mode = YulMode::new(era_compiler_llvm_context::OptimizerSettings::cycles()).into();
-        let mut builds =
-            Self::compile(YulCompiler, &yul_mode, yul_file_paths, debug_config.clone())?;
+        yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
+        let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
+        let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
+        let yul_llvm_options = vec![
+            "-eravm-jump-table-density-threshold",
+            "10",
+            "-tail-dup-size",
+            "4",
+            "-tail-merge-only-bbs-without-succ",
+        ]
+        .into_iter()
+        .map(|option| option.to_owned())
+        .collect();
+        let mut builds = Self::compile(
+            YulCompiler::new(Toolchain::IrLLVM),
+            yul_file_paths,
+            &yul_mode,
+            yul_llvm_options,
+            debug_config.clone(),
+        )?;
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
-        for (_, path) in solidity_system_contracts.iter() {
-            let file_path = path.split(':').next().expect("Always valid");
-            solidity_file_paths.push(file_path.to_owned());
-        }
-        for path in glob::glob("era-contracts/system-contracts/**/*.sol")?.filter_map(Result::ok) {
-            let path = path.to_string_lossy().to_string();
-            if !solidity_file_paths.contains(&path) {
-                solidity_file_paths.push(path);
+        for pattern in [
+            "era-contracts/system-contracts/contracts/*.sol",
+            "era-contracts/system-contracts/contracts/libraries/**/*.sol",
+            "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
+            "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
+            "tests/solidity/complex/interpreter/*.sol",
+        ] {
+            for path in glob::glob(pattern)?.filter_map(Result::ok) {
+                let path = path.to_string_lossy().to_string();
+                if !solidity_file_paths.contains(&path) {
+                    solidity_file_paths.push(path);
+                }
             }
         }
+
+        let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let solidity_mode = SolidityMode::new(
             solc_version,
             era_compiler_solidity::SolcPipeline::Yul,
             true,
             true,
-            era_compiler_llvm_context::OptimizerSettings::cycles(),
+            solidity_optimizer_settings,
+            true,
+            true,
         )
         .into();
         builds.extend(Self::compile(
             SolidityCompiler::new(),
-            &solidity_mode,
             solidity_file_paths,
+            &solidity_mode,
+            vec![],
             debug_config,
         )?);
+
+        let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
+            anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
+        })?;
+        let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
+            anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
+        })?;
 
         let mut system_contracts =
             Vec::with_capacity(solidity_system_contracts.len() + yul_system_contracts.len());
@@ -266,15 +321,11 @@ impl SystemContracts {
 
         let mut deployed_contracts = Vec::with_capacity(system_contracts.len());
         for (address, path) in system_contracts.into_iter() {
-            let build = builds.remove(path).unwrap_or_else(|| {
-                panic!("System contract source file `{path}` not found in the builds")
-            });
+            let build = builds
+                .remove(path)
+                .unwrap_or_else(|| panic!("System contract `{path}` not found in the builds"));
             deployed_contracts.push((address, build));
         }
-
-        let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
-            anyhow::anyhow!("Default account code not found in the compiler build artifacts")
-        })?;
 
         println!(
             "    {} building system contracts in {}.{:03}s",
@@ -286,6 +337,7 @@ impl SystemContracts {
         Ok(Self {
             deployed_contracts,
             default_aa,
+            evm_interpreter,
         })
     }
 
@@ -295,7 +347,13 @@ impl SystemContracts {
     fn load(system_contracts_path: PathBuf) -> anyhow::Result<Self> {
         let system_contracts_file = File::open(system_contracts_path.as_path())?;
         let system_contracts: SystemContracts = bincode::deserialize_from(system_contracts_file)
-            .map_err(|error| anyhow::anyhow!("System contract deserialization: {}", error))?;
+            .map_err(|error| {
+                anyhow::anyhow!(
+                    "System contract {:?} deserialization: {}",
+                    system_contracts_path,
+                    error
+                )
+            })?;
         println!(
             "      {} the System Contracts from `{}`",
             "Loaded".bright_green().bold(),
@@ -309,8 +367,14 @@ impl SystemContracts {
     ///
     fn save(&self, system_contracts_path: PathBuf) -> anyhow::Result<()> {
         let system_contracts_file = File::create(system_contracts_path.as_path())?;
-        bincode::serialize_into(system_contracts_file, self)
-            .map_err(|error| anyhow::anyhow!("System contracts serialization: {}", error,))?;
+        bincode::serialize_into(system_contracts_file, self).map_err(|error| {
+            anyhow::anyhow!(
+                "System contracts {:?} serialization: {}",
+                system_contracts_path,
+                error
+            )
+        })?;
+
         println!(
             "       {} the System Contracts to `{}`",
             "Saved".bright_green().bold(),
@@ -320,31 +384,37 @@ impl SystemContracts {
     }
 
     ///
-    /// Compiles the system contracts with a compiler.
+    /// Compiles the system contracts.
     ///
     fn compile<C>(
         compiler: C,
-        mode: &Mode,
         paths: Vec<String>,
+        mode: &Mode,
+        llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<HashMap<String, EraVMBuild>>
+    ) -> anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>
     where
         C: Compiler,
     {
         let mut sources = Vec::new();
         for path in paths.into_iter() {
-            let file_path = if compiler.has_multiple_contracts() {
+            let file_path = if compiler.allows_multi_contract_files() {
                 path.split(':').next().expect("Always valid").to_string()
             } else {
                 path
             };
+
             let mut source = std::fs::read_to_string(
                 PathBuf::from_str(file_path.as_str())
                     .expect("Always valid")
                     .as_path(),
             )
             .map_err(|error| {
-                anyhow::anyhow!("System contract file `{}` reading: {}", file_path, error)
+                anyhow::anyhow!(
+                    "System contract file `{}` reading error: {}",
+                    file_path,
+                    error
+                )
             })?;
 
             if file_path == "era-contracts/system-contracts/contracts/Constants.sol" {
@@ -353,14 +423,14 @@ impl SystemContracts {
 
             sources.push((file_path.to_string(), source));
         }
+
         compiler
             .compile_for_eravm(
                 "system-contracts".to_owned(),
                 sources,
                 BTreeMap::new(),
                 mode,
-                true,
-                true,
+                llvm_options,
                 debug_config,
             )
             .map(|output| output.builds)

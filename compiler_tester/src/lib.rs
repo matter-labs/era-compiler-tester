@@ -2,24 +2,21 @@
 //! The compiler tester library.
 //!
 
+#![allow(non_camel_case_types)]
+#![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
+
 pub(crate) mod compilers;
 pub(crate) mod directories;
+pub(crate) mod environment;
 pub(crate) mod filters;
-pub(crate) mod llvm_options;
 pub(crate) mod summary;
 pub(crate) mod test;
+pub(crate) mod toolchain;
 pub(crate) mod utils;
 pub(crate) mod vm;
 pub(crate) mod workflow;
-
-pub use self::filters::Filters;
-pub use self::llvm_options::LLVMOptions;
-pub use self::summary::Summary;
-pub use self::workflow::Workflow;
-pub use crate::vm::eravm::deployers::native_deployer::NativeDeployer as EraVMNativeDeployer;
-pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
-pub use crate::vm::eravm::EraVM;
-pub use crate::vm::evm::EVM;
 
 use std::path::Path;
 use std::sync::Arc;
@@ -31,8 +28,11 @@ use rayon::iter::ParallelIterator;
 
 pub use crate::compilers::eravm::EraVMCompiler;
 pub use crate::compilers::llvm::LLVMCompiler;
-pub use crate::compilers::mode::solidity::Mode as SolidityMode;
+pub use crate::compilers::mode::llvm_options::LLVMOptions;
 pub use crate::compilers::mode::Mode;
+pub use crate::compilers::solidity::mode::Mode as SolidityMode;
+pub use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
+pub use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
 pub use crate::compilers::solidity::SolidityCompiler;
 pub use crate::compilers::vyper::VyperCompiler;
 pub use crate::compilers::yul::YulCompiler;
@@ -41,14 +41,20 @@ pub use crate::directories::ethereum::test::EthereumTest;
 pub use crate::directories::ethereum::EthereumDirectory;
 pub use crate::directories::matter_labs::MatterLabsDirectory;
 pub use crate::directories::Buildable;
-pub use crate::directories::TestsDirectory;
-pub use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+pub use crate::directories::Collection;
+pub use crate::environment::Environment;
+pub use crate::filters::Filters;
+pub use crate::summary::Summary;
+pub use crate::toolchain::Toolchain;
+pub use crate::vm::eravm::deployers::dummy_deployer::DummyDeployer as EraVMNativeDeployer;
+pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
+pub use crate::vm::eravm::deployers::EraVMDeployer;
+pub use crate::vm::eravm::EraVM;
+pub use crate::vm::evm::EVM;
+pub use crate::workflow::Workflow;
 
 /// The debug directory path.
 pub const DEBUG_DIRECTORY: &str = "./debug/";
-
-/// The trace directory path.
-pub const TRACE_DIRECTORY: &str = "./trace/";
 
 ///
 /// The compiler test generic representation.
@@ -76,6 +82,8 @@ impl CompilerTester {
     const SOLIDITY_COMPLEX: &'static str = "tests/solidity/complex";
     /// The Solidity Ethereum tests directory.
     const SOLIDITY_ETHEREUM: &'static str = "tests/solidity/ethereum";
+    /// The Solidity Ethereum upstream tests directory.
+    const SOLIDITY_ETHEREUM_UPSTREAM: &'static str = "solidity/test/libsolidity/semanticTests";
 
     /// The Vyper simple tests directory.
     const VYPER_SIMPLE: &'static str = "tests/vyper/simple";
@@ -91,7 +99,7 @@ impl CompilerTester {
     const LLVM_SIMPLE: &'static str = "tests/llvm";
 
     /// The EraVM simple tests directory.
-    const ERAVM_SIMPLE: &'static str = "tests/zkevm";
+    const ERAVM_SIMPLE: &'static str = "tests/eravm";
 }
 
 impl CompilerTester {
@@ -115,11 +123,11 @@ impl CompilerTester {
     ///
     /// Runs all tests on EraVM.
     ///
-    pub fn run_eravm<D, const M: bool>(self, vm: EraVM) -> anyhow::Result<()>
+    pub fn run_eravm<D, const M: bool>(self, vm: EraVM, toolchain: Toolchain) -> anyhow::Result<()>
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests()?;
+        let tests = self.all_tests(era_compiler_common::Target::EraVM, toolchain)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -133,12 +141,13 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_eravm(
                     mode,
                     compiler,
+                    Environment::ZkEVM,
                     self.summary.clone(),
                     &self.filters,
                     specialized_debug_config,
                 ) {
                     if let Workflow::BuildAndRun = self.workflow {
-                        test.run::<D, M>(self.summary.clone(), vm.clone())
+                        test.run_eravm::<D, M>(self.summary.clone(), vm.clone())
                     };
                 }
             })
@@ -148,10 +157,10 @@ impl CompilerTester {
     }
 
     ///
-    /// Runs all tests on EraVM.
+    /// Runs all tests on EVM emulator.
     ///
-    pub fn run_evm(self) -> anyhow::Result<()> {
-        let tests = self.all_tests()?;
+    pub fn run_evm(self, toolchain: Toolchain) -> anyhow::Result<()> {
+        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -164,12 +173,13 @@ impl CompilerTester {
                 if let Some(test) = test.build_for_evm(
                     mode,
                     compiler,
+                    Environment::REVM,
                     self.summary.clone(),
                     &self.filters,
                     specialized_debug_config,
                 ) {
                     if let Workflow::BuildAndRun = self.workflow {
-                        test.run(self.summary.clone())
+                        test.run_evm_emulator(self.summary.clone())
                     };
                 }
             })
@@ -179,93 +189,202 @@ impl CompilerTester {
     }
 
     ///
-    /// Returns all tests from the specified directory for the specified compiler.
+    /// Runs all tests on REVM.
     ///
-    fn directory<T>(
-        &self,
-        path: &str,
-        extension: &'static str,
-        compiler: Arc<dyn Compiler>,
-    ) -> anyhow::Result<Vec<Test>>
+    pub fn run_revm(self, toolchain: Toolchain) -> anyhow::Result<()> {
+        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
+
+        let _: Vec<()> = tests
+            .into_par_iter()
+            .map(|(test, compiler, mode)| {
+                let mode_string = mode.to_string();
+                let specialized_debug_config = self
+                    .debug_config
+                    .as_ref()
+                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
+                if let Some(test) = test.build_for_evm(
+                    mode,
+                    compiler,
+                    Environment::REVM,
+                    self.summary.clone(),
+                    &self.filters,
+                    specialized_debug_config,
+                ) {
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_revm(self.summary.clone())
+                    };
+                }
+            })
+            .collect();
+
+        Ok(())
+    }
+
+    ///
+    /// Runs all tests on EVM interpreter.
+    ///
+    pub fn run_evm_interpreter<D, const M: bool>(
+        self,
+        vm: EraVM,
+        toolchain: Toolchain,
+    ) -> anyhow::Result<()>
     where
-        T: TestsDirectory,
+        D: EraVMDeployer,
     {
-        Ok(T::all_tests(
-            Path::new(path),
-            extension,
-            self.summary.clone(),
-            &self.filters,
-        )
-        .map_err(|error| {
-            anyhow::anyhow!("Failed to read the tests directory `{}`: {}", path, error)
-        })?
-        .into_iter()
-        .map(|test| Arc::new(test) as Arc<dyn Buildable>)
-        .cartesian_product(compiler.modes())
-        .map(|(test, mode)| (test, compiler.clone() as Arc<dyn Compiler>, mode))
-        .collect())
+        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
+        let vm = Arc::new(vm);
+
+        let _: Vec<()> = tests
+            .into_par_iter()
+            .map(|(test, compiler, mode)| {
+                if let Some(test) = test.build_for_evm(
+                    mode,
+                    compiler,
+                    Environment::EVMInterpreter,
+                    self.summary.clone(),
+                    &self.filters,
+                    self.debug_config.clone(),
+                ) {
+                    if let Workflow::BuildAndRun = self.workflow {
+                        test.run_evm_interpreter::<D, M>(self.summary.clone(), vm.clone());
+                    }
+                }
+            })
+            .collect();
+
+        Ok(())
     }
 
     ///
     /// Returns all tests from all directories.
     ///
-    fn all_tests(&self) -> anyhow::Result<Vec<Test>> {
+    fn all_tests(
+        &self,
+        target: era_compiler_common::Target,
+        toolchain: Toolchain,
+    ) -> anyhow::Result<Vec<Test>> {
         let solidity_compiler = Arc::new(SolidityCompiler::new());
+        let solidity_upstream_compiler = Arc::new(SolidityUpstreamCompiler::new(
+            SolcStandardJsonInputLanguage::Solidity,
+            toolchain,
+        ));
+        let solidity_upstream_yul_compiler = Arc::new(SolidityUpstreamCompiler::new(
+            SolcStandardJsonInputLanguage::Yul,
+            toolchain,
+        ));
+        let yul_compiler = Arc::new(YulCompiler::new(toolchain));
         let vyper_compiler = Arc::new(VyperCompiler::new());
-        let yul_compiler = Arc::new(YulCompiler::new());
-        let llvm_compiler = Arc::new(LLVMCompiler::new());
-        let eravm_compiler = Arc::new(EraVMCompiler::new());
+        let llvm_compiler = Arc::new(LLVMCompiler);
+        let eravm_compiler = Arc::new(EraVMCompiler);
 
         let mut tests = Vec::with_capacity(16384);
 
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::SOLIDITY_SIMPLE,
             era_compiler_common::EXTENSION_SOLIDITY,
-            solidity_compiler.clone(),
+            match toolchain {
+                Toolchain::IrLLVM => solidity_compiler.clone(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
+            },
         )?);
+        if let era_compiler_common::Target::EraVM = target {
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
+                Self::VYPER_SIMPLE,
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler.clone(),
+            )?);
+        }
         tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_SIMPLE,
-            era_compiler_common::EXTENSION_VYPER,
-            vyper_compiler.clone(),
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
-            yul_compiler,
+            match toolchain {
+                Toolchain::IrLLVM => yul_compiler.clone(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_yul_compiler.clone(),
+            },
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::LLVM_SIMPLE,
             era_compiler_common::EXTENSION_LLVM_SOURCE,
             llvm_compiler,
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::ERAVM_SIMPLE,
             era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
             eravm_compiler,
         )?);
 
         tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
             Self::SOLIDITY_COMPLEX,
             era_compiler_common::EXTENSION_JSON,
-            solidity_compiler.clone(),
+            match toolchain {
+                Toolchain::IrLLVM => solidity_compiler.clone(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
+            },
         )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            Self::VYPER_COMPLEX,
-            era_compiler_common::EXTENSION_JSON,
-            vyper_compiler.clone(),
-        )?);
+        if let era_compiler_common::Target::EraVM = target {
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
+                Self::VYPER_COMPLEX,
+                era_compiler_common::EXTENSION_JSON,
+                vyper_compiler.clone(),
+            )?);
+        }
 
         tests.extend(self.directory::<EthereumDirectory>(
-            Self::SOLIDITY_ETHEREUM,
+            target,
+            match target {
+                era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+            },
             era_compiler_common::EXTENSION_SOLIDITY,
-            solidity_compiler,
+            match toolchain {
+                Toolchain::IrLLVM => solidity_compiler.clone(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
+            },
         )?);
-        tests.extend(self.directory::<EthereumDirectory>(
-            Self::VYPER_ETHEREUM,
-            era_compiler_common::EXTENSION_VYPER,
-            vyper_compiler,
-        )?);
+        if let era_compiler_common::Target::EraVM = target {
+            tests.extend(self.directory::<EthereumDirectory>(
+                target,
+                Self::VYPER_ETHEREUM,
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler,
+            )?);
+        }
 
         Ok(tests)
+    }
+
+    ///
+    /// Returns all tests from the specified directory for the specified compiler.
+    ///
+    fn directory<T>(
+        &self,
+        target: era_compiler_common::Target,
+        path: &str,
+        extension: &'static str,
+        compiler: Arc<dyn Compiler>,
+    ) -> anyhow::Result<Vec<Test>>
+    where
+        T: Collection,
+    {
+        Ok(T::read_all(
+            target,
+            Path::new(path),
+            extension,
+            self.summary.clone(),
+            &self.filters,
+        )
+        .map_err(|error| anyhow::anyhow!("Failed to read the tests directory `{path}`: {error}"))?
+        .into_iter()
+        .map(|test| Arc::new(test) as Arc<dyn Buildable>)
+        .cartesian_product(compiler.all_modes())
+        .map(|(test, mode)| (test, compiler.clone() as Arc<dyn Compiler>, mode))
+        .collect())
     }
 }

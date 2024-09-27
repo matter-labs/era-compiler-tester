@@ -2,6 +2,16 @@
 //! The compiler tester utils.
 //!
 
+use sha3::Digest;
+
+///
+/// Returns a `keccak256` selector of the specified contract method.
+///
+pub fn selector(signature: &str) -> [u8; 4] {
+    let hash_bytes = sha3::Keccak256::digest(signature.as_bytes());
+    hash_bytes[0..4].try_into().expect("Always valid")
+}
+
 ///
 /// Overrides the default formatting for `Address`, which replaces the middle with an ellipsis.
 ///
@@ -38,6 +48,16 @@ pub fn u256_to_address(value: &web3::types::U256) -> web3::types::Address {
     web3::types::Address::from_slice(
         &bytes[bytes.len() - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS..],
     )
+}
+
+///
+/// Converts `Address` into `H256`.
+///
+pub fn address_to_h256(address: &web3::types::Address) -> web3::types::H256 {
+    let mut buffer = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
+    buffer[era_compiler_common::BYTE_LENGTH_FIELD - era_compiler_common::BYTE_LENGTH_ETH_ADDRESS..]
+        .copy_from_slice(address.as_bytes());
+    web3::types::H256(buffer)
 }
 
 ///

@@ -4,12 +4,10 @@
 
 use std::collections::HashMap;
 
-use serde::Deserialize;
-
 ///
 /// The Matter Labs compiler test metadata case input contract storage.
 ///
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 #[serde(untagged)]
 pub enum Storage {
     /// The list, where the key starts from 0.

@@ -13,15 +13,19 @@ pub enum PassedVariant {
         size: usize,
         /// The number of execution cycles.
         cycles: usize,
-        /// The amount of gas used.
-        gas: u32,
+        /// The number of used ergs.
+        ergs: u64,
+        /// The number of used gas.
+        gas: u64,
     },
     /// The contract call.
     Runtime {
         /// The number of execution cycles.
         cycles: usize,
-        /// The amount of gas used.
-        gas: u32,
+        /// The number of used ergs.
+        ergs: u64,
+        /// The number of used gas.
+        gas: u64,
     },
     /// The special function call.
     Special,

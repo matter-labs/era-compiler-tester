@@ -43,7 +43,7 @@ impl Runtime {
 }
 
 impl evm::RuntimeEnvironment for Runtime {
-    fn block_hash(&self, number: web3::types::U256) -> web3::types::H256 {
+    fn block_hash(&self, _number: web3::types::U256) -> web3::types::H256 {
         crate::utils::u256_to_h256(
             &web3::types::U256::from_str_radix(
                 "3737373737373737373737373737373737373737373737373737373737373862",
@@ -108,7 +108,7 @@ impl evm::RuntimeBaseBackend for Runtime {
             .unwrap_or(web3::types::U256::zero())
     }
 
-    fn code_hash(&self, address: web3::types::H160) -> web3::types::H256 {
+    fn code_hash(&self, _address: web3::types::H160) -> web3::types::H256 {
         web3::types::H256::zero()
     }
 
@@ -121,7 +121,7 @@ impl evm::RuntimeBaseBackend for Runtime {
             .get(&address)
             .and_then(|storage| storage.get(&index))
             .cloned()
-            .unwrap_or(web3::types::H256::zero())
+            .unwrap_or_default()
     }
 
     fn exists(&self, address: web3::types::H160) -> bool {
@@ -129,10 +129,7 @@ impl evm::RuntimeBaseBackend for Runtime {
     }
 
     fn nonce(&self, address: web3::types::H160) -> web3::types::U256 {
-        self.nonces
-            .get(&address)
-            .cloned()
-            .unwrap_or(web3::types::U256::zero())
+        self.nonces.get(&address).copied().unwrap_or_default()
     }
 }
 
@@ -145,11 +142,11 @@ impl evm::RuntimeBackend for Runtime {
         evm::RuntimeBaseBackend::storage(self, address, index)
     }
 
-    fn deleted(&self, address: web3::types::H160) -> bool {
+    fn deleted(&self, _address: web3::types::H160) -> bool {
         false
     }
 
-    fn is_cold(&self, address: web3::types::H160, index: Option<web3::types::H256>) -> bool {
+    fn is_cold(&self, _address: web3::types::H160, _index: Option<web3::types::H256>) -> bool {
         false
     }
 
@@ -157,7 +154,7 @@ impl evm::RuntimeBackend for Runtime {
         !self.is_cold(address, index)
     }
 
-    fn mark_hot(&mut self, address: web3::types::H160, index: Option<web3::types::H256>) {}
+    fn mark_hot(&mut self, _address: web3::types::H160, _index: Option<web3::types::H256>) {}
 
     fn set_storage(
         &mut self,
@@ -183,9 +180,9 @@ impl evm::RuntimeBackend for Runtime {
         Ok(())
     }
 
-    fn mark_delete(&mut self, address: web3::types::H160) {}
+    fn mark_delete(&mut self, _address: web3::types::H160) {}
 
-    fn reset_storage(&mut self, address: web3::types::H160) {}
+    fn reset_storage(&mut self, _address: web3::types::H160) {}
 
     fn set_code(
         &mut self,
@@ -230,10 +227,10 @@ impl evm::RuntimeBackend for Runtime {
     }
 
     fn inc_nonce(&mut self, address: web3::types::H160) -> Result<(), evm::ExitError> {
-        self.nonces
+        *self
+            .nonces
             .entry(address)
-            .and_modify(|nonce| *nonce += web3::types::U256::one())
-            .or_insert(web3::types::U256::one());
+            .or_insert_with(web3::types::U256::zero) += web3::types::U256::one();
         Ok(())
     }
 }
@@ -241,5 +238,5 @@ impl evm::RuntimeBackend for Runtime {
 impl evm::TransactionalBackend for Runtime {
     fn push_substate(&mut self) {}
 
-    fn pop_substate(&mut self, strategy: evm::MergeStrategy) {}
+    fn pop_substate(&mut self, _strategy: evm::MergeStrategy) {}
 }

@@ -16,13 +16,30 @@ pub enum Workflow {
 }
 
 impl FromStr for Workflow {
-    type Err = &'static str;
+    type Err = anyhow::Error;
 
     fn from_str(day: &str) -> Result<Self, Self::Err> {
         match day {
             "build" => Ok(Workflow::BuildOnly),
             "run" => Ok(Workflow::BuildAndRun),
-            _ => Err("Could not parse workflow. Supported workflows: build, run."),
+            string => anyhow::bail!(
+                "Unknown workflow `{}`. Supported workflows: {}",
+                string,
+                vec![Self::BuildOnly, Self::BuildAndRun]
+                    .into_iter()
+                    .map(|element| element.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+        }
+    }
+}
+
+impl std::fmt::Display for Workflow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Workflow::BuildOnly => write!(f, "build"),
+            Workflow::BuildAndRun => write!(f, "run"),
         }
     }
 }

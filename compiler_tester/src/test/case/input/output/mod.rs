@@ -4,10 +4,8 @@
 
 pub mod event;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::str::FromStr;
-
-use serde::Serialize;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::Variant as MatterLabsTestExpectedVariant;
@@ -21,7 +19,7 @@ use self::event::Event;
 ///
 /// The compiler test outcome data.
 ///
-#[derive(Debug, Default, Serialize, Clone)]
+#[derive(Debug, Default, Clone, serde::Serialize)]
 pub struct Output {
     /// The return data values.
     pub return_data: Vec<Value>,
@@ -47,13 +45,14 @@ impl Output {
     /// Try convert from Matter Labs compiler test metadata expected.
     ///
     pub fn try_from_matter_labs_expected(
-        expected: &MatterLabsTestExpected,
+        expected: MatterLabsTestExpected,
         mode: &Mode,
-        instances: &HashMap<String, Instance>,
+        instances: &BTreeMap<String, Instance>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let variants = match expected {
             MatterLabsTestExpected::Single(variant) => vec![variant],
-            MatterLabsTestExpected::Multiple(variants) => variants.iter().collect(),
+            MatterLabsTestExpected::Multiple(variants) => variants.into_iter().collect(),
         };
         let variant = variants
             .into_iter()
@@ -71,29 +70,27 @@ impl Output {
             })
             .ok_or_else(|| anyhow::anyhow!("Version not covered"))?;
 
-        let return_data = match variant {
-            MatterLabsTestExpectedVariant::Simple(expected) => expected,
-            MatterLabsTestExpectedVariant::Extended(expected) => &expected.return_data,
-        };
-        let return_data = Value::try_from_vec_matter_labs(return_data, instances)
-            .map_err(|error| anyhow::anyhow!("Invalid return data: {}", error))?;
-        let (exception, events) = match variant {
-            MatterLabsTestExpectedVariant::Simple(_) => (false, Vec::new()),
-            MatterLabsTestExpectedVariant::Extended(expected) => (
-                expected.exception,
-                expected
+        let (return_data, exception, events) = match variant {
+            MatterLabsTestExpectedVariant::Simple(return_data) => (return_data, false, Vec::new()),
+            MatterLabsTestExpectedVariant::Extended(expected) => {
+                let return_data = expected.return_data;
+                let exception = expected.exception;
+                let events = expected
                     .events
-                    .iter()
+                    .into_iter()
                     .enumerate()
                     .map(|(index, event)| {
-                        Event::try_from_matter_labs(event, instances).map_err(|error| {
-                            anyhow::anyhow!("Event {} is invalid: {}", index, error)
+                        Event::try_from_matter_labs(event, instances, target).map_err(|error| {
+                            anyhow::anyhow!("Event #{} is invalid: {}", index, error)
                         })
                     })
                     .collect::<anyhow::Result<Vec<Event>>>()
-                    .map_err(|error| anyhow::anyhow!("Invalid events: {}", error))?,
-            ),
+                    .map_err(|error| anyhow::anyhow!("Invalid events: {}", error))?;
+                (return_data, exception, events)
+            }
         };
+        let return_data = Value::try_from_vec_matter_labs(return_data, instances, target)
+            .map_err(|error| anyhow::anyhow!("Invalid return data: {error}"))?;
 
         Ok(Self {
             return_data,
@@ -110,15 +107,18 @@ impl Output {
         exception: bool,
         events: &[solidity_adapter::Event],
         contract_address: &web3::types::Address,
+        target: era_compiler_common::Target,
     ) -> Self {
         let return_data = expected
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
-                value_str = value_str.replace(
-                    solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
-                    &crate::utils::address_as_string(contract_address),
-                );
+                if let era_compiler_common::Target::EraVM = target {
+                    value_str = value_str.replace(
+                        solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
+                        &crate::utils::address_as_string(contract_address),
+                    );
+                }
                 Value::Certain(
                     web3::types::U256::from_str(&value_str)
                         .expect("Solidity adapter default contract address constant is invalid"),
@@ -128,7 +128,7 @@ impl Output {
 
         let events = events
             .iter()
-            .map(|event| Event::from_ethereum_expected(event, contract_address))
+            .map(|event| Event::from_ethereum(event, contract_address))
             .collect();
 
         Self {
@@ -160,11 +160,11 @@ impl From<bool> for Output {
     }
 }
 
-impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
-    fn from(snapshot: &zkevm_tester::runners::compiler_tests::VmSnapshot) -> Self {
+impl From<zkevm_tester::compiler_tests::VmSnapshot> for Output {
+    fn from(snapshot: zkevm_tester::compiler_tests::VmSnapshot) -> Self {
         let events = snapshot
             .events
-            .iter()
+            .into_iter()
             .filter(|event| {
                 let first_topic = event.topics.first().expect("Always exists");
                 let address = crate::utils::bytes32_to_address(first_topic);
@@ -176,8 +176,8 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
             .map(Event::from)
             .collect();
 
-        match &snapshot.execution_result {
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::Ok(return_data) => {
+        match snapshot.execution_result {
+            zkevm_tester::compiler_tests::VmExecutionResult::Ok(return_data) => {
                 let return_data = return_data
                     .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| {
@@ -195,13 +195,14 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
                         Value::Certain(value)
                     })
                     .collect();
+
                 Self {
                     return_data,
                     exception: false,
                     events,
                 }
             }
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::Revert(return_data) => {
+            zkevm_tester::compiler_tests::VmExecutionResult::Revert(return_data) => {
                 let return_data = return_data
                     .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
                     .map(|word| {
@@ -219,24 +220,25 @@ impl From<&zkevm_tester::runners::compiler_tests::VmSnapshot> for Output {
                         Value::Certain(value)
                     })
                     .collect();
+
                 Self {
                     return_data,
                     exception: true,
                     events,
                 }
             }
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::Panic => Self {
+            zkevm_tester::compiler_tests::VmExecutionResult::Panic => Self {
                 return_data: vec![],
                 exception: true,
                 events,
             },
-            zkevm_tester::runners::compiler_tests::VmExecutionResult::MostLikelyDidNotFinish {
-                ..
-            } => Self {
-                return_data: vec![],
-                exception: true,
-                events,
-            },
+            zkevm_tester::compiler_tests::VmExecutionResult::MostLikelyDidNotFinish { .. } => {
+                Self {
+                    return_data: vec![],
+                    exception: true,
+                    events,
+                }
+            }
         }
     }
 }
@@ -284,10 +286,10 @@ impl PartialEq<Self> for Output {
         }
 
         for index in 0..self.return_data.len() {
-            if let (Value::Certain(value1), Value::Certain(value2)) =
+            if let (Value::Certain(value_1), Value::Certain(value_2)) =
                 (&self.return_data[index], &other.return_data[index])
             {
-                if value1 != value2 {
+                if value_1 != value_2 {
                     return false;
                 }
             }

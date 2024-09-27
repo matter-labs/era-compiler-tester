@@ -1,10 +1,16 @@
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+//!
+//! Common fuzzer code.
+//!
 
-use compiler_tester::Workflow;
-use compiler_tester::{Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary};
+#![allow(dead_code)]
+
+use std::{path::PathBuf, sync::Arc};
+
+use compiler_tester::{
+    Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow,
+};
+use era_compiler_solidity::SolcPipeline;
+
 pub use solidity_adapter::{
     test::function_call::parser::{
         lexical::token::{
@@ -23,8 +29,6 @@ pub use solidity_adapter::{
     },
     EnabledTest, FunctionCall,
 };
-
-use era_compiler_solidity::SolcPipeline;
 
 ///
 /// Fuzzing case definition
@@ -128,14 +132,15 @@ pub fn build_function_call(case: FuzzingCase) -> anyhow::Result<FunctionCall> {
 ///
 /// * `EthereumTest` - The Ethereum test
 pub fn gen_fuzzing_test(case: FuzzingCase) -> anyhow::Result<EthereumTest> {
-    let test_path = Path::new(&case.contract_path);
+    let test_path = PathBuf::from(case.contract_path.as_str());
 
     // Generate Test objects for the fuzzing contract
     let enabled_test = EnabledTest::new(test_path.to_path_buf(), None, None, None);
-    let mut test = solidity_adapter::Test::try_from(test_path)?;
+    let mut test = solidity_adapter::Test::try_from(test_path.as_path())?;
     let fcall = build_function_call(case)?;
     test.calls.push(fcall);
     Ok(EthereumTest {
+        identifier: test_path.to_string_lossy().to_string(),
         index_entity: enabled_test,
         test,
     })
@@ -152,7 +157,7 @@ pub fn gen_fuzzing_test(case: FuzzingCase) -> anyhow::Result<EthereumTest> {
 /// * `Summary` - The test summary
 pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     // TODO: this should be parametrized
-    let solc_version = semver::Version::new(0, 8, 24);
+    let solc_version = semver::Version::new(0, 8, 26);
     let mode = Mode::Solidity(SolidityMode::new(
         solc_version,
         SolcPipeline::Yul,
@@ -160,15 +165,17 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
         true,
         era_compiler_llvm_context::OptimizerSettings::try_from_cli('3')
             .expect("Error: optimization settings incorrect!"),
+        false,
+        false,
     ));
 
     // Initialization
-    era_compiler_llvm_context::initialize_target(era_compiler_llvm_context::Target::EraVM);
-    era_compiler_solidity::EXECUTABLE.get_or_try_init(|| -> Result<PathBuf, anyhow::Error> {
-        Ok(PathBuf::from(
+    era_compiler_llvm_context::initialize_target(era_compiler_common::Target::EraVM);
+    era_compiler_solidity::EXECUTABLE
+        .set(PathBuf::from(
             era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
         ))
-    })?;
+        .expect("Always valid");
     compiler_tester::LLVMOptions::initialize(false, false)?;
     let compiler_tester = compiler_tester::CompilerTester::new(
         compiler_tester::Summary::new(true, false).wrap(),
@@ -176,20 +183,17 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
         None,
         Workflow::BuildAndRun,
     )?;
-    zkevm_tester::runners::compiler_tests::set_tracing_mode(
-        zkevm_tester::runners::compiler_tests::VmTracingOptions::from_u64(0),
-    );
-    zkevm_assembly::set_encoding_mode(zkevm_assembly::RunningVmEncodingMode::Testing);
 
     // Compile and run test
     if let Some(test) = test.build_for_eravm(
         mode,
         Arc::new(SolidityCompiler::new()),
+        compiler_tester::Environment::ZkEVM,
         compiler_tester.summary.clone(),
         &compiler_tester.filters,
         compiler_tester.debug_config.clone(),
     ) {
-        test.run::<compiler_tester::EraVMSystemContractDeployer, true>(
+        test.run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(
             compiler_tester.summary.clone(),
             Arc::new(compiler_tester::EraVM::new(
                 vec![
@@ -200,6 +204,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
                 None,
                 Some(PathBuf::from("system-contracts-stable-build")),
                 Some(PathBuf::from("system-contracts-stable-build")),
+                era_compiler_common::Target::EraVM,
             )?),
         );
     }

@@ -46,6 +46,10 @@ impl FSEntity {
             let path = entry.path();
             let entry_type = entry.file_type()?;
 
+            if entry.file_name().to_string_lossy().starts_with('.') {
+                continue;
+            }
+
             if entry_type.is_dir() {
                 entries.insert(
                     path.file_name()
@@ -76,9 +80,14 @@ impl FSEntity {
     ///
     /// Updates the new index, tests and returns changes.
     ///
-    pub fn update(&self, new: &mut FSEntity, initial: &Path) -> anyhow::Result<Changes> {
+    pub fn update(
+        &self,
+        new: &mut FSEntity,
+        initial: &Path,
+        index_only: bool,
+    ) -> anyhow::Result<Changes> {
         let mut changes = Changes::default();
-        self.update_recursive(new, initial, &mut changes)?;
+        self.update_recursive(new, initial, &mut changes, index_only)?;
         Ok(changes)
     }
 
@@ -137,6 +146,7 @@ impl FSEntity {
         new: &mut FSEntity,
         current: &Path,
         changes: &mut Changes,
+        index_only: bool,
     ) -> anyhow::Result<()> {
         let (old_entities, new_entities) = match (self, new) {
             (Self::File(old_file), Self::File(new_file)) => {
@@ -162,14 +172,16 @@ impl FSEntity {
                     } else {
                         changes.updated.push(current.to_owned());
                     }
-                    TestFile::write_to_file(
-                        current,
-                        new_file
-                            .data
-                            .as_ref()
-                            .ok_or_else(|| anyhow::anyhow!("Test data is None: {:?}", current))?
-                            .as_bytes(),
-                    )?;
+                    if !index_only {
+                        TestFile::write_to_file(
+                            current,
+                            new_file
+                                .data
+                                .as_ref()
+                                .ok_or_else(|| anyhow::anyhow!("Test data is None: {:?}", current))?
+                                .as_bytes(),
+                        )?;
+                    }
                 }
                 return Ok(());
             }
@@ -193,8 +205,10 @@ impl FSEntity {
             (_, new) => {
                 self.list_recursive(current, &mut changes.deleted);
                 new.list_recursive(current, &mut changes.created);
-                self.delete(current)?;
-                new.create_recursive(current)?;
+                if !index_only {
+                    self.delete(current)?;
+                    new.create_recursive(current)?;
+                }
                 return Ok(());
             }
         };
@@ -203,10 +217,12 @@ impl FSEntity {
             let mut current = current.to_owned();
             current.push(name);
             if let Some(new_entity) = new_entities.get_mut(name) {
-                entity.update_recursive(new_entity, &current, changes)?;
+                entity.update_recursive(new_entity, &current, changes, index_only)?;
             } else {
                 entity.list_recursive(&current, &mut changes.deleted);
-                entity.delete(&current)?;
+                if !index_only {
+                    entity.delete(&current)?;
+                }
             }
         }
         for (name, entity) in new_entities.iter() {
@@ -214,7 +230,9 @@ impl FSEntity {
                 let mut current = current.to_owned();
                 current.push(name);
                 entity.list_recursive(&current, &mut changes.created);
-                entity.create_recursive(&current)?;
+                if !index_only {
+                    entity.create_recursive(&current)?;
+                }
             }
         }
 
@@ -289,11 +307,12 @@ impl FSEntity {
     ///
     fn delete(&self, current: &Path) -> anyhow::Result<()> {
         if let Self::Directory(_) = self {
-            fs::remove_dir_all(current)
-                .map_err(|err| anyhow::anyhow!("Failed to delete directory: {}", err))?;
+            fs::remove_dir_all(current).map_err(|err| {
+                anyhow::anyhow!("Failed to delete directory {:?}: {}", current, err)
+            })?;
         } else {
             fs::remove_file(current)
-                .map_err(|err| anyhow::anyhow!("Failed to delete file: {}", err))?;
+                .map_err(|err| anyhow::anyhow!("Failed to delete file {:?}: {}", current, err))?;
         }
 
         Ok(())

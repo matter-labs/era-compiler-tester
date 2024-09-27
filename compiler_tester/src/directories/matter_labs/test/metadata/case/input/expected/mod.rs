@@ -8,6 +8,7 @@ use serde::Deserialize;
 
 use crate::compilers::mode::Mode;
 
+use self::variant::extended::Extended;
 use self::variant::Variant;
 
 ///
@@ -31,6 +32,18 @@ impl Expected {
     }
 
     ///
+    /// Creates EVM interpreter benchmark expected data.
+    ///
+    pub fn successful_evm_interpreter_benchmark(exception: bool) -> Self {
+        Self::Single(Variant::Extended(Extended {
+            return_data: vec![],
+            events: vec![],
+            exception,
+            compiler_version: None,
+        }))
+    }
+
+    ///
     /// Returns exception flag for specified mode.
     ///
     pub fn exception(&self, mode: &Mode) -> anyhow::Result<bool> {
@@ -50,7 +63,7 @@ impl Expected {
                     None => true,
                 }
             })
-            .ok_or_else(|| anyhow::anyhow!("Version not covered"))?;
+            .ok_or_else(|| anyhow::anyhow!("Version is not covered"))?;
         Ok(match variant {
             Variant::Simple(_) => false,
             Variant::Extended(inner) => inner.exception,

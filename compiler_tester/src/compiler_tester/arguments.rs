@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use compiler_tester::Workflow;
-
 ///
 /// The compiler tester arguments.
 ///
@@ -28,11 +26,6 @@ pub struct Arguments {
     /// Saves all IRs produced by compilers to `./debug/` directory.
     #[structopt(short = "D", long = "debug")]
     pub debug: bool,
-
-    /// Saves all JSON traces produced by VM to `./trace/` directory.
-    /// If passed twice, dumps EraVM instructions and registers to the terminal.
-    #[structopt(short = "T", long = "trace", parse(from_occurrences))]
-    pub trace: usize,
 
     /// Runs tests only in modes that contain any string from the specified ones.
     #[structopt(short = "m", long = "mode")]
@@ -66,27 +59,44 @@ pub struct Arguments {
     #[structopt(long = "disable-value-simulator")]
     pub disable_value_simulator: bool,
 
-    /// Path to the `zksolc` binary.
+    /// Path to the `zksolc` executable.
     /// Is set to `zksolc` by default.
     #[structopt(long = "zksolc")]
     pub zksolc: Option<PathBuf>,
 
-    /// Path to the `zkvyper` binary.
+    /// Path to the `zkvyper` executable.
     /// Is set to `zkvyper` by default.
     #[structopt(long = "zkvyper")]
     pub zkvyper: Option<PathBuf>,
 
-    /// Specify the target machine.
-    /// Available arguments: `eravm`, `evm`.
-    /// The default is `eravm`.
-    #[structopt(long = "target")]
-    pub target: Option<String>,
+    /// Specify the compiler toolchain.
+    /// Available arguments: `ir-llvm`, `solc`, `solc-llvm`.
+    /// The default for `EraVM` target is `ir-llvm`.
+    /// The default for `EVM` target is `solc`.
+    #[structopt(long = "toolchain")]
+    pub toolchain: Option<compiler_tester::Toolchain>,
 
-    /// Path to the default `solc` binaries download configuration file.
+    /// Specify the target architecture.
+    /// Available arguments: `eravm`, `evm`.
+    #[structopt(long = "target")]
+    pub target: era_compiler_common::Target,
+
+    /// Specify the environment to run tests on.
+    /// Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.
+    /// The default for `EraVM` target is `zk_evm`.
+    /// The default for `EVM` target is `EVMInterpreter`.
+    #[structopt(long = "environment")]
+    pub environment: Option<compiler_tester::Environment>,
+
+    /// Choose between `build` to compile tests only without running, and `run` to compile and run.
+    #[structopt(long = "workflow", default_value = "run")]
+    pub workflow: compiler_tester::Workflow,
+
+    /// Path to the default `solc` executables download configuration file.
     #[structopt(long = "solc-bin-config-path")]
     pub solc_bin_config_path: Option<PathBuf>,
 
-    /// Path to the default `vyper` binaries download configuration file.
+    /// Path to the default `vyper` executables download configuration file.
     #[structopt(long = "vyper-bin-config-path")]
     pub vyper_bin_config_path: Option<PathBuf>,
 
@@ -105,10 +115,6 @@ pub struct Arguments {
     /// Sets the `debug logging` option in LLVM.
     #[structopt(long = "llvm-debug-logging")]
     pub llvm_debug_logging: bool,
-
-    /// Choose between `build` to compile tests only without running them, and `run` to compile and run them.
-    #[structopt(long = "workflow", default_value = "run")]
-    pub workflow: Workflow,
 }
 
 impl Arguments {

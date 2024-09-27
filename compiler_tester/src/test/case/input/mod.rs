@@ -4,7 +4,8 @@
 
 pub mod balance;
 pub mod calldata;
-pub mod deploy;
+pub mod deploy_eravm;
+pub mod deploy_evm;
 pub mod output;
 pub mod runtime;
 pub mod storage;
@@ -13,21 +14,27 @@ pub mod value;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
-use crate::vm::eravm::deployers::Deployer as EraVMDeployer;
+use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
+use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
+use crate::vm::revm::Revm;
 
 use self::balance::Balance;
 use self::calldata::Calldata;
-use self::deploy::Deploy;
+use self::deploy_eravm::DeployEraVM;
+use self::deploy_evm::DeployEVM;
 use self::output::Output;
 use self::runtime::Runtime;
 use self::storage::Storage;
@@ -38,10 +45,12 @@ use self::storage_empty::StorageEmpty;
 ///
 #[derive(Debug, Clone)]
 pub enum Input {
+    /// The EraVM contract deploy.
+    DeployEraVM(DeployEraVM),
+    /// The EVM contract deploy.
+    DeployEVM(DeployEVM),
     /// The contract call.
     Runtime(Runtime),
-    /// The contract deploy.
-    Deploy(Deploy),
     /// The storage empty check.
     StorageEmpty(StorageEmpty),
     /// Check account balance.
@@ -53,39 +62,49 @@ impl Input {
     /// Try convert from Matter Labs compiler test metadata input.
     ///
     pub fn try_from_matter_labs(
-        input: &MatterLabsTestInput,
+        input: MatterLabsTestInput,
         mode: &Mode,
-        instances: &HashMap<String, Instance>,
+        instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let caller = web3::types::Address::from_str(input.caller.as_str())
-            .map_err(|error| anyhow::anyhow!("Invalid caller: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
 
-        let value = match input.value.as_ref() {
+        let value = match input.value {
             Some(value) => Some(if let Some(value) = value.strip_suffix(" ETH") {
                 u128::from_str(value)
-                    .map_err(|error| anyhow::anyhow!("Invalid value literal: {}", error))?
+                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {}", error))?
                     .checked_mul(10u128.pow(18))
-                    .ok_or_else(|| anyhow::anyhow!("Overflow: value too big"))?
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("Invalid value literal `{value}`: u128 overflow")
+                    })?
             } else if let Some(value) = value.strip_suffix(" wei") {
-                u128::from_str(value)
-                    .map_err(|error| anyhow::anyhow!("Invalid value literal: {}", error))?
+                u128::from_str(value).map_err(|error| {
+                    anyhow::anyhow!("Invalid value literal `{value}`: {}", error)
+                })?
             } else {
-                anyhow::bail!("Invalid value");
+                anyhow::bail!("Invalid value `{value}`");
             }),
             None => None,
         };
 
-        let mut calldata = Calldata::try_from_matter_labs(&input.calldata, instances)
+        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid calldata: {}", error))?;
 
-        let expected = match input.expected.as_ref() {
-            Some(expected) => Output::try_from_matter_labs_expected(expected, mode, instances)
-                .map_err(|error| anyhow::anyhow!("Invalid expected: {}", error))?,
+        let expected = match target {
+            era_compiler_common::Target::EraVM => input.expected_eravm.or(input.expected),
+            era_compiler_common::Target::EVM => input.expected_evm.or(input.expected),
+        };
+        let expected = match expected {
+            Some(expected) => {
+                Output::try_from_matter_labs_expected(expected, mode, instances, target)
+                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?
+            }
             None => Output::default(),
         };
 
-        let storage = Storage::try_from_matter_labs(&input.storage, instances)
+        let storage = Storage::try_from_matter_labs(input.storage, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid storage: {}", error))?;
 
         let instance = instances
@@ -93,17 +112,28 @@ impl Input {
             .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", input.instance))?;
 
         let input = match input.method.as_str() {
-            "#deployer" => Input::Deploy(Deploy::new(
-                instance.path.to_owned(),
-                instance.code_hash,
-                calldata,
-                caller,
-                value,
-                storage,
-                expected,
-            )),
+            "#deployer" => match instance {
+                Instance::EraVM(instance) => Input::DeployEraVM(DeployEraVM::new(
+                    instance.path.to_owned(),
+                    instance.code_hash,
+                    calldata,
+                    caller,
+                    value,
+                    storage,
+                    expected,
+                )),
+                Instance::EVM(instance) => Input::DeployEVM(DeployEVM::new(
+                    instance.path.to_owned(),
+                    instance.init_code.to_owned(),
+                    calldata,
+                    caller,
+                    value,
+                    storage,
+                    expected,
+                )),
+            },
             "#fallback" => {
-                let address = instance.address.ok_or_else(|| {
+                let address = instance.address().ok_or_else(|| {
                     anyhow::anyhow!(
                         "Instance `{}` was not successfully deployed",
                         input.instance
@@ -112,7 +142,7 @@ impl Input {
 
                 Input::Runtime(Runtime::new(
                     "#fallback".to_string(),
-                    address,
+                    *address,
                     calldata,
                     caller,
                     value,
@@ -121,18 +151,22 @@ impl Input {
                 ))
             }
             entry => {
-                let address = instance.address.ok_or_else(|| {
+                let address = instance.address().ok_or_else(|| {
                     anyhow::anyhow!(
                         "Instance `{}` was not successfully deployed",
                         input.instance
                     )
                 })?;
-                let path = instance.path.as_str();
+
+                let path = instance.path();
                 let selector = match method_identifiers {
                     Some(method_identifiers) => method_identifiers
                         .get(path)
                         .ok_or_else(|| {
-                            anyhow::anyhow!("Contract {} not found in the method identifiers", path)
+                            anyhow::anyhow!(
+                                "Contract `{}` not found in the method identifiers",
+                                path
+                            )
                         })?
                         .iter()
                         .find_map(|(name, selector)| {
@@ -143,17 +177,27 @@ impl Input {
                             }
                         })
                         .ok_or_else(|| {
-                            anyhow::anyhow!("Selector of the method `{}` not found", entry)
+                            anyhow::anyhow!(
+                                "In the contract `{}`, selector of the method `{}` not found",
+                                path,
+                                entry
+                            )
                         })?,
                     None => u32::from_str_radix(entry, era_compiler_common::BASE_HEXADECIMAL)
-                        .map_err(|err| anyhow::anyhow!("Invalid entry value: {}", err))?,
+                        .map_err(|error| {
+                            anyhow::anyhow!(
+                                "Invalid entry value for contract `{}`: {}",
+                                path,
+                                error
+                            )
+                        })?,
                 };
 
-                calldata.add_selector(selector);
+                calldata.push_selector(selector);
 
                 Input::Runtime(Runtime::new(
                     entry.to_string(),
-                    address,
+                    *address,
                     calldata,
                     caller,
                     value,
@@ -171,15 +215,18 @@ impl Input {
     ///
     pub fn try_from_ethereum(
         input: &solidity_adapter::FunctionCall,
-        main_contract_instance: &Instance,
-        libraries_instances: &HashMap<String, Instance>,
+        instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
+        target: era_compiler_common::Target,
     ) -> anyhow::Result<Option<Self>> {
-        let main_contract_address = main_contract_instance
-            .address
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("Internal error: main contract address is none"))?;
+        let main_contract_instance = instances
+            .values()
+            .find(|instance| instance.is_main())
+            .ok_or_else(|| anyhow::anyhow!("Could not identify the Ethereum test main contract"))?
+            .to_owned();
+        let main_contract_address = main_contract_instance.address().expect("Always exists");
+
         let input = match input {
             solidity_adapter::FunctionCall::Constructor {
                 calldata,
@@ -188,11 +235,9 @@ impl Input {
                 ..
             } => {
                 let value = match value {
-                    Some(value) => Some(
-                        (*value)
-                            .try_into()
-                            .map_err(|error| anyhow::anyhow!("Value is too big: {}", error))?,
-                    ),
+                    Some(value) => Some((*value).try_into().map_err(|error| {
+                        anyhow::anyhow!("Invalid value literal `{:X}`: {}", value, error)
+                    })?),
                     None => None,
                 };
 
@@ -203,17 +248,29 @@ impl Input {
                     false,
                     events,
                     main_contract_address,
+                    target,
                 );
 
-                Some(Input::Deploy(Deploy::new(
-                    main_contract_instance.path.to_owned(),
-                    main_contract_instance.code_hash,
-                    calldata.clone().into(),
-                    *caller,
-                    value,
-                    Storage::default(),
-                    expected,
-                )))
+                match main_contract_instance {
+                    Instance::EraVM(instance) => Some(Input::DeployEraVM(DeployEraVM::new(
+                        instance.path.to_owned(),
+                        instance.code_hash,
+                        calldata.clone().into(),
+                        *caller,
+                        value,
+                        Storage::default(),
+                        expected,
+                    ))),
+                    Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
+                        instance.path.to_owned(),
+                        instance.init_code.to_owned(),
+                        calldata.clone().into(),
+                        *caller,
+                        value,
+                        Storage::default(),
+                        expected,
+                    ))),
+                }
             }
             solidity_adapter::FunctionCall::Library { name, source } => {
                 let library = format!(
@@ -221,30 +278,43 @@ impl Input {
                     source.clone().unwrap_or_else(|| last_source.to_string()),
                     name
                 );
-                let instance = libraries_instances.get(library.as_str()).ok_or_else(|| {
-                    anyhow::anyhow!("Internal error: Library {} not found", library)
-                })?;
-                let hash = instance.code_hash;
-                let address = instance
-                    .address
-                    .ok_or_else(|| anyhow::anyhow!("Internal error: library address is none"))?;
+                let instance = instances
+                    .get(library.as_str())
+                    .ok_or_else(|| anyhow::anyhow!("Library `{}` not found", library))?;
 
                 let expected = Output::from_ethereum_expected(
-                    &[web3::types::U256::from_big_endian(address.as_bytes())],
+                    &[web3::types::U256::from_big_endian(
+                        instance
+                            .address()
+                            .expect("Must be set by this point")
+                            .as_bytes(),
+                    )],
                     false,
                     &[],
                     main_contract_address,
+                    target,
                 );
 
-                Some(Input::Deploy(Deploy::new(
-                    instance.path.to_owned(),
-                    hash,
-                    Calldata::default(),
-                    *caller,
-                    None,
-                    Storage::default(),
-                    expected,
-                )))
+                match instance {
+                    Instance::EraVM(instance) => Some(Input::DeployEraVM(DeployEraVM::new(
+                        instance.path.to_owned(),
+                        instance.code_hash,
+                        Calldata::default(),
+                        *caller,
+                        None,
+                        Storage::default(),
+                        expected,
+                    ))),
+                    Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
+                        instance.path.to_owned(),
+                        instance.init_code.to_owned(),
+                        Calldata::default(),
+                        *caller,
+                        None,
+                        Storage::default(),
+                        expected,
+                    ))),
+                }
             }
             solidity_adapter::FunctionCall::Balance {
                 input, expected, ..
@@ -265,11 +335,9 @@ impl Input {
                 ..
             } => {
                 let value = match value {
-                    Some(value) => Some(
-                        (*value)
-                            .try_into()
-                            .map_err(|error| anyhow::anyhow!("Value is too big: {}", error))?,
-                    ),
+                    Some(value) => Some((*value).try_into().map_err(|error| {
+                        anyhow::anyhow!("Invalid value literal `{:X}`: {}", value, error)
+                    })?),
                     None => None,
                 };
 
@@ -278,6 +346,7 @@ impl Input {
                     *failure,
                     events,
                     main_contract_address,
+                    target,
                 );
 
                 Some(Input::Runtime(Runtime::new(
@@ -299,7 +368,6 @@ impl Input {
     ///
     /// Runs the input on EraVM.
     ///
-    #[allow(clippy::too_many_arguments)]
     pub fn run_eravm<D, const M: bool>(
         self,
         summary: Arc<Mutex<Summary>>,
@@ -313,11 +381,19 @@ impl Input {
         D: EraVMDeployer,
     {
         match self {
+            Self::DeployEraVM(deploy) => {
+                deploy.run_eravm::<_, M>(summary, vm, mode, deployer, test_group, name_prefix)
+            }
+            Self::DeployEVM(deploy) => deploy.run_evm_interpreter::<_, M>(
+                summary,
+                vm,
+                mode,
+                deployer,
+                test_group,
+                name_prefix,
+            ),
             Self::Runtime(runtime) => {
                 runtime.run_eravm::<M>(summary, vm, mode, test_group, name_prefix, index)
-            }
-            Self::Deploy(deploy) => {
-                deploy.run_eravm::<_, M>(summary, vm, mode, deployer, test_group, name_prefix)
             }
             Self::StorageEmpty(storage_empty) => {
                 storage_empty.run_eravm(summary, vm, mode, test_group, name_prefix, index)
@@ -329,9 +405,9 @@ impl Input {
     }
 
     ///
-    /// Runs the input on EVM.
+    /// Runs the input on EVM emulator.
     ///
-    pub fn run_evm(
+    pub fn run_evm_emulator(
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
@@ -341,15 +417,102 @@ impl Input {
         index: usize,
     ) {
         match self {
-            Self::Runtime(runtime) => {
-                runtime.run_evm(summary, vm, mode, test_group, name_prefix, index)
+            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on EVM"),
+            Self::DeployEVM(deploy) => {
+                deploy.run_evm_emulator(summary, vm, mode, test_group, name_prefix)
             }
-            Self::Deploy(deploy) => deploy.run_evm(summary, vm, mode, test_group, name_prefix),
+            Self::Runtime(runtime) => {
+                runtime.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
+            }
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
             }
             Self::Balance(balance_check) => {
-                balance_check.run_evm(summary, vm, mode, test_group, name_prefix, index)
+                balance_check.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
+            }
+        };
+    }
+
+    ///
+    /// Runs the input on REVM.
+    ///
+    pub fn run_revm<'a>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        mut vm: Revm<'a>,
+        mode: Mode,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+        evm_builds: &HashMap<String, Build, RandomState>,
+        evm_version: Option<EVMVersion>,
+    ) -> Revm<'a> {
+        match self {
+            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
+            Self::DeployEVM(deploy) => deploy.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                evm_builds,
+                evm_version,
+            ),
+            Self::Runtime(runtime) => runtime.run_revm(
+                summary,
+                vm,
+                mode,
+                test_group,
+                name_prefix,
+                index,
+                evm_version,
+            ),
+            Self::StorageEmpty(storage_empty) => {
+                storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
+            }
+            Self::Balance(balance_check) => {
+                balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                vm
+            }
+        }
+    }
+
+    ///
+    /// Runs the input on EVM interpreter.
+    ///
+    pub fn run_evm_interpreter<D, const M: bool>(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut EraVM,
+        mode: Mode,
+        deployer: &mut D,
+        test_group: Option<String>,
+        name_prefix: String,
+        index: usize,
+    ) where
+        D: EraVMDeployer,
+    {
+        match self {
+            Self::DeployEraVM { .. } => {
+                panic!("EraVM deploy transaction cannot be run on EVM interpreter")
+            }
+            Self::DeployEVM(deploy) => deploy.run_evm_interpreter::<_, M>(
+                summary,
+                vm,
+                mode,
+                deployer,
+                test_group,
+                name_prefix,
+            ),
+            Self::Runtime(runtime) => {
+                runtime.run_evm_interpreter::<M>(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::StorageEmpty(storage_empty) => {
+                storage_empty.run_evm_interpreter(summary, vm, mode, test_group, name_prefix, index)
+            }
+            Self::Balance(balance_check) => {
+                balance_check.run_evm_interpreter(summary, vm, mode, test_group, name_prefix, index)
             }
         };
     }

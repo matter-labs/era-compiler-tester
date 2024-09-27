@@ -1,0 +1,30 @@
+name: Regenerate ccache
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *' # every month
+
+concurrency:
+  group: ${{ github.repository_id }}-${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+
+  ccache-regen:
+    runs-on: matterlabs-ci-runner-high-performance
+    container:
+      image: ghcr.io/matter-labs/zksync-llvm-runner:latest
+      options: -m 110g
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build LLVM
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
+        with:
+          enable-tests: true
+          enable-assertions: true
+          ccache-key-type: static
+          save-ccache: true
