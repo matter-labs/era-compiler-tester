@@ -274,7 +274,7 @@ impl MatterLabsTest {
         for (instance, evm_contract) in self.metadata.evm_contracts.iter() {
             let instruction_name = instance.split('_').next().expect("Always exists");
             let runtime_code = evm_contract.runtime_code(instruction_name);
-            let mut bytecode = evm_contract.init_code(runtime_code.len());
+            let mut bytecode = evm_contract.deploy_code(runtime_code.len());
             bytecode.push_str(runtime_code.as_str());
 
             let bytecode = hex::decode(bytecode.as_str()).map_err(|error| {

@@ -44,10 +44,10 @@ impl Instance {
         address: Option<web3::types::Address>,
         is_main: bool,
         is_library: bool,
-        init_code: Vec<u8>,
+        deploy_code: Vec<u8>,
     ) -> Self {
         Self::EVM(EVMInstance::new(
-            path, address, is_main, is_library, init_code,
+            path, address, is_main, is_library, deploy_code,
         ))
     }
 

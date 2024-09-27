@@ -18,9 +18,9 @@ impl EVMContract {
     pub const RUNTIME_CODE_REPEATS: usize = 32;
 
     ///
-    /// Returns the init code.
+    /// Returns the deploy code.
     ///
-    pub fn init_code(&self, size: usize) -> String {
+    pub fn deploy_code(&self, size: usize) -> String {
         if size > 0xffff {
             panic!("The bytecode is too large");
         }

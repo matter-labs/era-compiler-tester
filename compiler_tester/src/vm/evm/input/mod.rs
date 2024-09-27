@@ -56,6 +56,9 @@ impl Input {
                 anyhow::anyhow!("Library `{}` not found in the build artifacts", name)
             })?;
 
+            let mut deploy_code = build.deploy_build.to_owned();
+            deploy_code.extend_from_slice(build.runtime_build.as_slice());
+
             instances.insert(
                 name.clone(),
                 Instance::evm(
@@ -63,7 +66,7 @@ impl Input {
                     Some(address),
                     false,
                     true,
-                    build.deploy_build.to_owned(),
+                    deploy_code,
                 ),
             );
         }
@@ -75,6 +78,10 @@ impl Input {
                     .ok_or_else(|| {
                         anyhow::anyhow!("Main contract not found in the compiler build artifacts")
                     })?;
+
+            let mut deploy_code = main_contract_build.deploy_build.to_owned();
+            deploy_code.extend_from_slice(main_contract_build.runtime_build.as_slice());
+
             instances.insert(
                 "Test".to_owned(),
                 Instance::evm(
@@ -82,7 +89,7 @@ impl Input {
                     main_address,
                     true,
                     false,
-                    main_contract_build.deploy_build.to_owned(),
+                    deploy_code,
                 ),
             );
         } else {
@@ -91,6 +98,10 @@ impl Input {
                     anyhow::anyhow!("{} not found in the compiler build artifacts", path)
                 })?;
                 let is_main = path.as_str() == self.last_contract.as_str();
+
+                let mut deploy_code = build.deploy_build.to_owned();
+                deploy_code.extend_from_slice(build.runtime_build.as_slice());
+
                 instances.insert(
                     instance.to_owned(),
                     Instance::evm(
@@ -98,7 +109,7 @@ impl Input {
                         None,
                         is_main,
                         false,
-                        build.deploy_build.to_owned(),
+                        deploy_code,
                     ),
                 );
             }
