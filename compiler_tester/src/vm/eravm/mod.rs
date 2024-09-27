@@ -59,13 +59,11 @@ impl EraVM {
     /// The extra amount of gas consumed by every call to the EVM interpreter.
     pub const EVM_INTERPRETER_GAS_OVERHEAD: u64 = 2500;
 
-    /// The `evmStackFrames` variable storage slot in the `EvmGasManager` contract.
-    pub const EVM_GAS_MANAGER_STACK_FRAME_SLOT: u64 = 2;
+    /// The `passGas` variable transient storage slot in the `EvmGasManager` contract.
+    pub const EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT: u64 = 4;
 
-    /// The first `evmStackFrames` array element storage slot in the `EvmGasManager` contract.
-    /// (keccak256(uit256(2)))
-    pub const EVM_GAS_MANAGER_FIRST_STACK_FRAME: &'static str =
-        "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
+    /// The `auxData` variable transient storage slot in the `EvmGasManager` contract.
+    pub const EVM_GAS_MANAGER_AUX_DATA_TRANSIENT_SLOT: u64 = 5;
 
     /// The EVM call gas limit.
     pub const EVM_CALL_GAS_LIMIT: u64 = u32::MAX as u64;
@@ -425,7 +423,7 @@ impl EraVM {
         self.storage_transient.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT).add(2),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT),
             },
             web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
         );
@@ -434,9 +432,9 @@ impl EraVM {
         self.storage_transient.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT).add(3),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_AUX_DATA_TRANSIENT_SLOT),
             },
-            web3::types::H256::from_low_u64_be(2),
+            web3::types::H256::from_low_u64_be(2), // "activeFrame flag"
         );
 
         let mut result = self.execute::<M>(
