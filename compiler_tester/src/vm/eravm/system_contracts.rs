@@ -258,9 +258,11 @@ impl SystemContracts {
             "-eravm-jump-table-density-threshold",
             "10",
             "-tail-dup-size",
-            "4",
+            "6",
             "-eravm-enable-split-loop-phi-live-ranges",
             "-tail-merge-only-bbs-without-succ",
+            "-join-globalcopies",
+            "-disable-early-taildup",
         ]
         .into_iter()
         .map(|option| option.to_owned())
