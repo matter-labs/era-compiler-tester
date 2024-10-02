@@ -259,6 +259,7 @@ impl SystemContracts {
             "10",
             "-tail-dup-size",
             "4",
+            "-eravm-enable-split-loop-phi-live-ranges",
             "-tail-merge-only-bbs-without-succ",
         ]
         .into_iter()
