@@ -949,7 +949,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#3207c451486e49df6e241167d8c6577222ecbd8e"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#ce91855778bd5e1821f9b46751f92bafafd88435"
 dependencies = [
  "anyhow",
  "base58",
@@ -978,7 +978,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#736a2011b8de90887b429ded48556dd49333d365"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#000c36938519192e5b52fceffb729bbf3f4287c7"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -987,13 +987,13 @@ dependencies = [
  "num",
  "semver 1.0.23",
  "serde",
- "zkevm_opcode_defs 0.150.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
+ "zkevm_opcode_defs 0.150.5",
 ]
 
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2de7a1a6d8f6c766a785d022fecb12b67fa2142e"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1821-support-solc-v0828#65151d1cfe5b194fdfc547b1fcea0149e90abb32"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1017,7 +1017,7 @@ dependencies = [
  "structopt",
  "thiserror",
  "which",
- "zkevm_opcode_defs 0.150.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
+ "zkevm_opcode_defs 0.150.5",
 ]
 
 [[package]]
@@ -1046,7 +1046,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2de7a1a6d8f6c766a785d022fecb12b67fa2142e"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1821-support-solc-v0828#65151d1cfe5b194fdfc547b1fcea0149e90abb32"
 dependencies = [
  "anyhow",
  "regex",
@@ -4076,6 +4076,22 @@ dependencies = [
 name = "zkevm_opcode_defs"
 version = "0.150.0"
 source = "git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0#cf5f9c18c580f845b32fc2a4d565a77380fd15bc"
+dependencies = [
+ "bitflags 2.6.0",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2 0.10.8",
+ "sha3 0.10.8",
+]
+
+[[package]]
+name = "zkevm_opcode_defs"
+version = "0.150.5"
+source = "git+https://github.com/matter-labs/zksync-protocol#9bf5cf839f76a19f7c21981d8c56a7f8bbe03d7e"
 dependencies = [
  "bitflags 2.6.0",
  "blake2",
