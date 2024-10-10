@@ -122,7 +122,7 @@ impl EraVMDeployer for SystemContractDeployer {
         &mut self,
         test_name: String,
         caller: web3::types::Address,
-        init_code: Vec<u8>,
+        deploy_code: Vec<u8>,
         constructor_calldata: Vec<u8>,
         value: Option<u128>,
         vm: &mut EraVM,
@@ -192,7 +192,7 @@ impl EraVMDeployer for SystemContractDeployer {
         let mut calldata = Vec::with_capacity(
             era_compiler_common::BYTE_LENGTH_X32
                 + era_compiler_common::BYTE_LENGTH_FIELD * 2
-                + init_code.len()
+                + deploy_code.len()
                 + constructor_calldata.len(),
         );
         calldata.extend(crate::utils::selector(Self::EVM_CREATE_METHOD_SIGNATURE));
@@ -202,11 +202,11 @@ impl EraVMDeployer for SystemContractDeployer {
         );
         calldata.extend(
             web3::types::H256::from_low_u64_be(
-                (init_code.len() + constructor_calldata.len()) as u64,
+                (deploy_code.len() + constructor_calldata.len()) as u64,
             )
             .as_bytes(),
         );
-        calldata.extend(init_code);
+        calldata.extend(deploy_code);
         calldata.extend(constructor_calldata);
 
         vm.execute::<M>(

@@ -13,8 +13,6 @@ pub mod storage_empty;
 pub mod value;
 
 use std::collections::BTreeMap;
-use std::collections::HashMap;
-use std::hash::RandomState;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -27,7 +25,6 @@ use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 use crate::vm::revm::Revm;
 
@@ -124,7 +121,7 @@ impl Input {
                 )),
                 Instance::EVM(instance) => Input::DeployEVM(DeployEVM::new(
                     instance.path.to_owned(),
-                    instance.init_code.to_owned(),
+                    instance.deploy_code.to_owned(),
                     calldata,
                     caller,
                     value,
@@ -263,7 +260,7 @@ impl Input {
                     ))),
                     Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
                         instance.path.to_owned(),
-                        instance.init_code.to_owned(),
+                        instance.deploy_code.to_owned(),
                         calldata.clone().into(),
                         *caller,
                         value,
@@ -307,7 +304,7 @@ impl Input {
                     ))),
                     Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
                         instance.path.to_owned(),
-                        instance.init_code.to_owned(),
+                        instance.deploy_code.to_owned(),
                         Calldata::default(),
                         *caller,
                         None,
@@ -444,20 +441,13 @@ impl Input {
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
-        evm_builds: &HashMap<String, Build, RandomState>,
         evm_version: Option<EVMVersion>,
     ) -> Revm<'a> {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.run_revm(
-                summary,
-                vm,
-                mode,
-                test_group,
-                name_prefix,
-                evm_builds,
-                evm_version,
-            ),
+            Self::DeployEVM(deploy) => {
+                deploy.run_revm(summary, vm, mode, test_group, name_prefix, evm_version)
+            }
             Self::Runtime(runtime) => runtime.run_revm(
                 summary,
                 vm,

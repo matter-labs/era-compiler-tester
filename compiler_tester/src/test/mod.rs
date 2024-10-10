@@ -117,7 +117,6 @@ impl Test {
                 &self.mode,
                 self.name.clone(),
                 self.group.clone(),
-                self.evm_builds.clone(),
                 self.evm_version,
             );
         }

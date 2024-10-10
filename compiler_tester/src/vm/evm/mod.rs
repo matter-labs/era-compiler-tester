@@ -89,7 +89,7 @@ impl<'evm> EVM<'evm> {
         constructor_args: Vec<u8>,
     ) -> anyhow::Result<ExecutionResult> {
         let build = self.builds.get(path).expect("Always valid");
-        let mut deploy_code = build.deploy_build.bytecode.to_owned();
+        let mut deploy_code = build.deploy_build.to_owned();
         deploy_code.extend(constructor_args);
 
         self.runtime

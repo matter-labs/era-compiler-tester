@@ -37,7 +37,7 @@ pub trait EraVMDeployer {
         &mut self,
         test_name: String,
         caller: web3::types::Address,
-        init_code: Vec<u8>,
+        deploy_code: Vec<u8>,
         constructor_calldata: Vec<u8>,
         value: Option<u128>,
         vm: &mut EraVM,

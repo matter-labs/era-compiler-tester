@@ -31,8 +31,8 @@ pub struct SystemContracts {
     pub deployed_contracts: Vec<(web3::types::Address, era_compiler_llvm_context::EraVMBuild)>,
     /// The default account abstraction contract build.
     pub default_aa: era_compiler_llvm_context::EraVMBuild,
-    /// The EVM interpreter contract build.
-    pub evm_interpreter: era_compiler_llvm_context::EraVMBuild,
+    /// The EVM emulator contract build.
+    pub evm_emulator: era_compiler_llvm_context::EraVMBuild,
 }
 
 impl SystemContracts {
@@ -44,9 +44,9 @@ impl SystemContracts {
     const PATH_DEFAULT_AA: &'static str =
         "era-contracts/system-contracts/contracts/DefaultAccount.sol:DefaultAccount";
 
-    /// The EVM interpreter system contract implementation path.
-    const PATH_EVM_INTERPRETER: &'static str =
-        "era-contracts/system-contracts/contracts/EvmInterpreter.yul";
+    /// The EVM emulator system contract implementation path.
+    const PATH_EVM_EMULATOR: &'static str =
+        "era-contracts/system-contracts/contracts/EvmEmulator.yul";
 
     /// The `keccak256` system contract implementation path.
     const PATH_KECCAK256: &'static str =
@@ -251,7 +251,7 @@ impl SystemContracts {
         for (_, path) in yul_system_contracts.into_iter() {
             yul_file_paths.push(path.to_owned());
         }
-        yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
+        yul_file_paths.push(Self::PATH_EVM_EMULATOR.to_owned());
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
         let yul_llvm_options = vec![
@@ -311,8 +311,8 @@ impl SystemContracts {
         let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
             anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
         })?;
-        let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
-            anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
+        let evm_emulator = builds.remove(Self::PATH_EVM_EMULATOR).ok_or_else(|| {
+            anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
         })?;
 
         let mut system_contracts =
@@ -338,7 +338,7 @@ impl SystemContracts {
         Ok(Self {
             deployed_contracts,
             default_aa,
-            evm_interpreter,
+            evm_emulator,
         })
     }
 

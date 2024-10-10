@@ -187,13 +187,8 @@ impl Compiler for YulCompiler {
                     })?
                     .object
                     .as_str();
-                let build = EVMBuild::new(
-                    era_compiler_llvm_context::EVMBuild::new(
-                        hex::decode(bytecode_string).expect("Always valid"),
-                        None,
-                    ),
-                    era_compiler_llvm_context::EVMBuild::default(),
-                );
+                let build =
+                    EVMBuild::new(hex::decode(bytecode_string).expect("Always valid"), vec![]);
                 builds.insert(path, build);
             }
         }

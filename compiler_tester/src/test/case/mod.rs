@@ -6,8 +6,6 @@ pub mod input;
 
 use solidity_adapter::test::params::evm_version;
 use std::collections::BTreeMap;
-use std::collections::HashMap;
-use std::hash::RandomState;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -17,7 +15,6 @@ use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::input::build::Build;
 use crate::vm::evm::EVM;
 use crate::vm::revm::Revm;
 
@@ -167,7 +164,6 @@ impl Case {
         mode: &Mode,
         test_name: String,
         test_group: Option<String>,
-        evm_builds: HashMap<String, Build, RandomState>,
         evm_version: Option<evm_version::EVMVersion>,
     ) {
         let name = if let Some(case_name) = self.name {
@@ -185,7 +181,6 @@ impl Case {
                 test_group.clone(),
                 name.clone(),
                 index,
-                &evm_builds,
                 evm_version,
             )
         }
