@@ -61,13 +61,7 @@ impl Input {
 
             instances.insert(
                 name.clone(),
-                Instance::evm(
-                    name,
-                    Some(address),
-                    false,
-                    true,
-                    deploy_code,
-                ),
+                Instance::evm(name, Some(address), false, true, deploy_code),
             );
         }
 
@@ -104,13 +98,7 @@ impl Input {
 
                 instances.insert(
                     instance.to_owned(),
-                    Instance::evm(
-                        path.to_owned(),
-                        None,
-                        is_main,
-                        false,
-                        deploy_code,
-                    ),
+                    Instance::evm(path.to_owned(), None, is_main, false, deploy_code),
                 );
             }
         }

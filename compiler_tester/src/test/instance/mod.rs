@@ -47,7 +47,11 @@ impl Instance {
         deploy_code: Vec<u8>,
     ) -> Self {
         Self::EVM(EVMInstance::new(
-            path, address, is_main, is_library, deploy_code,
+            path,
+            address,
+            is_main,
+            is_library,
+            deploy_code,
         ))
     }
 

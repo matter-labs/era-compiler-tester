@@ -136,7 +136,7 @@ impl EraVM {
             ),
             evm_interpreter_code_hash: web3::types::U256::from_big_endian(
                 system_contracts
-                    .evm_interpreter
+                    .evm_emulator
                     .bytecode_hash
                     .expect("Always exists")
                     .as_slice(),
@@ -159,10 +159,10 @@ impl EraVM {
             ),
         );
         vm.add_known_contract(
-            system_contracts.evm_interpreter.bytecode,
+            system_contracts.evm_emulator.bytecode,
             web3::types::U256::from_big_endian(
                 system_contracts
-                    .evm_interpreter
+                    .evm_emulator
                     .bytecode_hash
                     .expect("Always exists")
                     .as_slice(),

@@ -195,28 +195,19 @@ impl DeployEVM {
                 logs,
                 output,
             } => (transform_success_output(output, logs), gas_used, None),
-            ExecutionResult::Revert {
-                gas_used,
-                output,
-            } => {
+            ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 (Output::new(return_data_value, true, vec![]), gas_used, None)
             }
-            ExecutionResult::Halt {
-                reason,
-                gas_used,
-            } => (Output::new(vec![], true, vec![]), gas_used, Some(reason)),
+            ExecutionResult::Halt { reason, gas_used } => {
+                (Output::new(vec![], true, vec![]), gas_used, Some(reason))
+            }
         };
 
         if output == self.expected {
             Summary::passed_deploy(summary, mode, name, test_group, size, 0, 0, gas);
         } else if let Some(error) = error {
-            Summary::invalid(
-                summary,
-                Some(mode),
-                name,
-                format!("{error:?}"),
-            );
+            Summary::invalid(summary, Some(mode), name, format!("{error:?}"));
         } else {
             Summary::failed(
                 summary,

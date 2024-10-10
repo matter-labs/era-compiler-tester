@@ -445,14 +445,9 @@ impl Input {
     ) -> Revm<'a> {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.run_revm(
-                summary,
-                vm,
-                mode,
-                test_group,
-                name_prefix,
-                evm_version,
-            ),
+            Self::DeployEVM(deploy) => {
+                deploy.run_revm(summary, vm, mode, test_group, name_prefix, evm_version)
+            }
             Self::Runtime(runtime) => runtime.run_revm(
                 summary,
                 vm,
