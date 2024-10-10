@@ -48,9 +48,9 @@ zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
-era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-cpr-1664-support-linking-deploy-and-runtime-code" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1664-support-linking-deploy-and-runtime-code" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-cpr-1664-support-linking-deploy-and-runtime-code" }
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
 
 # era-compiler-common = { path = "../../era-compiler-common" }
 # era-compiler-llvm-context = { path = "../../era-compiler-llvm-context" }
@@ -72,6 +72,6 @@ features = ["blocking"]
 
 [dependencies.inkwell]
 git = "https://github.com/matter-labs-forks/inkwell"
-branch = "az-cpr-1664-support-linking-deploy-and-runtime-code"
+branch = "llvm-17"
 default-features = false
 features = ["llvm17-0", "no-libffi-linking", "target-eravm", "target-evm"]
