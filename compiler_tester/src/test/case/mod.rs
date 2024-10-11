@@ -4,7 +4,6 @@
 
 pub mod input;
 
-use solidity_adapter::test::params::evm_version;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -164,7 +163,7 @@ impl Case {
         mode: &Mode,
         test_name: String,
         test_group: Option<String>,
-        evm_version: Option<evm_version::EVMVersion>,
+        evm_version: Option<solidity_adapter::EVMVersion>,
     ) {
         let name = if let Some(case_name) = self.name {
             format!("{test_name}::{case_name}")

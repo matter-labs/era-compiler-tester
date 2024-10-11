@@ -17,8 +17,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use solidity_adapter::EVMVersion;
-
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
@@ -433,16 +431,16 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<'a>(
+    pub fn run_revm(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: Revm<'a>,
+        mut vm: Revm,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         index: usize,
-        evm_version: Option<EVMVersion>,
-    ) -> Revm<'a> {
+        evm_version: Option<solidity_adapter::EVMVersion>,
+    ) -> Revm {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
             Self::DeployEVM(deploy) => {
