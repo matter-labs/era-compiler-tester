@@ -81,20 +81,8 @@ impl Runtime {
         name_prefix: String,
         index: usize,
     ) {
-        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+        let name = format!("{name_prefix}[{}:{index}]", self.name);
         vm.populate_storage(self.storage.inner);
-
-        let rich_addresses = SystemContext::get_rich_addresses();
-        if rich_addresses.contains(&self.caller) {
-            vm.mint_ether(
-                self.caller,
-                web3::types::U256::from_str_radix(
-                    "10000000000000000000000000",
-                    era_compiler_common::BASE_HEXADECIMAL,
-                )
-                .expect("Always valid"),
-            );
-        }
 
         let vm_function = match test_group.as_deref() {
             Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) => {

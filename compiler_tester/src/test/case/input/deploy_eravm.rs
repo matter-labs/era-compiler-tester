@@ -74,7 +74,7 @@ impl DeployEraVM {
     ) where
         D: EraVMDeployer,
     {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.path);
+        let name = format!("{name_prefix}[#deployer:{}]", self.path);
 
         vm.populate_storage(self.storage.inner);
         let result = match deployer.deploy_eravm::<M>(

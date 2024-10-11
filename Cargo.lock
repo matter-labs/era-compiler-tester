@@ -993,7 +993,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1821-support-solc-v0828#65151d1cfe5b194fdfc547b1fcea0149e90abb32"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ffcbcec20c7d358a87396422db25c3cbca6362a6"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1046,7 +1046,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1821-support-solc-v0828#65151d1cfe5b194fdfc547b1fcea0149e90abb32"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ffcbcec20c7d358a87396422db25c3cbca6362a6"
 dependencies = [
  "anyhow",
  "regex",
