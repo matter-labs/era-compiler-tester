@@ -121,15 +121,15 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm<'a>(
+    pub fn run_revm(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: Revm<'a>,
+        vm: Revm,
         mode: Mode,
         test_group: Option<String>,
         name_prefix: String,
         evm_version: Option<EVMVersion>,
-    ) -> Revm<'a> {
+    ) -> Revm {
         let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
 
         let size = self.deploy_code.len();

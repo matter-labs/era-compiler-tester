@@ -81,8 +81,9 @@ impl Runtime {
         name_prefix: String,
         index: usize,
     ) {
-        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+        let name = format!("{name_prefix}[{}:{index}]", self.name);
         vm.populate_storage(self.storage.inner);
+
         let vm_function = match test_group.as_deref() {
             Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) => {
                 EraVM::execute_evm_interpreter::<M>
