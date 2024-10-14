@@ -978,7 +978,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#000c36938519192e5b52fceffb729bbf3f4287c7"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#7de0c55b51bf0bab90624413665f97697eeea55b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -993,7 +993,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ffcbcec20c7d358a87396422db25c3cbca6362a6"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#5f4484c03144800fa72ad7685de20643a6a7b88e"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1023,7 +1023,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#ff8f1dd7c1102c0c003cdb19b2a04e726c666abd"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#cb25078222a377cd7e8414a42138d9a1f734c0b2"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1040,13 +1040,13 @@ dependencies = [
  "serde_json",
  "structopt",
  "which",
- "zkevm_opcode_defs 0.150.0 (git+https://github.com/matter-labs/era-zkevm_opcode_defs?branch=v1.5.0)",
+ "zkevm_opcode_defs 0.150.5",
 ]
 
 [[package]]
 name = "era-yul"
 version = "1.5.5"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#ffcbcec20c7d358a87396422db25c3cbca6362a6"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#5f4484c03144800fa72ad7685de20643a6a7b88e"
 dependencies = [
  "anyhow",
  "regex",
