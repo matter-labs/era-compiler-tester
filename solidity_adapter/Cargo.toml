@@ -17,19 +17,19 @@ path = "src/tests_updater/main.rs"
 doctest = false
 
 [dependencies]
-structopt = { version = "0.3", default-features = false }
-anyhow = "1.0"
-colored = "2.0"
+structopt = { version = "=0.3.26", default-features = false }
+anyhow = "=1.0.89"
+colored = "=2.1.0"
 
-serde = { version = "1.0", features = [ "derive" ] }
-serde_yaml = "0.9"
-semver = { version = "1.0", features = [ "serde" ] }
-regex = "1.10"
-md5 = "0.7"
+serde = { version = "=1.0.210", features = [ "derive" ] }
+serde_yaml = "=0.9.34"
+semver = { version = "=1.0.23", features = [ "serde" ] }
+regex = "=1.11.0"
+md5 = "=0.7.0"
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 
 [dependencies.web3]
-version = "0.19"
+version = "=0.19.0"
 default-features = false
 features = ["http-rustls-tls", "test", "signing"]
