@@ -264,10 +264,10 @@ impl Runtime {
                 return vm;
             }
         };
-        let output = match result {
+        let (output, gas, error) = match result {
             ExecutionResult::Success {
                 reason: _,
-                gas_used: _,
+                gas_used,
                 gas_refunded: _,
                 logs,
                 output,
@@ -277,23 +277,21 @@ impl Runtime {
                 } else {
                     vm
                 };
-                transform_success_output(output, logs)
+                (transform_success_output(output, logs), gas_used, None)
             }
-            ExecutionResult::Revert {
-                gas_used: _,
-                output,
-            } => {
+            ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
-                Output::new(return_data_value, true, vec![])
+                (Output::new(return_data_value, true, vec![]), gas_used, None)
             }
-            ExecutionResult::Halt {
-                reason: _,
-                gas_used: _,
-            } => Output::new(vec![], true, vec![]),
+            ExecutionResult::Halt { reason, gas_used } => {
+                (Output::new(vec![], true, vec![]), gas_used, Some(reason))
+            }
         };
 
         if output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, 0);
+            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, gas);
+        } else if let Some(error) = error {
+            Summary::invalid(summary, Some(mode), name, format!("{error:?}"));
         } else {
             Summary::failed(
                 summary,

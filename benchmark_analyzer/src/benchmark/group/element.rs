@@ -14,9 +14,9 @@ pub struct Element {
     pub size: Option<usize>,
     /// The number of cycles.
     pub cycles: usize,
-    /// The number of ergs.
+    /// The amount of ergs.
     pub ergs: u64,
-    /// The number of EVM gas.
+    /// The amount of EVM gas.
     pub gas: u64,
 }
 
