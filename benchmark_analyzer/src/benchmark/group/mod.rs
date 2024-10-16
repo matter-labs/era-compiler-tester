@@ -55,6 +55,14 @@ impl Group {
         let mut ergs_total_reference: u64 = 0;
         let mut ergs_total_candidate: u64 = 0;
 
+        let mut gas_factors = Vec::with_capacity(elements_number);
+        let mut gas_min = 1.0;
+        let mut gas_max = 1.0;
+        let mut gas_negatives = Vec::with_capacity(elements_number);
+        let mut gas_positives = Vec::with_capacity(elements_number);
+        let mut gas_total_reference: u64 = 0;
+        let mut gas_total_candidate: u64 = 0;
+
         for (path, reference) in reference.elements.iter() {
             if path.contains("tests/solidity/complex/interpreter/test.json")
                 && path.contains("#deployer")
@@ -100,6 +108,23 @@ impl Group {
             }
             ergs_factors.push(ergs_factor);
 
+            gas_total_reference += reference.gas;
+            gas_total_candidate += candidate.gas;
+            let gas_factor = (candidate.gas as f64) / (reference.gas as f64);
+            if gas_factor > 1.0 {
+                gas_negatives.push((gas_factor, path.as_str()));
+            }
+            if gas_factor < 1.0 {
+                gas_positives.push((gas_factor, path.as_str()));
+            }
+            if gas_factor < gas_min {
+                gas_min = gas_factor;
+            }
+            if gas_factor > gas_max {
+                gas_max = gas_factor;
+            }
+            gas_factors.push(gas_factor);
+
             let reference_size = match reference.size {
                 Some(size) => size,
                 None => continue,
@@ -132,6 +157,8 @@ impl Group {
 
         let ergs_total = (ergs_total_candidate as f64) / (ergs_total_reference as f64);
 
+        let gas_total = (gas_total_candidate as f64) / (gas_total_reference as f64);
+
         Results::new(
             size_min,
             size_max,
@@ -148,6 +175,11 @@ impl Group {
             ergs_total,
             ergs_negatives,
             ergs_positives,
+            gas_min,
+            gas_max,
+            gas_total,
+            gas_negatives,
+            gas_positives,
         )
     }
 
