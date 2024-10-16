@@ -217,7 +217,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
 
     if let Some(path) = arguments.benchmark {
-        let benchmark = summary.benchmark()?;
+        let benchmark = summary.benchmark(toolchain)?;
         benchmark.write_to_file(path)?;
     }
 

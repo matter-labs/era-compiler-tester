@@ -11,6 +11,7 @@ use colored::Colorize;
 
 use crate::compilers::mode::Mode;
 use crate::test::case::input::output::Output;
+use crate::toolchain::Toolchain;
 
 use self::element::outcome::passed_variant::PassedVariant;
 use self::element::outcome::Outcome;
@@ -75,24 +76,37 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+    pub fn benchmark(&self, toolchain: Toolchain) -> anyhow::Result<benchmark_analyzer::Benchmark> {
         let mut benchmark = benchmark_analyzer::Benchmark::default();
-        benchmark.groups.insert(
-            format!(
-                "{} {}",
-                benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                era_compiler_llvm_context::OptimizerSettings::cycles(),
-            ),
-            benchmark_analyzer::BenchmarkGroup::default(),
-        );
-        benchmark.groups.insert(
-            format!(
-                "{} {}",
-                benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                era_compiler_llvm_context::OptimizerSettings::size(),
-            ),
-            benchmark_analyzer::BenchmarkGroup::default(),
-        );
+        match toolchain {
+            Toolchain::IrLLVM => {
+                benchmark.groups.insert(
+                    format!(
+                        "{} {}",
+                        benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
+                        era_compiler_llvm_context::OptimizerSettings::cycles(),
+                    ),
+                    benchmark_analyzer::BenchmarkGroup::default(),
+                );
+                benchmark.groups.insert(
+                    format!(
+                        "{} {}",
+                        benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
+                        era_compiler_llvm_context::OptimizerSettings::size(),
+                    ),
+                    benchmark_analyzer::BenchmarkGroup::default(),
+                );
+            }
+            Toolchain::Solc => {
+                benchmark.groups.insert(
+                    benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME.to_owned(),
+                    benchmark_analyzer::BenchmarkGroup::default(),
+                );
+            }
+            Toolchain::SolcLLVM => {
+                anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
+            }
+        }
 
         for element in self.elements.iter() {
             let (size, cycles, ergs, group, gas) = match &element.outcome {
@@ -125,21 +139,29 @@ impl Summary {
             let mode = element
                 .mode
                 .as_ref()
-                .and_then(|mode| mode.llvm_optimizer_settings().cloned())
-                .unwrap_or(era_compiler_llvm_context::OptimizerSettings::none());
+                .and_then(|mode| mode.llvm_optimizer_settings().cloned());
 
             let benchmark_element =
                 benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs, gas);
             if let Some(group) = group {
+                let group_key = match mode {
+                    Some(ref mode) => format!("{group} {mode}"),
+                    None => group,
+                };
                 benchmark
                     .groups
-                    .entry(format!("{} {}", group, mode))
+                    .entry(group_key)
                     .or_default()
                     .elements
                     .insert(key.clone(), benchmark_element.clone());
             }
 
-            let group_key = format!("{} {}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME, mode);
+            let group_key = match mode {
+                Some(ref mode) => {
+                    format!("{} {mode}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME)
+                }
+                None => benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME.to_owned(),
+            };
             if let Some(group) = benchmark.groups.get_mut(group_key.as_str()) {
                 group.elements.insert(key, benchmark_element);
             }
