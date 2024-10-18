@@ -114,7 +114,7 @@ impl SystemContracts {
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
-        "era-contracts/system-contracts/contracts/EvmGasManager.sol:EvmGasManager";
+        "era-contracts/system-contracts/contracts/EvmGasManager.yul";
 
     ///
     /// Loads or builds the system contracts.
@@ -187,6 +187,10 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(0x8012),
                 Self::PATH_CODE_ORACLE,
             ),
+            (
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                Self::PATH_EVM_GAS_MANAGER,
+            ),
         ];
 
         let solidity_system_contracts = vec![
@@ -240,10 +244,6 @@ impl SystemContracts {
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
                 Self::PATH_BASE_TOKEN,
-            ),
-            (
-                web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                Self::PATH_EVM_GAS_MANAGER,
             ),
         ];
 
