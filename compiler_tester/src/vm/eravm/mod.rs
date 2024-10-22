@@ -21,6 +21,7 @@ use std::time::Instant;
 
 use colored::Colorize;
 use solidity_adapter::EVMVersion;
+use zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER;
 
 use crate::vm::execution_result::ExecutionResult;
 
@@ -58,6 +59,9 @@ impl EraVM {
 
     /// The extra amount of gas consumed by every call to the EVM interpreter.
     pub const EVM_INTERPRETER_GAS_OVERHEAD: u64 = 2500;
+
+    /// The `allowedBytecodesToDeploy` variable storage slot in the `ContractDeployer` contract.
+    pub const CONTRACT_DEPLOYER_ALLOWED_BYTECODES_MODE_SLOT: u64 = 2;
 
     /// The `passGas` variable transient storage slot in the `EvmGasManager` contract.
     pub const EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT: u64 = 4;
@@ -122,8 +126,17 @@ impl EraVM {
             system_contracts_save_path,
         )?;
 
-        let storage = SystemContext::create_storage(target);
+        let mut storage = SystemContext::create_storage(target);
         let storage_transient = HashMap::new();
+
+        // TODO move to the SystemContext after EVM emulator is ready
+        storage.insert(
+            zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(ADDRESS_CONTRACT_DEPLOYER.into()),
+                key: web3::types::U256::from(Self::CONTRACT_DEPLOYER_ALLOWED_BYTECODES_MODE_SLOT),
+            },
+            web3::types::H256::from_low_u64_be(1), // Allow EVM contracts deployment
+        );
 
         let mut vm = Self {
             known_contracts: HashMap::new(),
