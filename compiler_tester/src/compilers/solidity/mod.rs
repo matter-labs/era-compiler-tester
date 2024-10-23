@@ -7,6 +7,7 @@ pub mod mode;
 pub mod upstream;
 
 use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -41,10 +42,8 @@ lazy_static::lazy_static! {
     static ref MODES: Vec<Mode> = {
         let mut solc_pipeline_versions = Vec::new();
         for (pipeline, optimize, via_ir) in [
-            (era_compiler_solidity::SolcPipeline::EVMLA, false, false),
             (era_compiler_solidity::SolcPipeline::EVMLA, true, false),
             (era_compiler_solidity::SolcPipeline::EVMLA, true, true),
-            (era_compiler_solidity::SolcPipeline::Yul, false, true),
             (era_compiler_solidity::SolcPipeline::Yul, true, true),
         ] {
             for version in SolidityCompiler::all_versions(pipeline, via_ir).expect("`solc` versions analysis error") {
@@ -187,37 +186,39 @@ impl SolidityCompiler {
             ));
         output_selection.extend_with_eravm_assembly();
 
-        let optimizer = era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::new(
-            mode.solc_optimize,
-            None,
-            &mode.solc_version,
-            false,
-        );
+        let evm_version =
+            if mode.solc_version >= era_compiler_solidity::SolcCompiler::FIRST_CANCUN_VERSION {
+                Some(era_compiler_common::EVMVersion::Cancun)
+            } else {
+                None
+            };
 
-        let evm_version = if mode.solc_version >= semver::Version::new(0, 8, 24)
-        /* TODO */
-        {
-            Some(era_compiler_common::EVMVersion::Cancun)
-        } else {
-            None
-        };
+        let sources: BTreeMap<String, era_compiler_solidity::SolcStandardJsonInputSource> = sources
+            .iter()
+            .map(|(path, source)| {
+                (
+                    path.to_owned(),
+                    era_compiler_solidity::SolcStandardJsonInputSource::from(source.to_owned()),
+                )
+            })
+            .collect();
 
         let mut solc_input =
             era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
-                evm_version,
-                sources.iter().cloned().collect(),
+                sources,
                 libraries.clone(),
-                None,
-                output_selection,
-                optimizer,
-                None,
+                BTreeSet::new(),
+                era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::default(),
+                evm_version,
                 mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
-                mode.via_ir,
                 mode.enable_eravm_extensions,
+                output_selection,
+                era_compiler_solidity::SolcStandardJsonInputSettingsMetadata::default(),
+                vec![],
+                vec![era_compiler_solidity::ErrorType::SendTransfer],
+                vec![],
                 false,
-                vec![],
-                vec![era_compiler_solidity::MessageType::SendTransfer],
-                vec![],
+                mode.via_ir,
             )
             .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
 
@@ -415,7 +416,6 @@ impl Compiler for SolidityCompiler {
                 mode.solc_version.to_owned(),
                 None,
             )),
-            &semver::Version::new(0, 0, 0),
         )?;
         solc_output.collect_errors()?;
 
