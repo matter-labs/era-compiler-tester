@@ -294,7 +294,7 @@ impl SystemContracts {
         let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let solidity_mode = SolidityMode::new(
             solc_version,
-            era_compiler_solidity::SolcPipeline::Yul,
+            era_compiler_solidity::SolcCodegen::Yul,
             true,
             true,
             solidity_optimizer_settings,
