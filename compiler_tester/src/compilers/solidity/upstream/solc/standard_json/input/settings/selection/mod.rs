@@ -22,9 +22,9 @@ impl Selection {
     ///
     /// Creates the selection required by EVM compilation process.
     ///
-    pub fn new_required(pipeline: era_compiler_solidity::SolcPipeline) -> Self {
+    pub fn new_required(codegen: era_compiler_solidity::SolcCodegen) -> Self {
         Self {
-            all: Some(FileSelection::new_required(pipeline)),
+            all: Some(FileSelection::new_required(codegen)),
         }
     }
 }

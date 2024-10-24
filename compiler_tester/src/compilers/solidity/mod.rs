@@ -40,26 +40,26 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref MODES: Vec<Mode> = {
-        let mut solc_pipeline_versions = Vec::new();
-        for (pipeline, optimize, via_ir) in [
-            (era_compiler_solidity::SolcPipeline::EVMLA, true, false),
-            (era_compiler_solidity::SolcPipeline::EVMLA, true, true),
-            (era_compiler_solidity::SolcPipeline::Yul, true, true),
+        let mut solc_codegen_versions = Vec::new();
+        for (codegen, optimize, via_ir) in [
+            (era_compiler_solidity::SolcCodegen::EVMLA, true, false),
+            (era_compiler_solidity::SolcCodegen::EVMLA, true, true),
+            (era_compiler_solidity::SolcCodegen::Yul, true, true),
         ] {
-            for version in SolidityCompiler::all_versions(pipeline, via_ir).expect("`solc` versions analysis error") {
-                solc_pipeline_versions.push((pipeline, optimize, via_ir, version));
+            for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
+                solc_codegen_versions.push((codegen, optimize, via_ir, version));
             }
         }
 
         era_compiler_llvm_context::OptimizerSettings::combinations()
             .into_iter()
-            .cartesian_product(solc_pipeline_versions)
+            .cartesian_product(solc_codegen_versions)
             .map(
-                |(mut llvm_optimizer_settings, (pipeline, optimize, via_ir, version))| {
+                |(mut llvm_optimizer_settings, (codegen, optimize, via_ir, version))| {
                     llvm_optimizer_settings.enable_fallback_to_size();
                     SolidityMode::new(
                         version,
-                        pipeline,
+                        codegen,
                         via_ir,
                         optimize,
                         llvm_optimizer_settings,
@@ -116,10 +116,10 @@ impl SolidityCompiler {
     }
 
     ///
-    /// Returns the compiler versions downloaded for the specified compilation pipeline.
+    /// Returns the compiler versions downloaded for the specified compilation codegen.
     ///
     pub fn all_versions(
-        pipeline: era_compiler_solidity::SolcPipeline,
+        codegen: era_compiler_solidity::SolcCodegen,
         via_ir: bool,
     ) -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
@@ -149,12 +149,12 @@ impl SolidityCompiler {
                 Ok(version) => version,
                 Err(_) => continue,
             };
-            if era_compiler_solidity::SolcPipeline::Yul == pipeline
+            if era_compiler_solidity::SolcCodegen::Yul == codegen
                 && version < era_compiler_solidity::SolcCompiler::FIRST_YUL_VERSION
             {
                 continue;
             }
-            if era_compiler_solidity::SolcPipeline::EVMLA == pipeline
+            if era_compiler_solidity::SolcCodegen::EVMLA == codegen
                 && via_ir
                 && version < era_compiler_solidity::SolcCompiler::FIRST_VIA_IR_VERSION
             {
@@ -182,7 +182,7 @@ impl SolidityCompiler {
 
         let mut output_selection =
             era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(Some(
-                mode.solc_pipeline,
+                mode.solc_codegen,
             ));
         output_selection.extend_with_eravm_assembly();
 
@@ -209,8 +209,8 @@ impl SolidityCompiler {
                 libraries.clone(),
                 BTreeSet::new(),
                 era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::default(),
+                Some(mode.solc_codegen),
                 evm_version,
-                mode.solc_pipeline == era_compiler_solidity::SolcPipeline::EVMLA,
                 mode.enable_eravm_extensions,
                 output_selection,
                 era_compiler_solidity::SolcStandardJsonInputSettingsMetadata::default(),
@@ -230,7 +230,7 @@ impl SolidityCompiler {
 
         solc_compiler.standard_json(
             &mut solc_input,
-            Some(mode.solc_pipeline),
+            Some(mode.solc_codegen),
             &mut vec![],
             None,
             vec![],
@@ -251,7 +251,7 @@ impl SolidityCompiler {
         let cache_key = CacheKey::new(
             test_path,
             mode.solc_version.clone(),
-            mode.solc_pipeline,
+            mode.solc_codegen,
             mode.via_ir,
             mode.solc_optimize,
         );
@@ -377,7 +377,7 @@ impl Compiler for SolidityCompiler {
 
         let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
-            mode.solc_pipeline,
+            mode.solc_codegen,
             &mut solc_output,
             &solc_compiler,
             debug_config.as_ref(),
@@ -450,7 +450,7 @@ impl Compiler for SolidityCompiler {
 
         let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
-            mode.solc_pipeline,
+            mode.solc_codegen,
             &mut solc_output,
             &solc_compiler,
             debug_config.as_ref(),
