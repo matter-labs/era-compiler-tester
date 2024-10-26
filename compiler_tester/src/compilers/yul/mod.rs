@@ -65,8 +65,10 @@ impl Compiler for YulCompiler {
         let solc_version = if mode.enable_eravm_extensions {
             None
         } else {
-            Some(era_compiler_solidity::SolcVersion::new_simple(
+            Some(era_compiler_solidity::SolcVersion::new(
+                era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION.to_string(),
                 era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+                None,
             ))
         };
 
