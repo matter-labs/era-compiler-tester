@@ -42,9 +42,9 @@ lazy_static::lazy_static! {
     static ref MODES: Vec<Mode> = {
         let mut solc_codegen_versions = Vec::new();
         for (codegen, optimize, via_ir) in [
-            (era_compiler_solidity::SolcCodegen::EVMLA, true, false),
-            (era_compiler_solidity::SolcCodegen::EVMLA, true, true),
-            (era_compiler_solidity::SolcCodegen::Yul, true, true),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, false),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, true),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, true, true),
         ] {
             for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
                 solc_codegen_versions.push((codegen, optimize, via_ir, version));
@@ -119,7 +119,7 @@ impl SolidityCompiler {
     /// Returns the compiler versions downloaded for the specified compilation codegen.
     ///
     pub fn all_versions(
-        codegen: era_compiler_solidity::SolcCodegen,
+        codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
         via_ir: bool,
     ) -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
@@ -149,12 +149,12 @@ impl SolidityCompiler {
                 Ok(version) => version,
                 Err(_) => continue,
             };
-            if era_compiler_solidity::SolcCodegen::Yul == codegen
+            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul == codegen
                 && version < era_compiler_solidity::SolcCompiler::FIRST_YUL_VERSION
             {
                 continue;
             }
-            if era_compiler_solidity::SolcCodegen::EVMLA == codegen
+            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA == codegen
                 && via_ir
                 && version < era_compiler_solidity::SolcCompiler::FIRST_VIA_IR_VERSION
             {
@@ -181,9 +181,9 @@ impl SolidityCompiler {
         }?;
 
         let mut output_selection =
-            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(Some(
+            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(
                 mode.solc_codegen,
-            ));
+            );
         output_selection.extend_with_eravm_assembly();
 
         let evm_version =
@@ -271,14 +271,9 @@ impl SolidityCompiler {
     fn get_method_identifiers(
         solc_output: &era_compiler_solidity::SolcStandardJsonOutput,
     ) -> anyhow::Result<BTreeMap<String, BTreeMap<String, u32>>> {
-        let files = solc_output
-            .contracts
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("Solidity contracts not found in the output"))?;
-
         let mut method_identifiers = BTreeMap::new();
-        for (path, contracts) in files.iter() {
-            for (name, contract) in contracts.iter() {
+        for (path, file) in solc_output.contracts.iter() {
+            for (name, contract) in file.iter() {
                 let mut contract_identifiers = BTreeMap::new();
                 for (entry, selector) in contract
                     .evm
@@ -321,28 +316,18 @@ impl SolidityCompiler {
         solc_output: &era_compiler_solidity::SolcStandardJsonOutput,
         sources: &[(String, String)],
     ) -> anyhow::Result<String> {
-        solc_output
-            .sources
-            .as_ref()
-            .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "The Solidity sources are empty. Found errors: {:?}",
-                    solc_output.errors
-                )
-            })
-            .and_then(|output_sources| {
-                for (path, _source) in sources.iter().rev() {
-                    match output_sources
-                        .get(path)
-                        .ok_or_else(|| anyhow::anyhow!("The last source not found in the output"))?
-                        .last_contract_name()
-                    {
-                        Ok(name) => return Ok(format!("{path}:{name}")),
-                        Err(_error) => continue,
-                    }
-                }
-                anyhow::bail!("The last source not found in the output")
-            })
+        for (path, _source) in sources.iter().rev() {
+            match solc_output
+                .sources
+                .get(path)
+                .ok_or_else(|| anyhow::anyhow!("The last source not found in the output"))?
+                .last_contract_name()
+            {
+                Ok(name) => return Ok(format!("{path}:{name}")),
+                Err(_error) => continue,
+            }
+        }
+        anyhow::bail!("The last source not found in the output")
     }
 }
 

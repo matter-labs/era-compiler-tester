@@ -487,6 +487,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "boolinator"
+version = "2.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfa8873f51c92e232f9bac4065cddef41b714152812bfc5f7672ba16d6ef8cd9"
+
+[[package]]
 name = "bumpalo"
 version = "3.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -949,7 +955,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#c2dc0ac02d050c3dd4d526a88410408e1faf21f6"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#11cc7ed039fb96ef04d45d71c009e8dc8fffda9a"
 dependencies = [
  "anyhow",
  "base58",
@@ -964,8 +970,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-downloader"
-version = "0.1.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#c2dc0ac02d050c3dd4d526a88410408e1faf21f6"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#11cc7ed039fb96ef04d45d71c009e8dc8fffda9a"
 dependencies = [
  "anyhow",
  "colored",
@@ -993,9 +999,10 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-tests-for-solc-errors#11c30e47cc41499e29464fe3aa8358365357e284"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-tests-for-solc-errors#f9ed928e19df2e55d45773a29252dc9e39d164c5"
 dependencies = [
  "anyhow",
+ "boolinator",
  "era-compiler-common",
  "era-compiler-llvm-context",
  "era-yul",
@@ -1046,7 +1053,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-tests-for-solc-errors#11c30e47cc41499e29464fe3aa8358365357e284"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-tests-for-solc-errors#f9ed928e19df2e55d45773a29252dc9e39d164c5"
 dependencies = [
  "anyhow",
  "regex",
@@ -1794,9 +1801,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
+checksum = "3bda4c6077b0b08da2c48b172195795498381a7c8988c9e6212a6c55c5b9bd70"
 
 [[package]]
 name = "libmimalloc-sys"
@@ -2754,9 +2761,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.37"
+version = "0.38.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8acb788b847c24f28525660c4d7758620a7210875711f79e7f663cc152726811"
+checksum = "aa260229e6538e52293eeb577aabd09945a09d6d9cc0fc550ed7529056c2e32a"
 dependencies = [
  "bitflags 2.6.0",
  "errno",

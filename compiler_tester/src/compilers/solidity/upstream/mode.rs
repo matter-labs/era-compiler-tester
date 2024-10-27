@@ -14,7 +14,7 @@ pub struct Mode {
     /// The Solidity compiler version.
     pub solc_version: semver::Version,
     /// The Solidity compiler output type.
-    pub solc_codegen: era_compiler_solidity::SolcCodegen,
+    pub solc_codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
     /// Whether to enable the MLIR codegen.
@@ -29,7 +29,7 @@ impl Mode {
     ///
     pub fn new(
         solc_version: semver::Version,
-        solc_codegen: era_compiler_solidity::SolcCodegen,
+        solc_codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
         via_ir: bool,
         via_mlir: bool,
         solc_optimize: bool,
@@ -98,15 +98,15 @@ impl Mode {
         }
 
         match self.solc_codegen {
-            era_compiler_solidity::SolcCodegen::Yul => {
+            era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::False
                     && params.abi_encoder_v1_only != solidity_adapter::ABIEncoderV1Only::True
             }
-            era_compiler_solidity::SolcCodegen::EVMLA if self.via_ir => {
+            era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA if self.via_ir => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::False
                     && params.abi_encoder_v1_only != solidity_adapter::ABIEncoderV1Only::True
             }
-            era_compiler_solidity::SolcCodegen::EVMLA => {
+            era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::True
             }
         }
@@ -123,9 +123,11 @@ impl std::fmt::Display for Mode {
             f,
             "{}{} {}",
             match self.solc_codegen {
-                era_compiler_solidity::SolcCodegen::Yul => "Y",
-                era_compiler_solidity::SolcCodegen::EVMLA if self.via_ir => "I",
-                era_compiler_solidity::SolcCodegen::EVMLA => "E",
+                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul => "Y",
+                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA
+                    if self.via_ir =>
+                    "I",
+                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA => "E",
             },
             if self.solc_optimize { '+' } else { '-' },
             self.solc_version,
