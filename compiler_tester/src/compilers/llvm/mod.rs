@@ -63,12 +63,14 @@ impl Compiler for LLVMCompiler {
                     )
                 })
                 .collect(),
+            era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
             None,
         )?;
 
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
+            BTreeMap::new(),
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -114,6 +116,7 @@ impl Compiler for LLVMCompiler {
                     )
                 })
                 .collect(),
+            era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
             None,
         )?;
 

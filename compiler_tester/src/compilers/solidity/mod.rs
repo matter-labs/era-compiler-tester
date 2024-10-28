@@ -101,7 +101,7 @@ impl SolidityCompiler {
     pub fn executable(
         version: &semver::Version,
     ) -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::new(
+        era_compiler_solidity::SolcCompiler::try_from_path(
             format!("{}/solc-{}", Self::DIRECTORY, version).as_str(),
         )
     }
@@ -110,7 +110,7 @@ impl SolidityCompiler {
     /// Returns the `solc` executable used to compile system contracts.
     ///
     pub fn system_contract_executable() -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::new(
+        era_compiler_solidity::SolcCompiler::try_from_path(
             format!("{}/solc-system-contracts", Self::DIRECTORY).as_str(),
         )
     }
@@ -184,7 +184,11 @@ impl SolidityCompiler {
             era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(
                 mode.solc_codegen,
             );
-        output_selection.extend_with_eravm_assembly();
+        output_selection.extend(
+            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new(vec![
+                era_compiler_solidity::SolcStandardJsonInputSettingsSelectionFlag::EraVMAssembly,
+            ]),
+        );
 
         let evm_version =
             if mode.solc_version >= era_compiler_solidity::SolcCompiler::FIRST_CANCUN_VERSION {
@@ -206,7 +210,7 @@ impl SolidityCompiler {
         let mut solc_input =
             era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
                 sources,
-                libraries.clone(),
+                libraries.to_owned().into(),
                 BTreeSet::new(),
                 era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::default(),
                 Some(mode.solc_codegen),
@@ -361,7 +365,7 @@ impl Compiler for SolidityCompiler {
         }?;
 
         let project = era_compiler_solidity::Project::try_from_solc_output(
-            libraries,
+            libraries.into(),
             mode.solc_codegen,
             &mut solc_output,
             &solc_compiler,
@@ -371,6 +375,7 @@ impl Compiler for SolidityCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
+            BTreeMap::new(),
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -434,7 +439,7 @@ impl Compiler for SolidityCompiler {
         let solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
         let project = era_compiler_solidity::Project::try_from_solc_output(
-            libraries,
+            libraries.into(),
             mode.solc_codegen,
             &mut solc_output,
             &solc_compiler,

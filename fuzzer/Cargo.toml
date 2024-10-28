@@ -35,7 +35,7 @@ zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-tests-for-solc-errors" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
 
 compiler-tester = { path = "../compiler_tester" }
 solidity-adapter = { path = "../solidity_adapter" }

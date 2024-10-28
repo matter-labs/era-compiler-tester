@@ -83,9 +83,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-primitives"
-version = "0.8.9"
+version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c71738eb20c42c5fb149571e76536a0f309d142f3957c28791662b96baf77a3d"
+checksum = "8edae627382349b56cd6a7a2106f4fd69b243a9233e560c55c2e03cabb7e1d3c"
 dependencies = [
  "alloy-rlp",
  "bytes",
@@ -984,7 +984,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#c226149995a9efd8e26d74bfa01c0da0764979fd"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#67bb2349e221627f15b09893e59f807094ab81ca"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -999,7 +999,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-tests-for-solc-errors#f9ed928e19df2e55d45773a29252dc9e39d164c5"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b32d2de6039165bb91569375673fd750c8a10b0"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1030,7 +1030,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#11ce60e1e07494dd5a2a61f79dd5fc9a2a59d151"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#90a858bc42d1a83be3fe95beb858f60c14f910cb"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1053,7 +1053,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-tests-for-solc-errors#f9ed928e19df2e55d45773a29252dc9e39d164c5"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b32d2de6039165bb91569375673fd750c8a10b0"
 dependencies = [
  "anyhow",
  "regex",
@@ -1801,9 +1801,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.9"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bda4c6077b0b08da2c48b172195795498381a7c8988c9e6212a6c55c5b9bd70"
+checksum = "8355be11b20d696c8f18f6cc018c4e372165b1fa8126cef092399c9951984ffa"
 
 [[package]]
 name = "libmimalloc-sys"

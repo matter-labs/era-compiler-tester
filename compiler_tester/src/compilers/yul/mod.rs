@@ -88,7 +88,7 @@ impl Compiler for YulCompiler {
                     )
                 })
                 .collect(),
-            BTreeMap::new(),
+            era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
             None,
             solc_version.as_ref(),
             debug_config.as_ref(),
@@ -97,6 +97,7 @@ impl Compiler for YulCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
+            BTreeMap::new(),
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
