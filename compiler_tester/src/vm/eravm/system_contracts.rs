@@ -260,8 +260,7 @@ impl SystemContracts {
             "6",
             "-eravm-enable-split-loop-phi-live-ranges",
             "-tail-merge-only-bbs-without-succ",
-            "-join-globalcopies",
-            "-disable-early-taildup",
+            "-tail-dup-fallthrough-bbs",
         ]
         .into_iter()
         .map(|option| option.to_owned())
