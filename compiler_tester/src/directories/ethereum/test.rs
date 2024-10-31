@@ -124,7 +124,7 @@ impl EthereumTest {
     ) -> anyhow::Result<(
         web3::types::Address,
         BTreeMap<String, web3::types::Address>,
-        BTreeMap<String, BTreeMap<String, String>>,
+        era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
     )> {
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);
 
@@ -163,7 +163,7 @@ impl EthereumTest {
         }
         let contract_address = contract_address.expect("Always valid");
 
-        Ok((contract_address, libraries_addresses, libraries))
+        Ok((contract_address, libraries_addresses, libraries.into()))
     }
 
     ///

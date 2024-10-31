@@ -169,7 +169,7 @@ When testing is done, these tags should be removed.
 - [0.4.10; latest] for compiling Solidity via EVM assembly
 - [0.3.3, 0.3.9] for compiling Vyper via LLL IR
 
-### Compiler pipelines
+### Compiler codegens
 
 Currently only relevant for the Solidity compiler, where you can choose the IR:
 

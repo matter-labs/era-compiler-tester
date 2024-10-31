@@ -28,11 +28,11 @@ pub enum Flag {
     EVMLA,
 }
 
-impl From<era_compiler_solidity::SolcPipeline> for Flag {
-    fn from(pipeline: era_compiler_solidity::SolcPipeline) -> Self {
-        match pipeline {
-            era_compiler_solidity::SolcPipeline::Yul => Self::Yul,
-            era_compiler_solidity::SolcPipeline::EVMLA => Self::EVMLA,
+impl From<era_compiler_solidity::SolcStandardJsonInputSettingsCodegen> for Flag {
+    fn from(codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen) -> Self {
+        match codegen {
+            era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul => Self::Yul,
+            era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA => Self::EVMLA,
         }
     }
 }

@@ -105,7 +105,7 @@ impl EraVM {
         );
 
         let solc_version = system_contracts_solc_downloader_config
-            .binaries
+            .executables
             .keys()
             .next()
             .ok_or_else(|| {

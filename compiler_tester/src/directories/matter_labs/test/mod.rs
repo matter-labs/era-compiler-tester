@@ -230,7 +230,7 @@ impl MatterLabsTest {
         &self,
         address_iterator: &mut API,
     ) -> (
-        BTreeMap<String, BTreeMap<String, String>>,
+        era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         BTreeMap<String, web3::types::Address>,
     )
     where
@@ -262,7 +262,7 @@ impl MatterLabsTest {
             libraries.insert(file_path.to_string_lossy().to_string(), file_libraries);
         }
 
-        (libraries, library_addresses)
+        (libraries.into(), library_addresses)
     }
 
     ///

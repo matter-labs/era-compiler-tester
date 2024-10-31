@@ -6,7 +6,6 @@ pub mod debug;
 pub mod optimizer;
 pub mod selection;
 
-use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 
 use serde::Serialize;
@@ -25,8 +24,11 @@ pub struct Settings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub evm_version: Option<era_compiler_common::EVMVersion>,
     /// The linker library addresses.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub libraries: Option<BTreeMap<String, BTreeMap<String, String>>>,
+    #[serde(
+        default,
+        skip_serializing_if = "era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::is_empty"
+    )]
+    pub libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
     /// The sorted list of remappings.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remappings: Option<BTreeSet<String>>,
@@ -60,7 +62,7 @@ impl Settings {
     ///
     pub fn new(
         evm_version: Option<era_compiler_common::EVMVersion>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         remappings: Option<BTreeSet<String>>,
         output_selection: Selection,
         via_ir: bool,
@@ -70,7 +72,7 @@ impl Settings {
     ) -> Self {
         Self {
             evm_version,
-            libraries: Some(libraries),
+            libraries,
             remappings,
             output_selection: Some(output_selection),
             via_ir: if via_ir { Some(true) } else { None },

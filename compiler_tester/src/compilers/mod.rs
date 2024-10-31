@@ -10,8 +10,6 @@ pub mod solidity;
 pub mod vyper;
 pub mod yul;
 
-use std::collections::BTreeMap;
-
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::evm::input::Input as EVMInput;
 
@@ -28,7 +26,7 @@ pub trait Compiler: Send + Sync + 'static {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -41,7 +39,7 @@ pub trait Compiler: Send + Sync + 'static {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,

@@ -27,13 +27,15 @@ impl File {
     ///
     /// Creates the selection required by EVM compilation process.
     ///
-    pub fn new_required(pipeline: era_compiler_solidity::SolcPipeline) -> Self {
+    pub fn new_required(
+        codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
+    ) -> Self {
         Self {
             per_file: Some(HashSet::from_iter([SelectionFlag::AST])),
             per_contract: Some(HashSet::from_iter([
                 SelectionFlag::Bytecode,
                 SelectionFlag::MethodIdentifiers,
-                SelectionFlag::from(pipeline),
+                SelectionFlag::from(codegen),
             ])),
         }
     }

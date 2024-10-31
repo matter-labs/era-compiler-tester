@@ -49,16 +49,16 @@ lazy_static::lazy_static! {
     ///
     static ref SOLIDITY_MODES: Vec<Mode> = {
         let mut modes = Vec::new();
-        for (pipeline, optimize, via_ir) in [
-            (era_compiler_solidity::SolcPipeline::EVMLA, false, false),
-            (era_compiler_solidity::SolcPipeline::EVMLA, false, true),
-            (era_compiler_solidity::SolcPipeline::EVMLA, true, false),
-            (era_compiler_solidity::SolcPipeline::EVMLA, true, true),
-            (era_compiler_solidity::SolcPipeline::Yul, false, true),
-            (era_compiler_solidity::SolcPipeline::Yul, true, true),
+        for (codegen, optimize, via_ir) in [
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, false, false),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, false, true),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, false),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, true),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, false, true),
+            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, true, true),
         ] {
-            for version in SolidityCompiler::all_versions(pipeline, via_ir).expect("`solc` versions analysis error") {
-                modes.push(SolidityUpstreamMode::new(version, pipeline, via_ir, false, optimize).into());
+            for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
+                modes.push(SolidityUpstreamMode::new(version, codegen, via_ir, false, optimize).into());
             }
         }
         modes
@@ -74,7 +74,7 @@ lazy_static::lazy_static! {
         for optimize in [
             false, true
         ] {
-            for version in SolidityCompiler::all_versions(era_compiler_solidity::SolcPipeline::Yul, true).expect("`solc` versions analysis error") {
+            for version in SolidityCompiler::all_versions(era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, true).expect("`solc` versions analysis error") {
                 modes.push(YulUpstreamMode::new(version, false, optimize).into());
             }
         }
@@ -87,7 +87,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
-        vec![SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_compiler_solidity::SolcPipeline::Yul, false, true, false).into()]
+        vec![SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, false, true, false).into()]
     };
 
     ///
@@ -137,10 +137,10 @@ impl SolidityCompiler {
     }
 
     ///
-    /// Returns the compiler versions downloaded for the specified compilation pipeline.
+    /// Returns the compiler versions downloaded for the specified compilation codegen.
     ///
     pub fn all_versions(
-        pipeline: era_compiler_solidity::SolcPipeline,
+        codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
         via_ir: bool,
     ) -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
@@ -170,12 +170,12 @@ impl SolidityCompiler {
                 Ok(version) => version,
                 Err(_) => continue,
             };
-            if era_compiler_solidity::SolcPipeline::Yul == pipeline
+            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul == codegen
                 && version < SolcUpstreamCompiler::FIRST_YUL_VERSION
             {
                 continue;
             }
-            if era_compiler_solidity::SolcPipeline::EVMLA == pipeline
+            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA == codegen
                 && via_ir
                 && version < SolcUpstreamCompiler::FIRST_VIA_IR_VERSION
             {
@@ -194,7 +194,7 @@ impl SolidityCompiler {
         language: SolcStandardJsonInputLanguage,
         toolchain: Toolchain,
         sources: &[(String, String)],
-        libraries: &BTreeMap<String, BTreeMap<String, String>>,
+        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
@@ -206,8 +206,10 @@ impl SolidityCompiler {
         let mut solc = Self::executable(toolchain, solc_version)?;
 
         let output_selection = SolcStandardJsonInputSettingsSelection::new_required(match mode {
-            Mode::SolidityUpstream(mode) => mode.solc_pipeline,
-            Mode::YulUpstream(_mode) => era_compiler_solidity::SolcPipeline::Yul,
+            Mode::SolidityUpstream(mode) => mode.solc_codegen,
+            Mode::YulUpstream(_mode) => {
+                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul
+            }
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         });
 
@@ -281,7 +283,7 @@ impl SolidityCompiler {
         test_path: String,
         language: SolcStandardJsonInputLanguage,
         sources: &[(String, String)],
-        libraries: &BTreeMap<String, BTreeMap<String, String>>,
+        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
@@ -289,14 +291,14 @@ impl SolidityCompiler {
             Mode::SolidityUpstream(mode) => CacheKey::new(
                 test_path,
                 mode.solc_version.to_owned(),
-                mode.solc_pipeline,
+                mode.solc_codegen,
                 mode.via_ir,
                 mode.solc_optimize,
             ),
             Mode::YulUpstream(mode) => CacheKey::new(
                 test_path,
                 mode.solc_version.to_owned(),
-                era_compiler_solidity::SolcPipeline::Yul,
+                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul,
                 true,
                 mode.solc_optimize,
             ),
@@ -425,7 +427,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -517,7 +519,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
