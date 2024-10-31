@@ -9,7 +9,7 @@ use std::{path::PathBuf, sync::Arc};
 use compiler_tester::{
     Buildable, EthereumTest, Mode, SolidityCompiler, SolidityMode, Summary, Workflow,
 };
-use era_compiler_solidity::SolcCodegen;
+use era_compiler_solidity::SolcStandardJsonInputSettingsCodegen;
 
 pub use solidity_adapter::{
     test::function_call::parser::{
@@ -160,7 +160,7 @@ pub fn build_and_run(test: EthereumTest) -> anyhow::Result<Summary> {
     let solc_version = semver::Version::new(0, 8, 26);
     let mode = Mode::Solidity(SolidityMode::new(
         solc_version,
-        SolcCodegen::Yul,
+        SolcStandardJsonInputSettingsCodegen::Yul,
         true,
         true,
         era_compiler_llvm_context::OptimizerSettings::try_from_cli('3')

@@ -5,7 +5,6 @@
 pub mod mode;
 pub mod mode_upstream;
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 use era_compiler_solidity::CollectableError;
@@ -55,7 +54,7 @@ impl Compiler for YulCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -78,17 +77,21 @@ impl Compiler for YulCompiler {
             .0
             .clone();
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
+        let sources = sources
+            .into_iter()
+            .map(|(path, source)| {
+                (
+                    path,
+                    era_compiler_solidity::SolcStandardJsonInputSource::from(source),
+                )
+            })
+            .collect();
+
         let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources
-                .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
-                .collect(),
-            era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
+            sources,
+            libraries,
             None,
             solc_version.as_ref(),
             debug_config.as_ref(),
@@ -97,7 +100,7 @@ impl Compiler for YulCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            BTreeMap::new(),
+            linker_symbols,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -128,7 +131,7 @@ impl Compiler for YulCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,

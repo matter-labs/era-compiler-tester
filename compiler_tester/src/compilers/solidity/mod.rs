@@ -171,7 +171,7 @@ impl SolidityCompiler {
     ///
     fn standard_json_output(
         sources: &[(String, String)],
-        libraries: &BTreeMap<String, BTreeMap<String, String>>,
+        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &SolidityMode,
     ) -> anyhow::Result<era_compiler_solidity::SolcStandardJsonOutput> {
         let solc_compiler = if mode.is_system_contracts_mode {
@@ -210,7 +210,7 @@ impl SolidityCompiler {
         let mut solc_input =
             era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
                 sources,
-                libraries.to_owned().into(),
+                libraries.to_owned(),
                 BTreeSet::new(),
                 era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::default(),
                 Some(mode.solc_codegen),
@@ -249,7 +249,7 @@ impl SolidityCompiler {
         &self,
         test_path: String,
         sources: &[(String, String)],
-        libraries: &BTreeMap<String, BTreeMap<String, String>>,
+        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &SolidityMode,
     ) -> anyhow::Result<era_compiler_solidity::SolcStandardJsonOutput> {
         let cache_key = CacheKey::new(
@@ -340,7 +340,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -364,8 +364,10 @@ impl Compiler for SolidityCompiler {
             SolidityCompiler::executable(&mode.solc_version)
         }?;
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
         let project = era_compiler_solidity::Project::try_from_solc_output(
-            libraries.into(),
+            libraries,
             mode.solc_codegen,
             &mut solc_output,
             &solc_compiler,
@@ -375,7 +377,7 @@ impl Compiler for SolidityCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            BTreeMap::new(),
+            linker_symbols,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -420,7 +422,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -439,7 +441,7 @@ impl Compiler for SolidityCompiler {
         let solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
         let project = era_compiler_solidity::Project::try_from_solc_output(
-            libraries.into(),
+            libraries,
             mode.solc_codegen,
             &mut solc_output,
             &solc_compiler,

@@ -4,7 +4,6 @@
 
 pub mod mode;
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 use era_compiler_solidity::CollectableError;
@@ -40,7 +39,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -53,6 +52,8 @@ impl Compiler for LLVMCompiler {
             .0
             .clone();
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources
                 .into_iter()
@@ -63,14 +64,14 @@ impl Compiler for LLVMCompiler {
                     )
                 })
                 .collect(),
-            era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
+            libraries,
             None,
         )?;
 
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            BTreeMap::new(),
+            linker_symbols,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -92,7 +93,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        _libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
