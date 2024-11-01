@@ -33,9 +33,10 @@ libfuzzer-sys = "=0.4.7"
 
 zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
 
-era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "az-move-code-segment" }
-era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-move-code-segment" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-standard-json-crate" }
+era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
 
 compiler-tester = { path = "../compiler_tester" }
 solidity-adapter = { path = "../solidity_adapter" }
