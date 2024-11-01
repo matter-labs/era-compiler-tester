@@ -7,7 +7,7 @@ pub mod mode_upstream;
 
 use std::collections::HashMap;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
@@ -54,7 +54,7 @@ impl Compiler for YulCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -64,9 +64,9 @@ impl Compiler for YulCompiler {
         let solc_version = if mode.enable_eravm_extensions {
             None
         } else {
-            Some(era_compiler_solidity::SolcVersion::new(
-                era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION.to_string(),
-                era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+            Some(era_solc::Version::new(
+                era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
+                era_solc::Compiler::LAST_SUPPORTED_VERSION,
                 None,
             ))
         };
@@ -81,12 +81,7 @@ impl Compiler for YulCompiler {
 
         let sources = sources
             .into_iter()
-            .map(|(path, source)| {
-                (
-                    path,
-                    era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                )
-            })
+            .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
             .collect();
 
         let project = era_compiler_solidity::Project::try_from_yul_sources(
@@ -131,7 +126,7 @@ impl Compiler for YulCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,

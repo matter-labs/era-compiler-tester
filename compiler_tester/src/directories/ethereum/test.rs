@@ -124,7 +124,7 @@ impl EthereumTest {
     ) -> anyhow::Result<(
         web3::types::Address,
         BTreeMap<String, web3::types::Address>,
-        era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        era_solc::StandardJsonInputLibraries,
     )> {
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);
 

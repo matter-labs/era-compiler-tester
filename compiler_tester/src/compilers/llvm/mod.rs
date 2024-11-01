@@ -6,7 +6,7 @@ pub mod mode;
 
 use std::collections::HashMap;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
@@ -39,7 +39,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -57,12 +57,7 @@ impl Compiler for LLVMCompiler {
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources
                 .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
+                .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
             libraries,
             None,
@@ -93,7 +88,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        _libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -110,14 +105,9 @@ impl Compiler for LLVMCompiler {
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources
                 .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
+                .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
-            era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
+            era_solc::StandardJsonInputLibraries::default(),
             None,
         )?;
 

@@ -12,7 +12,7 @@ pub struct CacheKey {
     /// The Solidity compiler version.
     pub version: semver::Version,
     /// The Solidity compiler output type.
-    pub codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
+    pub codegen: era_solc::StandardJsonInputCodegen,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
     /// Whether to run the Solidity compiler optimizer.
@@ -26,7 +26,7 @@ impl CacheKey {
     pub fn new(
         test_path: String,
         version: semver::Version,
-        codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
+        codegen: era_solc::StandardJsonInputCodegen,
         via_ir: bool,
         optimize: bool,
     ) -> Self {

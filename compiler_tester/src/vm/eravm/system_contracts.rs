@@ -293,7 +293,7 @@ impl SystemContracts {
         let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let solidity_mode = SolidityMode::new(
             solc_version,
-            era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul,
+            era_solc::StandardJsonInputCodegen::Yul,
             true,
             true,
             solidity_optimizer_settings,
@@ -430,7 +430,7 @@ impl SystemContracts {
             .compile_for_eravm(
                 "system-contracts".to_owned(),
                 sources,
-                era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::default(),
+                era_solc::StandardJsonInputLibraries::default(),
                 mode,
                 llvm_options,
                 debug_config,
