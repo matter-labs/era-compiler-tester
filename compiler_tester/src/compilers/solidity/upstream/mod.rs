@@ -21,9 +21,9 @@ use crate::vm::evm::input::Input as EVMInput;
 
 use self::mode::Mode as SolidityUpstreamMode;
 use self::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
-use self::solc::standard_json::input::settings::debug::Debug as SolcStandardJsonInputSettingsDebug;
-use self::solc::standard_json::input::settings::optimizer::Optimizer as SolcStandardJsonInputSettingsOptimizer;
-use self::solc::standard_json::input::settings::selection::Selection as SolcStandardJsonInputSettingsSelection;
+use self::solc::standard_json::input::settings::debug::Debug as SolcStandardJsonInputDebug;
+use self::solc::standard_json::input::settings::optimizer::Optimizer as SolcStandardJsonInputOptimizer;
+use self::solc::standard_json::input::settings::selection::Selection as SolcStandardJsonInputSelection;
 use self::solc::standard_json::input::Input as SolcStandardJsonInput;
 use self::solc::standard_json::output::Output as SolcStandardJsonOutput;
 use self::solc::Compiler as SolcUpstreamCompiler;
@@ -50,12 +50,12 @@ lazy_static::lazy_static! {
     static ref SOLIDITY_MODES: Vec<Mode> = {
         let mut modes = Vec::new();
         for (codegen, optimize, via_ir) in [
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, false, false),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, false, true),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, false),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, true),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, false, true),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, true, true),
+            (era_solc::StandardJsonInputCodegen::EVMLA, false, false),
+            (era_solc::StandardJsonInputCodegen::EVMLA, false, true),
+            (era_solc::StandardJsonInputCodegen::EVMLA, true, false),
+            (era_solc::StandardJsonInputCodegen::EVMLA, true, true),
+            (era_solc::StandardJsonInputCodegen::Yul, false, true),
+            (era_solc::StandardJsonInputCodegen::Yul, true, true),
         ] {
             for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
                 modes.push(SolidityUpstreamMode::new(version, codegen, via_ir, false, optimize).into());
@@ -74,7 +74,7 @@ lazy_static::lazy_static! {
         for optimize in [
             false, true
         ] {
-            for version in SolidityCompiler::all_versions(era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, true).expect("`solc` versions analysis error") {
+            for version in SolidityCompiler::all_versions(era_solc::StandardJsonInputCodegen::Yul, true).expect("`solc` versions analysis error") {
                 modes.push(YulUpstreamMode::new(version, false, optimize).into());
             }
         }
@@ -87,7 +87,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
-        vec![SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, false, true, false).into()]
+        vec![SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_solc::StandardJsonInputCodegen::Yul, false, true, false).into()]
     };
 
     ///
@@ -140,7 +140,7 @@ impl SolidityCompiler {
     /// Returns the compiler versions downloaded for the specified compilation codegen.
     ///
     pub fn all_versions(
-        codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
+        codegen: era_solc::StandardJsonInputCodegen,
         via_ir: bool,
     ) -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
@@ -170,12 +170,12 @@ impl SolidityCompiler {
                 Ok(version) => version,
                 Err(_) => continue,
             };
-            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul == codegen
+            if era_solc::StandardJsonInputCodegen::Yul == codegen
                 && version < SolcUpstreamCompiler::FIRST_YUL_VERSION
             {
                 continue;
             }
-            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA == codegen
+            if era_solc::StandardJsonInputCodegen::EVMLA == codegen
                 && via_ir
                 && version < SolcUpstreamCompiler::FIRST_VIA_IR_VERSION
             {
@@ -194,7 +194,7 @@ impl SolidityCompiler {
         language: SolcStandardJsonInputLanguage,
         toolchain: Toolchain,
         sources: &[(String, String)],
-        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: &era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
@@ -205,15 +205,13 @@ impl SolidityCompiler {
         };
         let mut solc = Self::executable(toolchain, solc_version)?;
 
-        let output_selection = SolcStandardJsonInputSettingsSelection::new_required(match mode {
+        let output_selection = SolcStandardJsonInputSelection::new_required(match mode {
             Mode::SolidityUpstream(mode) => mode.solc_codegen,
-            Mode::YulUpstream(_mode) => {
-                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul
-            }
+            Mode::YulUpstream(_mode) => era_solc::StandardJsonInputCodegen::Yul,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         });
 
-        let optimizer = SolcStandardJsonInputSettingsOptimizer::new(match mode {
+        let optimizer = SolcStandardJsonInputOptimizer::new(match mode {
             Mode::SolidityUpstream(mode) => mode.solc_optimize,
             Mode::YulUpstream(mode) => mode.solc_optimize,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
@@ -244,9 +242,7 @@ impl SolidityCompiler {
 
         let debug = if solc_version >= &semver::Version::new(0, 6, 3) {
             test_params.map(|test_params| {
-                SolcStandardJsonInputSettingsDebug::new(Some(
-                    test_params.revert_strings.to_string(),
-                ))
+                SolcStandardJsonInputDebug::new(Some(test_params.revert_strings.to_string()))
             })
         } else {
             None
@@ -283,7 +279,7 @@ impl SolidityCompiler {
         test_path: String,
         language: SolcStandardJsonInputLanguage,
         sources: &[(String, String)],
-        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: &era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
@@ -298,7 +294,7 @@ impl SolidityCompiler {
             Mode::YulUpstream(mode) => CacheKey::new(
                 test_path,
                 mode.solc_version.to_owned(),
-                era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul,
+                era_solc::StandardJsonInputCodegen::Yul,
                 true,
                 mode.solc_optimize,
             ),
@@ -427,7 +423,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -519,7 +515,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,

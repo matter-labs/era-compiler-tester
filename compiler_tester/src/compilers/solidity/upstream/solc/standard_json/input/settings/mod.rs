@@ -26,9 +26,9 @@ pub struct Settings {
     /// The linker library addresses.
     #[serde(
         default,
-        skip_serializing_if = "era_compiler_solidity::SolcStandardJsonInputSettingsLibraries::is_empty"
+        skip_serializing_if = "era_solc::StandardJsonInputLibraries::is_empty"
     )]
-    pub libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+    pub libraries: era_solc::StandardJsonInputLibraries,
     /// The sorted list of remappings.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remappings: Option<BTreeSet<String>>,
@@ -62,7 +62,7 @@ impl Settings {
     ///
     pub fn new(
         evm_version: Option<era_compiler_common::EVMVersion>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         remappings: Option<BTreeSet<String>>,
         output_selection: Selection,
         via_ir: bool,

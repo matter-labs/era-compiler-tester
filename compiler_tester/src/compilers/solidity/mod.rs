@@ -13,7 +13,7 @@ use std::path::Path;
 
 use itertools::Itertools;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
@@ -30,7 +30,7 @@ use self::mode::Mode as SolidityMode;
 ///
 pub struct SolidityCompiler {
     /// The `solc` process output cache.
-    cache: Cache<CacheKey, era_compiler_solidity::SolcStandardJsonOutput>,
+    cache: Cache<CacheKey, era_solc::StandardJsonOutput>,
 }
 
 lazy_static::lazy_static! {
@@ -42,9 +42,9 @@ lazy_static::lazy_static! {
     static ref MODES: Vec<Mode> = {
         let mut solc_codegen_versions = Vec::new();
         for (codegen, optimize, via_ir) in [
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, false),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA, true, true),
-            (era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul, true, true),
+            (era_solc::StandardJsonInputCodegen::EVMLA, true, false),
+            (era_solc::StandardJsonInputCodegen::EVMLA, true, true),
+            (era_solc::StandardJsonInputCodegen::Yul, true, true),
         ] {
             for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
                 solc_codegen_versions.push((codegen, optimize, via_ir, version));
@@ -98,19 +98,15 @@ impl SolidityCompiler {
     ///
     /// Returns the `solc` executable by its version.
     ///
-    pub fn executable(
-        version: &semver::Version,
-    ) -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::try_from_path(
-            format!("{}/solc-{}", Self::DIRECTORY, version).as_str(),
-        )
+    pub fn executable(version: &semver::Version) -> anyhow::Result<era_solc::Compiler> {
+        era_solc::Compiler::try_from_path(format!("{}/solc-{}", Self::DIRECTORY, version).as_str())
     }
 
     ///
     /// Returns the `solc` executable used to compile system contracts.
     ///
-    pub fn system_contract_executable() -> anyhow::Result<era_compiler_solidity::SolcCompiler> {
-        era_compiler_solidity::SolcCompiler::try_from_path(
+    pub fn system_contract_executable() -> anyhow::Result<era_solc::Compiler> {
+        era_solc::Compiler::try_from_path(
             format!("{}/solc-system-contracts", Self::DIRECTORY).as_str(),
         )
     }
@@ -119,7 +115,7 @@ impl SolidityCompiler {
     /// Returns the compiler versions downloaded for the specified compilation codegen.
     ///
     pub fn all_versions(
-        codegen: era_compiler_solidity::SolcStandardJsonInputSettingsCodegen,
+        codegen: era_solc::StandardJsonInputCodegen,
         via_ir: bool,
     ) -> anyhow::Result<Vec<semver::Version>> {
         let mut versions = Vec::new();
@@ -149,14 +145,14 @@ impl SolidityCompiler {
                 Ok(version) => version,
                 Err(_) => continue,
             };
-            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::Yul == codegen
-                && version < era_compiler_solidity::SolcCompiler::FIRST_YUL_VERSION
+            if era_solc::StandardJsonInputCodegen::Yul == codegen
+                && version < era_solc::Compiler::FIRST_YUL_VERSION
             {
                 continue;
             }
-            if era_compiler_solidity::SolcStandardJsonInputSettingsCodegen::EVMLA == codegen
+            if era_solc::StandardJsonInputCodegen::EVMLA == codegen
                 && via_ir
-                && version < era_compiler_solidity::SolcCompiler::FIRST_VIA_IR_VERSION
+                && version < era_solc::Compiler::FIRST_VIA_IR_VERSION
             {
                 continue;
             }
@@ -171,9 +167,9 @@ impl SolidityCompiler {
     ///
     fn standard_json_output(
         sources: &[(String, String)],
-        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: &era_solc::StandardJsonInputLibraries,
         mode: &SolidityMode,
-    ) -> anyhow::Result<era_compiler_solidity::SolcStandardJsonOutput> {
+    ) -> anyhow::Result<era_solc::StandardJsonOutput> {
         let solc_compiler = if mode.is_system_contracts_mode {
             Self::system_contract_executable()
         } else {
@@ -181,50 +177,44 @@ impl SolidityCompiler {
         }?;
 
         let mut output_selection =
-            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new_required(
-                mode.solc_codegen,
-            );
-        output_selection.extend(
-            era_compiler_solidity::SolcStandardJsonInputSettingsSelection::new(vec![
-                era_compiler_solidity::SolcStandardJsonInputSettingsSelectionFlag::EraVMAssembly,
-            ]),
-        );
+            era_solc::StandardJsonInputSelection::new_required(mode.solc_codegen);
+        output_selection.extend(era_solc::StandardJsonInputSelection::new(vec![
+            era_solc::StandardJsonInputSelectionFlag::EraVMAssembly,
+        ]));
 
-        let evm_version =
-            if mode.solc_version >= era_compiler_solidity::SolcCompiler::FIRST_CANCUN_VERSION {
-                Some(era_compiler_common::EVMVersion::Cancun)
-            } else {
-                None
-            };
+        let evm_version = if mode.solc_version >= era_solc::Compiler::FIRST_CANCUN_VERSION {
+            Some(era_compiler_common::EVMVersion::Cancun)
+        } else {
+            None
+        };
 
-        let sources: BTreeMap<String, era_compiler_solidity::SolcStandardJsonInputSource> = sources
+        let sources: BTreeMap<String, era_solc::StandardJsonInputSource> = sources
             .iter()
             .map(|(path, source)| {
                 (
                     path.to_owned(),
-                    era_compiler_solidity::SolcStandardJsonInputSource::from(source.to_owned()),
+                    era_solc::StandardJsonInputSource::from(source.to_owned()),
                 )
             })
             .collect();
 
-        let mut solc_input =
-            era_compiler_solidity::SolcStandardJsonInput::try_from_solidity_sources(
-                sources,
-                libraries.to_owned(),
-                BTreeSet::new(),
-                era_compiler_solidity::SolcStandardJsonInputSettingsOptimizer::default(),
-                Some(mode.solc_codegen),
-                evm_version,
-                mode.enable_eravm_extensions,
-                output_selection,
-                era_compiler_solidity::SolcStandardJsonInputSettingsMetadata::default(),
-                vec![],
-                vec![era_compiler_solidity::ErrorType::SendTransfer],
-                vec![],
-                false,
-                mode.via_ir,
-            )
-            .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
+        let mut solc_input = era_solc::StandardJsonInput::try_from_solidity_sources(
+            sources,
+            libraries.to_owned(),
+            BTreeSet::new(),
+            era_solc::StandardJsonInputOptimizer::default(),
+            Some(mode.solc_codegen),
+            evm_version,
+            mode.enable_eravm_extensions,
+            output_selection,
+            era_solc::StandardJsonInputMetadata::default(),
+            vec![],
+            vec![era_solc::StandardJsonInputErrorType::SendTransfer],
+            vec![],
+            false,
+            mode.via_ir,
+        )
+        .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
 
         let allow_paths = Path::new(Self::SOLC_ALLOW_PATHS)
             .canonicalize()
@@ -249,9 +239,9 @@ impl SolidityCompiler {
         &self,
         test_path: String,
         sources: &[(String, String)],
-        libraries: &era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: &era_solc::StandardJsonInputLibraries,
         mode: &SolidityMode,
-    ) -> anyhow::Result<era_compiler_solidity::SolcStandardJsonOutput> {
+    ) -> anyhow::Result<era_solc::StandardJsonOutput> {
         let cache_key = CacheKey::new(
             test_path,
             mode.solc_version.clone(),
@@ -273,7 +263,7 @@ impl SolidityCompiler {
     /// Get the method identifiers from the solc output.
     ///
     fn get_method_identifiers(
-        solc_output: &era_compiler_solidity::SolcStandardJsonOutput,
+        solc_output: &era_solc::StandardJsonOutput,
     ) -> anyhow::Result<BTreeMap<String, BTreeMap<String, u32>>> {
         let mut method_identifiers = BTreeMap::new();
         for (path, file) in solc_output.contracts.iter() {
@@ -286,14 +276,6 @@ impl SolidityCompiler {
                         anyhow::anyhow!("EVM object of the contract `{}:{}` not found", path, name)
                     })?
                     .method_identifiers
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!(
-                            "Method identifiers of the contract `{}:{}` not found",
-                            path,
-                            name
-                        )
-                    })?
                     .iter()
                 {
                     let selector =
@@ -317,7 +299,7 @@ impl SolidityCompiler {
     /// Get the last contract from the solc output.
     ///
     fn get_last_contract(
-        solc_output: &era_compiler_solidity::SolcStandardJsonOutput,
+        solc_output: &era_solc::StandardJsonOutput,
         sources: &[(String, String)],
     ) -> anyhow::Result<String> {
         for (path, _source) in sources.iter().rev() {
@@ -340,7 +322,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -403,7 +385,7 @@ impl Compiler for SolidityCompiler {
 
         build.write_to_standard_json(
             &mut solc_output,
-            Some(&era_compiler_solidity::SolcVersion::new(
+            Some(&era_solc::Version::new(
                 mode.solc_version.to_string(),
                 mode.solc_version.to_owned(),
                 None,
@@ -422,7 +404,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,

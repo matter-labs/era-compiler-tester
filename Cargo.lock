@@ -588,11 +588,12 @@ dependencies = [
  "benchmark-analyzer",
  "bincode",
  "colored",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment)",
  "era-compiler-downloader",
  "era-compiler-llvm-context",
  "era-compiler-solidity",
  "era-compiler-vyper",
+ "era-solc",
  "evm",
  "glob",
  "hex",
@@ -627,7 +628,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "compiler-tester",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment)",
  "era-compiler-llvm-context",
  "era-compiler-solidity",
  "libfuzzer-sys",
@@ -688,7 +689,7 @@ name = "coverage-watcher"
 version = "1.5.0"
 dependencies = [
  "anyhow",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=main)",
  "serde",
  "serde_yaml",
  "structopt",
@@ -955,6 +956,22 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment#e2f60ed08f4434c2820f94d6acb4ae06bf38840c"
+dependencies = [
+ "anyhow",
+ "base58",
+ "hex",
+ "ipfs-hasher",
+ "serde",
+ "serde_arrays",
+ "serde_json",
+ "serde_stacker",
+ "sha3 0.10.8",
+]
+
+[[package]]
+name = "era-compiler-common"
+version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#11cc7ed039fb96ef04d45d71c009e8dc8fffda9a"
 dependencies = [
  "anyhow",
@@ -971,7 +988,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#11cc7ed039fb96ef04d45d71c009e8dc8fffda9a"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment#e2f60ed08f4434c2820f94d6acb4ae06bf38840c"
 dependencies = [
  "anyhow",
  "colored",
@@ -984,10 +1001,10 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#67bb2349e221627f15b09893e59f807094ab81ca"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-move-code-segment#4aee7ae09f0e224c9135b73a9409639eb807b5b0"
 dependencies = [
  "anyhow",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment)",
  "inkwell",
  "itertools 0.13.0",
  "num",
@@ -998,13 +1015,13 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-solidity"
-version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b32d2de6039165bb91569375673fd750c8a10b0"
+version = "1.5.7"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-standard-json-crate#4b4202b4c3c305af4f7dfd9dbde7502dc111575b"
 dependencies = [
  "anyhow",
- "boolinator",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment)",
  "era-compiler-llvm-context",
+ "era-solc",
  "era-yul",
  "hex",
  "inkwell",
@@ -1013,27 +1030,23 @@ dependencies = [
  "num",
  "num_cpus",
  "path-slash",
- "rand",
  "rayon",
- "regex",
  "rusty_pool",
  "semver 1.0.23",
  "serde",
  "serde_json",
- "sha3 0.10.8",
  "structopt",
  "thiserror",
- "which",
  "zkevm_opcode_defs",
 ]
 
 [[package]]
 name = "era-compiler-vyper"
-version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#90a858bc42d1a83be3fe95beb858f60c14f910cb"
+version = "1.5.7"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-move-code-segment#5049b0a5688e42d9007164d9642aad634ed06cfb"
 dependencies = [
  "anyhow",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment)",
  "era-compiler-llvm-context",
  "hex",
  "inkwell",
@@ -1051,9 +1064,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "era-solc"
+version = "1.5.7"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-standard-json-crate#4b4202b4c3c305af4f7dfd9dbde7502dc111575b"
+dependencies = [
+ "anyhow",
+ "boolinator",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=az-move-code-segment)",
+ "hex",
+ "num",
+ "rayon",
+ "semver 1.0.23",
+ "serde",
+ "serde_json",
+ "which",
+]
+
+[[package]]
 name = "era-yul"
-version = "1.5.6"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b32d2de6039165bb91569375673fd750c8a10b0"
+version = "1.5.7"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-standard-json-crate#4b4202b4c3c305af4f7dfd9dbde7502dc111575b"
 dependencies = [
  "anyhow",
  "regex",
@@ -3188,7 +3218,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "colored",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=main)",
  "md5",
  "regex",
  "semver 1.0.23",

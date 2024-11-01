@@ -7,7 +7,7 @@ pub mod mode;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
@@ -27,7 +27,7 @@ impl Compiler for EraVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        _libraries: era_solc::StandardJsonInputLibraries,
         _mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -41,12 +41,7 @@ impl Compiler for EraVMCompiler {
         let project = era_compiler_solidity::Project::try_from_eravm_assembly_sources(
             sources
                 .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
+                .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
             None,
         )?;
@@ -76,7 +71,7 @@ impl Compiler for EraVMCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: era_compiler_solidity::SolcStandardJsonInputSettingsLibraries,
+        _libraries: era_solc::StandardJsonInputLibraries,
         _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
