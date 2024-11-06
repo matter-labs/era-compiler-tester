@@ -4,7 +4,10 @@
 
 use std::path::PathBuf;
 
+use benchmark_format::BenchmarkFormat;
 use clap::Parser;
+
+pub mod benchmark_format;
 
 ///
 /// The compiler tester arguments.
@@ -39,6 +42,10 @@ pub struct Arguments {
     /// The benchmark output path, if requested.
     #[structopt(short, long)]
     pub benchmark: Option<PathBuf>,
+
+    /// The benchmark output format.
+    #[structopt(long = "benchmark-format")]
+    pub benchmark_format: Option<BenchmarkFormat>,
 
     /// Sets the number of threads, which execute the tests concurrently.
     #[structopt(short, long)]

@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
+use arguments::benchmark_format::BenchmarkFormat;
 use clap::Parser;
 use colored::Colorize;
 
@@ -222,7 +223,15 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
-        benchmark.write_to_file(path)?;
+        let output_format = arguments.benchmark_format.unwrap_or_default();
+        match output_format {
+            BenchmarkFormat::Json => {
+                benchmark.write_to_file(path, benchmark_analyzer::JsonSerializer)?
+            }
+            BenchmarkFormat::Csv => {
+                benchmark.write_to_file(path, benchmark_analyzer::CsvSerializer)?
+            }
+        }
     }
 
     if !summary.is_successful() {
@@ -236,7 +245,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::arguments::Arguments;
+    use crate::arguments::{benchmark_format::BenchmarkFormat, Arguments};
 
     #[test]
     fn test_manually() {
@@ -268,6 +277,7 @@ mod tests {
             save_system_contracts: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
+            benchmark_format: Some(BenchmarkFormat::Json),
         };
 
         crate::main_inner(arguments).expect("Manual testing failed");
