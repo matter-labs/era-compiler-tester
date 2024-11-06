@@ -2,15 +2,15 @@
 //! The benchmark representation.
 //!
 
+pub mod format;
 pub mod group;
-pub mod serialize;
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use format::IBenchmarkSerializer;
 use serde::Deserialize;
 use serde::Serialize;
-use serialize::IBenchmarkSerializer;
 
 use self::group::results::Results;
 use self::group::Group;

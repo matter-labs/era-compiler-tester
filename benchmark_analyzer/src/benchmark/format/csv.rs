@@ -34,8 +34,7 @@ impl IBenchmarkSerializer for Csv {
                 let size_str = size.map_or(String::from(""), |s| format!("{}", s));
                 writeln!(
                     &mut result,
-                    "\"{}\", \"{}\", {}, {}, {}, {}",
-                    group_name, element_name, size_str, cycles, ergs, gas
+                    "\"{group_name}\", \"{element_name}\", {size_str}, {cycles}, {ergs}, {gas}",
                 )?;
             }
         }
@@ -43,12 +42,16 @@ impl IBenchmarkSerializer for Csv {
     }
 }
 
-fn estimate_csv_line_length(benchmark: &Benchmark) -> usize {
-    //FIXME
-    //let num_fields =
-    1024
+fn estimate_csv_line_length() -> usize {
+    let number_fields = 4;
+    let number_field_estimated_max_length = 15;
+    let group_name_estimated_max = 10;
+    let test_name_estimated_max = 300;
+    group_name_estimated_max
+        + test_name_estimated_max
+        + number_fields * number_field_estimated_max_length
 }
+
 fn estimate_csv_size(benchmark: &Benchmark) -> usize {
-    //FIXME
-    100000 * estimate_csv_line_length(benchmark)
+    (benchmark.groups.len() + 1) * estimate_csv_line_length()
 }
