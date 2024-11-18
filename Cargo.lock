@@ -693,9 +693,24 @@ dependencies = [
  "solidity-adapter",
  "web3",
  "which",
- "zkevm_opcode_defs",
- "zkevm_tester",
+ "zkevm_opcode_defs 0.150.6",
+ "zkevm_tester 1.5.0 (git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=remove-evm-stipend)",
  "zksync_vm2",
+]
+
+[[package]]
+name = "compiler-tester-fuzz"
+version = "1.5.0"
+dependencies = [
+ "anyhow",
+ "compiler-tester",
+ "era-compiler-common",
+ "era-compiler-llvm-context",
+ "era-compiler-solidity",
+ "libfuzzer-sys",
+ "semver 1.0.23",
+ "solidity-adapter",
+ "zkevm_tester 1.5.0 (git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0)",
 ]
 
 [[package]]
@@ -1066,7 +1081,7 @@ dependencies = [
  "num",
  "semver 1.0.23",
  "serde",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -1093,7 +1108,8 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
- "zkevm_opcode_defs",
+ "which",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -1116,7 +1132,7 @@ dependencies = [
  "serde",
  "serde_json",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -4313,7 +4329,21 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions",
+ "zk_evm_abstractions 0.150.6",
+]
+
+[[package]]
+name = "zk_evm"
+version = "0.150.7"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=vv-remove-evm-stipend#32d07c1d522165952535f8d86b74a75eb67fb125"
+dependencies = [
+ "anyhow",
+ "lazy_static",
+ "num",
+ "serde",
+ "serde_json",
+ "static_assertions",
+ "zk_evm_abstractions 0.150.7",
 ]
 
 [[package]]
@@ -4326,7 +4356,19 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.150.7"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=vv-remove-evm-stipend#32d07c1d522165952535f8d86b74a75eb67fb125"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.150.7",
 ]
 
 [[package]]
@@ -4347,6 +4389,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "zkevm_opcode_defs"
+version = "0.150.7"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=vv-remove-evm-stipend#32d07c1d522165952535f8d86b74a75eb67fb125"
+dependencies = [
+ "bitflags 2.6.0",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2 0.10.8",
+ "sha3 0.10.8",
+]
+
+[[package]]
+name = "zkevm_tester"
+version = "1.5.0"
+source = "git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=remove-evm-stipend#19da35a91b6a5d5dabaee328143f5c219c29b1af"
+dependencies = [
+ "anyhow",
+ "ethabi",
+ "futures",
+ "hex",
+ "num-bigint",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "tracing",
+ "vlog",
+ "zk_evm 0.150.7",
+]
+
+[[package]]
 name = "zkevm_tester"
 version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#393e31814c6838378d84e9932f1b378c1da5b5fe"
@@ -4362,7 +4439,7 @@ dependencies = [
  "sha2 0.10.8",
  "tracing",
  "vlog",
- "zk_evm",
+ "zk_evm 0.150.6",
 ]
 
 [[package]]
@@ -4372,8 +4449,8 @@ source = "git+https://github.com/matter-labs/vm2#457d8a7eea9093af9440662e33e598c
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions",
- "zkevm_opcode_defs",
+ "zk_evm_abstractions 0.150.6",
+ "zkevm_opcode_defs 0.150.6",
  "zksync_vm2_interface",
 ]
 
