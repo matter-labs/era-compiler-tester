@@ -6170,7 +6170,8 @@ entries:
         version: '>=0.6.2'
       create.sol:
         hash: '0xa937f29a18a9b48c6ed9813c4cdfd006'
-        enabled: true
+        enabled: false
+        comment: 'VM implementation in Solidity tests is invalid'
         version: '>=0.7.0'
       invalid_error_encoding.sol:
         hash: '0x87c1bfbd0f7d4b04f99dd8c7043c15fc'
