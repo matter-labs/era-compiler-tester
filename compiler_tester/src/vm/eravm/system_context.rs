@@ -249,10 +249,11 @@ impl SystemContext {
                     crate::utils::u256_to_h256(&(web3::types::U256::one() << 100));
                 storage.insert(storage_key, initial_balance);
             });
-            
+
             // Increase deployment nonce of default caller by 1
-            {   
-                let default_caller_address = web3::types::Address::from_str(Self::ZERO_ADDRESS_EVM).expect("Always valid");
+            {
+                let default_caller_address =
+                    web3::types::Address::from_str(Self::ZERO_ADDRESS_EVM).expect("Always valid");
                 let address_h256 = utils::address_to_h256(&default_caller_address);
                 let bytes = [
                     address_h256.as_bytes(),
