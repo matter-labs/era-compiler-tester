@@ -3296,7 +3296,8 @@ entries:
         version: '>=0.6.0'
       failed_create.sol:
         hash: '0xcd337f294254561827a382cdd146e09d'
-        enabled: true
+        enabled: false
+        comment: 'TODO: out-of-ergs in underlying EraVM'
         version: '>=0.7.0'
       file_level_call_via_module.sol:
         hash: '0x7484f59b7118567c0bb54761d5b87405'
@@ -6171,7 +6172,7 @@ entries:
       create.sol:
         hash: '0xa937f29a18a9b48c6ed9813c4cdfd006'
         enabled: false
-        comment: 'VM implementation in Solidity tests is invalid'
+        comment: 'TODO: VM implementation in Solidity tests is invalid'
         version: '>=0.7.0'
       invalid_error_encoding.sol:
         hash: '0x87c1bfbd0f7d4b04f99dd8c7043c15fc'
