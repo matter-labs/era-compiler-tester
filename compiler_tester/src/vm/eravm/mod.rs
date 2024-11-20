@@ -23,6 +23,7 @@ use colored::Colorize;
 use solidity_adapter::EVMVersion;
 use zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER;
 
+use crate::utils;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::system_context::SystemContext;
