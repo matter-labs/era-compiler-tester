@@ -51,6 +51,8 @@ pub struct EraVM {
     storage_transient: HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
     /// The current EVM block number.
     current_evm_block_number: u128,
+    /// The target instruction set.
+    target: era_compiler_common::Target,
 }
 
 impl EraVM {
@@ -160,6 +162,7 @@ impl EraVM {
             storage_transient,
             published_evm_bytecodes: HashMap::new(),
             current_evm_block_number: SystemContext::INITIAL_BLOCK_NUMBER,
+            target,
         };
 
         vm.add_known_contract(
@@ -354,8 +357,8 @@ impl EraVM {
             0,
         );
 
-        // Increase deployment nonce of caller by 1 if it is 0 (we pretend that it is a contract)
-        {
+        if self.target == era_compiler_common::Target::EVM {
+            // Increase deployment nonce of caller by 1 if it is 0 (we pretend that it is a contract)
             let address_h256 = utils::address_to_h256(&caller);
             let bytes = [
                 address_h256.as_bytes(),
