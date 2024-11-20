@@ -6,8 +6,6 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::str::FromStr;
 
-use super::utils;
-
 ///
 /// The EraVM system context.
 ///
@@ -106,7 +104,6 @@ impl SystemContext {
     pub const ZERO_BLOCK_HASH: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
 
-    pub const ZERO_ADDRESS_EVM: &'static str = "0x1212121212121212121212121212120000000012";
     ///
     /// Returns the storage values for the system context.
     ///
@@ -249,27 +246,6 @@ impl SystemContext {
                     crate::utils::u256_to_h256(&(web3::types::U256::one() << 100));
                 storage.insert(storage_key, initial_balance);
             });
-
-            // Increase deployment nonce of default caller by 1
-            {
-                let default_caller_address =
-                    web3::types::Address::from_str(Self::ZERO_ADDRESS_EVM).expect("Always valid");
-                let address_h256 = utils::address_to_h256(&default_caller_address);
-                let bytes = [
-                    address_h256.as_bytes(),
-                    &[0; era_compiler_common::BYTE_LENGTH_FIELD],
-                ]
-                .concat();
-                let key = web3::signing::keccak256(&bytes).into();
-                let storage_key = zkevm_tester::compiler_tests::StorageKey {
-                    address: web3::types::Address::from_low_u64_be(
-                        zkevm_opcode_defs::ADDRESS_NONCE_HOLDER.into(),
-                    ),
-                    key,
-                };
-                let raw_nonce_value = web3::types::U256::from(1) << web3::types::U256::from(128);
-                storage.insert(storage_key, utils::u256_to_h256(&raw_nonce_value));
-            }
 
             // Fund the 0x01 address with 1 token to match the behavior of upstream Solidity tests.
             let address_ecrecover = crate::utils::address_to_h256(

@@ -354,6 +354,34 @@ impl EraVM {
             0,
         );
 
+        // Increase deployment nonce of caller by 1 if it is 0 (we pretend that it is a contract)
+        {
+            let address_h256 = utils::address_to_h256(&caller);
+            let bytes = [
+                address_h256.as_bytes(),
+                &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+            ]
+            .concat();
+            let key = web3::signing::keccak256(&bytes).into();
+            let storage_key = zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_NONCE_HOLDER.into(),
+                ),
+                key,
+            };
+            let prev_raw_nonce = self
+                .storage
+                .entry(storage_key)
+                .or_insert(web3::types::H256::zero());
+            let prev_raw_nonce_uint = utils::h256_to_u256(prev_raw_nonce);
+            if prev_raw_nonce_uint >> 128 == web3::types::U256::zero() {
+                let new_raw_nonce = prev_raw_nonce_uint + web3::types::U256::from(1)
+                    << web3::types::U256::from(128);
+                self.storage
+                    .insert(storage_key, utils::u256_to_h256(&new_raw_nonce));
+            }
+        }
+
         #[cfg(not(feature = "vm2"))]
         {
             let snapshot = zkevm_tester::compiler_tests::run_vm_multi_contracts(
