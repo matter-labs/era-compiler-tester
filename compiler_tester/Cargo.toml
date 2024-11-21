@@ -43,7 +43,7 @@ evm = { git = "https://github.com/rust-ethereum/evm", rev = "f7a23df6c478ca6a151
 revm = { git = "https://github.com/bluealloy/revm", rev = "fa5650ee8a4d802f4f3557014dd157adfb074460" }
 
 zkevm_opcode_defs = "=0.150.6"
-zkevm_tester = { git = "https://github.com/0xVolosnikov/era-zkevm_tester", branch = "remove-evm-stipend" }
+zkevm_tester = { git = "https://github.com/0xVolosnikov/era-zkevm_tester", branch = "evm-emulator/testing" }
 vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "zksync_vm2" }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }

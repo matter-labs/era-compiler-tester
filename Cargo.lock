@@ -694,7 +694,7 @@ dependencies = [
  "web3",
  "which",
  "zkevm_opcode_defs 0.150.6",
- "zkevm_tester 1.5.0 (git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=remove-evm-stipend)",
+ "zkevm_tester 1.5.0 (git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=evm-emulator/testing)",
  "zksync_vm2",
 ]
 
@@ -4335,7 +4335,7 @@ dependencies = [
 [[package]]
 name = "zk_evm"
 version = "0.150.7"
-source = "git+https://github.com/matter-labs/zksync-protocol?branch=vv-remove-evm-stipend#32d07c1d522165952535f8d86b74a75eb67fb125"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=evm-emulator/testing#bdbddb817d4434d894638bfdf6c30917de5e87fc"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -4362,7 +4362,7 @@ dependencies = [
 [[package]]
 name = "zk_evm_abstractions"
 version = "0.150.7"
-source = "git+https://github.com/matter-labs/zksync-protocol?branch=vv-remove-evm-stipend#32d07c1d522165952535f8d86b74a75eb67fb125"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=evm-emulator/testing#bdbddb817d4434d894638bfdf6c30917de5e87fc"
 dependencies = [
  "anyhow",
  "num_enum",
@@ -4391,7 +4391,7 @@ dependencies = [
 [[package]]
 name = "zkevm_opcode_defs"
 version = "0.150.7"
-source = "git+https://github.com/matter-labs/zksync-protocol?branch=vv-remove-evm-stipend#32d07c1d522165952535f8d86b74a75eb67fb125"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=evm-emulator/testing#bdbddb817d4434d894638bfdf6c30917de5e87fc"
 dependencies = [
  "bitflags 2.6.0",
  "blake2",
@@ -4407,7 +4407,7 @@ dependencies = [
 [[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=remove-evm-stipend#19da35a91b6a5d5dabaee328143f5c219c29b1af"
+source = "git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=evm-emulator/testing#dfed460fae1787a2df2e4284952bc02da0f08af8"
 dependencies = [
  "anyhow",
  "ethabi",
