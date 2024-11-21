@@ -1057,7 +1057,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#47d3a2143a6b063af9eed5a801e9a4ae90bbc5da"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#5f88ca511f972dae2d67fb91598b9f9b434c1731"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#712957b06725d8673d759c151a2413a927a6cb09"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c5f34a12f2b991bb0d08ffdadd3b7c56f4ed5548"
 dependencies = [
  "anyhow",
  "clap",
@@ -1099,7 +1099,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#870ed37ea2150f03272ded47271d06fd2349dd7a"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#59a41bb41fb76a0cc04679c772406258323ec780"
 dependencies = [
  "anyhow",
  "clap",
@@ -1122,7 +1122,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#712957b06725d8673d759c151a2413a927a6cb09"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c5f34a12f2b991bb0d08ffdadd3b7c56f4ed5548"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1139,7 +1139,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#712957b06725d8673d759c151a2413a927a6cb09"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c5f34a12f2b991bb0d08ffdadd3b7c56f4ed5548"
 dependencies = [
  "anyhow",
  "regex",
