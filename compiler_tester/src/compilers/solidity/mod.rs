@@ -80,6 +80,9 @@ impl Default for SolidityCompiler {
 }
 
 impl SolidityCompiler {
+    /// The last ZKsync `solc` revision.
+    pub const LAST_ZKSYNC_SOLC_REVISION: semver::Version = semver::Version::new(1, 0, 1);
+
     /// The compiler executables directory.
     const DIRECTORY: &'static str = "solc-bin/";
 
@@ -224,7 +227,6 @@ impl SolidityCompiler {
 
         solc_compiler.standard_json(
             &mut solc_input,
-            Some(mode.solc_codegen),
             &mut vec![],
             None,
             vec![],
@@ -388,7 +390,7 @@ impl Compiler for SolidityCompiler {
             Some(&era_solc::Version::new(
                 mode.solc_version.to_string(),
                 mode.solc_version.to_owned(),
-                None,
+                Self::LAST_ZKSYNC_SOLC_REVISION,
             )),
         )?;
         solc_output.collect_errors()?;
