@@ -9,6 +9,8 @@ use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 
+use clap::Parser;
+
 use self::arguments::Arguments;
 
 use coverage_watcher::TestsDirectory;
@@ -18,7 +20,7 @@ use coverage_watcher::TestsSet;
 /// The application entry point.
 ///
 fn main() -> anyhow::Result<()> {
-    let arguments = Arguments::new();
+    let arguments = Arguments::try_parse()?;
 
     let mut data = String::new();
     File::open("coverage.yaml")

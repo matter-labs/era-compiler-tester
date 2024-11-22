@@ -4,27 +4,15 @@
 
 use std::path::PathBuf;
 
-use structopt::StructOpt;
+use clap::Parser;
 
 ///
 /// The coverage watcher arguments.
 ///
-#[derive(Debug, StructOpt)]
-#[structopt(
-    name = "coverage-watcher",
-    about = "ZKsync toolchain test coverage watcher"
-)]
+#[derive(Debug, Parser)]
+#[command(about, long_about = None)]
 pub struct Arguments {
     /// The missed tests output file path.
-    #[structopt(short = "o", long = "output")]
+    #[arg(short, long)]
     pub output: Option<PathBuf>,
-}
-
-impl Arguments {
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new() -> Self {
-        Self::from_args()
-    }
 }
