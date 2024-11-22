@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
+use clap::Parser;
 use colored::Colorize;
 
 use self::arguments::Arguments;
@@ -19,7 +20,10 @@ const RAYON_WORKER_STACK_SIZE: usize = 16 * 1024 * 1024;
 /// The application entry point.
 ///
 fn main() {
-    let exit_code = match main_inner(Arguments::new()) {
+    let exit_code = match Arguments::try_parse()
+        .map_err(|error| anyhow::anyhow!(error))
+        .and_then(main_inner)
+    {
         Ok(()) => era_compiler_common::EXIT_CODE_SUCCESS,
         Err(error) => {
             eprintln!("{error:?}");
@@ -89,9 +93,9 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
-    let summary = compiler_tester::Summary::new(arguments.verbosity, arguments.quiet).wrap();
+    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet).wrap();
 
-    let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
+    let filters = compiler_tester::Filters::new(arguments.path, arguments.mode, arguments.group);
 
     let compiler_tester = compiler_tester::CompilerTester::new(
         summary.clone(),
@@ -159,8 +163,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 executable_download_config_paths,
                 PathBuf::from("./configs/solc-bin-system-contracts.json"),
                 system_contracts_debug_config,
-                arguments.system_contracts_load_path,
-                arguments.system_contracts_save_path,
+                arguments.load_system_contracts,
+                arguments.save_system_contracts,
                 arguments.target,
             )?;
 
@@ -191,8 +195,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 executable_download_config_paths,
                 PathBuf::from("./configs/solc-bin-system-contracts.json"),
                 system_contract_debug_config,
-                arguments.system_contracts_load_path,
-                arguments.system_contracts_save_path,
+                arguments.load_system_contracts,
+                arguments.save_system_contracts,
                 arguments.target,
             )?;
 
@@ -239,12 +243,12 @@ mod tests {
         std::env::set_current_dir("..").expect("Change directory failed");
 
         let arguments = Arguments {
-            verbosity: false,
+            verbose: false,
             quiet: false,
             debug: false,
-            modes: vec!["Y+M3B3 0.8.28".to_owned()],
-            paths: vec!["tests/solidity/simple/default.sol".to_owned()],
-            groups: vec![],
+            mode: vec!["Y+M3B3 0.8.28".to_owned()],
+            path: vec!["tests/solidity/simple/default.sol".to_owned()],
+            group: vec![],
             benchmark: None,
             threads: Some(1),
             dump_system: false,
@@ -260,8 +264,8 @@ mod tests {
             workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),
             vyper_bin_config_path: Some(PathBuf::from("./configs/vyper-bin-default.json")),
-            system_contracts_load_path: Some(PathBuf::from("system-contracts-stable-build")),
-            system_contracts_save_path: None,
+            load_system_contracts: Some(PathBuf::from("system-contracts-stable-build")),
+            save_system_contracts: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
         };

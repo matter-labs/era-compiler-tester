@@ -8,6 +8,7 @@ use std::fs::OpenOptions;
 use std::io::BufReader;
 use std::io::Write;
 
+use clap::Parser;
 use colored::Colorize;
 
 use self::arguments::Arguments;
@@ -16,7 +17,7 @@ use self::arguments::Arguments;
 /// Run updating
 ///
 fn main() {
-    let arguments = Arguments::new();
+    let arguments = Arguments::parse();
 
     let file = OpenOptions::new()
         .read(true)

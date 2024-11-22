@@ -4,124 +4,112 @@
 
 use std::path::PathBuf;
 
-use structopt::StructOpt;
+use clap::Parser;
 
 ///
 /// The compiler tester arguments.
 ///
-#[derive(Debug, StructOpt)]
-#[structopt(
-    name = "compiler-tester",
-    about = "EraVM Compiler Integration Testing Framework"
-)]
+#[derive(Debug, Parser)]
+#[command(about, long_about = None)]
 pub struct Arguments {
     /// The logging level.
-    #[structopt(short = "v", long = "verbose")]
-    pub verbosity: bool,
+    #[arg(short, long)]
+    pub verbose: bool,
 
     /// Suppresses the output completely.
-    #[structopt(short = "q", long = "quiet")]
+    #[arg(short, long)]
     pub quiet: bool,
 
     /// Saves all IRs produced by compilers to `./debug/` directory.
-    #[structopt(short = "D", long = "debug")]
+    #[arg(short = 'D', long)]
     pub debug: bool,
 
     /// Runs tests only in modes that contain any string from the specified ones.
-    #[structopt(short = "m", long = "mode")]
-    pub modes: Vec<String>,
+    #[arg(short, long)]
+    pub mode: Vec<String>,
 
     /// Runs only tests whose name contains any string from the specified ones.
-    #[structopt(short = "p", long = "path")]
-    pub paths: Vec<String>,
+    #[arg(short, long)]
+    pub path: Vec<String>,
 
     /// Runs only tests from the specified groups.
-    #[structopt(short = "g", long = "group")]
-    pub groups: Vec<String>,
+    #[structopt(short, long)]
+    pub group: Vec<String>,
 
     /// The benchmark output path, if requested.
-    #[structopt(short = "b", long = "benchmark")]
+    #[structopt(short, long)]
     pub benchmark: Option<PathBuf>,
 
     /// Sets the number of threads, which execute the tests concurrently.
-    #[structopt(short = "t", long = "threads")]
+    #[structopt(short, long)]
     pub threads: Option<usize>,
 
     /// Whether to dump the debug data for system contracts.
-    #[structopt(long = "dump-system")]
+    #[structopt(long)]
     pub dump_system: bool,
 
     /// Whether the deployer should be disabled.
-    #[structopt(long = "disable-deployer")]
+    #[structopt(long)]
     pub disable_deployer: bool,
 
     /// Whether the msg.value simulator should be disabled.
-    #[structopt(long = "disable-value-simulator")]
+    #[structopt(long)]
     pub disable_value_simulator: bool,
 
     /// Path to the `zksolc` executable.
     /// Is set to `zksolc` by default.
-    #[structopt(long = "zksolc")]
+    #[structopt(long)]
     pub zksolc: Option<PathBuf>,
 
     /// Path to the `zkvyper` executable.
     /// Is set to `zkvyper` by default.
-    #[structopt(long = "zkvyper")]
+    #[structopt(long)]
     pub zkvyper: Option<PathBuf>,
 
     /// Specify the compiler toolchain.
     /// Available arguments: `ir-llvm`, `solc`, `solc-llvm`.
     /// The default for `EraVM` target is `ir-llvm`.
     /// The default for `EVM` target is `solc`.
-    #[structopt(long = "toolchain")]
+    #[structopt(long)]
     pub toolchain: Option<compiler_tester::Toolchain>,
 
     /// Specify the target architecture.
     /// Available arguments: `eravm`, `evm`.
-    #[structopt(long = "target")]
+    #[structopt(long)]
     pub target: era_compiler_common::Target,
 
     /// Specify the environment to run tests on.
     /// Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.
     /// The default for `EraVM` target is `zk_evm`.
     /// The default for `EVM` target is `EVMInterpreter`.
-    #[structopt(long = "environment")]
+    #[structopt(long)]
     pub environment: Option<compiler_tester::Environment>,
 
     /// Choose between `build` to compile tests only without running, and `run` to compile and run.
-    #[structopt(long = "workflow", default_value = "run")]
+    #[structopt(long, default_value_t = compiler_tester::Workflow::BuildAndRun)]
     pub workflow: compiler_tester::Workflow,
 
     /// Path to the default `solc` executables download configuration file.
-    #[structopt(long = "solc-bin-config-path")]
+    #[structopt(long)]
     pub solc_bin_config_path: Option<PathBuf>,
 
     /// Path to the default `vyper` executables download configuration file.
-    #[structopt(long = "vyper-bin-config-path")]
+    #[structopt(long)]
     pub vyper_bin_config_path: Option<PathBuf>,
 
     /// Whether to load the system contracts builds from the specified file.
-    #[structopt(long = "load-system-contracts")]
-    pub system_contracts_load_path: Option<PathBuf>,
+    #[structopt(long)]
+    pub load_system_contracts: Option<PathBuf>,
 
     /// Whether to save the system contracts builds to the specified file.
-    #[structopt(long = "save-system-contracts")]
-    pub system_contracts_save_path: Option<PathBuf>,
+    #[structopt(long)]
+    pub save_system_contracts: Option<PathBuf>,
 
     /// Sets the `verify each` option in LLVM.
-    #[structopt(long = "llvm-verify-each")]
+    #[structopt(long)]
     pub llvm_verify_each: bool,
 
     /// Sets the `debug logging` option in LLVM.
-    #[structopt(long = "llvm-debug-logging")]
+    #[structopt(long)]
     pub llvm_debug_logging: bool,
-}
-
-impl Arguments {
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new() -> Self {
-        Self::from_args()
-    }
 }
