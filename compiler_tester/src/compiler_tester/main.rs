@@ -20,7 +20,10 @@ const RAYON_WORKER_STACK_SIZE: usize = 16 * 1024 * 1024;
 /// The application entry point.
 ///
 fn main() {
-    let exit_code = match main_inner() {
+    let exit_code = match Arguments::try_parse()
+        .map_err(|error| anyhow::anyhow!(error))
+        .and_then(main_inner)
+    {
         Ok(()) => era_compiler_common::EXIT_CODE_SUCCESS,
         Err(error) => {
             eprintln!("{error:?}");
@@ -34,7 +37,7 @@ fn main() {
 ///
 /// The entry point wrapper used for proper error handling.
 ///
-fn main_inner() -> anyhow::Result<()> {
+fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     println!(
         "    {} {} v{} (LLVM build {})",
         "Starting".bright_green().bold(),
@@ -42,8 +45,6 @@ fn main_inner() -> anyhow::Result<()> {
         env!("CARGO_PKG_VERSION"),
         inkwell::support::get_commit_id().to_string(),
     );
-
-    let arguments = Arguments::try_parse()?;
 
     inkwell::support::enable_llvm_pretty_stack_trace();
     for target in [

@@ -12,6 +12,7 @@ use era_solc::CollectableError;
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
 use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
+use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
@@ -67,7 +68,7 @@ impl Compiler for YulCompiler {
             Some(era_solc::Version::new(
                 era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
                 era_solc::Compiler::LAST_SUPPORTED_VERSION,
-                None,
+                SolidityCompiler::LAST_ZKSYNC_SOLC_REVISION,
             ))
         };
 
