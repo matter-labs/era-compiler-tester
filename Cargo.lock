@@ -1057,7 +1057,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-link-factory-dependencies#8559d9a2d133638ebb15c5b129f29c6b26a7782c"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-link-factory-dependencies#905ad476c11f4c50ccf8aecbf5c01c7b8a6428b2"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#fa60c042d689fbc91023df3fa2e623a47f41f598"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#70a696ff03392b232c5d03114ba25f5dc1c26e69"
 dependencies = [
  "anyhow",
  "clap",
@@ -1099,7 +1099,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-link-factory-dependencies#0afc369040ffa905e53445c917b4695f1fb95923"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-link-factory-dependencies#eda7c6014e746d94bbae92c0b9ca0d3e857b5c6f"
 dependencies = [
  "anyhow",
  "clap",
@@ -1122,7 +1122,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#fa60c042d689fbc91023df3fa2e623a47f41f598"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#70a696ff03392b232c5d03114ba25f5dc1c26e69"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1139,7 +1139,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#fa60c042d689fbc91023df3fa2e623a47f41f598"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#70a696ff03392b232c5d03114ba25f5dc1c26e69"
 dependencies = [
  "anyhow",
  "regex",
