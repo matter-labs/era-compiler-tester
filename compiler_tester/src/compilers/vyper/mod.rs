@@ -237,9 +237,9 @@ impl Compiler for VyperCompiler {
             .contracts
             .into_iter()
             .map(|(path, contract)| {
-                let build = era_compiler_llvm_context::EraVMBuild::new(
+                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash,
+                    contract.build.bytecode_hash.expect("Always exists"),
                     None,
                     contract.build.assembly,
                 );

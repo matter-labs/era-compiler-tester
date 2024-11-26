@@ -66,17 +66,17 @@ impl Compiler for LLVMCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            linker_symbols,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
-            None,
             debug_config.clone(),
         )?;
         build.collect_errors()?;
+        let build = build.link(linker_symbols)?;
+        build.collect_errors()?;
         let builds = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, result)| Ok((path, result.expect("Always valid").build)))
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;

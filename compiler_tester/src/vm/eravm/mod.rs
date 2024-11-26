@@ -169,9 +169,9 @@ impl EraVM {
             ),
         );
         vm.add_known_contract(
-            era_compiler_vyper::MINIMAL_PROXY_CONTRACT_BYTECODE.to_owned(),
+            era_compiler_vyper::MINIMAL_PROXY_CONTRACT.0.to_owned(),
             web3::types::U256::from_big_endian(
-                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_HASH.as_slice(),
+                era_compiler_vyper::MINIMAL_PROXY_CONTRACT.1.as_slice(),
             ),
         );
 
