@@ -1028,7 +1028,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#88c658dbd40a1611a31b991c7f427cb33cc97139"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#444295ba6d95181ffbee8569994596c05818929c"
 dependencies = [
  "anyhow",
  "base58",
@@ -1044,7 +1044,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#88c658dbd40a1611a31b991c7f427cb33cc97139"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#444295ba6d95181ffbee8569994596c05818929c"
 dependencies = [
  "anyhow",
  "colored",
@@ -1099,7 +1099,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-link-factory-dependencies#866f8fb5822c4faed235b941f7a53f1509663892"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-link-factory-dependencies#0afc369040ffa905e53445c917b4695f1fb95923"
 dependencies = [
  "anyhow",
  "clap",
