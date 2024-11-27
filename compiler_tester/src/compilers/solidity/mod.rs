@@ -368,7 +368,7 @@ impl Compiler for SolidityCompiler {
             debug_config,
         )?;
         build.collect_errors()?;
-        let build = build.link(linker_symbols)?;
+        let build = build.link(linker_symbols);
         build.collect_errors()?;
         let builds = build
             .results
@@ -442,7 +442,7 @@ impl Compiler for SolidityCompiler {
         )?;
         build.collect_errors()?;
         let builds: HashMap<String, EVMBuild> = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, result)| {
                 let contract = result.expect("Always valid");

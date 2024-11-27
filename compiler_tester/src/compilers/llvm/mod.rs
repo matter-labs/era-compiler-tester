@@ -73,7 +73,7 @@ impl Compiler for LLVMCompiler {
             debug_config.clone(),
         )?;
         build.collect_errors()?;
-        let build = build.link(linker_symbols)?;
+        let build = build.link(linker_symbols);
         build.collect_errors()?;
         let builds = build
             .results
@@ -121,7 +121,7 @@ impl Compiler for LLVMCompiler {
         )?;
         build.collect_errors()?;
         let builds: HashMap<String, EVMBuild> = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, build)| {
                 let build = build.expect("Always valid");
