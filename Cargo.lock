@@ -1057,7 +1057,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-link-factory-dependencies#905ad476c11f4c50ccf8aecbf5c01c7b8a6428b2"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-link-factory-dependencies#233c50bc1c1743702b66cb89c45d27ef2cb32f0d"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#70a696ff03392b232c5d03114ba25f5dc1c26e69"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#5ece679a239ac6f3b62fe24862e72cd4f2c5b5ad"
 dependencies = [
  "anyhow",
  "clap",
@@ -1099,7 +1099,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-link-factory-dependencies#eda7c6014e746d94bbae92c0b9ca0d3e857b5c6f"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-link-factory-dependencies#72f1c279ca9322527d8a9c97132664e2582f9d49"
 dependencies = [
  "anyhow",
  "clap",
@@ -1122,7 +1122,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#70a696ff03392b232c5d03114ba25f5dc1c26e69"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#5ece679a239ac6f3b62fe24862e72cd4f2c5b5ad"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1139,7 +1139,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#70a696ff03392b232c5d03114ba25f5dc1c26e69"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#5ece679a239ac6f3b62fe24862e72cd4f2c5b5ad"
 dependencies = [
  "anyhow",
  "regex",
@@ -1844,7 +1844,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-link-factory-dependencies#2026c61a299e3b155b4fa178da720102faed69ca"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c5d783f52b755f5382e99e3f1179039b9435e3cc"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1859,7 +1859,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-link-factory-dependencies#2026c61a299e3b155b4fa178da720102faed69ca"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c5d783f52b755f5382e99e3f1179039b9435e3cc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1993,9 +1993,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.165"
+version = "0.2.166"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcb4d3d38eab6c5239a362fa8bae48c03baf980a6e7079f063942d563ef3533e"
+checksum = "c2ccc108bbc0b1331bd061864e7cd823c0cab660bbe6970e66e2c0614decde36"
 
 [[package]]
 name = "libm"
@@ -2039,7 +2039,7 @@ checksum = "4ee93343901ab17bd981295f2cf0026d4ad018c7c31ba84549a4ddbb47a45104"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=az-link-factory-dependencies#06e688f7aca46125bebce1bedc881e3a127ab65e"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#b65826dfdb19676637dbddb9f01bcc52ae2c4308"
 dependencies = [
  "anyhow",
  "cc",
@@ -3681,9 +3681,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-attributes"
-version = "0.1.27"
+version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
+checksum = "395ae124c09f9e6918a2310af6038fba074bcf474ac352496d5910dd59a2226d"
 dependencies = [
  "proc-macro2",
  "quote",

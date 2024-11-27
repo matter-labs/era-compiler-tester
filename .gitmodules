@@ -1,7 +1,7 @@
 [submodule "tests"]
     path = tests
     url = https://github.com/matter-labs/era-compiler-tests
-    branch = main
+    branch = az-link-factory-dependencies
 [submodule "solidity"]
     path = solidity
     url = https://github.com/ethereum/solidity
