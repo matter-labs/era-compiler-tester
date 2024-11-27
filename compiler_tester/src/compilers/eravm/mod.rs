@@ -56,7 +56,7 @@ impl Compiler for EraVMCompiler {
             debug_config.clone(),
         )?;
         build.collect_errors()?;
-        let build = build.link(BTreeMap::new())?;
+        let build = build.link(BTreeMap::new());
         build.collect_errors()?;
         let builds = build
             .results

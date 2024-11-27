@@ -368,7 +368,7 @@ impl Compiler for SolidityCompiler {
             debug_config,
         )?;
         build.collect_errors()?;
-        let build = build.link(linker_symbols)?;
+        let build = build.link(linker_symbols);
         build.collect_errors()?;
         let builds = build
             .results

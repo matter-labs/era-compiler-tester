@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#e2818694b0ea2e4b726a35f4d4bec04eddb89e54"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#b27bad188a07e1377febd8b207076db0f6d8ce27"
 dependencies = [
  "anyhow",
  "clap",
@@ -1122,7 +1122,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#e2818694b0ea2e4b726a35f4d4bec04eddb89e54"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#b27bad188a07e1377febd8b207076db0f6d8ce27"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1139,7 +1139,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#e2818694b0ea2e4b726a35f4d4bec04eddb89e54"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-link-factory-dependencies#b27bad188a07e1377febd8b207076db0f6d8ce27"
 dependencies = [
  "anyhow",
  "regex",
