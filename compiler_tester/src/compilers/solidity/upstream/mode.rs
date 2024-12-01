@@ -9,7 +9,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester Solidity mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Solidity compiler version.
     pub solc_version: semver::Version,

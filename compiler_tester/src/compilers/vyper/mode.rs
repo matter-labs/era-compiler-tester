@@ -9,7 +9,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester Vyper mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Vyper compiler version.
     pub vyper_version: semver::Version,
