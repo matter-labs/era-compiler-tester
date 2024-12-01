@@ -9,11 +9,13 @@ use revm::primitives::EVMError;
 use revm::primitives::ExecutionResult;
 use solidity_adapter::EVMVersion;
 
-use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
+use crate::test::case::input::identifier::InputIdentifier;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
+use crate::test::description::TestDescription;
+use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
@@ -76,15 +78,19 @@ impl DeployEVM {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
+        context: InputContext<'_>,
     ) {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Deployer {
+                contract_identifier: self.identifier.clone(),
+            },
+        );
+        let name = test.selector.to_string();
 
         vm.populate_storage(self.storage.inner);
         let result = match vm.execute_deploy_code(
-            name.clone(),
+            name,
             self.identifier.as_str(),
             self.caller,
             self.value,
@@ -92,25 +98,16 @@ impl DeployEVM {
         ) {
             Ok(execution_result) => execution_result,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), name, error);
+                Summary::invalid(summary, test, error);
                 return;
             }
         };
         if result.output == self.expected {
-            Summary::passed_runtime(
-                summary,
-                mode,
-                name,
-                test_group,
-                result.cycles,
-                0,
-                result.gas,
-            );
+            Summary::passed_runtime(summary, test, result.cycles, 0, result.gas);
         } else {
             Summary::failed(
                 summary,
-                mode,
-                name,
+                test,
                 self.expected,
                 result.output,
                 self.calldata.inner,
@@ -121,17 +118,19 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm(
+    pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: Revm,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
+        vm: Revm<'b>,
         evm_version: Option<EVMVersion>,
-    ) -> Revm {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
-
+        context: InputContext<'_>,
+    ) -> Revm<'b> {
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Deployer {
+                contract_identifier: self.identifier.clone(),
+            },
+        );
         let size = self.deploy_code.len();
 
         let vm = vm.update_deploy_balance(&self.caller);
@@ -141,48 +140,15 @@ impl DeployEVM {
         let result = match vm.state.transact_commit() {
             Ok(res) => res,
             Err(error) => {
-                match error {
-                    EVMError::Transaction(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Transaction: {error:?}"),
-                        );
-                    }
-                    EVMError::Header(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Header: {error:?}"),
-                        );
-                    }
-                    EVMError::Database(_error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            "Error on Database",
-                        );
-                    }
-                    EVMError::Custom(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Custom: {error:?}"),
-                        );
-                    }
-                    EVMError::Precompile(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Precompile: {error:?}"),
-                        );
-                    }
-                }
+                let error_msg = match error {
+                    EVMError::Transaction(error) => format!("Error on Transaction: {error:?}"),
+                    EVMError::Header(error) => format!("Error on Header: {error:?}"),
+                    EVMError::Database(_error) => "Error on Database".into(),
+                    EVMError::Custom(error) => format!("Error on Custom: {error:?}"),
+                    EVMError::Precompile(error) => format!("Error on Precompile: {error:?}"),
+                };
+
+                Summary::invalid(summary.clone(), test, error_msg);
                 return vm;
             }
         };
@@ -205,18 +171,11 @@ impl DeployEVM {
         };
 
         if output == self.expected {
-            Summary::passed_deploy(summary, mode, name, test_group, size, 0, 0, gas);
+            Summary::passed_deploy(summary, test, size, 0, 0, gas);
         } else if let Some(error) = error {
-            Summary::invalid(summary, Some(mode), name, format!("{error:?}"));
+            Summary::invalid(summary, test, format!("{error:?}"));
         } else {
-            Summary::failed(
-                summary,
-                mode,
-                name,
-                self.expected,
-                output,
-                self.calldata.inner,
-            );
+            Summary::failed(summary, test, self.expected, output, self.calldata.inner);
         }
 
         vm
@@ -229,20 +188,24 @@ impl DeployEVM {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
-        mode: Mode,
         deployer: &mut D,
-        test_group: Option<String>,
-        name_prefix: String,
+        context: InputContext<'_>,
     ) where
         D: EraVMDeployer,
     {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.identifier);
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Deployer {
+                contract_identifier: self.identifier.clone(),
+            },
+        );
 
+        let name = test.selector.to_string();
         let size = self.deploy_code.len();
 
         vm.populate_storage(self.storage.inner);
         let result = match deployer.deploy_evm::<M>(
-            name.clone(),
+            name,
             self.caller,
             self.deploy_code,
             self.calldata.inner.clone(),
@@ -251,26 +214,16 @@ impl DeployEVM {
         ) {
             Ok(result) => result,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), name, error);
+                Summary::invalid(summary, test, error);
                 return;
             }
         };
         if result.output == self.expected {
-            Summary::passed_deploy(
-                summary,
-                mode,
-                name,
-                test_group,
-                size,
-                result.cycles,
-                result.ergs,
-                result.gas,
-            );
+            Summary::passed_deploy(summary, test, size, result.cycles, result.ergs, result.gas);
         } else {
             Summary::failed(
                 summary,
-                mode,
-                name,
+                test,
                 self.expected,
                 result.output,
                 self.calldata.inner,

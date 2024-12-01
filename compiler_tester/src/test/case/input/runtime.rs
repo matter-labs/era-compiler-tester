@@ -10,11 +10,13 @@ use revm::primitives::EVMError;
 use revm::primitives::ExecutionResult;
 use solidity_adapter::EVMVersion;
 
-use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
+use crate::test::case::input::identifier::InputIdentifier;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
+use crate::test::context::input::InputContext;
+use crate::test::description::TestDescription;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
@@ -76,15 +78,20 @@ impl Runtime {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        context: InputContext<'_>,
     ) {
-        let name = format!("{name_prefix}[{}:{index}]", self.name);
+        let group = context.case_context.group.clone();
+        let input_index = context.selector;
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Runtime {
+                input_index,
+                name: self.name,
+            },
+        );
+        let name = test.selector.to_string();
         vm.populate_storage(self.storage.inner);
-
-        let vm_function = match test_group.as_deref() {
+        let vm_function = match group.as_deref() {
             Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) => {
                 EraVM::execute_evm_interpreter::<M>
             }
@@ -92,7 +99,7 @@ impl Runtime {
         };
         let result = match vm_function(
             vm,
-            name.clone(),
+            name,
             self.address,
             self.caller,
             self.value,
@@ -101,26 +108,17 @@ impl Runtime {
         ) {
             Ok(result) => result,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), name, error);
+                Summary::invalid(summary, test, error);
                 return;
             }
         };
 
         if result.output == self.expected {
-            Summary::passed_runtime(
-                summary,
-                mode,
-                name,
-                test_group,
-                result.cycles,
-                result.ergs,
-                result.gas,
-            );
+            Summary::passed_runtime(summary, test, result.cycles, result.ergs, result.gas);
         } else {
             Summary::failed(
                 summary,
-                mode,
-                name,
+                test,
                 self.expected,
                 result.output,
                 self.calldata.inner,
@@ -135,15 +133,20 @@ impl Runtime {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        context: InputContext<'_>,
     ) {
-        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+        let input_index = context.selector;
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Runtime {
+                input_index,
+                name: self.name,
+            },
+        );
+        let name = test.selector.to_string();
         vm.populate_storage(self.storage.inner);
         let result = match vm.execute_runtime_code(
-            name.clone(),
+            name,
             self.address,
             self.caller,
             self.value,
@@ -151,25 +154,16 @@ impl Runtime {
         ) {
             Ok(execution_result) => execution_result,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), name, error);
+                Summary::invalid(summary, test, error);
                 return;
             }
         };
         if result.output == self.expected {
-            Summary::passed_runtime(
-                summary,
-                mode,
-                name,
-                test_group,
-                result.cycles,
-                result.ergs,
-                result.gas,
-            );
+            Summary::passed_runtime(summary, test, result.cycles, result.ergs, result.gas);
         } else {
             Summary::failed(
                 summary,
-                mode,
-                name,
+                test,
                 self.expected,
                 result.output,
                 self.calldata.inner,
@@ -180,22 +174,27 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm(
+    pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: Revm,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        vm: Revm<'b>,
         evm_version: Option<EVMVersion>,
-    ) -> Revm {
-        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+        context: InputContext<'_>,
+    ) -> Revm<'b> {
+        let input_index = context.selector;
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Runtime {
+                input_index,
+                name: self.name,
+            },
+        );
+        let name = test.selector.to_string();
 
         // On revm we can't send a tx with a tx_origin different from the tx_sender,
         // this specific test expects tx_origin to be that value, so we change the sender
         let mut caller = self.caller;
-        if name_prefix == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+        if name == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
                 .unwrap();
         }
@@ -219,48 +218,15 @@ impl Runtime {
         let result = match vm.state.transact_commit() {
             Ok(result) => result,
             Err(error) => {
-                match error {
-                    EVMError::Transaction(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Transaction: {error:?}"),
-                        );
-                    }
-                    EVMError::Header(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Header: {error:?}"),
-                        );
-                    }
-                    EVMError::Database(_error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            "Error on Database",
-                        );
-                    }
-                    EVMError::Custom(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Custom: {error:?}"),
-                        );
-                    }
-                    EVMError::Precompile(error) => {
-                        Summary::invalid(
-                            summary.clone(),
-                            Some(mode.clone()),
-                            name.clone(),
-                            format!("Error on Precompile: {error:?}"),
-                        );
-                    }
-                }
+                let error_msg = match error {
+                    EVMError::Transaction(error) => format!("Error on Transaction: {error:?}"),
+                    EVMError::Header(error) => format!("Error on Header: {error:?}"),
+                    EVMError::Database(_error) => "Error on Database".into(),
+                    EVMError::Custom(error) => format!("Error on Custom: {error:?}"),
+                    EVMError::Precompile(error) => format!("Error on Precompile: {error:?}"),
+                };
+
+                Summary::invalid(summary.clone(), test, error_msg);
                 return vm;
             }
         };
@@ -289,18 +255,11 @@ impl Runtime {
         };
 
         if output == self.expected {
-            Summary::passed_runtime(summary, mode, name, test_group, 0, 0, gas);
+            Summary::passed_runtime(summary, test, 0, 0, gas);
         } else if let Some(error) = error {
-            Summary::invalid(summary, Some(mode), name, format!("{error:?}"));
+            Summary::invalid(summary, test, format!("{error:?}"));
         } else {
-            Summary::failed(
-                summary,
-                mode,
-                name,
-                self.expected,
-                output,
-                self.calldata.inner,
-            );
+            Summary::failed(summary, test, self.expected, output, self.calldata.inner);
         };
         vm
     }
@@ -312,15 +271,20 @@ impl Runtime {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        context: InputContext<'_>,
     ) {
-        let name = format!("{}[{}:{}]", name_prefix, self.name, index);
+        let input_index = context.selector;
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Runtime {
+                input_index,
+                name: self.name,
+            },
+        );
+        let name = test.selector.to_string();
         vm.populate_storage(self.storage.inner);
         let result = match vm.execute_evm_interpreter::<M>(
-            name.clone(),
+            name,
             self.address,
             self.caller,
             self.value,
@@ -329,26 +293,17 @@ impl Runtime {
         ) {
             Ok(result) => result,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), name, error);
+                Summary::invalid(summary, test, error);
                 return;
             }
         };
 
         if result.output == self.expected {
-            Summary::passed_runtime(
-                summary,
-                mode,
-                name,
-                test_group,
-                result.cycles,
-                result.ergs,
-                result.gas,
-            );
+            Summary::passed_runtime(summary, test, result.cycles, result.ergs, result.gas);
         } else {
             Summary::failed(
                 summary,
-                mode,
-                name,
+                test,
                 self.expected,
                 result.output,
                 self.calldata.inner,

@@ -6,6 +6,7 @@ pub mod balance;
 pub mod calldata;
 pub mod deploy_eravm;
 pub mod deploy_evm;
+pub mod identifier;
 pub mod output;
 pub mod runtime;
 pub mod storage;
@@ -21,6 +22,7 @@ use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
+use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::EVM;
@@ -367,35 +369,19 @@ impl Input {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
-        mode: Mode,
         deployer: &mut D,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        context: InputContext<'_>,
     ) where
         D: EraVMDeployer,
     {
         match self {
-            Self::DeployEraVM(deploy) => {
-                deploy.run_eravm::<_, M>(summary, vm, mode, deployer, test_group, name_prefix)
+            Self::DeployEraVM(deploy) => deploy.run_eravm::<_, M>(summary, vm, deployer, context),
+            Self::DeployEVM(deploy) => {
+                deploy.run_evm_interpreter::<_, M>(summary, vm, deployer, context)
             }
-            Self::DeployEVM(deploy) => deploy.run_evm_interpreter::<_, M>(
-                summary,
-                vm,
-                mode,
-                deployer,
-                test_group,
-                name_prefix,
-            ),
-            Self::Runtime(runtime) => {
-                runtime.run_eravm::<M>(summary, vm, mode, test_group, name_prefix, index)
-            }
-            Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_eravm(summary, vm, mode, test_group, name_prefix, index)
-            }
-            Self::Balance(balance_check) => {
-                balance_check.run_eravm(summary, vm, mode, test_group, name_prefix, index)
-            }
+            Self::Runtime(runtime) => runtime.run_eravm::<M>(summary, vm, context),
+            Self::StorageEmpty(storage_empty) => storage_empty.run_eravm(summary, vm, context),
+            Self::Balance(balance_check) => balance_check.run_eravm(summary, vm, context),
         };
     }
 
@@ -406,61 +392,39 @@ impl Input {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EVM,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        context: InputContext<'_>,
     ) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on EVM"),
-            Self::DeployEVM(deploy) => {
-                deploy.run_evm_emulator(summary, vm, mode, test_group, name_prefix)
-            }
-            Self::Runtime(runtime) => {
-                runtime.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
-            }
+            Self::DeployEVM(deploy) => deploy.run_evm_emulator(summary, vm, context),
+            Self::Runtime(runtime) => runtime.run_evm_emulator(summary, vm, context),
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_evm_emulator(summary, vm, context)
             }
-            Self::Balance(balance_check) => {
-                balance_check.run_evm_emulator(summary, vm, mode, test_group, name_prefix, index)
-            }
+            Self::Balance(balance_check) => balance_check.run_evm_emulator(summary, vm, context),
         };
     }
 
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm(
+    pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: Revm,
-        mode: Mode,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        mut vm: Revm<'b>,
         evm_version: Option<solidity_adapter::EVMVersion>,
-    ) -> Revm {
+        context: InputContext<'_>,
+    ) -> Revm<'b> {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => {
-                deploy.run_revm(summary, vm, mode, test_group, name_prefix, evm_version)
-            }
-            Self::Runtime(runtime) => runtime.run_revm(
-                summary,
-                vm,
-                mode,
-                test_group,
-                name_prefix,
-                index,
-                evm_version,
-            ),
+            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, evm_version, context),
+            Self::Runtime(runtime) => runtime.run_revm(summary, vm, evm_version, context),
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                storage_empty.run_revm(summary, &mut vm, context);
                 vm
             }
             Self::Balance(balance_check) => {
-                balance_check.run_revm(summary, &mut vm, mode, test_group, name_prefix, index);
+                balance_check.run_revm(summary, &mut vm, context);
                 vm
             }
         }
@@ -473,11 +437,8 @@ impl Input {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
-        mode: Mode,
         deployer: &mut D,
-        test_group: Option<String>,
-        name_prefix: String,
-        index: usize,
+        context: InputContext<'_>,
     ) where
         D: EraVMDeployer,
     {
@@ -485,23 +446,14 @@ impl Input {
             Self::DeployEraVM { .. } => {
                 panic!("EraVM deploy transaction cannot be run on EVM interpreter")
             }
-            Self::DeployEVM(deploy) => deploy.run_evm_interpreter::<_, M>(
-                summary,
-                vm,
-                mode,
-                deployer,
-                test_group,
-                name_prefix,
-            ),
-            Self::Runtime(runtime) => {
-                runtime.run_evm_interpreter::<M>(summary, vm, mode, test_group, name_prefix, index)
+            Self::DeployEVM(deploy) => {
+                deploy.run_evm_interpreter::<_, M>(summary, vm, deployer, context)
             }
+            Self::Runtime(runtime) => runtime.run_evm_interpreter::<M>(summary, vm, context),
             Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_evm_interpreter(summary, vm, mode, test_group, name_prefix, index)
+                storage_empty.run_evm_interpreter(summary, vm, context)
             }
-            Self::Balance(balance_check) => {
-                balance_check.run_evm_interpreter(summary, vm, mode, test_group, name_prefix, index)
-            }
+            Self::Balance(balance_check) => balance_check.run_evm_interpreter(summary, vm, context),
         };
     }
 }
