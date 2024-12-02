@@ -251,6 +251,11 @@ cargo run --release --bin compiler-tester -- \
 	--zkvyper '../era-compiler-vyper/target/release/zkvyper'
 ```
 
+## Report formats
+
+Use the parameter `--benchmark-format` to select the output format: `json` (default), or `csv`.
+
+
 ## Tracing
 
 If you run the tester with `-T` flag, JSON trace files will be written to the `./trace/` directory.
