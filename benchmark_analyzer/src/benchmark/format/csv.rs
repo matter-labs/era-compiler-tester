@@ -6,7 +6,9 @@ use std::fmt::Write;
 
 use super::Benchmark;
 use super::IBenchmarkSerializer;
+use crate::benchmark::group::element::selector::Selector;
 use crate::benchmark::group::element::Element;
+use crate::benchmark::metadata::Metadata;
 
 /// Serialize the benchmark to CSV in the following format:
 /// "group_name", "element_name", "size_str", "cycles", "ergs", "gas"
@@ -18,23 +20,31 @@ impl IBenchmarkSerializer for Csv {
 
     fn serialize_to_string(&self, benchmark: &Benchmark) -> Result<String, Self::Err> {
         let mut result = String::with_capacity(estimate_csv_size(benchmark));
-        result.push_str(r#""group", "test", "size", "cycles", "ergs", "gas""#);
+        result.push_str(
+            r#""group", "mode", "path", "case", "input", "size", "cycles", "ergs", "gas""#,
+        );
         result.push('\n');
         for (group_name, group) in &benchmark.groups {
-            for (
-                element_name,
-                Element {
-                    size,
-                    cycles,
-                    ergs,
-                    gas,
-                },
-            ) in &group.elements
+            for Element {
+                metadata:
+                    Metadata {
+                        selector: Selector { path, case, input },
+                        mode,
+                        group: _,
+                    },
+                size,
+                cycles,
+                ergs,
+                gas,
+            } in group.elements.values()
             {
-                let size_str = size.map_or(String::from(""), |s| format!("{}", s));
+                let size_str = size.map_or(String::from(""), |s| s.to_string());
+                let mode = mode.as_deref().unwrap_or_default();
+                let input = input.clone().map(|s| s.to_string()).unwrap_or_default();
+                let case = case.as_deref().unwrap_or_default();
                 writeln!(
                     &mut result,
-                    "\"{group_name}\", \"{element_name}\", {size_str}, {cycles}, {ergs}, {gas}",
+                    r#""{group_name}", "{mode}", "{path}", "{case}", "{input}", {size_str}, {cycles}, {ergs}, {gas}"#,
                 )?;
             }
         }

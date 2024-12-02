@@ -4,6 +4,7 @@
 
 pub mod format;
 pub mod group;
+pub mod metadata;
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;

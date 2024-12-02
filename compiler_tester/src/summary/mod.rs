@@ -2,11 +2,13 @@
 //! The compiler tester summary.
 //!
 
+pub mod benchmark_adapters;
 pub mod element;
 
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use benchmark_adapters::metadata::convert_description;
 use colored::Colorize;
 
 use crate::test::case::input::output::Output;
@@ -143,8 +145,12 @@ impl Summary {
                 .as_ref()
                 .and_then(|mode| mode.llvm_optimizer_settings().cloned());
 
+            let metadata = {
+                let default_group = group.clone().unwrap_or_default();
+                convert_description(&element.test_description, &default_group)
+            };
             let benchmark_element =
-                benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs, gas);
+                benchmark_analyzer::BenchmarkElement::new(metadata, size, cycles, ergs, gas);
             if let Some(group) = group {
                 let group_key = match mode {
                     Some(ref mode) => format!("{group} {mode}"),
