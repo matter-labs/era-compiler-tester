@@ -42,18 +42,25 @@ impl Mode {
             _ => panic!("Non-Yul-upstream mode"),
         }
     }
+
+    ///
+    /// Returns a string representation excluding the solc version.
+    ///
+    pub fn repr_without_version(&self) -> String {
+        if self.via_mlir {
+            String::from("L")
+        } else {
+            format!("Y{}", if self.solc_optimize { '+' } else { '-' },)
+        }
+    }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.via_mlir {
-            return write!(f, "L {}", self.solc_version);
-        }
-
         write!(
             f,
-            "Y{} {}",
-            if self.solc_optimize { '+' } else { '-' },
+            "{} {}",
+            self.repr_without_version(),
             self.solc_version,
         )
     }

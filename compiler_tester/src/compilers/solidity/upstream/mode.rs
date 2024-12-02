@@ -111,24 +111,29 @@ impl Mode {
             }
         }
     }
+
+    ///
+    /// Returns a string representation excluding the solc version.
+    ///
+    pub fn repr_without_version(&self) -> String {
+        if self.via_mlir {
+            String::from("L")
+        } else {
+            format!(
+                "{}{}",
+                match self.solc_codegen {
+                    era_solc::StandardJsonInputCodegen::Yul => "Y",
+                    era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
+                    era_solc::StandardJsonInputCodegen::EVMLA => "E",
+                },
+                if self.solc_optimize { '+' } else { '-' },
+            )
+        }
+    }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.via_mlir {
-            return write!(f, "L {}", self.solc_version);
-        }
-
-        write!(
-            f,
-            "{}{} {}",
-            match self.solc_codegen {
-                era_solc::StandardJsonInputCodegen::Yul => "Y",
-                era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
-                era_solc::StandardJsonInputCodegen::EVMLA => "E",
-            },
-            if self.solc_optimize { '+' } else { '-' },
-            self.solc_version,
-        )
+        write!(f, "{} {}", self.repr_without_version(), self.solc_version,)
     }
 }

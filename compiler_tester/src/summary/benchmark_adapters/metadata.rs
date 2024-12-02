@@ -3,13 +3,13 @@
 //!
 
 use crate::test::description::TestDescription;
+use crate::Mode;
 
 use super::selector::convert_selector;
 
 ///
 /// Converts `[TestSelector]` to the representation used by the benchmark.
 ///
-
 pub fn convert_description(
     description: &TestDescription,
     default_group: &str,
@@ -20,11 +20,40 @@ pub fn convert_description(
         selector,
     } = description.clone();
     let selector = convert_selector(selector);
-    let mode = mode.map(|m| m.to_string());
+    let version = match &mode {
+        Some(mode) => mode_version(mode.clone()).map(|m| m.to_string()),
+        None => None,
+    };
+    let mode = mode.map(mode_string).unwrap_or_default();
     let group = group.unwrap_or(default_group.to_string());
     benchmark_analyzer::Metadata {
         selector,
         mode,
+        version,
         group,
+    }
+}
+
+fn mode_version(mode: Mode) -> Option<semver::Version> {
+    match mode {
+        Mode::Solidity(mode) => Some(mode.solc_version),
+        Mode::SolidityUpstream(mode) => Some(mode.solc_version),
+        Mode::Yul(_) => None,
+        Mode::YulUpstream(mode) => Some(mode.solc_version),
+        Mode::Vyper(mode) => Some(mode.vyper_version),
+        Mode::LLVM(_) => None,
+        Mode::EraVM(_) => None,
+    }
+}
+
+fn mode_string(mode: Mode) -> Option<String> {
+    match mode {
+        Mode::Solidity(mode) => Some(mode.repr_without_version()),
+        Mode::SolidityUpstream(mode) => Some(mode.repr_without_version()),
+        Mode::Yul(_) => None,
+        Mode::YulUpstream(mode) => Some(mode.repr_without_version()),
+        Mode::Vyper(mode) => Some(mode.repr_without_version()),
+        Mode::LLVM(_) => None,
+        Mode::EraVM(_) => None,
     }
 }

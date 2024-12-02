@@ -74,15 +74,25 @@ impl Mode {
             }
         })
     }
+
+    ///
+    /// Returns a string representation excluding the vyper version.
+    ///
+    pub fn repr_without_version(&self) -> String {
+        format!(
+            "V{}{}",
+            if self.vyper_optimize { '+' } else { '-' },
+            self.llvm_optimizer_settings,
+        )
+    }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "V{}{} {}",
-            if self.vyper_optimize { '+' } else { '-' },
-            self.llvm_optimizer_settings,
+            "{} {}",
+            self.repr_without_version(),
             self.vyper_version,
         )
     }

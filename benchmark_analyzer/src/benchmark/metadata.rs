@@ -22,6 +22,8 @@ pub struct Metadata {
     pub selector: Selector,
     /// Compiler mode.
     pub mode: Option<Mode>,
+    /// Compiler version, e.g. solc.
+    pub version: Option<Mode>,
     /// Test group
     pub group: String,
 }
