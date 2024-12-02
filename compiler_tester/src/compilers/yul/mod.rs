@@ -96,23 +96,23 @@ impl Compiler for YulCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            linker_symbols,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
-            None,
             debug_config.clone(),
         )?;
         build.collect_errors()?;
+        let build = build.link(linker_symbols);
+        build.collect_errors()?;
         let builds = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, result)| {
                 let contract = result.expect("Always valid");
-                let build = era_compiler_llvm_context::EraVMBuild::new(
+                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash,
+                    contract.build.bytecode_hash.expect("Always exists"),
                     None,
                     contract.build.assembly,
                 );

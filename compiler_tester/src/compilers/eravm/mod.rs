@@ -49,17 +49,17 @@ impl Compiler for EraVMCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            BTreeMap::new(),
             era_compiler_common::HashType::Ipfs,
             era_compiler_llvm_context::OptimizerSettings::none(),
             llvm_options,
             true,
-            None,
             debug_config.clone(),
         )?;
         build.collect_errors()?;
+        let build = build.link(BTreeMap::new());
+        build.collect_errors()?;
         let builds = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, result)| Ok((path, result.expect("Always valid").build)))
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
