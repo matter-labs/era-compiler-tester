@@ -4,12 +4,12 @@
 
 use crate::test::case::input::identifier::InputIdentifier;
 
-impl Into<benchmark_analyzer::Input> for InputIdentifier {
+impl From<InputIdentifier> for benchmark_analyzer::Input {
     ///
     /// Converts `[InputIdentifier]` to the representation used by the benchmark.
     ///
-    fn into(self) -> benchmark_analyzer::Input {
-        match self {
+    fn from(val: InputIdentifier) -> Self {
+        match val {
             InputIdentifier::Deployer {
                 contract_identifier,
             } => benchmark_analyzer::Input::Deployer {

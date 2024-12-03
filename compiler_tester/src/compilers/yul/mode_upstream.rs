@@ -57,11 +57,6 @@ impl Mode {
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} {}",
-            self.repr_without_version(),
-            self.solc_version,
-        )
+        write!(f, "{} {}", self.repr_without_version(), self.solc_version,)
     }
 }
