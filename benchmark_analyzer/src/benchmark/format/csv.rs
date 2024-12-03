@@ -6,9 +6,9 @@ use std::fmt::Write;
 
 use super::Benchmark;
 use super::IBenchmarkSerializer;
+use crate::benchmark::group::element::metadata::Metadata;
 use crate::benchmark::group::element::selector::Selector;
 use crate::benchmark::group::element::Element;
-use crate::benchmark::metadata::Metadata;
 
 ///
 /// Serialize the benchmark to CSV in the following format:

@@ -3,12 +3,13 @@
 //!
 
 pub mod input;
+pub mod metadata;
 pub mod selector;
 
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::benchmark::metadata::Metadata;
+use metadata::Metadata;
 
 ///
 /// The benchmark element.
