@@ -41,7 +41,7 @@ impl IBenchmarkSerializer for Csv {
                 gas,
             } in group.elements.values()
             {
-                let size_str = size.map_or(String::from(""), |s| s.to_string());
+                let size_str = size.map(|s| s.to_string()).unwrap_or_default();
                 let mode = mode.as_deref().unwrap_or_default();
                 let input = input.clone().map(|s| s.to_string()).unwrap_or_default();
                 let case = case.as_deref().unwrap_or_default();
