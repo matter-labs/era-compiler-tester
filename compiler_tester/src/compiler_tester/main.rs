@@ -223,8 +223,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
-        let output_format = arguments.benchmark_format.unwrap_or_default();
-        match output_format {
+        match arguments.benchmark_format {
             BenchmarkFormat::Json => {
                 benchmark.write_to_file(path, benchmark_analyzer::JsonSerializer)?
             }
@@ -277,7 +276,7 @@ mod tests {
             save_system_contracts: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
-            benchmark_format: Some(BenchmarkFormat::Json),
+            benchmark_format: BenchmarkFormat::Json,
         };
 
         crate::main_inner(arguments).expect("Manual testing failed");

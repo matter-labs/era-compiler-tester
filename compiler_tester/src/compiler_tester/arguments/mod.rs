@@ -44,8 +44,8 @@ pub struct Arguments {
     pub benchmark: Option<PathBuf>,
 
     /// The benchmark output format.
-    #[structopt(long = "benchmark-format")]
-    pub benchmark_format: Option<BenchmarkFormat>,
+    #[structopt(long = "benchmark-format", default_value_t = BenchmarkFormat::Json)]
+    pub benchmark_format: BenchmarkFormat,
 
     /// Sets the number of threads, which execute the tests concurrently.
     #[structopt(short, long)]
