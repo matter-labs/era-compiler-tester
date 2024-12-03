@@ -214,7 +214,7 @@ impl Benchmark {
     ) -> anyhow::Result<()> {
         let contents = serializer.serialize_to_string(&self).expect("Always valid");
         std::fs::write(path.as_path(), contents)
-            .map_err(|error| anyhow::anyhow!("Benchmark file {:?} reading: {}", path, error))?;
+            .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
         Ok(())
     }
 }

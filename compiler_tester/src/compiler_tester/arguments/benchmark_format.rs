@@ -14,8 +14,7 @@ impl std::str::FromStr for BenchmarkFormat {
             "json" => Ok(Self::Json),
             "csv" => Ok(Self::Csv),
             string => anyhow::bail!(
-                "Unknown benchmark format `{}`. Supported formats: {}",
-                string,
+                "Unknown benchmark format `{string}`. Supported formats: {}",
                 vec![Self::Json, Self::Csv]
                     .into_iter()
                     .map(|element| element.to_string().to_lowercase())
