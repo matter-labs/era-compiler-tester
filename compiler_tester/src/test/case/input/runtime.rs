@@ -189,12 +189,11 @@ impl Runtime {
                 name: self.name,
             },
         );
-        let name = test.selector.to_string();
 
         // On revm we can't send a tx with a tx_origin different from the tx_sender,
         // this specific test expects tx_origin to be that value, so we change the sender
         let mut caller = self.caller;
-        if name == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+        if test.selector.path == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
             caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
                 .unwrap();
         }
