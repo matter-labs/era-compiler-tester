@@ -258,6 +258,7 @@ mod tests {
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
+            benchmark_format: BenchmarkFormat::Json,
             threads: Some(1),
             dump_system: false,
             disable_deployer: false,
@@ -276,7 +277,6 @@ mod tests {
             save_system_contracts: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
-            benchmark_format: BenchmarkFormat::Json,
         };
 
         crate::main_inner(arguments).expect("Manual testing failed");

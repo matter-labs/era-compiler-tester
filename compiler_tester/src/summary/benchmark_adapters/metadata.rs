@@ -5,11 +5,6 @@
 use crate::test::description::TestDescription;
 use crate::Mode;
 
-use super::selector::convert_selector;
-
-///
-/// Converts `[TestSelector]` to the representation used by the benchmark.
-///
 pub fn convert_description(
     description: &TestDescription,
     default_group: &str,
@@ -19,7 +14,7 @@ pub fn convert_description(
         mode,
         selector,
     } = description.clone();
-    let selector = convert_selector(selector);
+    let selector = selector.into();
     let version = match &mode {
         Some(mode) => mode_version(mode.clone()).map(|m| m.to_string()),
         None => None,
