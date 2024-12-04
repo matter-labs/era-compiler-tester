@@ -251,16 +251,6 @@ cargo run --release --bin compiler-tester -- \
 	--zkvyper '../era-compiler-vyper/target/release/zkvyper'
 ```
 
-## Report formats
-
-Use the parameter `--benchmark-format` to select the output format: `json` (default), or `csv`.
-
-
-## Tracing
-
-If you run the tester with `-T` flag, JSON trace files will be written to the `./trace/` directory.
-The trace files can be used with our [custom ZKsync EraVM assembly tracer](https://staging-scan-v2.zksync.dev/tools/debugger) for debugging and research purposes.
-
 ## Benchmarking
 
 1. Change the LLVM branch to the base in the `LLVM.lock` file at the repository root, checkout and build it:
@@ -295,6 +285,10 @@ cargo run --release --bin benchmark-analyzer -- --reference reference.json --can
 ```
 
 After you make any changes in LLVM, you only need to repeat steps 2-3 to update the working branch benchmark data.
+
+### Report formats
+
+Use the parameter `--benchmark-format` to select the output format: `json` (default), or `csv`.
 
 ## Troubleshooting
 
