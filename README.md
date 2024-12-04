@@ -18,6 +18,8 @@ By default, the Tester SHOULD run the entire Collection in all possible combinat
 but it MAY omit some subset of the combinations for the sake of saving time, e.g. when only front-end changes have been
 made, and there is no point in running tests in all LLVM optimization modes.
 
+
+
 ## Building
 
 <details>
@@ -123,6 +125,8 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 When the build succeeds, you can run the tests using [the examples below](#usage).
 
+
+
 ## GitHub Actions
 
 The `era-compiler-tester` is integrated into the GitHub Actions workflows of the following projects:
@@ -137,6 +141,8 @@ To allow testing custom FE and VM changes in Pull Requests (PRs) of these reposi
 If these tags exist, the tester from these tags will be used by the workflows instead of the default `main` branch.
 
 When testing is done, these tags should be removed.
+
+
 
 ## What is supported
 
@@ -180,6 +186,8 @@ Currently only relevant for the Solidity compiler, where you can choose the IR:
 
 Most of the specifiers support wildcards `*` (any), `^` ('3' and 'z').
 With no mode argument, iterates over all option combinations (approximately 800).
+
+
 
 ## Usage
 
@@ -251,10 +259,7 @@ cargo run --release --bin compiler-tester -- \
 	--zkvyper '../era-compiler-vyper/target/release/zkvyper'
 ```
 
-## Tracing
 
-If you run the tester with `-T` flag, JSON trace files will be written to the `./trace/` directory.
-The trace files can be used with our [custom ZKsync EraVM assembly tracer](https://staging-scan-v2.zksync.dev/tools/debugger) for debugging and research purposes.
 
 ## Benchmarking
 
@@ -291,9 +296,17 @@ cargo run --release --bin benchmark-analyzer -- --reference reference.json --can
 
 After you make any changes in LLVM, you only need to repeat steps 2-3 to update the working branch benchmark data.
 
+### Report formats
+
+Use the parameter `--benchmark-format` to select the output format: `json` (default), or `csv`.
+
+
+
 ## Troubleshooting
 
 - Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`.
+
+
 
 ## License
 
@@ -304,9 +317,13 @@ The Era Compiler Tester is distributed under the terms of either
 
 at your option.
 
+
+
 ## Resources
 
 [ZKsync Era compiler toolchain documentation](https://docs.zksync.io/zk-stack/components/compiler/toolchain)
+
+
 
 ## Official Links
 
@@ -315,6 +332,8 @@ at your option.
 - [Twitter](https://twitter.com/zksync)
 - [Twitter for Devs](https://twitter.com/ZKsyncDevs)
 - [Discord](https://join.zksync.dev/)
+
+
 
 ## Disclaimer
 

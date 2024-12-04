@@ -9,7 +9,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester Yul mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The optimizer settings.
     pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,

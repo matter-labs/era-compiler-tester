@@ -2,11 +2,14 @@
 //! The benchmark representation.
 //!
 
+pub mod format;
 pub mod group;
+pub mod metadata;
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use format::IBenchmarkSerializer;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -202,12 +205,16 @@ impl Benchmark {
     }
 
     ///
-    /// Writes the benchmark to a file.
+    /// Writes the benchmark results to a file using a provided serializer.
     ///
-    pub fn write_to_file(self, path: PathBuf) -> anyhow::Result<()> {
-        let contents = serde_json::to_string(&self).expect("Always valid");
+    pub fn write_to_file(
+        self,
+        path: PathBuf,
+        serializer: impl IBenchmarkSerializer,
+    ) -> anyhow::Result<()> {
+        let contents = serializer.serialize_to_string(&self).expect("Always valid");
         std::fs::write(path.as_path(), contents)
-            .map_err(|error| anyhow::anyhow!("Benchmark file {:?} reading: {}", path, error))?;
+            .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
         Ok(())
     }
 }

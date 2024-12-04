@@ -17,7 +17,7 @@ use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 ///
 /// The compiler mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Mode {
     /// The `Solidity` mode.

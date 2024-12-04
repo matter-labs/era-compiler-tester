@@ -9,7 +9,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester Vyper mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Vyper compiler version.
     pub vyper_version: semver::Version,
@@ -74,16 +74,21 @@ impl Mode {
             }
         })
     }
+
+    ///
+    /// Returns a string representation excluding the vyper version.
+    ///
+    pub fn repr_without_version(&self) -> String {
+        format!(
+            "V{}{}",
+            if self.vyper_optimize { '+' } else { '-' },
+            self.llvm_optimizer_settings,
+        )
+    }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "V{}{} {}",
-            if self.vyper_optimize { '+' } else { '-' },
-            self.llvm_optimizer_settings,
-            self.vyper_version,
-        )
+        write!(f, "{} {}", self.repr_without_version(), self.vyper_version,)
     }
 }

@@ -19,7 +19,9 @@ use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
 use crate::test::case::Case;
+use crate::test::description::TestDescription;
 use crate::test::instance::Instance;
+use crate::test::selector::TestSelector;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
@@ -61,8 +63,8 @@ pub fn default_caller_address() -> String {
 pub struct MatterLabsTest {
     /// The test path.
     path: PathBuf,
-    /// The test identifier.
-    identifier: String,
+    /// The test selector.
+    selector: TestSelector,
     /// The test metadata.
     metadata: Metadata,
     /// The test sources.
@@ -74,16 +76,22 @@ impl MatterLabsTest {
     /// Try to create new test.
     ///
     pub fn new(path: PathBuf, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Self> {
-        let identifier = path.to_string_lossy().to_string();
+        let selector = TestSelector {
+            path: path.to_string_lossy().to_string(),
+            case: None,
+            input: None,
+        };
 
-        if !filters.check_test_path(identifier.as_str()) {
+        if !filters.check_test_path(selector.path.to_string().as_str()) {
             return None;
         }
+
+        let test_description = TestDescription::default_for(selector.clone());
 
         let main_file_string = match std::fs::read_to_string(path.as_path()) {
             Ok(data) => data,
             Err(error) => {
-                Summary::invalid(summary, None, identifier.clone(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -93,13 +101,13 @@ impl MatterLabsTest {
         {
             Ok(metadata) => metadata,
             Err(error) => {
-                Summary::invalid(summary, None, identifier.clone(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
 
         if metadata.ignore {
-            Summary::ignored(summary, identifier.clone());
+            Summary::ignored(summary, test_description);
             return None;
         }
 
@@ -147,7 +155,7 @@ impl MatterLabsTest {
                 {
                     Ok(source) => source,
                     Err(error) => {
-                        Summary::invalid(summary, None, identifier.clone(), error);
+                        Summary::invalid(summary, test_description, error);
                         return None;
                     }
                 };
@@ -157,12 +165,19 @@ impl MatterLabsTest {
         };
 
         metadata.cases.retain(|case| {
-            let case_name = format!("{}::{}", identifier, case.name);
+            let selector_with_case = TestSelector {
+                path: selector.path.clone(),
+                case: Some(case.name.clone()),
+                input: selector.input.clone(),
+            };
             if case.ignore {
-                Summary::ignored(summary.clone(), case_name);
+                Summary::ignored(
+                    summary.clone(),
+                    TestDescription::default_for(selector_with_case),
+                );
                 return false;
             }
-
+            let case_name = selector_with_case.to_string();
             if !filters.check_case_path(&case_name) {
                 return false;
             }
@@ -171,7 +186,7 @@ impl MatterLabsTest {
 
         Some(Self {
             path,
-            identifier,
+            selector,
             metadata,
             sources,
         })
@@ -215,9 +230,9 @@ impl MatterLabsTest {
     ) {
         if contracts.is_empty() {
             let contract_name = if is_multi_contract {
-                format!("{}:{}", self.identifier, SIMPLE_TESTS_CONTRACT_NAME)
+                format!("{}:{}", self.selector.path, SIMPLE_TESTS_CONTRACT_NAME)
             } else {
-                self.identifier.to_owned()
+                self.selector.path.to_string()
             };
             contracts.insert(SIMPLE_TESTS_INSTANCE.to_owned(), contract_name);
         }
@@ -398,7 +413,6 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
-
         self.check_filters(filters, &mode, era_compiler_common::Target::EraVM)?;
 
         let mut contracts = self.metadata.contracts.clone();
@@ -407,11 +421,16 @@ impl Buildable for MatterLabsTest {
         let mut eravm_address_iterator = EraVMAddressIterator::new();
         let evm_address_iterator = EVMAddressIterator::default();
 
-        let (libraries, library_addresses) = self.get_libraries(&mut eravm_address_iterator);
+        let test_description = TestDescription {
+            group: None,
+            mode: Some(mode.clone()),
+            selector: self.selector.clone(),
+        };
 
+        let (libraries, library_addresses) = self.get_libraries(&mut eravm_address_iterator);
         let eravm_input = match compiler
             .compile_for_eravm(
-                self.identifier.to_owned(),
+                self.selector.path.to_string(),
                 self.sources.clone(),
                 libraries,
                 &mode,
@@ -422,7 +441,7 @@ impl Buildable for MatterLabsTest {
         {
             Ok(vm_input) => vm_input,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -434,7 +453,7 @@ impl Buildable for MatterLabsTest {
         ) {
             Ok(instances) => instances,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -442,7 +461,7 @@ impl Buildable for MatterLabsTest {
         let evm_instances = match self.get_evm_instances() {
             Ok(evm_instances) => evm_instances,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -462,7 +481,7 @@ impl Buildable for MatterLabsTest {
             let case = match case.normalize(&contracts, &instances, environment) {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    Summary::invalid(summary, test_description, error);
                     return None;
                 }
             };
@@ -475,7 +494,7 @@ impl Buildable for MatterLabsTest {
             ) {
                 Ok(_) => {}
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    Summary::invalid(summary, test_description, error);
                     return None;
                 }
             }
@@ -492,7 +511,7 @@ impl Buildable for MatterLabsTest {
             {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    Summary::invalid(summary, test_description, error);
                     return None;
                 }
             };
@@ -514,7 +533,7 @@ impl Buildable for MatterLabsTest {
             .collect();
 
         Some(Test::new(
-            self.identifier.to_owned(),
+            self.selector.to_string(),
             cases,
             mode,
             self.metadata.group.clone(),
@@ -542,9 +561,15 @@ impl Buildable for MatterLabsTest {
 
         let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
 
+        let test_description = TestDescription {
+            group: None,
+            mode: Some(mode.clone()),
+            selector: self.selector.clone(),
+        };
+
         let evm_input = match compiler
             .compile_for_evm(
-                self.identifier.to_owned(),
+                self.selector.path.to_string(),
                 sources,
                 libraries,
                 &mode,
@@ -556,7 +581,7 @@ impl Buildable for MatterLabsTest {
         {
             Ok(output) => output,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -564,7 +589,7 @@ impl Buildable for MatterLabsTest {
         let mut instances = match evm_input.get_instances(&contracts, library_addresses, None) {
             Ok(instances) => instances,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -583,7 +608,7 @@ impl Buildable for MatterLabsTest {
             {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    Summary::invalid(summary, test_description, error);
                     return None;
                 }
             };
@@ -596,7 +621,7 @@ impl Buildable for MatterLabsTest {
             ) {
                 Ok(_) => {}
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    Summary::invalid(summary, test_description, error);
                     return None;
                 }
             }
@@ -613,7 +638,7 @@ impl Buildable for MatterLabsTest {
             {
                 Ok(case) => case,
                 Err(error) => {
-                    Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                    Summary::invalid(summary, test_description, error);
                     return None;
                 }
             };
@@ -622,7 +647,7 @@ impl Buildable for MatterLabsTest {
         }
 
         Some(Test::new(
-            self.identifier.to_owned(),
+            self.selector.to_string(),
             cases,
             mode,
             self.metadata.group.clone(),

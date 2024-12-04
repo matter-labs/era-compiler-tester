@@ -9,7 +9,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester Solidity mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Solidity compiler version.
     pub solc_version: semver::Version,
@@ -111,24 +111,28 @@ impl Mode {
             }
         }
     }
-}
 
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    ///
+    /// Returns a string representation excluding the solc version.
+    ///
+    pub fn repr_without_version(&self) -> String {
         if self.via_mlir {
-            return write!(f, "L {}", self.solc_version);
+            return "L".to_owned();
         }
-
-        write!(
-            f,
-            "{}{} {}",
+        format!(
+            "{}{}",
             match self.solc_codegen {
                 era_solc::StandardJsonInputCodegen::Yul => "Y",
                 era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
                 era_solc::StandardJsonInputCodegen::EVMLA => "E",
             },
             if self.solc_optimize { '+' } else { '-' },
-            self.solc_version,
         )
+    }
+}
+
+impl std::fmt::Display for Mode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.repr_without_version(), self.solc_version)
     }
 }

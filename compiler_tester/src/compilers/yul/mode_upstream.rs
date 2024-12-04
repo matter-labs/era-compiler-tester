@@ -7,7 +7,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester upstream Yul mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Solidity compiler version.
     pub solc_version: semver::Version,
@@ -42,19 +42,21 @@ impl Mode {
             _ => panic!("Non-Yul-upstream mode"),
         }
     }
+
+    ///
+    /// Returns a string representation excluding the solc version.
+    ///
+    pub fn repr_without_version(&self) -> String {
+        if self.via_mlir {
+            String::from("L")
+        } else {
+            format!("Y{}", if self.solc_optimize { '+' } else { '-' },)
+        }
+    }
 }
 
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.via_mlir {
-            return write!(f, "L {}", self.solc_version);
-        }
-
-        write!(
-            f,
-            "Y{} {}",
-            if self.solc_optimize { '+' } else { '-' },
-            self.solc_version,
-        )
+        write!(f, "{} {}", self.repr_without_version(), self.solc_version)
     }
 }

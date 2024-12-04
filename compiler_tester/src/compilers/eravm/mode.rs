@@ -5,7 +5,7 @@
 ///
 /// The compiler tester EraVM mode.
 ///
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct Mode {}
 
 impl std::fmt::Display for Mode {

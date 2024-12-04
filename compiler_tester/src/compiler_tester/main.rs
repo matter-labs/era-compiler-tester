@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
+use arguments::benchmark_format::BenchmarkFormat;
 use clap::Parser;
 use colored::Colorize;
 
@@ -222,7 +223,14 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
-        benchmark.write_to_file(path)?;
+        match arguments.benchmark_format {
+            BenchmarkFormat::Json => {
+                benchmark.write_to_file(path, benchmark_analyzer::JsonSerializer)?
+            }
+            BenchmarkFormat::Csv => {
+                benchmark.write_to_file(path, benchmark_analyzer::CsvSerializer)?
+            }
+        }
     }
 
     if !summary.is_successful() {
@@ -236,7 +244,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::arguments::Arguments;
+    use crate::arguments::{benchmark_format::BenchmarkFormat, Arguments};
 
     #[test]
     fn test_manually() {
@@ -250,6 +258,7 @@ mod tests {
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
+            benchmark_format: BenchmarkFormat::Json,
             threads: Some(1),
             dump_system: false,
             disable_deployer: false,
