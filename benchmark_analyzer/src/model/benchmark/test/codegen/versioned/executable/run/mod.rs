@@ -1,23 +1,15 @@
 //!
-//! The benchmark element.
+//! A run of a test with fixed compilation settins (mode)
 //!
-
-pub mod input;
-pub mod metadata;
-pub mod selector;
 
 use serde::Deserialize;
 use serde::Serialize;
 
-use metadata::Metadata;
-
 ///
-/// The benchmark element.
+/// A run of a test with fixed compilation settins (mode).
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Element {
-    /// Associated metadata.
-    pub metadata: Metadata,
+pub struct Run {
     /// The contract size, `Some` for contracts deploys.
     pub size: Option<usize>,
     /// The number of cycles.
@@ -28,19 +20,12 @@ pub struct Element {
     pub gas: u64,
 }
 
-impl Element {
+impl Run {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(
-        metadata: Metadata,
-        size: Option<usize>,
-        cycles: usize,
-        ergs: u64,
-        gas: u64,
-    ) -> Self {
+    pub fn new(size: Option<usize>, cycles: usize, ergs: u64, gas: u64) -> Self {
         Self {
-            metadata,
             size,
             cycles,
             ergs,

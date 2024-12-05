@@ -9,6 +9,8 @@
 pub enum InputIdentifier {
     /// The contract deploy, regardless of target.
     Deployer { contract_identifier: String },
+    /// The fallback method.
+    Fallback { input_index: usize },
     /// The contract call.
     Runtime { input_index: usize, name: String },
     /// The storage empty check.
@@ -31,6 +33,9 @@ impl std::fmt::Display for InputIdentifier {
             }
             InputIdentifier::Balance { input_index } => {
                 f.write_fmt(format_args!("#balance_check:{input_index}"))
+            }
+            InputIdentifier::Fallback { input_index } => {
+                f.write_fmt(format_args!("#fallback:{input_index}"))
             }
         }
     }

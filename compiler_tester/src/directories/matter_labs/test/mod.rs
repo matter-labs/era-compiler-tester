@@ -304,14 +304,18 @@ impl MatterLabsTest {
         Ok(instances)
     }
 
+    fn is_evm_interpreter_test(&self) -> bool {
+        matches!(
+            self.metadata.group.as_deref(),
+            Some(benchmark_analyzer::TEST_GROUP_EVM_INTERPRETER)
+        )
+    }
     ///
     /// Returns cases needed for running benchmarks on the EVM interpreter.
     ///
-    fn evm_interpreter_benchmark_cases(&self) -> Vec<MatterLabsCase> {
-        if self.metadata.group.as_deref()
-            != Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME)
-        {
-            return vec![];
+    fn evm_interpreter_benchmark_cases(&self) -> Option<Vec<MatterLabsCase>> {
+        if !self.is_evm_interpreter_test() {
+            return None;
         }
 
         let mut evm_contracts: Vec<String> = self
@@ -398,7 +402,7 @@ impl MatterLabsTest {
                 expected_evm: None,
             })
         }
-        metadata_cases
+        Some(metadata_cases)
     }
 }
 
@@ -467,8 +471,13 @@ impl Buildable for MatterLabsTest {
         };
         instances.extend(evm_instances);
 
-        let mut metadata_cases = self.metadata.cases.to_owned();
-        metadata_cases.extend(self.evm_interpreter_benchmark_cases());
+        let metadata_cases = {
+            let mut base_cases = self.metadata.cases.to_owned();
+            if let Some(opcode_test_cases) = self.evm_interpreter_benchmark_cases() {
+                base_cases.extend(opcode_test_cases);
+            }
+            base_cases
+        };
 
         let mut cases = Vec::with_capacity(metadata_cases.len());
         for case in metadata_cases.into_iter() {

@@ -2,6 +2,8 @@
 //! The compiler tester utils.
 //!
 
+pub mod timer;
+
 use sha3::Digest;
 
 ///

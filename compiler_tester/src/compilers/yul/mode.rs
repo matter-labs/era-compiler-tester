@@ -2,6 +2,7 @@
 //! The compiler tester Yul mode.
 //!
 
+use crate::compilers::mode::imode::IMode;
 use crate::compilers::mode::llvm_options::LLVMOptions;
 
 use crate::compilers::mode::Mode as ModeWrapper;
@@ -51,8 +52,16 @@ impl Mode {
     }
 }
 
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.llvm_optimizer_settings)
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some(format!("{}", self.llvm_optimizer_settings))
+    }
+
+    fn codegen(&self) -> Option<String> {
+        None
+    }
+
+    fn version(&self) -> Option<String> {
+        None
     }
 }

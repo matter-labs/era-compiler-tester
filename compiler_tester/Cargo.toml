@@ -55,6 +55,7 @@ era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper"
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
+chrono = "0.4.38"
 
 [dependencies.web3]
 git = "https://github.com/jacques-kigo/rust-web3"

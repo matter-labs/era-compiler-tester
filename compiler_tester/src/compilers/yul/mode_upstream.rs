@@ -2,7 +2,7 @@
 //! The compiler tester upstream Yul mode.
 //!
 
-use crate::compilers::mode::Mode as ModeWrapper;
+use crate::compilers::mode::{imode::IMode, Mode as ModeWrapper};
 
 ///
 /// The compiler tester upstream Yul mode.
@@ -42,21 +42,18 @@ impl Mode {
             _ => panic!("Non-Yul-upstream mode"),
         }
     }
-
-    ///
-    /// Returns a string representation excluding the solc version.
-    ///
-    pub fn repr_without_version(&self) -> String {
-        if self.via_mlir {
-            String::from("L")
-        } else {
-            format!("Y{}", if self.solc_optimize { '+' } else { '-' },)
-        }
-    }
 }
 
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.repr_without_version(), self.solc_version)
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some((if self.solc_optimize { "+" } else { "-" }).to_string())
+    }
+
+    fn codegen(&self) -> Option<String> {
+        Some((if self.via_mlir { "L" } else { "Y" }).to_string())
+    }
+
+    fn version(&self) -> Option<String> {
+        Some(format!("{}", self.solc_version))
     }
 }

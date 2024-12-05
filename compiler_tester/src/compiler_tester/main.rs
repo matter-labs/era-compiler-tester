@@ -93,7 +93,9 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
-    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet).wrap();
+    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet)
+        .start_timer()?
+        .wrap();
 
     let filters = compiler_tester::Filters::new(arguments.path, arguments.mode, arguments.group);
 
@@ -211,7 +213,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         }
     }?;
 
-    let summary = compiler_tester::Summary::unwrap_arc(summary);
+    let summary = compiler_tester::Summary::unwrap_arc(summary).stop_timer()?;
     print!("{summary}");
     println!(
         "    {} running tests in {}m{:02}s",

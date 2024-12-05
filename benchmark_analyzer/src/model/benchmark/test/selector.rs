@@ -5,12 +5,12 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::benchmark::group::element::input::Input;
+use crate::model::benchmark::test::input::Input;
 
 ///
 /// Test selector, unambiously locating a test suite, case, or input.
 ///
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Selector {
     /// Path to the file containing test.
     pub path: String,

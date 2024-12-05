@@ -5,13 +5,17 @@
 pub mod csv;
 pub mod json;
 
-use crate::benchmark::Benchmark;
+use crate::model::benchmark::Benchmark;
 
 ///
 /// Serialization format for benchmark data.
 ///
 pub trait IBenchmarkSerializer {
+    ///
+    /// Type of serialization error.
+    ///
     type Err: std::error::Error;
+
     ///
     /// Serialize benchmark data in the selected format.
     ///

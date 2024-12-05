@@ -15,6 +15,11 @@ pub enum Input {
         /// Contract identifier, usually file name and contract name separated by a colon.
         contract_identifier: String,
     },
+    /// The fallback method.
+    Fallback {
+        /// Index in the array of inputs.
+        input_index: usize,
+    },
     /// The contract call.
     Runtime {
         /// Index in the array of inputs.
@@ -34,6 +39,24 @@ pub enum Input {
     },
 }
 
+impl Input {
+    /// Returns `true` if the input is [`Deployer`].
+    ///
+    /// [`Deployer`]: Input::Deployer
+    #[must_use]
+    pub fn is_deployer(&self) -> bool {
+        matches!(self, Self::Deployer { .. })
+    }
+
+    /// Returns `true` if the input is [`Fallback`].
+    ///
+    /// [`Fallback`]: Input::Fallback
+    #[must_use]
+    pub fn is_fallback(&self) -> bool {
+        matches!(self, Self::Fallback { .. })
+    }
+}
+
 impl std::fmt::Display for Input {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -49,6 +72,7 @@ impl std::fmt::Display for Input {
             Input::Balance { input_index } => {
                 f.write_fmt(format_args!("#balance_check:{input_index}"))
             }
+            Input::Fallback { input_index } => f.write_fmt(format_args!("#fallback:{input_index}")),
         }
     }
 }

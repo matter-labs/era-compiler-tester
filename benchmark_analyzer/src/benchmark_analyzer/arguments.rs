@@ -27,4 +27,12 @@ pub struct Arguments {
     /// Maximum number of results displayed in a group.
     #[structopt(long, default_value_t = 100)]
     pub group_max: usize,
+
+    /// Regular expression to select reference group for the comparison.
+    #[structopt(long)]
+    pub query_reference: Option<String>,
+
+    /// Regular expression to select candidate group for the comparison.
+    #[structopt(long)]
+    pub query_candidate: Option<String>,
 }
