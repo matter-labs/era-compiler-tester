@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-support-evmla-pushsize#2b0da9ed28045642125af15f3d69d5dce8b070dc"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#cad69d46f008e96909282921ce79fca6d2fe9b5a"
 dependencies = [
  "anyhow",
  "clap",
@@ -1122,7 +1122,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-support-evmla-pushsize#2b0da9ed28045642125af15f3d69d5dce8b070dc"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#cad69d46f008e96909282921ce79fca6d2fe9b5a"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1139,7 +1139,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-support-evmla-pushsize#2b0da9ed28045642125af15f3d69d5dce8b070dc"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#cad69d46f008e96909282921ce79fca6d2fe9b5a"
 dependencies = [
  "anyhow",
  "regex",

@@ -131,15 +131,14 @@ impl DeployEVM {
                 contract_identifier: self.identifier.clone(),
             },
         );
-        
+
         let size = self.deploy_code.len();
         let calldata = self.calldata.inner.clone();
         let mut code = self.deploy_code;
         code.extend(self.calldata.inner);
 
         let vm = vm.update_deploy_balance(&self.caller);
-        let mut vm =
-            vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, code);
+        let mut vm = vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, code);
 
         let result = match vm.state.transact_commit() {
             Ok(res) => res,
