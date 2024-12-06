@@ -1099,7 +1099,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.8"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#1bf4baeafcacf72f9e11adae106c6c6b6339df51"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-update-minimal-proxy#6721a2a56174323942cfb0875a4b135c03f4ff7a"
 dependencies = [
  "anyhow",
  "clap",
