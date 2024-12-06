@@ -51,7 +51,7 @@ era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-c
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
 era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
 era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-update-minimal-proxy" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
