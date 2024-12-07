@@ -1,7 +1,7 @@
 [submodule "tests"]
     path = tests
     url = https://github.com/matter-labs/era-compiler-tests
-    branch = az-identity-precompile-no-memcopy
+    branch = main
 [submodule "solidity"]
     path = solidity
     url = https://github.com/ethereum/solidity
