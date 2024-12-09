@@ -209,13 +209,25 @@ impl EraVMDeployer for SystemContractDeployer {
         calldata.extend(deploy_code);
         calldata.extend(constructor_calldata);
 
-        vm.execute::<M>(
+        let mut result = vm.execute::<M>(
             test_name,
             entry_address,
             caller,
             Some(context_u128_value),
             calldata,
             Some(vm_launch_option),
-        )
+        )?;
+
+        if result.output.return_data.len() > 1 {
+            let gas_left = result
+                .output
+                .return_data
+                .remove(0)
+                .unwrap_certain_as_ref()
+                .as_u64();
+            result.gas = EraVM::EVM_CALL_GAS_LIMIT - gas_left;
+        }
+
+        Ok(result)
     }
 }
