@@ -4376,7 +4376,7 @@ dependencies = [
 [[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/0xVolosnikov/era-zkevm_tester?branch=evm-emulator/testing#dfed460fae1787a2df2e4284952bc02da0f08af8"
+source = "git+https://github.com/0xVolosnikov/era-zkevm_tester?rev=cbade136a9060abd8ec29e06ed6c1bd14dec4ff6#cbade136a9060abd8ec29e06ed6c1bd14dec4ff6"
 dependencies = [
  "anyhow",
  "ethabi",
