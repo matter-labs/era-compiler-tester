@@ -378,9 +378,9 @@ impl EraVM {
                 .entry(storage_key)
                 .or_insert(web3::types::H256::zero());
             let prev_raw_nonce_uint = utils::h256_to_u256(prev_raw_nonce);
-            if prev_raw_nonce_uint >> 128 == web3::types::U256::zero() {
-                let new_raw_nonce = prev_raw_nonce_uint + web3::types::U256::from(1)
-                    << web3::types::U256::from(128);
+            if (prev_raw_nonce_uint >> 128) == web3::types::U256::zero() {
+                let new_raw_nonce = prev_raw_nonce_uint
+                    + (web3::types::U256::from(1) << web3::types::U256::from(128));
                 self.storage
                     .insert(storage_key, utils::u256_to_h256(&new_raw_nonce));
             }
