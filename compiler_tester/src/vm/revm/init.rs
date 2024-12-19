@@ -124,7 +124,7 @@ impl<'a> Revm<'a> {
         caller: web3::types::Address,
         value: Option<u128>,
         evm_version: Option<EVMVersion>,
-        deploy_code: Vec<u8>,
+        code: Vec<u8>,
     ) -> Self {
         let vm = self
             .state
@@ -146,7 +146,7 @@ impl<'a> Revm<'a> {
                 env.tx.gas_limit = evm_context.block_gas_limit;
                 env.tx.access_list = vec![];
                 env.tx.caller = web3_address_to_revm_address(&caller);
-                env.tx.data = revm::primitives::Bytes::from(deploy_code);
+                env.tx.data = revm::primitives::Bytes::from(code);
                 env.tx.value = revm::primitives::U256::from(value.unwrap_or_default());
                 env.tx.transact_to = TxKind::Create;
             })

@@ -12,6 +12,7 @@ pub use self::benchmark::group::element::Element as BenchmarkElement;
 pub use self::benchmark::group::Group as BenchmarkGroup;
 pub use self::benchmark::metadata::Metadata;
 pub use self::benchmark::Benchmark;
+
 ///
 /// The all elements group name.
 ///

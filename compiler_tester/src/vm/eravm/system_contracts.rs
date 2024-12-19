@@ -59,6 +59,9 @@ impl SystemContracts {
     const PATH_SHA256: &'static str =
         "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
 
+    /// The `identity` system contract implementation path.
+    const PATH_IDENTITY: &'static str = "tests/solidity/simple/system/identity.sol:Identity";
+
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
         "era-contracts/system-contracts/contracts/precompiles/EcAdd.yul";
@@ -195,6 +198,10 @@ impl SystemContracts {
         let solidity_system_contracts = vec![
             (web3::types::Address::zero(), Self::PATH_EMPTY_CONTRACT),
             (
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
+                Self::PATH_IDENTITY,
+            ),
+            (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ACCOUNT_CODE_STORAGE.into(),
                 ),
@@ -273,8 +280,9 @@ impl SystemContracts {
             debug_config.clone(),
         )?;
 
-        let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
+        let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 2);
         for pattern in [
+            "tests/solidity/simple/system/identity.sol",
             "era-contracts/system-contracts/contracts/*.sol",
             "era-contracts/system-contracts/contracts/libraries/**/*.sol",
             "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
