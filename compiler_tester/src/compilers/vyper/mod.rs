@@ -137,6 +137,7 @@ impl VyperCompiler {
             ],
             evm_version,
             true,
+            None,
             mode.vyper_optimize,
         )
     }
