@@ -1,8 +1,16 @@
+//!
+//! Output format for benchmark data.
+//!
+
+///
 /// Output format for benchmark data.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+///
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum BenchmarkFormat {
     #[default]
+    /// JSON format.
     Json,
+    /// CSV format.
     Csv,
 }
 
