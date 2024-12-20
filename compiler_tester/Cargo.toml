@@ -49,15 +49,16 @@ vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-release-v158" }
-era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-release-v158" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-release-v158" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
 
 [dependencies.web3]
-version = "=0.19.0"
+git = "https://github.com/jacques-kigo/rust-web3"
+branch = "master"
 default-features = false
 features = ["http-rustls-tls", "test", "signing"]
 
