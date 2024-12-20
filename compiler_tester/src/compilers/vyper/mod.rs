@@ -132,11 +132,12 @@ impl VyperCompiler {
             &mode.vyper_version,
             paths,
             &[
-                era_compiler_vyper::VyperSelection::IRJson,
-                era_compiler_vyper::VyperSelection::EraVMAssembly,
+                era_compiler_vyper::VyperSelector::IRJson,
+                era_compiler_vyper::VyperSelector::EraVMAssembly,
             ],
             evm_version,
             true,
+            None,
             mode.vyper_optimize,
         )
     }

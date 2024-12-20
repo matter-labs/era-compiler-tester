@@ -7,6 +7,7 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::type_complexity)]
 
+pub(crate) mod benchmark_format;
 pub(crate) mod compilers;
 pub(crate) mod directories;
 pub(crate) mod environment;
@@ -26,6 +27,7 @@ use itertools::Itertools;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
+pub use crate::benchmark_format::BenchmarkFormat;
 pub use crate::compilers::eravm::EraVMCompiler;
 pub use crate::compilers::llvm::LLVMCompiler;
 pub use crate::compilers::mode::llvm_options::LLVMOptions;
