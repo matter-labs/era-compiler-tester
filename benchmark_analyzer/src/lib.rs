@@ -18,6 +18,7 @@ pub use self::model::benchmark::test::codegen::CodegenGroup;
 pub use self::model::benchmark::test::input::Input;
 pub use self::model::benchmark::test::selector::Selector as TestSelector;
 pub use self::model::benchmark::test::Test;
+pub use self::model::benchmark::write_to_file;
 pub use self::model::benchmark::Benchmark;
 
 // Metadata for various parts of the model

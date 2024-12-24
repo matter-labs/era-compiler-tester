@@ -14,6 +14,7 @@ use serde::Serialize;
 use metadata::Metadata;
 
 use self::test::Test;
+use crate::format::File;
 use crate::format::IBenchmarkSerializer;
 
 ///
@@ -27,20 +28,36 @@ pub struct Benchmark {
     pub tests: BTreeMap<String, Test>,
 }
 
-impl Benchmark {
-    ///
-    /// Writes the benchmark results to a file using a provided serializer.
-    ///
-    pub fn write_to_file(
-        self,
-        path: PathBuf,
-        serializer: impl IBenchmarkSerializer,
-    ) -> anyhow::Result<()> {
-        let contents = serializer.serialize_to_string(&self).expect("Always valid");
-        std::fs::write(path.as_path(), contents)
-            .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
-        Ok(())
+///
+/// Writes the benchmark results to a file using a provided serializer.
+///
+pub fn write_to_file(
+    benchmark: &Benchmark,
+    path: PathBuf,
+    serializer: impl IBenchmarkSerializer,
+) -> anyhow::Result<()> {
+    match serializer
+        .serialize_to_string(benchmark)
+        .expect("Always valid")
+    {
+        crate::format::Output::SingleFile(contents) => {
+            std::fs::write(path.as_path(), contents)
+                .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
+        }
+
+        crate::format::Output::MultipleFiles(files) => {
+            for File {
+                path: relative_path,
+                contents,
+            } in files
+            {
+                let file_path = relative_path.join(&path);
+                std::fs::write(file_path.as_path(), contents)
+                    .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
+            }
+        }
     }
+    Ok(())
 }
 
 impl TryFrom<PathBuf> for Benchmark {

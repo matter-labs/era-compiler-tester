@@ -225,12 +225,16 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
         match arguments.benchmark_format {
-            compiler_tester::BenchmarkFormat::Json => {
-                benchmark.write_to_file(path, benchmark_analyzer::JsonSerializer)?
-            }
-            compiler_tester::BenchmarkFormat::Csv => {
-                benchmark.write_to_file(path, benchmark_analyzer::CsvSerializer)?
-            }
+            compiler_tester::BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::JsonNativeSerializer,
+            )?,
+            compiler_tester::BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::CsvSerializer,
+            )?,
         }
     }
 

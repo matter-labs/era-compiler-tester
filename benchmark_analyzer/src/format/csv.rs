@@ -10,6 +10,8 @@ use crate::model::benchmark::test::selector::Selector;
 use crate::model::benchmark::test::Test;
 use crate::model::benchmark::Benchmark;
 
+use super::Output;
+
 ///
 /// Serialize the benchmark to CSV in the following format:
 /// "group", "codegen", "version", "optimizations", "path", "case", "input", "size", "cycles", "ergs", "gas""
@@ -20,7 +22,7 @@ pub struct Csv;
 impl IBenchmarkSerializer for Csv {
     type Err = std::fmt::Error;
 
-    fn serialize_to_string(&self, benchmark: &Benchmark) -> Result<String, Self::Err> {
+    fn serialize_to_string(&self, benchmark: &Benchmark) -> Result<Output, Self::Err> {
         let mut result = String::with_capacity(estimate_csv_size(benchmark));
         result.push_str(
             r#""group", "codegen", "version", "optimizations", "path", "case", "input", "size", "cycles", "ergs", "gas""#,
@@ -68,7 +70,7 @@ impl IBenchmarkSerializer for Csv {
                 }
             }
         }
-        Ok(result)
+        Ok(Output::SingleFile(result))
     }
 }
 
