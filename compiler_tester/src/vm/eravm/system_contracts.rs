@@ -60,7 +60,7 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
 
     /// The `identity` system contract implementation path.
-    const PATH_IDENTITY: &'static str = "tests/solidity/simple/system/identity.sol:Identity";
+    const PATH_IDENTITY: &'static str = "era-contracts/system-contracts/contracts/precompiles/Identity.yul";
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
@@ -181,6 +181,12 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::system_params::ADDRESS_IDENTITY.into(),
+                ),
+                Self::PATH_IDENTITY,
+            ),
+            (
+                web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_EVENT_WRITER.into(),
                 ),
                 Self::PATH_EVENT_WRITER,
@@ -197,10 +203,6 @@ impl SystemContracts {
 
         let solidity_system_contracts = vec![
             (web3::types::Address::zero(), Self::PATH_EMPTY_CONTRACT),
-            (
-                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::PATH_IDENTITY,
-            ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ACCOUNT_CODE_STORAGE.into(),
