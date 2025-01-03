@@ -107,7 +107,11 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self, toolchain: Toolchain) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+    pub fn benchmark(
+        &self,
+        toolchain: Toolchain,
+        context: Option<benchmark_analyzer::BenchmarkContext>,
+    ) -> anyhow::Result<benchmark_analyzer::Benchmark> {
         if let Toolchain::SolcLLVM = toolchain {
             anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
         }
@@ -119,6 +123,7 @@ impl Summary {
                 version: BENCHMARK_FORMAT_VERSION,
                 start,
                 end,
+                context,
             };
         } else {
             anyhow::bail!("Invalid state: the time of running the benchmark was not measured.");

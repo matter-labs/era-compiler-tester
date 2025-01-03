@@ -2,9 +2,15 @@
 //! The compiler tester arguments.
 //!
 
+pub mod benchmark_format;
+pub mod validation;
+
 use std::path::PathBuf;
 
+use benchmark_format::BenchmarkFormat;
 use clap::Parser;
+
+pub const ARGUMENT_BENCHMARK_CONTEXT: &str = "benchmark-context";
 
 ///
 /// The compiler tester arguments.
@@ -40,9 +46,15 @@ pub struct Arguments {
     #[structopt(short, long)]
     pub benchmark: Option<PathBuf>,
 
-    /// The benchmark output format.
-    #[structopt(long = "benchmark-format", default_value_t = compiler_tester::BenchmarkFormat::Json)]
-    pub benchmark_format: compiler_tester::BenchmarkFormat,
+    /// The benchmark output format: `json`, `csv`, or `json-lnt`.
+    /// Using `json-lnt` requires providing the path to a JSON file describing the
+    /// benchmarking context via `--benchmark-context`.
+    #[structopt(long = "benchmark-format", default_value_t = BenchmarkFormat::Json)]
+    pub benchmark_format: BenchmarkFormat,
+
+    /// The benchmark context to pass additional data to backends.
+    #[structopt(long = ARGUMENT_BENCHMARK_CONTEXT )]
+    pub benchmark_context: Option<PathBuf>,
 
     /// Sets the number of threads, which execute the tests concurrently.
     #[structopt(short, long)]

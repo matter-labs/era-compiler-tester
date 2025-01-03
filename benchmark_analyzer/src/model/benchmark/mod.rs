@@ -11,11 +11,13 @@ use std::path::PathBuf;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::output::comparison_result::Output;
+use crate::output::file::File;
+use crate::output::IBenchmarkSerializer;
+
 use metadata::Metadata;
 
 use self::test::Test;
-use crate::format::File;
-use crate::format::IBenchmarkSerializer;
 
 ///
 /// The benchmark representation.
@@ -40,20 +42,23 @@ pub fn write_to_file(
         .serialize_to_string(benchmark)
         .expect("Always valid")
     {
-        crate::format::Output::SingleFile(contents) => {
+        Output::SingleFile(contents) => {
             std::fs::write(path.as_path(), contents)
-                .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
+                .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} writing: {error}"))?;
         }
-
-        crate::format::Output::MultipleFiles(files) => {
+        Output::MultipleFiles(files) => {
+            if !files.is_empty() {
+                std::fs::create_dir_all(&path)?;
+            }
             for File {
                 path: relative_path,
                 contents,
             } in files
             {
-                let file_path = relative_path.join(&path);
-                std::fs::write(file_path.as_path(), contents)
-                    .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} reading: {error}"))?;
+                let file_path = path.join(relative_path);
+                std::fs::write(file_path.as_path(), contents).map_err(|error| {
+                    anyhow::anyhow!("Benchmark file {file_path:?} writing: {error}")
+                })?;
             }
         }
     }

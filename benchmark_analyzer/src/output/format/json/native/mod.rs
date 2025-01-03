@@ -2,11 +2,13 @@
 //! Native JSON format that corresponds to the inner benchmark analyzer data model.
 //!
 
-use crate::format::IBenchmarkSerializer;
-use crate::format::Output;
 use crate::model::benchmark::Benchmark;
+use crate::output::comparison_result::Output;
+use crate::output::IBenchmarkSerializer;
 
-/// Serialize the benchmark data to JSON using `serde` library.
+///
+/// Serialize the benchmark internal model to JSON using `serde` library.
+///
 #[derive(Default)]
 pub struct Json;
 

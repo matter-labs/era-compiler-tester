@@ -8,10 +8,12 @@
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum BenchmarkFormat {
     #[default]
-    /// JSON format.
+    /// Unstable JSON format, corresponds to the inner data model of benchmark analyzer.
     Json,
     /// CSV format.
     Csv,
+    /// JSON format compatible with LNT.
+    JsonLNT,
 }
 
 impl std::str::FromStr for BenchmarkFormat {
@@ -20,6 +22,7 @@ impl std::str::FromStr for BenchmarkFormat {
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         match string.to_lowercase().as_str() {
             "json" => Ok(Self::Json),
+            "json-lnt" => Ok(Self::JsonLNT),
             "csv" => Ok(Self::Csv),
             string => anyhow::bail!(
                 "Unknown benchmark format `{string}`. Supported formats: {}",
@@ -37,6 +40,7 @@ impl std::fmt::Display for BenchmarkFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let repr = match self {
             BenchmarkFormat::Json => "json",
+            BenchmarkFormat::JsonLNT => "json-lnt",
             BenchmarkFormat::Csv => "csv",
         };
         f.write_str(repr)

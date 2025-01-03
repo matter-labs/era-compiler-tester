@@ -4,13 +4,12 @@
 
 use std::fmt::Write as _;
 
-use crate::format::IBenchmarkSerializer;
 use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use crate::model::benchmark::test::selector::Selector;
 use crate::model::benchmark::test::Test;
 use crate::model::benchmark::Benchmark;
-
-use super::Output;
+use crate::output::IBenchmarkSerializer;
+use crate::output::Output;
 
 ///
 /// Serialize the benchmark to CSV in the following format:

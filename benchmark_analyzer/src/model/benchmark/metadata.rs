@@ -7,6 +7,8 @@ use chrono::Utc;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::model::context::Context;
+
 /// Version of the benchmark format.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub enum BenchmarkVersion {
@@ -28,4 +30,7 @@ pub struct Metadata {
     pub start: DateTime<Utc>,
     /// End of the benchmark run.
     pub end: DateTime<Utc>,
+    /// Context of benchmarking, passed from compiler tester.
+    #[serde(skip)]
+    pub context: Option<Context>,
 }

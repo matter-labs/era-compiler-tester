@@ -3,4 +3,5 @@
 //!
 
 pub mod benchmark;
+pub mod context;
 pub mod evm_interpreter;
