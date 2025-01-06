@@ -319,7 +319,7 @@ If `json-lnt` format is selected:
 1. The benchmark report will consist of multiple files. They will be placed in the directory provided via the `--output` argument.
 2. It is mandatory to pass a JSON file with additional information using `--benchmark-context`. Here is a minimal example:
 
-``` json
+```json
 {
     "machine": "some_machine",
     "target": "some_target",

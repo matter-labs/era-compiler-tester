@@ -1,12 +1,12 @@
 //!
-//! A run of a test with fixed compilation settins (mode)
+//! A run of a test with fixed compiler options (mode).
 //!
 
 use serde::Deserialize;
 use serde::Serialize;
 
 ///
-/// A run of a test with fixed compilation settins (mode).
+/// A run of a test with fixed compiler options (mode).
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Run {
