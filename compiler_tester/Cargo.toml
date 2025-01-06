@@ -38,6 +38,7 @@ once_cell = "=1.20.2"
 rayon = "=1.10.0"
 lazy_static = "=1.5.0"
 bincode = "=1.3.3"
+chrono = "=0.4.38"
 
 evm = { git = "https://github.com/rust-ethereum/evm", rev = "f7a23df6c478ca6a151af5f60e62944800529a61" }
 revm = { git = "https://github.com/bluealloy/revm", rev = "fa5650ee8a4d802f4f3557014dd157adfb074460" }
@@ -55,7 +56,6 @@ era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper"
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
-chrono = "0.4.38"
 
 [dependencies.web3]
 git = "https://github.com/jacques-kigo/rust-web3"
