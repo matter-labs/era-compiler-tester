@@ -32,19 +32,31 @@ pub struct JsonLNT;
 /// Generate the test name for a measurement, containing a unique test identifier.
 ///
 fn test_name(selector: &Selector, version: impl std::fmt::Display) -> String {
+    fn shorten_file_name(name: &str) -> String {
+        let path_buf = PathBuf::from(name);
+        path_buf
+            .file_name()
+            .expect("Always valid")
+            .to_str()
+            .expect("Always valid")
+            .to_string()
+    }
     let Selector { path, case, input } = selector;
-    let path_buf = PathBuf::from(path);
-    let short_path = path_buf
-        .file_name()
-        .expect("Always valid")
-        .to_str()
-        .expect("Always valid");
+    let short_path = shorten_file_name(path);
+    let short_input = match input {
+        Some(crate::Input::Deployer {
+            contract_identifier,
+        }) => Some(crate::Input::Deployer {
+            contract_identifier: shorten_file_name(contract_identifier),
+        }),
+        _ => input.clone(),
+    };
     format!(
         "{} {version}",
         Selector {
             path: short_path.to_string(),
             case: case.clone(),
-            input: input.clone(),
+            input: short_input,
         }
     )
 }
