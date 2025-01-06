@@ -91,7 +91,7 @@ impl IBenchmarkSerializer for JsonLNT {
 
                         let machine = Machine {
                             name: context.machine.clone(),
-                            target: context.target.clone(),
+                            target: context.target,
                             optimizations: optimizations.to_owned(),
                             toolchain: context.toolchain.clone(),
                         };

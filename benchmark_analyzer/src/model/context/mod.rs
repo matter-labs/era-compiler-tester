@@ -22,7 +22,7 @@ pub fn validate_context(context: &Context) -> anyhow::Result<()> {
     let Context {
         machine,
         toolchain,
-        target: _
+        target: _,
     } = context;
 
     if machine.is_empty() {
