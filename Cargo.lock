@@ -428,6 +428,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
+ "era-compiler-common",
  "regex",
  "serde",
  "serde_json",
