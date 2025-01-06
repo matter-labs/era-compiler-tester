@@ -4,7 +4,7 @@
 
 use itertools::Itertools;
 
-use crate::compilers::mode::Mode as ModeWrapper;
+use crate::compilers::mode::{imode::IMode, Mode as ModeWrapper};
 
 ///
 /// The compiler tester Solidity mode.
@@ -111,28 +111,29 @@ impl Mode {
             }
         }
     }
-
-    ///
-    /// Returns a string representation excluding the solc version.
-    ///
-    pub fn repr_without_version(&self) -> String {
-        if self.via_mlir {
-            return "L".to_owned();
-        }
-        format!(
-            "{}{}",
-            match self.solc_codegen {
-                era_solc::StandardJsonInputCodegen::Yul => "Y",
-                era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
-                era_solc::StandardJsonInputCodegen::EVMLA => "E",
-            },
-            if self.solc_optimize { '+' } else { '-' },
-        )
-    }
 }
 
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.repr_without_version(), self.solc_version)
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some((if self.solc_optimize { "+" } else { "-" }).to_string())
+    }
+
+    fn codegen(&self) -> Option<String> {
+        Some(
+            (if self.via_mlir {
+                "L"
+            } else {
+                match self.solc_codegen {
+                    era_solc::StandardJsonInputCodegen::Yul => "Y",
+                    era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
+                    era_solc::StandardJsonInputCodegen::EVMLA => "E",
+                }
+            })
+            .to_string(),
+        )
+    }
+
+    fn version(&self) -> Option<String> {
+        Some(self.solc_version.to_string())
     }
 }

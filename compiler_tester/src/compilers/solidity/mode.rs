@@ -6,6 +6,7 @@ use itertools::Itertools;
 
 use crate::compilers::mode::llvm_options::LLVMOptions;
 
+use crate::compilers::mode::imode::IMode;
 use crate::compilers::mode::Mode as ModeWrapper;
 
 ///
@@ -126,25 +127,29 @@ impl Mode {
             }
         }
     }
+}
 
-    ///
-    /// Returns a string representation excluding the solc version.
-    ///
-    pub fn repr_without_version(&self) -> String {
-        format!(
-            "{}{}{}",
-            match self.solc_codegen {
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some(format!(
+            "{}{}",
+            if self.solc_optimize { '+' } else { '-' },
+            self.llvm_optimizer_settings,
+        ))
+    }
+
+    fn codegen(&self) -> Option<String> {
+        Some(
+            (match self.solc_codegen {
                 era_solc::StandardJsonInputCodegen::Yul => "Y",
                 era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
                 era_solc::StandardJsonInputCodegen::EVMLA => "E",
-            },
-            if self.solc_optimize { '+' } else { '-' },
-            self.llvm_optimizer_settings,
+            })
+            .to_string(),
         )
     }
-}
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.repr_without_version(), self.solc_version)
+
+    fn version(&self) -> Option<String> {
+        Some(self.solc_version.to_string())
     }
 }

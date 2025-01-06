@@ -24,6 +24,9 @@ impl From<InputIdentifier> for benchmark_analyzer::Input {
             InputIdentifier::Balance { input_index } => {
                 benchmark_analyzer::Input::Balance { input_index }
             }
+            InputIdentifier::Fallback { input_index } => {
+                benchmark_analyzer::Input::Fallback { input_index }
+            }
         }
     }
 }

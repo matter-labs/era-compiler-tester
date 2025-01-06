@@ -5,4 +5,5 @@
 
 pub mod input;
 pub mod metadata;
+pub mod mode;
 pub mod selector;

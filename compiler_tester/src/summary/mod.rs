@@ -8,16 +8,20 @@ pub mod element;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use benchmark_adapters::metadata::convert_description;
+use benchmark_adapters::mode::ModeInfo;
 use colored::Colorize;
 
 use crate::test::case::input::output::Output;
 use crate::test::description::TestDescription;
 use crate::toolchain::Toolchain;
+use crate::utils::timer::Timer;
 
 use self::element::outcome::passed_variant::PassedVariant;
 use self::element::outcome::Outcome;
 use self::element::Element;
+
+const BENCHMARK_FORMAT_VERSION: benchmark_analyzer::BenchmarkVersion =
+    benchmark_analyzer::BenchmarkVersion::V2;
 
 ///
 /// The compiler tester summary.
@@ -38,6 +42,7 @@ pub struct Summary {
     invalid: usize,
     /// The ignored tests counter.
     ignored: usize,
+    timer: Timer,
 }
 
 impl Summary {
@@ -56,9 +61,33 @@ impl Summary {
             failed: 0,
             invalid: 0,
             ignored: 0,
+            timer: Timer::default(),
         }
     }
 
+    /// Starts the timer associated with the object.
+    ///
+    /// # Returns
+    ///
+    /// `anyhow::Result<Self>`: If the timer is successfully started, the function
+    /// returns `Ok(self)`, allowing method chaining. If the timer is in an invalid
+    /// state (e.g., already started or stopped), it returns an error.
+    pub fn start_timer(mut self) -> anyhow::Result<Self> {
+        self.timer.start()?;
+        Ok(self)
+    }
+
+    /// Stops the timer associated with the object.
+    ///
+    /// # Returns
+    ///
+    /// `anyhow::Result<Self>`: If the timer is successfully stopped, the function
+    /// returns `Ok(self)`, permitting method chaining. An error is returned if the
+    /// timer is in an invalid state (e.g., not started or already stopped).
+    pub fn stop_timer(mut self) -> anyhow::Result<Self> {
+        self.timer.stop()?;
+        Ok(self)
+    }
     ///
     /// Whether the test run has been successful.
     ///
@@ -78,40 +107,39 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self, toolchain: Toolchain) -> anyhow::Result<benchmark_analyzer::Benchmark> {
-        let mut benchmark = benchmark_analyzer::Benchmark::default();
-        match toolchain {
-            Toolchain::IrLLVM => {
-                benchmark.groups.insert(
-                    format!(
-                        "{} {}",
-                        benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                        era_compiler_llvm_context::OptimizerSettings::cycles(),
-                    ),
-                    benchmark_analyzer::BenchmarkGroup::default(),
-                );
-                benchmark.groups.insert(
-                    format!(
-                        "{} {}",
-                        benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                        era_compiler_llvm_context::OptimizerSettings::size(),
-                    ),
-                    benchmark_analyzer::BenchmarkGroup::default(),
-                );
-            }
-            Toolchain::Solc => {
-                benchmark.groups.insert(
-                    benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME.to_owned(),
-                    benchmark_analyzer::BenchmarkGroup::default(),
-                );
-            }
-            Toolchain::SolcLLVM => {
-                anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
-            }
+    pub fn benchmark(
+        &self,
+        toolchain: Toolchain,
+        context: Option<benchmark_analyzer::BenchmarkContext>,
+    ) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+        if let Toolchain::SolcLLVM = toolchain {
+            anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
         }
 
-        for element in self.elements.iter() {
-            let (size, cycles, ergs, group, gas) = match &element.outcome {
+        let mut benchmark = benchmark_analyzer::Benchmark::default();
+
+        if let (Some(start), Some(end)) = (self.timer.get_start(), self.timer.get_end()) {
+            benchmark.metadata = benchmark_analyzer::BenchmarkMetadata {
+                version: BENCHMARK_FORMAT_VERSION,
+                start,
+                end,
+                context,
+            };
+        } else {
+            anyhow::bail!("Invalid state: the time of running the benchmark was not measured.");
+        }
+
+        for Element {
+            test_description:
+                TestDescription {
+                    group,
+                    mode,
+                    selector,
+                },
+            outcome,
+        } in self.elements.iter()
+        {
+            let (size, cycles, ergs, gas) = match outcome {
                 Outcome::Passed {
                     variant:
                         PassedVariant::Deploy {
@@ -120,59 +148,51 @@ impl Summary {
                             ergs,
                             gas,
                         },
-                    group,
-                } => (Some(*size), *cycles, *ergs, group.clone(), *gas),
+                    ..
+                } => (Some(*size), *cycles, *ergs, *gas),
                 Outcome::Passed {
                     variant: PassedVariant::Runtime { cycles, ergs, gas },
-                    group,
-                } => (None, *cycles, *ergs, group.clone(), *gas),
+                    ..
+                } => (None, *cycles, *ergs, *gas),
                 _ => continue,
             };
 
-            let key = format!(
-                "{:24} {}",
-                element
-                    .test_description
-                    .mode
-                    .as_ref()
-                    .map(|mode| mode.to_string())
-                    .unwrap_or_default(),
-                element.test_description.selector
-            );
-            let mode = element
-                .test_description
-                .mode
-                .as_ref()
-                .and_then(|mode| mode.llvm_optimizer_settings().cloned());
+            let test_name = selector.to_string();
 
-            let metadata = {
-                let default_group = group.clone().unwrap_or_default();
-                convert_description(&element.test_description, &default_group)
-            };
-            let benchmark_element =
-                benchmark_analyzer::BenchmarkElement::new(metadata, size, cycles, ergs, gas);
-            if let Some(group) = group {
-                let group_key = match mode {
-                    Some(ref mode) => format!("{group} {mode}"),
-                    None => group,
-                };
-                benchmark
-                    .groups
-                    .entry(group_key)
-                    .or_default()
-                    .elements
-                    .insert(key.clone(), benchmark_element.clone());
-            }
+            let tags: Vec<String> = group.iter().cloned().collect();
 
-            let group_key = match mode {
-                Some(ref mode) => {
-                    format!("{} {mode}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME)
-                }
-                None => benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME.to_owned(),
-            };
-            if let Some(group) = benchmark.groups.get_mut(group_key.as_str()) {
-                group.elements.insert(key, benchmark_element);
-            }
+            let ModeInfo {
+                codegen,
+                optimizations,
+                version,
+            } = mode
+                .clone()
+                .expect("The compiler mode is missing from description.")
+                .into();
+
+            benchmark
+                .tests
+                .entry(test_name)
+                .or_insert(benchmark_analyzer::Test::new(
+                    benchmark_analyzer::TestMetadata::new(selector.clone().into(), tags),
+                ))
+                .codegen_groups
+                .entry(codegen)
+                .or_insert(Default::default())
+                .versioned_groups
+                .entry(version)
+                .or_insert(Default::default())
+                .executables
+                .entry(optimizations)
+                .or_insert(benchmark_analyzer::Executable {
+                    metadata: benchmark_analyzer::ExecutableMetadata {},
+                    run: benchmark_analyzer::Run {
+                        size,
+                        cycles,
+                        ergs,
+                        gas,
+                    },
+                });
         }
         Ok(benchmark)
     }

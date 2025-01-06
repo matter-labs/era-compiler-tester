@@ -84,15 +84,12 @@ impl Runtime {
         let input_index = context.selector;
         let test = TestDescription::from_context(
             context,
-            InputIdentifier::Runtime {
-                input_index,
-                name: self.name,
-            },
+            Self::select_input_identifier(self.name, input_index),
         );
         let name = test.selector.to_string();
         vm.populate_storage(self.storage.inner);
         let vm_function = match group.as_deref() {
-            Some(benchmark_analyzer::Benchmark::EVM_INTERPRETER_GROUP_NAME) => {
+            Some(benchmark_analyzer::TEST_GROUP_EVM_INTERPRETER) => {
                 EraVM::execute_evm_interpreter::<M>
             }
             _ => EraVM::execute::<M>,
@@ -126,6 +123,13 @@ impl Runtime {
         }
     }
 
+    fn select_input_identifier(name: String, input_index: usize) -> InputIdentifier {
+        match name.as_str() {
+            "#fallback" => InputIdentifier::Fallback { input_index },
+            _ => InputIdentifier::Runtime { input_index, name },
+        }
+    }
+
     ///
     /// Runs the call on EVM emulator.
     ///
@@ -138,10 +142,7 @@ impl Runtime {
         let input_index = context.selector;
         let test = TestDescription::from_context(
             context,
-            InputIdentifier::Runtime {
-                input_index,
-                name: self.name,
-            },
+            Self::select_input_identifier(self.name, input_index),
         );
         let name = test.selector.to_string();
         vm.populate_storage(self.storage.inner);
