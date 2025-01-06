@@ -258,6 +258,17 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     Ok(())
 }
 
+///
+/// Reads the benchmarking context from a JSON file and validates its correctness.
+/// Benchmarking context provides additional information about benchmarking that
+/// will be used to generate a report.
+///
+/// # Errors
+///
+/// This function will return an error if
+/// - file can't be read,
+/// - deserialization from JSON file failed,
+/// - the context validation failed.
 fn read_context(path: PathBuf) -> anyhow::Result<benchmark_analyzer::BenchmarkContext> {
     let contents = std::fs::read_to_string(path)?;
     let context: benchmark_analyzer::BenchmarkContext = serde_json::de::from_str(&contents)?;
