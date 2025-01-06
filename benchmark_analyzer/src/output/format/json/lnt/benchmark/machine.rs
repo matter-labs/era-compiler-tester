@@ -16,5 +16,5 @@ pub struct Machine {
     /// Optimizations level, for example "+M3B3".
     pub optimizations: String,
     /// Type of solc, for example, "zksync".
-    pub solc_type: String,
+    pub toolchain: String,
 }

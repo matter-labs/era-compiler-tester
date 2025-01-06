@@ -93,7 +93,7 @@ impl IBenchmarkSerializer for JsonLNT {
                             name: context.machine.clone(),
                             target: context.target.clone(),
                             optimizations: optimizations.to_owned(),
-                            solc_type: context.solc_type.clone(),
+                            toolchain: context.toolchain.clone(),
                         };
                         let run = RunDescription {
                             start_time: benchmark.metadata.start,

@@ -12,7 +12,7 @@ pub struct Context {
     /// Target, for example "eravm" or "evm".
     pub target: era_compiler_common::Target,
     /// Type of `solc`, for example `zksync`
-    pub solc_type: String,
+    pub toolchain: String,
 }
 
 ///
@@ -21,15 +21,15 @@ pub struct Context {
 pub fn validate_context(context: &Context) -> anyhow::Result<()> {
     let Context {
         machine,
-        solc_type,
+        toolchain,
         target: _
     } = context;
 
     if machine.is_empty() {
         anyhow::bail!("The `machine` field in the benchmark context is empty")
     }
-    if solc_type.is_empty() {
-        anyhow::bail!("The `solc_type` field in the benchmark context is empty")
+    if toolchain.is_empty() {
+        anyhow::bail!("The `toolchain` field in the benchmark context is empty")
     }
     Ok(())
 }

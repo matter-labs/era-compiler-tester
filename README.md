@@ -323,7 +323,7 @@ If `json-lnt` format is selected:
 {
     "machine": "some_machine",
     "target": "some_target",
-    "solc_type": "some_solc_type"
+    "toolchain": "some_solc_type"
 }
 ```
 
