@@ -82,6 +82,8 @@ where
 /// ```rust
 /// use std::collections::BTreeMap;
 ///
+/// use benchmark_analyzer::util::btreemap::cross_join_filter_map;
+///
 /// // Assume we have two BTreeMaps.
 /// let map1: BTreeMap<_, _> = [(1, "a"), (2, "b")].iter().cloned().collect();
 /// let map2: BTreeMap<_, _> = [(1, "x"), (2, "y")].iter().cloned().collect();
