@@ -196,7 +196,7 @@ impl Compiler for VyperCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -234,20 +234,22 @@ impl Compiler for VyperCompiler {
             vec![],
             debug_config,
         )?;
-        build.link(BTreeMap::new())?;
+        build.link(libraries.as_linker_symbols()?)?;
         let builds = build
             .contracts
             .into_iter()
             .map(|(path, contract)| {
                 let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash.expect("Always exists"),
+                    contract.build.bytecode_hash.ok_or_else(|| {
+                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
+                    })?,
                     None,
                     contract.build.assembly,
                 );
-                (path, build)
+                Ok((path, build))
             })
-            .collect::<HashMap<String, era_compiler_llvm_context::EraVMBuild>>();
+            .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 
         Ok(EraVMInput::new(
             builds,

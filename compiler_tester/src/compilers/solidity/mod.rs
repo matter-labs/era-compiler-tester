@@ -182,7 +182,7 @@ impl SolidityCompiler {
         let mut output_selection =
             era_solc::StandardJsonInputSelection::new_required(mode.solc_codegen);
         output_selection.extend(era_solc::StandardJsonInputSelection::new(vec![
-            era_solc::StandardJsonInputSelectionFlag::EraVMAssembly,
+            era_solc::StandardJsonInputSelector::EraVMAssembly,
         ]));
 
         let evm_version = if mode.solc_version >= era_solc::Compiler::FIRST_CANCUN_VERSION {
@@ -212,7 +212,10 @@ impl SolidityCompiler {
             output_selection,
             era_solc::StandardJsonInputMetadata::default(),
             vec![],
-            vec![era_solc::StandardJsonInputErrorType::SendTransfer],
+            vec![
+                era_solc::StandardJsonInputErrorType::SendTransfer,
+                era_solc::StandardJsonInputErrorType::AssemblyCreate,
+            ],
             vec![],
             false,
             mode.via_ir,
@@ -334,7 +337,7 @@ impl Compiler for SolidityCompiler {
         let mut solc_output = self
             .standard_json_output_cached(test_path, &sources, &libraries, mode)
             .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
-        solc_output.collect_errors()?;
+        solc_output.check_errors()?;
 
         let method_identifiers = Self::get_method_identifiers(&solc_output)
             .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {}", error))?;
@@ -367,9 +370,9 @@ impl Compiler for SolidityCompiler {
             true,
             debug_config,
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
         let build = build.link(linker_symbols);
-        build.collect_errors()?;
+        build.check_errors()?;
         let builds = build
             .results
             .iter()
@@ -377,13 +380,15 @@ impl Compiler for SolidityCompiler {
                 let build = build.to_owned().expect("Always valid");
                 let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     build.build.bytecode,
-                    build.build.bytecode_hash.expect("Always valid"),
+                    build.build.bytecode_hash.ok_or_else(|| {
+                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
+                    })?,
                     None,
                     build.build.assembly,
                 );
-                (path.to_owned(), build)
+                Ok((path.to_owned(), build))
             })
-            .collect();
+            .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 
         build.write_to_standard_json(
             &mut solc_output,
@@ -393,7 +398,7 @@ impl Compiler for SolidityCompiler {
                 Self::LAST_ZKSYNC_SOLC_REVISION,
             )),
         )?;
-        solc_output.collect_errors()?;
+        solc_output.check_errors()?;
 
         Ok(EraVMInput::new(
             builds,
@@ -416,7 +421,7 @@ impl Compiler for SolidityCompiler {
 
         let mut solc_output =
             self.standard_json_output_cached(test_path, &sources, &libraries, mode)?;
-        solc_output.collect_errors()?;
+        solc_output.check_errors()?;
 
         let method_identifiers = Self::get_method_identifiers(&solc_output)?;
 
@@ -434,13 +439,13 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_evm(
             &mut vec![],
+            era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            era_compiler_common::HashType::Ipfs,
             None,
             debug_config,
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .results
             .into_iter()
