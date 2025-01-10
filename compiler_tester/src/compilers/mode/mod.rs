@@ -211,7 +211,7 @@ impl Mode {
             }
         }
 
-        current = current.replace(' ',"");
+        current = current.replace(' ', "");
         current
     }
 }
