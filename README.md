@@ -188,7 +188,6 @@ Most of the specifiers support wildcards `*` (any), `^` ('3' and 'z').
 With no mode argument, iterates over all option combinations (approximately 800).
 
 
-
 ## Usage
 
 Each command assumes you are at the root of the `compiler-tester` repository.
@@ -227,6 +226,8 @@ cargo run --release --bin compiler-tester -- -DT \
 	--mode='Y+M3B3 0.8.26' \
 	--zksolc '../era-compiler-solidity/target/release/zksolc'
 ```
+
+Modes are insensitive to spaces, therefore options such as `'Y+M3B3 0.8.26'` and `'Y +  M3B3     0.8.26'` are equivalent.
 
 ### Example 2
 
