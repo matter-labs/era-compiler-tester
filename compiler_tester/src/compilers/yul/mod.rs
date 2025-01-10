@@ -102,21 +102,23 @@ impl Compiler for YulCompiler {
             true,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
         let build = build.link(linker_symbols);
-        build.collect_errors()?;
+        build.check_errors()?;
         let builds = build
             .results
-            .into_iter()
-            .map(|(path, result)| {
+            .into_values()
+            .map(|result| {
                 let contract = result.expect("Always valid");
                 let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash.expect("Always exists"),
+                    contract.build.bytecode_hash.ok_or_else(|| {
+                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
+                    })?,
                     None,
                     contract.build.assembly,
                 );
-                Ok((path, build))
+                Ok((contract.name.path, build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 

@@ -296,10 +296,36 @@ cargo run --release --bin benchmark-analyzer -- --reference reference.json --can
 
 After you make any changes in LLVM, you only need to repeat steps 2-3 to update the working branch benchmark data.
 
+### Comparing results 
+
+By default, benchmark analyzer compares tests from groups with the same name, which means that every test should be compiled with the same codegen and optimizations. 
+To compare two groups with different names, use the options `--query-reference` and `--query-candidate`. Then, use benchmark analyzer:
+
+```shell
+cargo run --release --bin benchmark-analyzer -- --reference reference.json --candidate candidate.json --query-reference "M0B0" --query-candidate "M3B3"
+```
+
+The queries are regular expressions, and the group name, codegen, and
+optimization options are matched against it.
+
+
+
 ### Report formats
 
-Use the parameter `--benchmark-format` to select the output format: `json` (default), or `csv`.
+Use the parameter `--benchmark-format` of compiler tester to select the output format: `json` (default), `csv`, or `json-lnt`.
 
+If `json-lnt` format is selected:
+
+1. The benchmark report will consist of multiple files. They will be placed in the directory provided via the `--output` argument.
+2. It is mandatory to pass a JSON file with additional information using `--benchmark-context`. Here is a minimal example:
+
+```json
+{
+    "machine": "some_machine",
+    "target": "some_target",
+    "toolchain": "some_solc_type"
+}
+```
 
 
 ## Troubleshooting

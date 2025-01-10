@@ -72,9 +72,9 @@ impl Compiler for LLVMCompiler {
             true,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
         let build = build.link(linker_symbols);
-        build.collect_errors()?;
+        build.check_errors()?;
         let builds = build
             .results
             .into_iter()
@@ -113,13 +113,13 @@ impl Compiler for LLVMCompiler {
 
         let build = project.compile_to_evm(
             &mut vec![],
+            era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            era_compiler_common::HashType::Ipfs,
             None,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .results
             .into_iter()

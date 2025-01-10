@@ -4,7 +4,6 @@
 
 pub mod mode;
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 use era_solc::CollectableError;
@@ -27,7 +26,7 @@ impl Compiler for EraVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_solc::StandardJsonInputLibraries,
         _mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -55,9 +54,9 @@ impl Compiler for EraVMCompiler {
             true,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
-        let build = build.link(BTreeMap::new());
-        build.collect_errors()?;
+        build.check_errors()?;
+        let build = build.link(libraries.as_linker_symbols()?);
+        build.check_errors()?;
         let builds = build
             .results
             .into_iter()

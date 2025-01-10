@@ -8,6 +8,8 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
+use arguments::benchmark_format::BenchmarkFormat;
+use arguments::validation::validate_arguments;
 use clap::Parser;
 use colored::Colorize;
 
@@ -38,6 +40,7 @@ fn main() {
 /// The entry point wrapper used for proper error handling.
 ///
 fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
+    let arguments = validate_arguments(arguments)?;
     println!(
         "    {} {} v{} (LLVM build {})",
         "Starting".bright_green().bold(),
@@ -93,17 +96,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
-    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet).wrap();
-
-    let filters = compiler_tester::Filters::new(arguments.path, arguments.mode, arguments.group);
-
-    let compiler_tester = compiler_tester::CompilerTester::new(
-        summary.clone(),
-        filters,
-        debug_config.clone(),
-        arguments.workflow,
-    )?;
-
     let toolchain = match (arguments.target, arguments.toolchain) {
         (era_compiler_common::Target::EraVM, Some(toolchain)) => toolchain,
         (era_compiler_common::Target::EraVM, None) => compiler_tester::Toolchain::IrLLVM,
@@ -144,6 +136,19 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),
     };
+
+    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet)
+        .start_timer()?
+        .wrap();
+
+    let filters = compiler_tester::Filters::new(arguments.path, arguments.mode, arguments.group);
+
+    let compiler_tester = compiler_tester::CompilerTester::new(
+        summary.clone(),
+        filters,
+        debug_config.clone(),
+        arguments.workflow,
+    )?;
 
     let run_time_start = Instant::now();
     println!(
@@ -211,7 +216,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         }
     }?;
 
-    let summary = compiler_tester::Summary::unwrap_arc(summary);
+    let summary = compiler_tester::Summary::unwrap_arc(summary).stop_timer()?;
     print!("{summary}");
     println!(
         "    {} running tests in {}m{:02}s",
@@ -221,14 +226,28 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
 
     if let Some(path) = arguments.benchmark {
-        let benchmark = summary.benchmark(toolchain)?;
+        let context = if let Some(context_path) = arguments.benchmark_context {
+            Some(read_context(context_path)?)
+        } else {
+            None
+        };
+        let benchmark = summary.benchmark(toolchain, context)?;
         match arguments.benchmark_format {
-            compiler_tester::BenchmarkFormat::Json => {
-                benchmark.write_to_file(path, benchmark_analyzer::JsonSerializer)?
-            }
-            compiler_tester::BenchmarkFormat::Csv => {
-                benchmark.write_to_file(path, benchmark_analyzer::CsvSerializer)?
-            }
+            BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::JsonNativeSerializer,
+            )?,
+            BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::CsvSerializer,
+            )?,
+            BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::JsonLNTSerializer,
+            )?,
         }
     }
 
@@ -237,6 +256,24 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+///
+/// Reads the benchmarking context from a JSON file and validates its correctness.
+/// Benchmarking context provides additional information about benchmarking that
+/// will be used to generate a report.
+///
+/// # Errors
+///
+/// This function will return an error if
+/// - file can't be read,
+/// - deserialization from JSON file failed,
+/// - the context validation failed.
+fn read_context(path: PathBuf) -> anyhow::Result<benchmark_analyzer::BenchmarkContext> {
+    let contents = std::fs::read_to_string(path)?;
+    let context: benchmark_analyzer::BenchmarkContext = serde_json::de::from_str(&contents)?;
+    benchmark_analyzer::validate_context(&context)?;
+    Ok(context)
 }
 
 #[cfg(test)]
@@ -257,7 +294,8 @@ mod tests {
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
-            benchmark_format: compiler_tester::BenchmarkFormat::Json,
+            benchmark_format: crate::BenchmarkFormat::Json,
+            benchmark_context: None,
             threads: Some(1),
             dump_system: false,
             disable_deployer: false,
