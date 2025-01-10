@@ -17,13 +17,13 @@ pub trait IMode {
 }
 
 pub fn mode_to_string_aux(mode: &impl IMode, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    for (i, element) in [mode.optimizations(), mode.codegen(), mode.version()]
+    for (i, element) in [mode.codegen(), mode.optimizations(), mode.version()]
         .iter()
         .flatten()
         .enumerate()
     {
         if i > 0 {
-            write!(f, "  ")?;
+            write!(f, " ")?;
         }
         write!(f, "{}", element)?;
     }

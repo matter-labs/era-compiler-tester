@@ -30,7 +30,9 @@ impl Filters {
     ) -> Self {
         Self {
             path_filters: path_filters.into_iter().collect(),
-            mode_filters: mode_filters.into_iter().collect(),
+            // Mode filters are stripped of spaces so filters like "Y+M3B3
+            // 0.2.1 " and "Y +M3B3 0.2.1" become equivalent
+            mode_filters: mode_filters.into_iter().map(|f| f.replace(' ', "")).collect(),
             group_filters: group_filters.into_iter().collect(),
         }
     }
