@@ -133,8 +133,8 @@ impl SystemContracts {
 
     /// The base token system contract implementation path.
     const PATH_BASE_TOKEN: (&'static str, &'static str) = (
-        "era-contracts/system-contracts/contracts/BaseToken.sol",
-        "BaseToken",
+        "era-contracts/system-contracts/contracts/L2BaseToken.sol",
+        "L2BaseToken",
     );
 
     /// The EVM gas manager system contract implementation path.
