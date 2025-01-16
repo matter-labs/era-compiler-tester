@@ -99,6 +99,7 @@ jobs:
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }} # required to properly test forks
       ccache-key-type: static
       target-machine: ${{ matrix.target }}
+      platforms-matrix: '{ "include": [ {"name":"Windows","runner":"windows-2022-github-hosted-64core"} ] }'
 
   # Benchmarks workflow call from the era-compiler-ci repository
   # This is a common part of the benchmarks workflow for all repositories
