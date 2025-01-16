@@ -84,13 +84,13 @@ impl SystemContracts {
     /// The contract deployer system contract implementation path.
     const PATH_CONTRACT_DEPLOYER: (&'static str, &'static str) = (
         "era-contracts/system-contracts/contracts/ContractDeployer.sol",
-        "ContractDeploye",
+        "ContractDeployer",
     );
 
     /// The nonce holder system contract implementation path.
     const PATH_NONCE_HOLDER: (&'static str, &'static str) = (
         "era-contracts/system-contracts/contracts/NonceHolder.sol",
-        "NonceHolde",
+        "NonceHolder",
     );
 
     /// The knows codes storage system contract implementation path.
@@ -102,19 +102,19 @@ impl SystemContracts {
     /// The immutable simulator system contract implementation path.
     const PATH_IMMUTABLE_SIMULATOR: (&'static str, &'static str) = (
         "era-contracts/system-contracts/contracts/ImmutableSimulator.sol",
-        "ImmutableSimulato",
+        "ImmutableSimulator",
     );
 
     /// The L1-messenger system contract implementation path.
     const PATH_L1_MESSENGER: (&'static str, &'static str) = (
         "era-contracts/system-contracts/contracts/L1Messenger.sol",
-        "L1Messenge",
+        "L1Messenger",
     );
 
     /// The `msg.value` simulator system contract implementation path.
     const PATH_MSG_VALUE_SIMULATOR: (&'static str, &'static str) = (
         "era-contracts/system-contracts/contracts/MsgValueSimulator.sol",
-        "MsgValueSimulato",
+        "MsgValueSimulator",
     );
 
     /// The system context system contract implementation path.
@@ -228,7 +228,7 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::normalize_path(Self::PATH_IDENTITY.0, None),
+                Self::normalize_path(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
@@ -336,8 +336,12 @@ impl SystemContracts {
             "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
             "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
             "tests/solidity/complex/interpreter/*.sol",
-        ] {
-            for path in glob::glob(pattern)?.filter_map(Result::ok) {
+        ]
+        .into_iter()
+        .map(PathBuf::from)
+        {
+            for path in glob::glob(pattern.to_str().expect("Always valid"))?.filter_map(Result::ok)
+            {
                 let path = path.to_string_lossy().to_string();
                 if !solidity_file_paths.contains(&path) {
                     solidity_file_paths.push(path);
@@ -492,7 +496,10 @@ impl SystemContracts {
                 )
             })?;
 
-            if file_path == r"era-contracts\system-contracts\contracts\Constants.sol" {
+            if file_path
+                == PathBuf::from("era-contracts/system-contracts/contracts/Constants.sol")
+                    .to_string_lossy()
+            {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
