@@ -5,9 +5,9 @@
 use std::collections::BTreeMap;
 
 use crate::model::benchmark::test::codegen::versioned::executable::run::Run;
-use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use crate::model::evm_interpreter::OPCODES;
 use crate::results::group::Group;
+use crate::results::run_description::RunDescription;
 
 const OPTIMIZE_FOR_CYCLES: &str = "+M3B3";
 
@@ -29,7 +29,7 @@ pub fn is_evm_interpreter_cycles_tests_group(group: &Group<'_>) -> bool {
 /// Returns the EVM interpreter ergs/gas ratio for every EVM bytecode.
 ///
 pub fn opcode_cost_ratios<'a>(
-    group: &BTreeMap<&'a str, (&'a TestMetadata, &'a Run)>,
+    group: &BTreeMap<&'a str, (RunDescription<'a>, &'a Run)>,
 ) -> Vec<(String, f64)> {
     let mut results = Vec::new();
 
@@ -38,13 +38,17 @@ pub fn opcode_cost_ratios<'a>(
         // Collect three last #fallback's to get the gas and ergs measurements
         let runs = group
             .values()
-            .filter_map(|(metadata, run)| match &metadata.selector.case {
-                Some(case) if case == evm_opcode => match &metadata.selector.input {
-                    Some(input) if input.is_fallback() => Some(*run),
+            .filter_map(
+                |(description, run)| match &description.test_metadata.selector.case {
+                    Some(case) if case == evm_opcode => {
+                        match &description.test_metadata.selector.input {
+                            Some(input) if input.is_fallback() => Some(*run),
+                            _ => None,
+                        }
+                    }
                     _ => None,
                 },
-                _ => None,
-            })
+            )
             .collect::<Vec<&'a Run>>();
         let [_skip, full, template]: [&'a Run; 3] = runs
             .try_into()
