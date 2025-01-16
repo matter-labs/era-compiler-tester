@@ -14,17 +14,17 @@ use crate::Run;
 ///
 #[derive(Clone, Debug)]
 pub struct RunDescription<'a> {
-    /// Metadata of a test. It is common for test runs with different language versions, or compilation options
+    /// Metadata of a test. It is common for test runs with different language versions, or compilation options.
     pub test_metadata: &'a TestMetadata,
-    /// Language version, if applicable
+    /// Language version, if applicable.
     pub version: &'a Version,
-    /// Language version, if applicable
+    /// Language version, if applicable.
     pub codegen: &'a Codegen,
-    /// Compiler options
+    /// Compiler options.
     pub mode: &'a Mode,
-    /// Metadata associated with the compiled binary
+    /// Metadata associated with the compiled binary.
     pub executable_metadata: &'a ExecutableMetadata,
-    /// Measurements
+    /// Measurements.
     pub run: &'a Run,
 }
 
