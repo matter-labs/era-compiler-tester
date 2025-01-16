@@ -100,7 +100,7 @@ impl EraVMDeployer for DummyDeployer {
         &mut self,
         _test_name: String,
         _caller: web3::types::Address,
-        _init_code: Vec<u8>,
+        _deploy_code: Vec<u8>,
         _constructor_calldata: Vec<u8>,
         _value: Option<u128>,
         _vm: &mut EraVM,

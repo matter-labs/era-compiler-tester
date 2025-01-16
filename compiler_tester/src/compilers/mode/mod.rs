@@ -2,9 +2,13 @@
 //! The compiler mode.
 //!
 
+pub mod imode;
 pub mod llvm_options;
 
 use std::collections::HashSet;
+use std::fmt::Display;
+
+use imode::{mode_to_string_aux, IMode};
 
 use crate::compilers::eravm::mode::Mode as EraVMMode;
 use crate::compilers::llvm::mode::Mode as LLVMMode;
@@ -17,7 +21,7 @@ use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 ///
 /// The compiler mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Mode {
     /// The `Solidity` mode.
@@ -207,6 +211,7 @@ impl Mode {
             }
         }
 
+        current = current.replace(' ', "");
         current
     }
 }
@@ -253,16 +258,46 @@ impl From<EraVMMode> for Mode {
     }
 }
 
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
         match self {
-            Self::Solidity(inner) => write!(f, "{inner}"),
-            Self::SolidityUpstream(inner) => write!(f, "{inner}"),
-            Self::Yul(inner) => write!(f, "{inner}"),
-            Self::YulUpstream(inner) => write!(f, "{inner}"),
-            Self::Vyper(inner) => write!(f, "{inner}"),
-            Self::LLVM(inner) => write!(f, "{inner}"),
-            Self::EraVM(inner) => write!(f, "{inner}"),
+            Mode::Solidity(mode) => mode.optimizations(),
+            Mode::SolidityUpstream(mode) => mode.optimizations(),
+            Mode::Yul(mode) => mode.optimizations(),
+            Mode::YulUpstream(mode) => mode.optimizations(),
+            Mode::Vyper(mode) => mode.optimizations(),
+            Mode::LLVM(mode) => mode.optimizations(),
+            Mode::EraVM(mode) => mode.optimizations(),
         }
+    }
+
+    fn codegen(&self) -> Option<String> {
+        match self {
+            Mode::Solidity(mode) => mode.codegen(),
+            Mode::SolidityUpstream(mode) => mode.codegen(),
+            Mode::Yul(mode) => mode.codegen(),
+            Mode::YulUpstream(mode) => mode.codegen(),
+            Mode::Vyper(mode) => mode.codegen(),
+            Mode::LLVM(mode) => mode.codegen(),
+            Mode::EraVM(mode) => mode.codegen(),
+        }
+    }
+
+    fn version(&self) -> Option<String> {
+        match self {
+            Mode::Solidity(mode) => mode.version(),
+            Mode::SolidityUpstream(mode) => mode.version(),
+            Mode::Yul(mode) => mode.version(),
+            Mode::YulUpstream(mode) => mode.version(),
+            Mode::Vyper(mode) => mode.version(),
+            Mode::LLVM(mode) => mode.version(),
+            Mode::EraVM(mode) => mode.version(),
+        }
+    }
+}
+
+impl Display for Mode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        mode_to_string_aux(self, f)
     }
 }

@@ -5,11 +5,13 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
+use crate::test::case::input::identifier::InputIdentifier;
 use crate::test::case::input::output::Output;
 use crate::test::case::input::storage::Storage;
+use crate::test::description::TestDescription;
+use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 
@@ -67,18 +69,21 @@ impl DeployEraVM {
         self,
         summary: Arc<Mutex<Summary>>,
         vm: &mut EraVM,
-        mode: Mode,
         deployer: &mut D,
-        test_group: Option<String>,
-        name_prefix: String,
+        context: InputContext<'_>,
     ) where
         D: EraVMDeployer,
     {
-        let name = format!("{}[#deployer:{}]", name_prefix, self.path);
-
+        let test = TestDescription::from_context(
+            context,
+            InputIdentifier::Deployer {
+                contract_identifier: self.path,
+            },
+        );
+        let name = test.selector.path.to_string();
         vm.populate_storage(self.storage.inner);
         let result = match deployer.deploy_eravm::<M>(
-            name.clone(),
+            name,
             self.caller,
             self.hash,
             self.calldata.inner.clone(),
@@ -87,7 +92,7 @@ impl DeployEraVM {
         ) {
             Ok(result) => result,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), name, error);
+                Summary::invalid(summary, test, error);
                 return;
             }
         };
@@ -96,9 +101,7 @@ impl DeployEraVM {
             let build_size = vm.get_contract_size(self.hash);
             Summary::passed_deploy(
                 summary,
-                mode,
-                name,
-                test_group,
+                test,
                 build_size,
                 result.cycles,
                 result.ergs,
@@ -107,8 +110,7 @@ impl DeployEraVM {
         } else {
             Summary::failed(
                 summary,
-                mode,
-                name,
+                test,
                 self.expected,
                 result.output,
                 self.calldata.inner,

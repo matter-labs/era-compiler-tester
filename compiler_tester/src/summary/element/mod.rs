@@ -6,7 +6,7 @@ pub mod outcome;
 
 use colored::Colorize;
 
-use crate::compilers::mode::Mode;
+use crate::test::description::TestDescription;
 
 use self::outcome::passed_variant::PassedVariant;
 use self::outcome::Outcome;
@@ -16,10 +16,8 @@ use self::outcome::Outcome;
 ///
 #[derive(Debug)]
 pub struct Element {
-    /// The mode.
-    pub mode: Option<Mode>,
-    /// The test name.
-    pub name: String,
+    /// Information about test instance.
+    pub test_description: TestDescription,
     /// The test outcome.
     pub outcome: Outcome,
 }
@@ -28,10 +26,9 @@ impl Element {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(mode: Option<Mode>, name: String, outcome: Outcome) -> Self {
+    pub fn new(name: TestDescription, outcome: Outcome) -> Self {
         Self {
-            mode,
-            name,
+            test_description: name,
             outcome,
         }
     }
@@ -103,13 +100,14 @@ impl Element {
 
         Some(format!(
             "{:16} {:>7} {} {}",
-            self.mode
+            self.test_description
+                .mode
                 .as_ref()
                 .map(|mode| mode.to_string())
                 .unwrap_or_default()
                 .bright_white(),
             outcome,
-            self.name,
+            self.test_description.selector,
             details
         ))
     }

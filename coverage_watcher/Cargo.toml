@@ -14,10 +14,10 @@ name = "coverage-watcher"
 path = "src/coverage_watcher/main.rs"
 
 [dependencies]
-structopt = { version = "0.3", default-features = false }
-anyhow = "1.0"
+clap = { version = "=4.5.21", features = ["derive"] }
+anyhow = "=1.0.89"
 
-serde = { version = "1.0", features = [ "derive" ] }
-serde_yaml = "0.9"
+serde = { version = "=1.0.210", features = [ "derive" ] }
+serde_yaml = "=0.9.34"
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }

@@ -3,7 +3,10 @@
 //!
 
 pub mod case;
+pub mod context;
+pub mod description;
 pub mod instance;
+pub mod selector;
 
 use solidity_adapter::EVMVersion;
 use std::collections::HashMap;
@@ -13,6 +16,8 @@ use std::sync::Mutex;
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::Case;
+use crate::test::context::case::CaseContext;
+use crate::test::context::input::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
 use crate::vm::evm::input::build::Build as EVMBuild;
@@ -72,15 +77,14 @@ impl Test {
     where
         D: EraVMDeployer,
     {
+        let context = CaseContext {
+            name: &self.name,
+            mode: &self.mode,
+            group: &self.group,
+        };
         for case in self.cases {
             let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone(), None);
-            case.run_eravm::<D, M>(
-                summary.clone(),
-                vm.clone(),
-                &self.mode,
-                self.name.clone(),
-                self.group.clone(),
-            );
+            case.run_eravm::<D, M>(summary.clone(), vm.clone(), &context);
         }
     }
 
@@ -97,13 +101,13 @@ impl Test {
             let invoker = EVMInvoker::new(&config, &resolver);
 
             let vm = EVM::new(self.evm_builds.clone(), invoker);
-            case.run_evm_emulator(
-                summary.clone(),
-                vm,
-                &self.mode,
-                self.name.clone(),
-                self.group.clone(),
-            );
+
+            let context = CaseContext {
+                name: &self.name,
+                mode: &self.mode,
+                group: &self.group,
+            };
+            case.run_evm_emulator(summary.clone(), vm, &context);
         }
     }
 
@@ -112,14 +116,12 @@ impl Test {
     ///
     pub fn run_revm(self, summary: Arc<Mutex<Summary>>) {
         for case in self.cases {
-            case.run_revm(
-                summary.clone(),
-                &self.mode,
-                self.name.clone(),
-                self.group.clone(),
-                self.evm_builds.clone(),
-                self.evm_version,
-            );
+            let context = CaseContext {
+                name: &self.name,
+                mode: &self.mode,
+                group: &self.group,
+            };
+            case.run_revm(summary.clone(), self.evm_version, &context);
         }
     }
 
@@ -136,13 +138,12 @@ impl Test {
                 self.eravm_builds.clone(),
                 self.evm_version,
             );
-            case.run_evm_interpreter::<D, M>(
-                summary.clone(),
-                vm,
-                &self.mode,
-                self.name.clone(),
-                self.group.clone(),
-            );
+            let context = CaseContext {
+                name: &self.name,
+                mode: &self.mode,
+                group: &self.group,
+            };
+            case.run_evm_interpreter::<D, M>(summary.clone(), vm, &context);
         }
     }
 }

@@ -6,7 +6,6 @@ pub mod debug;
 pub mod optimizer;
 pub mod selection;
 
-use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 
 use serde::Serialize;
@@ -25,8 +24,11 @@ pub struct Settings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub evm_version: Option<era_compiler_common::EVMVersion>,
     /// The linker library addresses.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub libraries: Option<BTreeMap<String, BTreeMap<String, String>>>,
+    #[serde(
+        default,
+        skip_serializing_if = "era_solc::StandardJsonInputLibraries::is_empty"
+    )]
+    pub libraries: era_solc::StandardJsonInputLibraries,
     /// The sorted list of remappings.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remappings: Option<BTreeSet<String>>,
@@ -40,6 +42,13 @@ pub struct Settings {
         skip_deserializing
     )]
     pub via_ir: Option<bool>,
+    /// Whether to compile via MLIR.
+    #[serde(
+        rename = "viaMLIR",
+        skip_serializing_if = "Option::is_none",
+        skip_deserializing
+    )]
+    pub via_mlir: Option<bool>,
     /// The optimizer settings.
     pub optimizer: Optimizer,
     /// The debug settings.
@@ -53,19 +62,21 @@ impl Settings {
     ///
     pub fn new(
         evm_version: Option<era_compiler_common::EVMVersion>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         remappings: Option<BTreeSet<String>>,
         output_selection: Selection,
         via_ir: bool,
+        via_mlir: bool,
         optimizer: Optimizer,
         debug: Option<Debug>,
     ) -> Self {
         Self {
             evm_version,
-            libraries: Some(libraries),
+            libraries,
             remappings,
             output_selection: Some(output_selection),
             via_ir: if via_ir { Some(true) } else { None },
+            via_mlir: if via_mlir { Some(true) } else { None },
             optimizer,
             debug,
         }

@@ -15,8 +15,8 @@ pub struct Instance {
     pub is_main: bool,
     /// Whether the instance is a library.
     pub is_library: bool,
-    /// The init bytecode.
-    pub init_code: Vec<u8>,
+    /// The deploy bytecode.
+    pub deploy_code: Vec<u8>,
 }
 
 impl Instance {
@@ -28,14 +28,14 @@ impl Instance {
         address: Option<web3::types::Address>,
         is_main: bool,
         is_library: bool,
-        init_code: Vec<u8>,
+        deploy_code: Vec<u8>,
     ) -> Self {
         Self {
             path,
             address,
             is_main,
             is_library,
-            init_code,
+            deploy_code,
         }
     }
 }

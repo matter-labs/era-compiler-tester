@@ -1,12 +1,12 @@
 [submodule "tests"]
-	path = tests
-	url = https://github.com/matter-labs/era-compiler-tests
-	branch = main
+    path = tests
+    url = https://github.com/matter-labs/era-compiler-tests
+    branch = main
 [submodule "solidity"]
-	path = solidity
-	url = https://github.com/ethereum/solidity
-	branch = develop
+    path = solidity
+    url = https://github.com/ethereum/solidity
+    branch = develop
 [submodule "era-contracts"]
-	path = era-contracts
-	url = https://github.com/lambdaclass/era-contracts
-	branch = evm-equivalence-yul-new
+    path = era-contracts
+    url = https://github.com/matter-labs/era-contracts
+    branch = stable/evm-emulator

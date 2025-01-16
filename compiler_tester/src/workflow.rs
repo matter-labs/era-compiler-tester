@@ -7,7 +7,7 @@ use std::str::FromStr;
 ///
 /// Describes sets of actions that compiler tester is able to perform.
 ///
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Workflow {
     /// Only build tests but not execute them.
     BuildOnly,

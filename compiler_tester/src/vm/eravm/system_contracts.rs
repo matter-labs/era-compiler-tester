@@ -2,7 +2,6 @@
 //! The EraVM system contracts.
 //!
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
@@ -31,8 +30,8 @@ pub struct SystemContracts {
     pub deployed_contracts: Vec<(web3::types::Address, era_compiler_llvm_context::EraVMBuild)>,
     /// The default account abstraction contract build.
     pub default_aa: era_compiler_llvm_context::EraVMBuild,
-    /// The EVM interpreter contract build.
-    pub evm_interpreter: era_compiler_llvm_context::EraVMBuild,
+    /// The EVM emulator contract build.
+    pub evm_emulator: era_compiler_llvm_context::EraVMBuild,
 }
 
 impl SystemContracts {
@@ -44,9 +43,9 @@ impl SystemContracts {
     const PATH_DEFAULT_AA: &'static str =
         r"era-contracts\system-contracts\contracts\DefaultAccount.sol:DefaultAccount";
 
-    /// The EVM interpreter system contract implementation path.
-    const PATH_EVM_INTERPRETER: &'static str =
-        r"era-contracts\system-contracts\contracts\EvmInterpreter.yul";
+    /// The EVM emulator system contract implementation path.
+    const PATH_EVM_EMULATOR: &'static str =
+        r"era-contracts\system-contracts\contracts\EvmEmulator.yul";
 
     /// The `keccak256` system contract implementation path.
     const PATH_KECCAK256: &'static str =
@@ -59,6 +58,9 @@ impl SystemContracts {
     /// The `sha256` system contract implementation path.
     const PATH_SHA256: &'static str =
         r"era-contracts\system-contracts\contracts\precompiles\SHA256.yul";
+
+    /// The `identity` system contract implementation path.
+    const PATH_IDENTITY: &'static str = r"tests\solidity\simple\system\identity.sol:Identity";
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
@@ -114,7 +116,7 @@ impl SystemContracts {
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
-        r"era-contracts\system-contracts\contracts\EvmGasManager.sol:EvmGasManager";
+        r"era-contracts\system-contracts\contracts\EvmGasManager.yul";
 
     ///
     /// Loads or builds the system contracts.
@@ -187,10 +189,18 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(0x8012),
                 Self::PATH_CODE_ORACLE,
             ),
+            (
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                Self::PATH_EVM_GAS_MANAGER,
+            ),
         ];
 
         let solidity_system_contracts = vec![
             (web3::types::Address::zero(), Self::PATH_EMPTY_CONTRACT),
+            (
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
+                Self::PATH_IDENTITY,
+            ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ACCOUNT_CODE_STORAGE.into(),
@@ -241,23 +251,28 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
                 Self::PATH_BASE_TOKEN,
             ),
-            (
-                web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                Self::PATH_EVM_GAS_MANAGER,
-            ),
         ];
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
         for (_, path) in yul_system_contracts.into_iter() {
             yul_file_paths.push(path.to_owned());
         }
-        yul_file_paths.push(Self::PATH_EVM_INTERPRETER.to_owned());
+        yul_file_paths.push(Self::PATH_EVM_EMULATOR.to_owned());
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
-        let yul_llvm_options = vec!["-eravm-jump-table-density-threshold", "10"]
-            .into_iter()
-            .map(|option| option.to_owned())
-            .collect();
+        let yul_llvm_options = vec![
+            "-eravm-jump-table-density-threshold",
+            "10",
+            "-tail-dup-size",
+            "6",
+            "-eravm-enable-split-loop-phi-live-ranges",
+            "-tail-merge-only-bbs-without-succ",
+            "-join-globalcopies",
+            "-disable-early-taildup",
+        ]
+        .into_iter()
+        .map(|option| option.to_owned())
+        .collect();
         let mut builds = Self::compile(
             YulCompiler::new(Toolchain::IrLLVM),
             yul_file_paths,
@@ -266,8 +281,9 @@ impl SystemContracts {
             debug_config.clone(),
         )?;
 
-        let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 1);
+        let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 2);
         for pattern in [
+            "tests/solidity/simple/system/identity.sol",
             "era-contracts/system-contracts/contracts/*.sol",
             "era-contracts/system-contracts/contracts/libraries/**/*.sol",
             "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
@@ -285,7 +301,7 @@ impl SystemContracts {
         let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let solidity_mode = SolidityMode::new(
             solc_version,
-            era_compiler_solidity::SolcPipeline::Yul,
+            era_solc::StandardJsonInputCodegen::Yul,
             true,
             true,
             solidity_optimizer_settings,
@@ -304,8 +320,8 @@ impl SystemContracts {
         let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
             anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
         })?;
-        let evm_interpreter = builds.remove(Self::PATH_EVM_INTERPRETER).ok_or_else(|| {
-            anyhow::anyhow!("The EVM interpreter code not found in the compiler build artifacts")
+        let evm_emulator = builds.remove(Self::PATH_EVM_EMULATOR).ok_or_else(|| {
+            anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
         })?;
 
         let mut system_contracts =
@@ -331,7 +347,7 @@ impl SystemContracts {
         Ok(Self {
             deployed_contracts,
             default_aa,
-            evm_interpreter,
+            evm_emulator,
         })
     }
 
@@ -422,7 +438,7 @@ impl SystemContracts {
             .compile_for_eravm(
                 "system-contracts".to_owned(),
                 sources,
-                BTreeMap::new(),
+                era_solc::StandardJsonInputLibraries::default(),
                 mode,
                 llvm_options,
                 debug_config,

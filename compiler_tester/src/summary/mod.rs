@@ -2,19 +2,26 @@
 //! The compiler tester summary.
 //!
 
+pub mod benchmark_adapters;
 pub mod element;
 
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use benchmark_adapters::mode::ModeInfo;
 use colored::Colorize;
 
-use crate::compilers::mode::Mode;
 use crate::test::case::input::output::Output;
+use crate::test::description::TestDescription;
+use crate::toolchain::Toolchain;
+use crate::utils::timer::Timer;
 
 use self::element::outcome::passed_variant::PassedVariant;
 use self::element::outcome::Outcome;
 use self::element::Element;
+
+const BENCHMARK_FORMAT_VERSION: benchmark_analyzer::BenchmarkVersion =
+    benchmark_analyzer::BenchmarkVersion::V2;
 
 ///
 /// The compiler tester summary.
@@ -35,6 +42,7 @@ pub struct Summary {
     invalid: usize,
     /// The ignored tests counter.
     ignored: usize,
+    timer: Timer,
 }
 
 impl Summary {
@@ -53,9 +61,33 @@ impl Summary {
             failed: 0,
             invalid: 0,
             ignored: 0,
+            timer: Timer::default(),
         }
     }
 
+    /// Starts the timer associated with the object.
+    ///
+    /// # Returns
+    ///
+    /// `anyhow::Result<Self>`: If the timer is successfully started, the function
+    /// returns `Ok(self)`, allowing method chaining. If the timer is in an invalid
+    /// state (e.g., already started or stopped), it returns an error.
+    pub fn start_timer(mut self) -> anyhow::Result<Self> {
+        self.timer.start()?;
+        Ok(self)
+    }
+
+    /// Stops the timer associated with the object.
+    ///
+    /// # Returns
+    ///
+    /// `anyhow::Result<Self>`: If the timer is successfully stopped, the function
+    /// returns `Ok(self)`, permitting method chaining. An error is returned if the
+    /// timer is in an invalid state (e.g., not started or already stopped).
+    pub fn stop_timer(mut self) -> anyhow::Result<Self> {
+        self.timer.stop()?;
+        Ok(self)
+    }
     ///
     /// Whether the test run has been successful.
     ///
@@ -75,27 +107,39 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self) -> anyhow::Result<benchmark_analyzer::Benchmark> {
-        let mut benchmark = benchmark_analyzer::Benchmark::default();
-        benchmark.groups.insert(
-            format!(
-                "{} {}",
-                benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                era_compiler_llvm_context::OptimizerSettings::cycles(),
-            ),
-            benchmark_analyzer::BenchmarkGroup::default(),
-        );
-        benchmark.groups.insert(
-            format!(
-                "{} {}",
-                benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME,
-                era_compiler_llvm_context::OptimizerSettings::size(),
-            ),
-            benchmark_analyzer::BenchmarkGroup::default(),
-        );
+    pub fn benchmark(
+        &self,
+        toolchain: Toolchain,
+        context: Option<benchmark_analyzer::BenchmarkContext>,
+    ) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+        if let Toolchain::SolcLLVM = toolchain {
+            anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
+        }
 
-        for element in self.elements.iter() {
-            let (size, cycles, ergs, group, gas) = match &element.outcome {
+        let mut benchmark = benchmark_analyzer::Benchmark::default();
+
+        if let (Some(start), Some(end)) = (self.timer.get_start(), self.timer.get_end()) {
+            benchmark.metadata = benchmark_analyzer::BenchmarkMetadata {
+                version: BENCHMARK_FORMAT_VERSION,
+                start,
+                end,
+                context,
+            };
+        } else {
+            anyhow::bail!("Invalid state: the time of running the benchmark was not measured.");
+        }
+
+        for Element {
+            test_description:
+                TestDescription {
+                    group,
+                    mode,
+                    selector,
+                },
+            outcome,
+        } in self.elements.iter()
+        {
+            let (size, cycles, ergs, gas) = match outcome {
                 Outcome::Passed {
                     variant:
                         PassedVariant::Deploy {
@@ -104,45 +148,51 @@ impl Summary {
                             ergs,
                             gas,
                         },
-                    group,
-                } => (Some(*size), *cycles, *ergs, group.clone(), *gas),
+                    ..
+                } => (Some(*size), *cycles, *ergs, *gas),
                 Outcome::Passed {
                     variant: PassedVariant::Runtime { cycles, ergs, gas },
-                    group,
-                } => (None, *cycles, *ergs, group.clone(), *gas),
+                    ..
+                } => (None, *cycles, *ergs, *gas),
                 _ => continue,
             };
 
-            let key = format!(
-                "{:24} {}",
-                element
-                    .mode
-                    .as_ref()
-                    .map(|mode| mode.to_string())
-                    .unwrap_or_default(),
-                element.name
-            );
-            let mode = element
-                .mode
-                .as_ref()
-                .and_then(|mode| mode.llvm_optimizer_settings().cloned())
-                .unwrap_or(era_compiler_llvm_context::OptimizerSettings::none());
+            let test_name = selector.to_string();
 
-            let benchmark_element =
-                benchmark_analyzer::BenchmarkElement::new(size, cycles, ergs, gas);
-            if let Some(group) = group {
-                benchmark
-                    .groups
-                    .entry(format!("{} {}", group, mode))
-                    .or_default()
-                    .elements
-                    .insert(key.clone(), benchmark_element.clone());
-            }
+            let tags: Vec<String> = group.iter().cloned().collect();
 
-            let group_key = format!("{} {}", benchmark_analyzer::BENCHMARK_ALL_GROUP_NAME, mode);
-            if let Some(group) = benchmark.groups.get_mut(group_key.as_str()) {
-                group.elements.insert(key, benchmark_element);
-            }
+            let ModeInfo {
+                codegen,
+                optimizations,
+                version,
+            } = mode
+                .clone()
+                .expect("The compiler mode is missing from description.")
+                .into();
+
+            benchmark
+                .tests
+                .entry(test_name)
+                .or_insert(benchmark_analyzer::Test::new(
+                    benchmark_analyzer::TestMetadata::new(selector.clone().into(), tags),
+                ))
+                .codegen_groups
+                .entry(codegen)
+                .or_insert(Default::default())
+                .versioned_groups
+                .entry(version)
+                .or_insert(Default::default())
+                .executables
+                .entry(optimizations)
+                .or_insert(benchmark_analyzer::Executable {
+                    metadata: benchmark_analyzer::ExecutableMetadata {},
+                    run: benchmark_analyzer::Run {
+                        size,
+                        cycles,
+                        ergs,
+                        gas,
+                    },
+                });
         }
         Ok(benchmark)
     }
@@ -169,9 +219,7 @@ impl Summary {
     ///
     pub fn passed_deploy(
         summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
+        test: TestDescription,
         size: usize,
         cycles: usize,
         ergs: u64,
@@ -183,7 +231,7 @@ impl Summary {
             ergs,
             gas,
         };
-        Self::passed(summary, mode, name, group, passed_variant);
+        Self::passed(summary, test, passed_variant);
     }
 
     ///
@@ -191,28 +239,21 @@ impl Summary {
     ///
     pub fn passed_runtime(
         summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
+        test: TestDescription,
         cycles: usize,
         ergs: u64,
         gas: u64,
     ) {
         let passed_variant = PassedVariant::Runtime { cycles, ergs, gas };
-        Self::passed(summary, mode, name, group, passed_variant);
+        Self::passed(summary, test, passed_variant);
     }
 
     ///
     /// Adds a passed outcome of a special call, like `storageEmpty` or `balance`.
     ///
-    pub fn passed_special(
-        summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
-    ) {
+    pub fn passed_special(summary: Arc<Mutex<Self>>, test: TestDescription) {
         let passed_variant = PassedVariant::Special;
-        Self::passed(summary, mode, name, group, passed_variant);
+        Self::passed(summary, test, passed_variant);
     }
 
     ///
@@ -220,46 +261,40 @@ impl Summary {
     ///
     pub fn failed(
         summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
+        test: TestDescription,
         expected: Output,
         found: Output,
         calldata: Vec<u8>,
     ) {
-        let element = Element::new(Some(mode), name, Outcome::failed(expected, found, calldata));
+        let element = Element::new(test, Outcome::failed(expected, found, calldata));
         summary.lock().expect("Sync").push_element(element);
     }
 
     ///
     /// Adds an invalid outcome.
     ///
-    pub fn invalid<S>(summary: Arc<Mutex<Self>>, mode: Option<Mode>, name: String, error: S)
+    pub fn invalid<S>(summary: Arc<Mutex<Self>>, test: TestDescription, error: S)
     where
         S: ToString,
     {
-        let element = Element::new(mode, name, Outcome::invalid(error));
+        let element = Element::new(test, Outcome::invalid(error));
         summary.lock().expect("Sync").push_element(element);
     }
 
     ///
     /// Adds an ignored outcome.
     ///
-    pub fn ignored(summary: Arc<Mutex<Self>>, name: String) {
-        let element = Element::new(None, name, Outcome::ignored());
+    pub fn ignored(summary: Arc<Mutex<Self>>, test: TestDescription) {
+        let element = Element::new(test.with_erased_mode(), Outcome::ignored());
         summary.lock().expect("Sync").push_element(element);
     }
 
     ///
     /// The unified function for passed outcomes.
     ///
-    fn passed(
-        summary: Arc<Mutex<Self>>,
-        mode: Mode,
-        name: String,
-        group: Option<String>,
-        passed_variant: PassedVariant,
-    ) {
-        let element = Element::new(Some(mode), name, Outcome::passed(group, passed_variant));
+    fn passed(summary: Arc<Mutex<Self>>, test: TestDescription, passed_variant: PassedVariant) {
+        let group = test.group.clone();
+        let element = Element::new(test, Outcome::passed(group, passed_variant));
         summary.lock().expect("Sync").push_element(element);
     }
 

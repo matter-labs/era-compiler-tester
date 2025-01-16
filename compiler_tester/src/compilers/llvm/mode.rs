@@ -2,6 +2,7 @@
 //! The compiler tester LLVM mode.
 //!
 
+use crate::compilers::mode::imode::IMode;
 use crate::compilers::mode::llvm_options::LLVMOptions;
 
 use crate::compilers::mode::Mode as ModeWrapper;
@@ -9,7 +10,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester LLVM mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The optimizer settings.
     pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
@@ -45,8 +46,22 @@ impl Mode {
     }
 }
 
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some(format!("{}", self.llvm_optimizer_settings))
+    }
+
+    fn codegen(&self) -> Option<String> {
+        None
+    }
+
+    fn version(&self) -> Option<String> {
+        None
+    }
+}
+
 impl std::fmt::Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.llvm_optimizer_settings,)
+        write!(f, "{}", self.optimizations().unwrap_or_default(),)
     }
 }

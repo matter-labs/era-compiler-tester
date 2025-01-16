@@ -55,7 +55,7 @@ impl Default for VyperCompiler {
 }
 
 impl VyperCompiler {
-    /// The compiler binaries directory.
+    /// The compiler executables directory.
     pub const DIRECTORY: &'static str = "vyper-bin/";
 
     ///
@@ -88,7 +88,7 @@ impl VyperCompiler {
                 .file_type()
                 .map_err(|error| anyhow::anyhow!("File {path:?} type getting error: {error}"))?;
             if !entry_type.is_file() {
-                anyhow::bail!("Invalid `vyper` binary file type: {path:?}");
+                anyhow::bail!("Invalid `vyper` executable file type: {path:?}");
             }
 
             let file_name = entry.file_name().to_string_lossy().to_string();
@@ -132,11 +132,12 @@ impl VyperCompiler {
             &mode.vyper_version,
             paths,
             &[
-                era_compiler_vyper::VyperSelection::IRJson,
-                era_compiler_vyper::VyperSelection::EraVMAssembly,
+                era_compiler_vyper::VyperSelector::IRJson,
+                era_compiler_vyper::VyperSelector::EraVMAssembly,
             ],
             evm_version,
             true,
+            None,
             mode.vyper_optimize,
         )
     }
@@ -195,7 +196,7 @@ impl Compiler for VyperCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -225,7 +226,7 @@ impl Compiler for VyperCompiler {
         let method_identifiers = Self::get_method_identifiers(&project)
             .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {error}"))?;
 
-        let build = project.compile(
+        let mut build = project.compile(
             None,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
@@ -233,19 +234,22 @@ impl Compiler for VyperCompiler {
             vec![],
             debug_config,
         )?;
+        build.link(libraries.as_linker_symbols()?)?;
         let builds = build
             .contracts
             .into_iter()
             .map(|(path, contract)| {
-                let build = era_compiler_llvm_context::EraVMBuild::new(
+                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash,
+                    contract.build.bytecode_hash.ok_or_else(|| {
+                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
+                    })?,
                     None,
                     contract.build.assembly,
                 );
-                (path, build)
+                Ok((path, build))
             })
-            .collect::<HashMap<String, era_compiler_llvm_context::EraVMBuild>>();
+            .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 
         Ok(EraVMInput::new(
             builds,
@@ -258,7 +262,7 @@ impl Compiler for VyperCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        _libraries: era_solc::StandardJsonInputLibraries,
         _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,

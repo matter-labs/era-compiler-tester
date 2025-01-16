@@ -27,7 +27,7 @@ pub struct Metadata {
     /// The test contracts as `instance -> path`.
     #[serde(default)]
     pub contracts: BTreeMap<String, String>,
-    /// The EVM auxiliary contracts as `instance -> init code`.
+    /// The EVM auxiliary contracts as `instance -> deploy code`.
     #[serde(default)]
     pub evm_contracts: BTreeMap<String, EVMContract>,
     /// The test libraries for linking.

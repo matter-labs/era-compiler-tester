@@ -13,9 +13,9 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use serde::Serialize;
 
-use self::settings::debug::Debug as SolcStandardJsonInputSettingsDebug;
-use self::settings::optimizer::Optimizer as SolcStandardJsonInputSettingsOptimizer;
-use self::settings::selection::Selection as SolcStandardJsonInputSettingsSelection;
+use self::settings::debug::Debug as SolcStandardJsonInputDebug;
+use self::settings::optimizer::Optimizer as SolcStandardJsonInputOptimizer;
+use self::settings::selection::Selection as SolcStandardJsonInputSelection;
 
 use self::language::Language;
 use self::settings::Settings;
@@ -45,12 +45,13 @@ impl Input {
         language: Language,
         evm_version: Option<era_compiler_common::EVMVersion>,
         sources: BTreeMap<String, String>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         remappings: Option<BTreeSet<String>>,
-        output_selection: SolcStandardJsonInputSettingsSelection,
+        output_selection: SolcStandardJsonInputSelection,
         via_ir: bool,
-        optimizer: SolcStandardJsonInputSettingsOptimizer,
-        debug: Option<SolcStandardJsonInputSettingsDebug>,
+        via_mlir: bool,
+        optimizer: SolcStandardJsonInputOptimizer,
+        debug: Option<SolcStandardJsonInputDebug>,
     ) -> anyhow::Result<Self> {
         let sources = sources
             .into_par_iter()
@@ -66,6 +67,7 @@ impl Input {
                 remappings,
                 output_selection,
                 via_ir,
+                via_mlir,
                 optimizer,
                 debug,
             ),

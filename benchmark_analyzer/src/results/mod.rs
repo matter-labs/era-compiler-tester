@@ -2,6 +2,9 @@
 //! The benchmark group results.
 //!
 
+pub mod group;
+
+use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use colored::Colorize;
 use std::cmp;
 
@@ -17,9 +20,9 @@ pub struct Results<'a> {
     /// The size total decrease result.
     pub size_total: f64,
     /// The size negative result test names.
-    pub size_negatives: Vec<(f64, &'a str)>,
+    pub size_negatives: Vec<(f64, &'a TestMetadata)>,
     /// The size positive result test names.
-    pub size_positives: Vec<(f64, &'a str)>,
+    pub size_positives: Vec<(f64, &'a TestMetadata)>,
 
     /// The cycles best result.
     pub cycles_best: f64,
@@ -28,9 +31,9 @@ pub struct Results<'a> {
     /// The cycles total decrease result.
     pub cycles_total: f64,
     /// The cycles negative result test names.
-    pub cycles_negatives: Vec<(f64, &'a str)>,
+    pub cycles_negatives: Vec<(f64, &'a TestMetadata)>,
     /// The cycles positive result test names.
-    pub cycles_positives: Vec<(f64, &'a str)>,
+    pub cycles_positives: Vec<(f64, &'a TestMetadata)>,
 
     /// The ergs best result.
     pub ergs_best: f64,
@@ -39,9 +42,20 @@ pub struct Results<'a> {
     /// The ergs total decrease result.
     pub ergs_total: f64,
     /// The ergs negative result test names.
-    pub ergs_negatives: Vec<(f64, &'a str)>,
+    pub ergs_negatives: Vec<(f64, &'a TestMetadata)>,
     /// The ergs positive result test names.
-    pub ergs_positives: Vec<(f64, &'a str)>,
+    pub ergs_positives: Vec<(f64, &'a TestMetadata)>,
+
+    /// The gas best result.
+    pub gas_best: f64,
+    /// The gas worst result.
+    pub gas_worst: f64,
+    /// The gas total decrease result.
+    pub gas_total: f64,
+    /// The gas negative result test names.
+    pub gas_negatives: Vec<(f64, &'a TestMetadata)>,
+    /// The gas positive result test names.
+    pub gas_positives: Vec<(f64, &'a TestMetadata)>,
 
     /// The EVM interpreter reference ratios.
     pub evm_interpreter_reference_ratios: Option<Vec<(String, f64)>>,
@@ -58,20 +72,26 @@ impl<'a> Results<'a> {
         size_best: f64,
         size_worst: f64,
         size_total: f64,
-        size_negatives: Vec<(f64, &'a str)>,
-        size_positives: Vec<(f64, &'a str)>,
+        size_negatives: Vec<(f64, &'a TestMetadata)>,
+        size_positives: Vec<(f64, &'a TestMetadata)>,
 
         cycles_best: f64,
         cycles_worst: f64,
         cycles_total: f64,
-        cycles_negatives: Vec<(f64, &'a str)>,
-        cycles_positives: Vec<(f64, &'a str)>,
+        cycles_negatives: Vec<(f64, &'a TestMetadata)>,
+        cycles_positives: Vec<(f64, &'a TestMetadata)>,
 
         ergs_best: f64,
         ergs_worst: f64,
         ergs_total: f64,
-        ergs_negatives: Vec<(f64, &'a str)>,
-        ergs_positives: Vec<(f64, &'a str)>,
+        ergs_negatives: Vec<(f64, &'a TestMetadata)>,
+        ergs_positives: Vec<(f64, &'a TestMetadata)>,
+
+        gas_best: f64,
+        gas_worst: f64,
+        gas_total: f64,
+        gas_negatives: Vec<(f64, &'a TestMetadata)>,
+        gas_positives: Vec<(f64, &'a TestMetadata)>,
     ) -> Self {
         Self {
             size_best,
@@ -91,6 +111,12 @@ impl<'a> Results<'a> {
             ergs_total,
             ergs_negatives,
             ergs_positives,
+
+            gas_best,
+            gas_worst,
+            gas_total,
+            gas_negatives,
+            gas_positives,
 
             evm_interpreter_reference_ratios: None,
             evm_interpreter_candidate_ratios: None,
@@ -134,6 +160,14 @@ impl<'a> Results<'a> {
                 std::cmp::Ordering::Equal
             }
         });
+        self.gas_negatives.sort_by(|a, b| {
+            if a.0 > b.0 {
+                std::cmp::Ordering::Less
+            } else {
+                std::cmp::Ordering::Equal
+            }
+        });
+
         self.size_positives.sort_by(|a, b| {
             if a.0 < b.0 {
                 std::cmp::Ordering::Less
@@ -155,6 +189,13 @@ impl<'a> Results<'a> {
                 std::cmp::Ordering::Equal
             }
         });
+        self.gas_positives.sort_by(|a, b| {
+            if a.0 < b.0 {
+                std::cmp::Ordering::Less
+            } else {
+                std::cmp::Ordering::Equal
+            }
+        });
     }
 
     ///
@@ -168,7 +209,7 @@ impl<'a> Results<'a> {
             self.size_negatives.len()
         );
         for (value, path) in self.size_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
         }
         println!();
         println!(
@@ -178,7 +219,7 @@ impl<'a> Results<'a> {
             self.cycles_negatives.len()
         );
         for (value, path) in self.cycles_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
         }
         println!();
         println!(
@@ -188,9 +229,20 @@ impl<'a> Results<'a> {
             self.ergs_negatives.len()
         );
         for (value, path) in self.ergs_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
         }
         println!();
+        println!(
+            "Group '{}' gas (-%) worst {} out of {}:",
+            group_name,
+            count,
+            self.gas_negatives.len()
+        );
+        for (value, path) in self.gas_negatives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        }
+        println!();
+
         println!(
             "Group '{}' size (-%) best {} out of {}:",
             group_name,
@@ -198,7 +250,7 @@ impl<'a> Results<'a> {
             self.size_positives.len()
         );
         for (value, path) in self.size_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
         }
         println!();
         println!(
@@ -208,7 +260,7 @@ impl<'a> Results<'a> {
             self.cycles_positives.len()
         );
         for (value, path) in self.cycles_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
         }
         println!();
         println!(
@@ -218,7 +270,17 @@ impl<'a> Results<'a> {
             self.ergs_positives.len()
         );
         for (value, path) in self.ergs_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path);
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        }
+        println!();
+        println!(
+            "Group '{}' gas (-%) best {} out of {}:",
+            group_name,
+            count,
+            self.gas_positives.len()
+        );
+        for (value, path) in self.gas_positives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), path.selector);
         }
         println!();
     }
@@ -234,77 +296,106 @@ impl<'a> Results<'a> {
             w,
             "╔═╡ {} ╞{}╡ {} ╞═╗",
             "Size (-%)".bright_white(),
-            "═".repeat(cmp::max(24 - group_name.len(), 0)),
+            "═".repeat(cmp::max(44 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.size_best)
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.size_worst)
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.size_total)
         )?;
+
         writeln!(
             w,
             "╠═╡ {} ╞{}╡ {} ╞═╣",
             "Cycles (-%)".bright_white(),
-            "═".repeat(cmp::max(22 - group_name.len(), 0)),
+            "═".repeat(cmp::max(42 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.cycles_best)
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.cycles_worst)
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.cycles_total)
         )?;
+
         writeln!(
             w,
             "╠═╡ {} ╞{}╡ {} ╞═╣",
             "Ergs (-%)".bright_white(),
-            "═".repeat(cmp::max(24 - group_name.len(), 0)),
+            "═".repeat(cmp::max(44 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.ergs_best)
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.ergs_worst)
         )?;
         writeln!(
             w,
-            "║ {:33} {:07} ║",
+            "║ {:53} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.ergs_total)
         )?;
+
+        writeln!(
+            w,
+            "╠══╡ {} ╞{}╡ {} ╞═╣",
+            "Gas (-%)".bright_white(),
+            "═".repeat(cmp::max(44 - group_name.len(), 0)),
+            group_name.bright_white()
+        )?;
+        writeln!(
+            w,
+            "║ {:53} {:07} ║",
+            "Best".bright_white(),
+            Self::format_f64(self.gas_best)
+        )?;
+        writeln!(
+            w,
+            "║ {:53} {:07} ║",
+            "Worst".bright_white(),
+            Self::format_f64(self.gas_worst)
+        )?;
+        writeln!(
+            w,
+            "║ {:53} {:07} ║",
+            "Total".bright_white(),
+            Self::format_f64(self.gas_total)
+        )?;
+
         if let (Some(gas_reference_ratios), Some(gas_candidate_ratios)) = (
             self.evm_interpreter_reference_ratios.as_deref(),
             self.evm_interpreter_candidate_ratios.as_deref(),
@@ -313,7 +404,7 @@ impl<'a> Results<'a> {
                 w,
                 "╠═╡ {} ╞{}╡ {} ╞═╣",
                 "Ergs/gas".bright_white(),
-                "═".repeat(cmp::max(25 - group_name.len(), 0)),
+                "═".repeat(cmp::max(45 - group_name.len(), 0)),
                 group_name.bright_white()
             )?;
             for (opcode, reference_ratio) in gas_reference_ratios.iter() {
@@ -333,7 +424,7 @@ impl<'a> Results<'a> {
 
                 writeln!(
                     w,
-                    "║ {:32} {} ║",
+                    "║ {:52} {} ║",
                     if is_positive {
                         opcode.green()
                     } else if is_negative {
@@ -355,7 +446,7 @@ impl<'a> Results<'a> {
                 w,
                 "╠═╡ {} ╞{}╡ {} ╞═╣",
                 "Ergs/gas (-%)".bright_white(),
-                "═".repeat(cmp::max(20 - group_name.len(), 0)),
+                "═".repeat(cmp::max(40 - group_name.len(), 0)),
                 group_name.bright_white()
             )?;
             for (opcode, reference_ratio) in gas_reference_ratios.iter() {
@@ -378,7 +469,7 @@ impl<'a> Results<'a> {
 
                     writeln!(
                         w,
-                        "║ {:32} {} ║",
+                        "║ {:52} {} ║",
                         if is_positive {
                             opcode.green()
                         } else if is_negative {
@@ -397,7 +488,10 @@ impl<'a> Results<'a> {
                 }
             }
         }
-        writeln!(w, "╚═══════════════════════════════════════════╝")?;
+        writeln!(
+            w,
+            "╚═══════════════════════════════════════════════════════════════╝"
+        )?;
 
         Ok(())
     }

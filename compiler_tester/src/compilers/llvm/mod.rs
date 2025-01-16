@@ -4,10 +4,9 @@
 
 pub mod mode;
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
@@ -40,7 +39,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -53,16 +52,14 @@ impl Compiler for LLVMCompiler {
             .0
             .clone();
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources
                 .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
+                .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
+            libraries,
             None,
         )?;
 
@@ -73,12 +70,13 @@ impl Compiler for LLVMCompiler {
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
-            None,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
+        let build = build.link(linker_symbols);
+        build.check_errors()?;
         let builds = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, result)| Ok((path, result.expect("Always valid").build)))
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
@@ -90,7 +88,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        _libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -107,34 +105,27 @@ impl Compiler for LLVMCompiler {
         let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
             sources
                 .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
+                .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
+            era_solc::StandardJsonInputLibraries::default(),
             None,
         )?;
 
         let build = project.compile_to_evm(
             &mut vec![],
+            era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            era_compiler_common::HashType::Ipfs,
             None,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, build)| {
                 let build = build.expect("Always valid");
-                let build = EVMBuild::new(
-                    era_compiler_llvm_context::EVMBuild::default(),
-                    build.runtime_build,
-                );
+                let build = EVMBuild::new(vec![], build.runtime_build);
                 (path, build)
             })
             .collect();

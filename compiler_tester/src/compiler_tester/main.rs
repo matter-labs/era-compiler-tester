@@ -1,5 +1,5 @@
 //!
-//! The compiler tester binary.
+//! The compiler tester executable.
 //!
 
 pub(crate) mod arguments;
@@ -8,6 +8,9 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
+use arguments::benchmark_format::BenchmarkFormat;
+use arguments::validation::validate_arguments;
+use clap::Parser;
 use colored::Colorize;
 
 use self::arguments::Arguments;
@@ -19,7 +22,10 @@ const RAYON_WORKER_STACK_SIZE: usize = 16 * 1024 * 1024;
 /// The application entry point.
 ///
 fn main() {
-    let exit_code = match main_inner(Arguments::new()) {
+    let exit_code = match Arguments::try_parse()
+        .map_err(|error| anyhow::anyhow!(error))
+        .and_then(main_inner)
+    {
         Ok(()) => era_compiler_common::EXIT_CODE_SUCCESS,
         Err(error) => {
             eprintln!("{error:?}");
@@ -34,6 +40,7 @@ fn main() {
 /// The entry point wrapper used for proper error handling.
 ///
 fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
+    let arguments = validate_arguments(arguments)?;
     println!(
         "    {} {} v{} (LLVM build {})",
         "Starting".bright_green().bold(),
@@ -89,29 +96,18 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
-    let summary = compiler_tester::Summary::new(arguments.verbosity, arguments.quiet).wrap();
-
-    let filters = compiler_tester::Filters::new(arguments.paths, arguments.modes, arguments.groups);
-
-    let compiler_tester = compiler_tester::CompilerTester::new(
-        summary.clone(),
-        filters,
-        debug_config.clone(),
-        arguments.workflow,
-    )?;
-
     let toolchain = match (arguments.target, arguments.toolchain) {
         (era_compiler_common::Target::EraVM, Some(toolchain)) => toolchain,
         (era_compiler_common::Target::EraVM, None) => compiler_tester::Toolchain::IrLLVM,
         (era_compiler_common::Target::EVM, Some(toolchain)) => toolchain,
         (era_compiler_common::Target::EVM, None) => compiler_tester::Toolchain::Solc,
     };
-    let binary_download_config_paths = vec![
+    let executable_download_config_paths = vec![
         arguments.solc_bin_config_path.unwrap_or_else(|| {
             PathBuf::from(match toolchain {
                 compiler_tester::Toolchain::IrLLVM => "./configs/solc-bin-default.json",
                 compiler_tester::Toolchain::Solc => "./configs/solc-bin-upstream.json",
-                compiler_tester::Toolchain::SolcLLVM => todo!(),
+                compiler_tester::Toolchain::SolcLLVM => "./configs/solc-bin-llvm.json",
             })
         }),
         arguments
@@ -141,6 +137,19 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         ),
     };
 
+    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet)
+        .start_timer()?
+        .wrap();
+
+    let filters = compiler_tester::Filters::new(arguments.path, arguments.mode, arguments.group);
+
+    let compiler_tester = compiler_tester::CompilerTester::new(
+        summary.clone(),
+        filters,
+        debug_config.clone(),
+        arguments.workflow,
+    )?;
+
     let run_time_start = Instant::now();
     println!(
         "     {} tests with {} worker threads",
@@ -156,11 +165,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 None
             };
             let vm = compiler_tester::EraVM::new(
-                binary_download_config_paths,
+                executable_download_config_paths,
                 PathBuf::from("./configs/solc-bin-system-contracts.json"),
                 system_contracts_debug_config,
-                arguments.system_contracts_load_path,
-                arguments.system_contracts_save_path,
+                arguments.load_system_contracts,
+                arguments.save_system_contracts,
                 arguments.target,
             )?;
 
@@ -168,16 +177,16 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 arguments.disable_deployer,
                 arguments.disable_value_simulator,
             ) {
-                (true, true) => {
-                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm)
-                }
-                (true, false) => {
-                    compiler_tester.run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm)
-                }
+                (true, true) => compiler_tester
+                    .run_eravm::<compiler_tester::EraVMNativeDeployer, false>(vm, toolchain),
+                (true, false) => compiler_tester
+                    .run_eravm::<compiler_tester::EraVMNativeDeployer, true>(vm, toolchain),
                 (false, true) => compiler_tester
-                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(vm),
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, false>(
+                        vm, toolchain,
+                    ),
                 (false, false) => compiler_tester
-                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm),
+                    .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm, toolchain),
             }
         }
         compiler_tester::Environment::FastVM => todo!(),
@@ -188,11 +197,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 None
             };
             let vm = compiler_tester::EraVM::new(
-                binary_download_config_paths,
+                executable_download_config_paths,
                 PathBuf::from("./configs/solc-bin-system-contracts.json"),
                 system_contract_debug_config,
-                arguments.system_contracts_load_path,
-                arguments.system_contracts_save_path,
+                arguments.load_system_contracts,
+                arguments.save_system_contracts,
                 arguments.target,
             )?;
 
@@ -202,12 +211,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 )
         }
         compiler_tester::Environment::REVM => {
-            compiler_tester::EVM::download(binary_download_config_paths)?;
+            compiler_tester::EVM::download(executable_download_config_paths)?;
             compiler_tester.run_revm(toolchain)
         }
     }?;
 
-    let summary = compiler_tester::Summary::unwrap_arc(summary);
+    let summary = compiler_tester::Summary::unwrap_arc(summary).stop_timer()?;
     print!("{summary}");
     println!(
         "    {} running tests in {}m{:02}s",
@@ -217,8 +226,29 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
 
     if let Some(path) = arguments.benchmark {
-        let benchmark = summary.benchmark()?;
-        benchmark.write_to_file(path)?;
+        let context = if let Some(context_path) = arguments.benchmark_context {
+            Some(read_context(context_path)?)
+        } else {
+            None
+        };
+        let benchmark = summary.benchmark(toolchain, context)?;
+        match arguments.benchmark_format {
+            BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::JsonNativeSerializer,
+            )?,
+            BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::CsvSerializer,
+            )?,
+            BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
+                &benchmark,
+                path,
+                benchmark_analyzer::JsonLNTSerializer,
+            )?,
+        }
     }
 
     if !summary.is_successful() {
@@ -226,6 +256,24 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+///
+/// Reads the benchmarking context from a JSON file and validates its correctness.
+/// Benchmarking context provides additional information about benchmarking that
+/// will be used to generate a report.
+///
+/// # Errors
+///
+/// This function will return an error if
+/// - file can't be read,
+/// - deserialization from JSON file failed,
+/// - the context validation failed.
+fn read_context(path: PathBuf) -> anyhow::Result<benchmark_analyzer::BenchmarkContext> {
+    let contents = std::fs::read_to_string(path)?;
+    let context: benchmark_analyzer::BenchmarkContext = serde_json::de::from_str(&contents)?;
+    benchmark_analyzer::validate_context(&context)?;
+    Ok(context)
 }
 
 #[cfg(test)]
@@ -239,13 +287,15 @@ mod tests {
         std::env::set_current_dir("..").expect("Change directory failed");
 
         let arguments = Arguments {
-            verbosity: false,
+            verbose: false,
             quiet: false,
             debug: false,
-            modes: vec!["Y+M3B3 0.8.26".to_owned()],
-            paths: vec!["tests/solidity/simple/default.sol".to_owned()],
-            groups: vec![],
+            mode: vec!["Y+M3B3 0.8.28".to_owned()],
+            path: vec!["tests/solidity/simple/default.sol".to_owned()],
+            group: vec![],
             benchmark: None,
+            benchmark_format: crate::BenchmarkFormat::Json,
+            benchmark_context: None,
             threads: Some(1),
             dump_system: false,
             disable_deployer: false,
@@ -260,8 +310,8 @@ mod tests {
             workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),
             vyper_bin_config_path: Some(PathBuf::from("./configs/vyper-bin-default.json")),
-            system_contracts_load_path: Some(PathBuf::from("system-contracts-stable-build")),
-            system_contracts_save_path: None,
+            load_system_contracts: Some(PathBuf::from("system-contracts-stable-build")),
+            save_system_contracts: None,
             llvm_verify_each: false,
             llvm_debug_logging: false,
         };

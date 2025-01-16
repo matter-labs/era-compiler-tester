@@ -13,7 +13,7 @@ use self::standard_json::output::Output as StandardJsonOutput;
 /// The Solidity compiler.
 ///
 pub struct Compiler {
-    /// The binary executable name.
+    /// The executable name.
     pub executable: String,
 }
 

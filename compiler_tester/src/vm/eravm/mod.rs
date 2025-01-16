@@ -59,13 +59,11 @@ impl EraVM {
     /// The extra amount of gas consumed by every call to the EVM interpreter.
     pub const EVM_INTERPRETER_GAS_OVERHEAD: u64 = 2500;
 
-    /// The `evmStackFrames` variable storage slot in the `EvmGasManager` contract.
-    pub const EVM_GAS_MANAGER_STACK_FRAME_SLOT: u64 = 2;
+    /// The `passGas` variable transient storage slot in the `EvmGasManager` contract.
+    pub const EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT: u64 = 4;
 
-    /// The first `evmStackFrames` array element storage slot in the `EvmGasManager` contract.
-    /// (keccak256(uit256(2)))
-    pub const EVM_GAS_MANAGER_FIRST_STACK_FRAME: &'static str =
-        "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace";
+    /// The `auxData` variable transient storage slot in the `EvmGasManager` contract.
+    pub const EVM_GAS_MANAGER_AUX_DATA_TRANSIENT_SLOT: u64 = 5;
 
     /// The EVM call gas limit.
     pub const EVM_CALL_GAS_LIMIT: u64 = u32::MAX as u64;
@@ -74,7 +72,7 @@ impl EraVM {
     /// Creates and initializes a new EraVM instance.
     ///
     pub fn new(
-        binary_download_config_paths: Vec<PathBuf>,
+        executable_download_config_paths: Vec<PathBuf>,
         system_contracts_solc_downloader_config_path: PathBuf,
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
@@ -88,23 +86,26 @@ impl EraVM {
         let http_client = http_client_builder.build()?;
 
         let download_time_start = Instant::now();
-        println!(" {} compiler binaries", "Downloading".bright_green().bold());
+        println!(
+            " {} compiler executables",
+            "Downloading".bright_green().bold()
+        );
         let system_contracts_solc_downloader_config =
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(system_contracts_solc_downloader_config_path.as_path())?;
-        for config_path in binary_download_config_paths.into_iter() {
+        for config_path in executable_download_config_paths.into_iter() {
             era_compiler_downloader::Downloader::new(http_client.clone())
                 .download(config_path.as_path())?;
         }
         println!(
-            "    {} downloading compiler binaries in {}m{:02}s",
+            "    {} downloading compiler executables in {}m{:02}s",
             "Finished".bright_green().bold(),
             download_time_start.elapsed().as_secs() / 60,
             download_time_start.elapsed().as_secs() % 60,
         );
 
         let solc_version = system_contracts_solc_downloader_config
-            .binaries
+            .executables
             .keys()
             .next()
             .ok_or_else(|| {
@@ -127,10 +128,18 @@ impl EraVM {
         let mut vm = Self {
             known_contracts: HashMap::new(),
             default_aa_code_hash: web3::types::U256::from_big_endian(
-                system_contracts.default_aa.bytecode_hash.as_slice(),
+                system_contracts
+                    .default_aa
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
             evm_interpreter_code_hash: web3::types::U256::from_big_endian(
-                system_contracts.evm_interpreter.bytecode_hash.as_slice(),
+                system_contracts
+                    .evm_emulator
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
             deployed_contracts: HashMap::new(),
             storage,
@@ -142,26 +151,39 @@ impl EraVM {
         vm.add_known_contract(
             system_contracts.default_aa.bytecode,
             web3::types::U256::from_big_endian(
-                system_contracts.default_aa.bytecode_hash.as_slice(),
+                system_contracts
+                    .default_aa
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
         );
         vm.add_known_contract(
-            system_contracts.evm_interpreter.bytecode,
+            system_contracts.evm_emulator.bytecode,
             web3::types::U256::from_big_endian(
-                system_contracts.evm_interpreter.bytecode_hash.as_slice(),
+                system_contracts
+                    .evm_emulator
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
         );
         vm.add_known_contract(
-            era_compiler_vyper::MINIMAL_PROXY_CONTRACT_BYTECODE.to_owned(),
+            era_compiler_vyper::MINIMAL_PROXY_BUILD.bytecode.clone(),
             web3::types::U256::from_big_endian(
-                era_compiler_vyper::MINIMAL_PROXY_CONTRACT_HASH.as_slice(),
+                era_compiler_vyper::MINIMAL_PROXY_BUILD
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
             ),
         );
 
         for (address, build) in system_contracts.deployed_contracts {
             vm.add_deployed_contract(
                 address,
-                web3::types::U256::from_big_endian(build.bytecode_hash.as_slice()),
+                web3::types::U256::from_big_endian(
+                    build.bytecode_hash.expect("Always exists").as_slice(),
+                ),
                 Some(build.bytecode),
             );
         }
@@ -399,60 +421,23 @@ impl EraVM {
         calldata: Vec<u8>,
         vm_launch_option: Option<zkevm_tester::compiler_tests::VmLaunchOption>,
     ) -> anyhow::Result<ExecutionResult> {
-        // legacy EvmGasManager.sol compatibility
-        // set `evmStackFrames` size to 1
-        self.storage.insert(
+        // add initial frame data in EvmGasManager
+        // set `passGas` to `EVM_CALL_GAS_LIMIT`
+        self.storage_transient.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT),
-            },
-            web3::types::H256::from_low_u64_be(1),
-        );
-
-        // set `evmStackFrames[0].isStatic` to false
-        self.storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME),
-            },
-            web3::types::H256::zero(),
-        );
-
-        // set `evmStackFrames[0].passGas` to `EVM_CALL_GAS_LIMIT`
-        self.storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_FIRST_STACK_FRAME).add(1),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT),
             },
             web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
         );
 
-        // updated EvmGasManager.sol compatibility
-        // set `evmStackFrames` size to 1
+        // set `isActiveFrame` to true
         self.storage_transient.insert(
             zkevm_tester::compiler_tests::StorageKey {
                 address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_AUX_DATA_TRANSIENT_SLOT),
             },
-            web3::types::H256::from_low_u64_be(1),
-        );
-
-        // set `evmStackFrames[0].passGas` to `EVM_CALL_GAS_LIMIT`
-        self.storage_transient.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT).add(2),
-            },
-            web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
-        );
-
-        // set `evmStackFrames[0].isStatic` to false
-        self.storage_transient.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_STACK_FRAME_SLOT).add(3),
-            },
-            web3::types::H256::zero(),
+            web3::types::H256::from_low_u64_be(2), // "activeFrame flag"
         );
 
         let mut result = self.execute::<M>(

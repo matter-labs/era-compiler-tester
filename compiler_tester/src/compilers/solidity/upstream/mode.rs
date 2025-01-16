@@ -4,19 +4,21 @@
 
 use itertools::Itertools;
 
-use crate::compilers::mode::Mode as ModeWrapper;
+use crate::compilers::mode::{imode::IMode, Mode as ModeWrapper};
 
 ///
 /// The compiler tester Solidity mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Solidity compiler version.
     pub solc_version: semver::Version,
     /// The Solidity compiler output type.
-    pub solc_pipeline: era_compiler_solidity::SolcPipeline,
+    pub solc_codegen: era_solc::StandardJsonInputCodegen,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
+    /// Whether to enable the MLIR codegen.
+    pub via_mlir: bool,
     /// Whether to run the Solidity compiler optimizer.
     pub solc_optimize: bool,
 }
@@ -27,14 +29,16 @@ impl Mode {
     ///
     pub fn new(
         solc_version: semver::Version,
-        solc_pipeline: era_compiler_solidity::SolcPipeline,
+        solc_codegen: era_solc::StandardJsonInputCodegen,
         via_ir: bool,
+        via_mlir: bool,
         solc_optimize: bool,
     ) -> Self {
         Self {
             solc_version,
-            solc_pipeline,
+            solc_codegen,
             via_ir,
+            via_mlir,
             solc_optimize,
         }
     }
@@ -93,34 +97,43 @@ impl Mode {
             return false;
         }
 
-        match self.solc_pipeline {
-            era_compiler_solidity::SolcPipeline::Yul => {
+        match self.solc_codegen {
+            era_solc::StandardJsonInputCodegen::Yul => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::False
                     && params.abi_encoder_v1_only != solidity_adapter::ABIEncoderV1Only::True
             }
-            era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => {
+            era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::False
                     && params.abi_encoder_v1_only != solidity_adapter::ABIEncoderV1Only::True
             }
-            era_compiler_solidity::SolcPipeline::EVMLA => {
+            era_solc::StandardJsonInputCodegen::EVMLA => {
                 params.compile_via_yul != solidity_adapter::CompileViaYul::True
             }
         }
     }
 }
 
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}{} {}",
-            match self.solc_pipeline {
-                era_compiler_solidity::SolcPipeline::Yul => "Y",
-                era_compiler_solidity::SolcPipeline::EVMLA if self.via_ir => "I",
-                era_compiler_solidity::SolcPipeline::EVMLA => "E",
-            },
-            if self.solc_optimize { '+' } else { '-' },
-            self.solc_version,
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some((if self.solc_optimize { "+" } else { "-" }).to_string())
+    }
+
+    fn codegen(&self) -> Option<String> {
+        Some(
+            (if self.via_mlir {
+                "L"
+            } else {
+                match self.solc_codegen {
+                    era_solc::StandardJsonInputCodegen::Yul => "Y",
+                    era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
+                    era_solc::StandardJsonInputCodegen::EVMLA => "E",
+                }
+            })
+            .to_string(),
         )
+    }
+
+    fn version(&self) -> Option<String> {
+        Some(self.solc_version.to_string())
     }
 }

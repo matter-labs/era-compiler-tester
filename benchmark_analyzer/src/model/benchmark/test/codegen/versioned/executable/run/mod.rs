@@ -1,26 +1,26 @@
 //!
-//! The benchmark element.
+//! A run of a test with fixed compiler options (mode).
 //!
 
 use serde::Deserialize;
 use serde::Serialize;
 
 ///
-/// The benchmark element.
+/// A run of a test with fixed compiler options (mode).
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Element {
+pub struct Run {
     /// The contract size, `Some` for contracts deploys.
     pub size: Option<usize>,
     /// The number of cycles.
     pub cycles: usize,
-    /// The number of ergs.
+    /// The amount of ergs.
     pub ergs: u64,
-    /// The number of EVM gas.
+    /// The amount of EVM gas.
     pub gas: u64,
 }
 
-impl Element {
+impl Run {
     ///
     /// A shortcut constructor.
     ///

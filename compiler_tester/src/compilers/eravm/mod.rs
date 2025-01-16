@@ -4,10 +4,9 @@
 
 pub mod mode;
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
@@ -27,7 +26,7 @@ impl Compiler for EraVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         _mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -41,12 +40,7 @@ impl Compiler for EraVMCompiler {
         let project = era_compiler_solidity::Project::try_from_eravm_assembly_sources(
             sources
                 .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
+                .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
             None,
         )?;
@@ -58,12 +52,13 @@ impl Compiler for EraVMCompiler {
             era_compiler_llvm_context::OptimizerSettings::none(),
             llvm_options,
             true,
-            None,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
+        let build = build.link(libraries.as_linker_symbols()?);
+        build.check_errors()?;
         let builds = build
-            .contracts
+            .results
             .into_iter()
             .map(|(path, result)| Ok((path, result.expect("Always valid").build)))
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
@@ -75,7 +70,7 @@ impl Compiler for EraVMCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        _libraries: era_solc::StandardJsonInputLibraries,
         _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,

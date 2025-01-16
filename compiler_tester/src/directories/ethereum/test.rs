@@ -14,6 +14,8 @@ use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
 use crate::test::case::Case;
+use crate::test::description::TestDescription;
+use crate::test::selector::TestSelector;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
@@ -24,8 +26,8 @@ use crate::vm::evm::address_iterator::EVMAddressIterator;
 ///
 #[derive(Debug)]
 pub struct EthereumTest {
-    /// The test identifier.
-    pub identifier: String,
+    /// The test selector.
+    pub selector: TestSelector,
     /// The index test entity.
     pub index_entity: solidity_adapter::EnabledTest,
     /// The test data.
@@ -41,9 +43,9 @@ impl EthereumTest {
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
     ) -> Option<Self> {
-        let identifier = index_entity.path.to_string_lossy().to_string();
+        let path = index_entity.path.to_string_lossy().to_string();
 
-        if !filters.check_case_path(&identifier) {
+        if !filters.check_case_path(&path) {
             return None;
         }
 
@@ -51,16 +53,21 @@ impl EthereumTest {
             return None;
         }
 
+        let selector = TestSelector {
+            path,
+            case: None,
+            input: None,
+        };
         let test = match solidity_adapter::Test::try_from(index_entity.path.as_path()) {
             Ok(test) => test,
             Err(error) => {
-                Summary::invalid(summary, None, identifier, error);
+                Summary::invalid(summary, TestDescription::default_for(selector), error);
                 return None;
             }
         };
 
         Some(Self {
-            identifier,
+            selector,
             index_entity,
             test,
         })
@@ -124,7 +131,7 @@ impl EthereumTest {
     ) -> anyhow::Result<(
         web3::types::Address,
         BTreeMap<String, web3::types::Address>,
-        BTreeMap<String, BTreeMap<String, String>>,
+        era_solc::StandardJsonInputLibraries,
     )> {
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);
 
@@ -163,7 +170,7 @@ impl EthereumTest {
         }
         let contract_address = contract_address.expect("Always valid");
 
-        Ok((contract_address, libraries_addresses, libraries))
+        Ok((contract_address, libraries_addresses, libraries.into()))
     }
 
     ///
@@ -177,9 +184,12 @@ impl EthereumTest {
             None => {
                 Summary::invalid(
                     summary,
-                    Some(mode.to_owned()),
-                    self.identifier.to_owned(),
-                    anyhow::anyhow!("The Ethereum test `{}` sources are empty", self.identifier),
+                    TestDescription {
+                        group: None,
+                        mode: Some(mode.clone()),
+                        selector: self.selector.clone(),
+                    },
+                    anyhow::anyhow!("The Ethereum test `{}` sources are empty", &self.selector),
                 );
                 None
             }
@@ -204,6 +214,12 @@ impl Buildable for EthereumTest {
 
         let last_source = self.last_source(summary.clone(), &mode)?;
 
+        let test_description = TestDescription {
+            group: None,
+            mode: Some(mode.clone()),
+            selector: self.selector.clone(),
+        };
+
         let (contract_address, libraries_addresses, libraries) = match self.get_addresses(
             EraVMAddressIterator::new(),
             calls.as_slice(),
@@ -213,7 +229,7 @@ impl Buildable for EthereumTest {
                 (contract_address, libraries_addresses, libraries)
             }
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -221,7 +237,7 @@ impl Buildable for EthereumTest {
         let evm_version = self.test.params.evm_version;
         let eravm_input = match compiler
             .compile_for_eravm(
-                self.identifier.to_owned(),
+                self.selector.to_string(),
                 self.test.sources.clone(),
                 libraries,
                 &mode,
@@ -232,7 +248,7 @@ impl Buildable for EthereumTest {
         {
             Ok(output) => output,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -244,7 +260,7 @@ impl Buildable for EthereumTest {
         ) {
             Ok(instance) => instance,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -257,12 +273,7 @@ impl Buildable for EthereumTest {
         ) {
             Ok(case) => case,
             Err(error) => {
-                Summary::invalid(
-                    summary.clone(),
-                    Some(mode),
-                    self.identifier.to_owned(),
-                    error,
-                );
+                Summary::invalid(summary.clone(), test_description, error);
                 return None;
             }
         };
@@ -272,14 +283,16 @@ impl Buildable for EthereumTest {
             .into_values()
             .map(|build| {
                 (
-                    web3::types::U256::from_big_endian(build.bytecode_hash.as_slice()),
+                    web3::types::U256::from_big_endian(
+                        build.bytecode_hash.expect("Always exists").as_slice(),
+                    ),
                     build.bytecode,
                 )
             })
             .collect();
 
         Some(Test::new(
-            self.identifier.to_owned(),
+            self.selector.to_string(),
             vec![case],
             mode,
             self.index_entity.group.clone(),
@@ -303,6 +316,11 @@ impl Buildable for EthereumTest {
         let mut calls = self.test.calls.clone();
         self.insert_deploy_calls(&mut calls);
 
+        let test_description = TestDescription {
+            group: None,
+            mode: Some(mode.clone()),
+            selector: self.selector.clone(),
+        };
         let last_source = self.last_source(summary.clone(), &mode)?;
 
         let (contract_address, libraries_addresses, libraries) = match self.get_addresses(
@@ -314,7 +332,7 @@ impl Buildable for EthereumTest {
                 (contract_address, libraries_addresses, libraries)
             }
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -322,7 +340,7 @@ impl Buildable for EthereumTest {
         let evm_version = self.test.params.evm_version;
         let evm_input = match compiler
             .compile_for_evm(
-                self.identifier.to_owned(),
+                self.selector.to_string(),
                 self.test.sources.clone(),
                 libraries,
                 &mode,
@@ -334,7 +352,7 @@ impl Buildable for EthereumTest {
         {
             Ok(output) => output,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -346,7 +364,7 @@ impl Buildable for EthereumTest {
         ) {
             Ok(instance) => instance,
             Err(error) => {
-                Summary::invalid(summary, Some(mode), self.identifier.to_owned(), error);
+                Summary::invalid(summary, test_description, error);
                 return None;
             }
         };
@@ -359,18 +377,13 @@ impl Buildable for EthereumTest {
         ) {
             Ok(case) => case,
             Err(error) => {
-                Summary::invalid(
-                    summary.clone(),
-                    Some(mode),
-                    self.identifier.to_owned(),
-                    error,
-                );
+                Summary::invalid(summary.clone(), test_description, error);
                 return None;
             }
         };
 
         Some(Test::new(
-            self.identifier.to_owned(),
+            self.selector.path.to_string(),
             vec![case],
             mode,
             self.index_entity.group.clone(),

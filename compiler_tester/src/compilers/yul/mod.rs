@@ -5,14 +5,14 @@
 pub mod mode;
 pub mod mode_upstream;
 
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 
-use era_compiler_solidity::CollectableError;
+use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
 use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
+use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
@@ -26,7 +26,6 @@ use self::mode::Mode as YulMode;
 ///
 pub struct YulCompiler {
     /// The compiler toolchain to use.
-    #[allow(dead_code)]
     toolchain: Toolchain,
 }
 
@@ -56,7 +55,7 @@ impl Compiler for YulCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -66,8 +65,10 @@ impl Compiler for YulCompiler {
         let solc_version = if mode.enable_eravm_extensions {
             None
         } else {
-            Some(era_compiler_solidity::SolcVersion::new_simple(
-                era_compiler_solidity::SolcCompiler::LAST_SUPPORTED_VERSION,
+            Some(era_solc::Version::new(
+                era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
+                era_solc::Compiler::LAST_SUPPORTED_VERSION,
+                SolidityCompiler::LAST_ZKSYNC_SOLC_REVISION,
             ))
         };
 
@@ -77,17 +78,16 @@ impl Compiler for YulCompiler {
             .0
             .clone();
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
+        let sources = sources
+            .into_iter()
+            .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
+            .collect();
+
         let project = era_compiler_solidity::Project::try_from_yul_sources(
-            sources
-                .into_iter()
-                .map(|(path, source)| {
-                    (
-                        path,
-                        era_compiler_solidity::SolcStandardJsonInputSource::from(source),
-                    )
-                })
-                .collect(),
-            BTreeMap::new(),
+            sources,
+            libraries,
             None,
             solc_version.as_ref(),
             debug_config.as_ref(),
@@ -100,22 +100,25 @@ impl Compiler for YulCompiler {
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
-            None,
             debug_config.clone(),
         )?;
-        build.collect_errors()?;
+        build.check_errors()?;
+        let build = build.link(linker_symbols);
+        build.check_errors()?;
         let builds = build
-            .contracts
-            .into_iter()
-            .map(|(path, result)| {
+            .results
+            .into_values()
+            .map(|result| {
                 let contract = result.expect("Always valid");
-                let build = era_compiler_llvm_context::EraVMBuild::new(
+                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash,
+                    contract.build.bytecode_hash.ok_or_else(|| {
+                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
+                    })?,
                     None,
                     contract.build.assembly,
                 );
-                Ok((path, build))
+                Ok((contract.name.path, build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
 
@@ -126,7 +129,7 @@ impl Compiler for YulCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: BTreeMap<String, BTreeMap<String, String>>,
+        libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
@@ -134,7 +137,7 @@ impl Compiler for YulCompiler {
     ) -> anyhow::Result<EVMInput> {
         let language = SolcStandardJsonInputLanguage::Yul;
 
-        let solc_compiler = SolidityUpstreamCompiler::new(language);
+        let solc_compiler = SolidityUpstreamCompiler::new(language, self.toolchain);
 
         let solc_output = solc_compiler.standard_json_output_cached(
             test_path,
@@ -188,13 +191,8 @@ impl Compiler for YulCompiler {
                     })?
                     .object
                     .as_str();
-                let build = EVMBuild::new(
-                    era_compiler_llvm_context::EVMBuild::new(
-                        hex::decode(bytecode_string).expect("Always valid"),
-                        None,
-                    ),
-                    era_compiler_llvm_context::EVMBuild::default(),
-                );
+                let build =
+                    EVMBuild::new(hex::decode(bytecode_string).expect("Always valid"), vec![]);
                 builds.insert(path, build);
             }
         }

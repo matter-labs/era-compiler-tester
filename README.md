@@ -18,6 +18,8 @@ By default, the Tester SHOULD run the entire Collection in all possible combinat
 but it MAY omit some subset of the combinations for the sake of saving time, e.g. when only front-end changes have been
 made, and there is no point in running tests in all LLVM optimization modes.
 
+
+
 ## Building
 
 <details>
@@ -105,16 +107,16 @@ made, and there is no point in running tests in all LLVM optimization modes.
 </details>
 
 <details>
-<summary>5. Build zksolc and zkvyper compilers.</summary>
+<summary>5. Build compiler executables.</summary>
 
    * Build [zksolc](https://github.com/matter-labs/era-compiler-solidity) and [zkvyper](https://github.com/matter-labs/era-compiler-vyper) compilers and add the binaries to `$PATH`, or use the `--zksolc` or `--zkvyper` options to specify their paths.
 
 </details>
 
 <details>
-<summary>6. Build era-compiler-tester.</summary>
+<summary>6. Build the main application.</summary>
 
-   * Build the Tester with `cargo`:
+   * Build era-compiler-tester with `cargo`:
       ```shell
       cargo build --release
       ```
@@ -123,6 +125,8 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
 When the build succeeds, you can run the tests using [the examples below](#usage).
 
+
+
 ## GitHub Actions
 
 The `era-compiler-tester` is integrated into the GitHub Actions workflows of the following projects:
@@ -130,13 +134,15 @@ The `era-compiler-tester` is integrated into the GitHub Actions workflows of the
 * [era-compiler-llvm](https://github.com/matter-labs/era-compiler-llvm)
 * [era-solidity](https://github.com/matter-labs/era-solidity/)
 
-To allow testing custom FE and VM changes in the Pull Requests (PRs) of these repositories, two additional tags are supported:
-* `era-solidity-test`
+To allow testing custom FE and VM changes in Pull Requests (PRs) of these repositories, two additional tags are supported:
 * `era-compiler-llvm-test`
+* `era-solidity-test`
 
 If these tags exist, the tester from these tags will be used by the workflows instead of the default `main` branch.
 
 When testing is done, these tags should be removed.
+
+
 
 ## What is supported
 
@@ -169,7 +175,7 @@ When testing is done, these tags should be removed.
 - [0.4.10; latest] for compiling Solidity via EVM assembly
 - [0.3.3, 0.3.9] for compiling Vyper via LLL IR
 
-### Compiler pipelines
+### Compiler codegens
 
 Currently only relevant for the Solidity compiler, where you can choose the IR:
 
@@ -180,6 +186,7 @@ Currently only relevant for the Solidity compiler, where you can choose the IR:
 
 Most of the specifiers support wildcards `*` (any), `^` ('3' and 'z').
 With no mode argument, iterates over all option combinations (approximately 800).
+
 
 ## Usage
 
@@ -220,6 +227,8 @@ cargo run --release --bin compiler-tester -- -DT \
 	--zksolc '../era-compiler-solidity/target/release/zksolc'
 ```
 
+Modes are insensitive to spaces, therefore options such as `'Y+M3B3 0.8.26'` and `'Y +  M3B3     0.8.26'` are equivalent.
+
 ### Example 2
 
 Run all simple Yul tests. This currently runs about three hundred tests and takes about eight minutes.
@@ -251,10 +260,7 @@ cargo run --release --bin compiler-tester -- \
 	--zkvyper '../era-compiler-vyper/target/release/zkvyper'
 ```
 
-## Tracing
 
-If you run the tester with `-T` flag, JSON trace files will be written to the `./trace/` directory.
-The trace files can be used with our [custom ZKsync EraVM assembly tracer](https://staging-scan-v2.zksync.dev/tools/debugger) for debugging and research purposes.
 
 ## Benchmarking
 
@@ -291,9 +297,43 @@ cargo run --release --bin benchmark-analyzer -- --reference reference.json --can
 
 After you make any changes in LLVM, you only need to repeat steps 2-3 to update the working branch benchmark data.
 
+### Comparing results 
+
+By default, benchmark analyzer compares tests from groups with the same name, which means that every test should be compiled with the same codegen and optimizations. 
+To compare two groups with different names, use the options `--query-reference` and `--query-candidate`. Then, use benchmark analyzer:
+
+```shell
+cargo run --release --bin benchmark-analyzer -- --reference reference.json --candidate candidate.json --query-reference "M0B0" --query-candidate "M3B3"
+```
+
+The queries are regular expressions, and the group name, codegen, and
+optimization options are matched against it.
+
+
+
+### Report formats
+
+Use the parameter `--benchmark-format` of compiler tester to select the output format: `json` (default), `csv`, or `json-lnt`.
+
+If `json-lnt` format is selected:
+
+1. The benchmark report will consist of multiple files. They will be placed in the directory provided via the `--output` argument.
+2. It is mandatory to pass a JSON file with additional information using `--benchmark-context`. Here is a minimal example:
+
+```json
+{
+    "machine": "some_machine",
+    "target": "some_target",
+    "toolchain": "some_solc_type"
+}
+```
+
+
 ## Troubleshooting
 
 - Unset any LLVM-related environment variables you may have set, especially `LLVM_SYS_<version>_PREFIX` (see e.g. [https://crates.io/crates/llvm-sys](https://crates.io/crates/llvm-sys) and [https://llvm.org/docs/GettingStarted.html#local-llvm-configuration](https://llvm.org/docs/GettingStarted.html#local-llvm-configuration)). To make sure: `set | grep LLVM`.
+
+
 
 ## License
 
@@ -304,9 +344,13 @@ The Era Compiler Tester is distributed under the terms of either
 
 at your option.
 
+
+
 ## Resources
 
 [ZKsync Era compiler toolchain documentation](https://docs.zksync.io/zk-stack/components/compiler/toolchain)
+
+
 
 ## Official Links
 
@@ -315,6 +359,8 @@ at your option.
 - [Twitter](https://twitter.com/zksync)
 - [Twitter for Devs](https://twitter.com/ZKsyncDevs)
 - [Discord](https://join.zksync.dev/)
+
+
 
 ## Disclaimer
 

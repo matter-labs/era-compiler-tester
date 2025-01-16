@@ -2,6 +2,7 @@
 //! The compiler tester Vyper mode.
 //!
 
+use crate::compilers::mode::imode::IMode;
 use crate::compilers::mode::llvm_options::LLVMOptions;
 
 use crate::compilers::mode::Mode as ModeWrapper;
@@ -9,7 +10,7 @@ use crate::compilers::mode::Mode as ModeWrapper;
 ///
 /// The compiler tester Vyper mode.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Mode {
     /// The Vyper compiler version.
     pub vyper_version: semver::Version,
@@ -75,15 +76,20 @@ impl Mode {
         })
     }
 }
-
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "V{}{} {}",
+impl IMode for Mode {
+    fn optimizations(&self) -> Option<String> {
+        Some(format!(
+            "{}{}",
             if self.vyper_optimize { '+' } else { '-' },
             self.llvm_optimizer_settings,
-            self.vyper_version,
-        )
+        ))
+    }
+
+    fn codegen(&self) -> Option<String> {
+        Some("V".into())
+    }
+
+    fn version(&self) -> Option<String> {
+        Some(format!("{}", self.vyper_version))
     }
 }

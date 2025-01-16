@@ -51,7 +51,9 @@ impl Input {
             let build = self.builds.get(name.as_str()).ok_or_else(|| {
                 anyhow::anyhow!("Library `{}` not found in the build artifacts", name)
             })?;
-            let code_hash = web3::types::U256::from_big_endian(build.bytecode_hash.as_slice());
+            let code_hash = web3::types::U256::from_big_endian(
+                build.bytecode_hash.expect("Always exists").as_slice(),
+            );
 
             instances.insert(
                 name.clone(),
@@ -66,8 +68,12 @@ impl Input {
                     .ok_or_else(|| {
                         anyhow::anyhow!("Main contract not found in the compiler build artifacts")
                     })?;
-            let code_hash =
-                web3::types::U256::from_big_endian(main_contract_build.bytecode_hash.as_slice());
+            let code_hash = web3::types::U256::from_big_endian(
+                main_contract_build
+                    .bytecode_hash
+                    .expect("Always exists")
+                    .as_slice(),
+            );
 
             instances.insert(
                 "Test".to_owned(),
@@ -84,7 +90,9 @@ impl Input {
                 let build = self.builds.get(path.as_str()).ok_or_else(|| {
                     anyhow::anyhow!("{} not found in the compiler build artifacts", path)
                 })?;
-                let code_hash = web3::types::U256::from_big_endian(build.bytecode_hash.as_slice());
+                let code_hash = web3::types::U256::from_big_endian(
+                    build.bytecode_hash.expect("Always exists").as_slice(),
+                );
 
                 instances.insert(
                     instance.to_owned(),
