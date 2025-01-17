@@ -456,7 +456,7 @@ impl SystemContracts {
     ///
     fn normalize_path(path: &str, name: Option<&str>) -> String {
         let contract_name = era_compiler_common::ContractName::new(
-            path.to_string(),
+            path.replace("/", std::path::MAIN_SEPARATOR_STR),
             name.map(|name| name.to_string()),
         );
         contract_name.full_path
@@ -482,6 +482,7 @@ impl SystemContracts {
             } else {
                 path
             };
+            let file_path = Self::normalize_path(file_path.as_str(), None);
 
             let mut source = std::fs::read_to_string(
                 PathBuf::from_str(file_path.as_str())
@@ -496,16 +497,20 @@ impl SystemContracts {
                 )
             })?;
 
-            if PathBuf::from(file_path.as_str()).to_string_lossy()
-                == PathBuf::from("era-contracts/system-contracts/contracts/Constants.sol")
-                    .to_string_lossy()
+            if file_path.as_str()
+                == Self::normalize_path(
+                    "era-contracts/system-contracts/contracts/Constants.sol",
+                    None,
+                )
             {
+                dbg!(1);
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
             sources.push((file_path.to_string(), source));
         }
 
+        dbg!(&sources.iter().map(|(path, _)| path).collect::<Vec<_>>());
         compiler
             .compile_for_eravm(
                 "system-contracts".to_owned(),
