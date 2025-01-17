@@ -496,7 +496,7 @@ impl SystemContracts {
                 )
             })?;
 
-            if file_path
+            if PathBuf::from(file_path.as_str()).to_string_lossy()
                 == PathBuf::from("era-contracts/system-contracts/contracts/Constants.sol")
                     .to_string_lossy()
             {
