@@ -366,6 +366,10 @@ impl SystemContracts {
             debug_config,
         )?);
 
+        dbg!(
+            &builds.keys(),
+            Self::normalize_path_fs(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
+        );
         let default_aa = builds
             .remove(
                 Self::normalize_path_fs(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
