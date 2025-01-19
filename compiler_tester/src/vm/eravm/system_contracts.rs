@@ -366,20 +366,16 @@ impl SystemContracts {
             debug_config,
         )?);
 
-        dbg!(
-            &builds.keys(),
-            Self::normalize_path_fs(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
-        );
         let default_aa = builds
             .remove(
-                Self::normalize_path_fs(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
+                Self::normalize_path_solc(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
                     .as_str(),
             )
             .ok_or_else(|| {
                 anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
             })?;
         let evm_emulator = builds
-            .remove(Self::normalize_path_fs(Self::PATH_EVM_EMULATOR, None).as_str())
+            .remove(Self::normalize_path_solc(Self::PATH_EVM_EMULATOR, None).as_str())
             .ok_or_else(|| {
                 anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
             })?;
@@ -392,7 +388,7 @@ impl SystemContracts {
         let mut deployed_contracts = Vec::with_capacity(system_contracts.len());
         for (address, path) in system_contracts.into_iter() {
             let build = builds
-                .remove(path.as_str())
+                .remove(Self::normalize_path_solc(path.as_str(), None).as_str())
                 .unwrap_or_else(|| panic!("System contract `{path}` not found in the builds"));
             deployed_contracts.push((address, build));
         }
@@ -453,6 +449,17 @@ impl SystemContracts {
     fn normalize_path_fs(path: &str, name: Option<&str>) -> String {
         let contract_name = era_compiler_common::ContractName::new(
             path.replace("/", std::path::MAIN_SEPARATOR_STR),
+            name.map(|name| name.to_string()),
+        );
+        contract_name.full_path
+    }
+
+    ///
+    /// Normalizes paths with respect to `solc`.
+    ///
+    fn normalize_path_solc(path: &str, name: Option<&str>) -> String {
+        let contract_name = era_compiler_common::ContractName::new(
+            path.replace(std::path::MAIN_SEPARATOR_STR, "/"),
             name.map(|name| name.to_string()),
         );
         contract_name.full_path
