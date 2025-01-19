@@ -5,7 +5,6 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
-use std::str::FromStr;
 use std::time::Instant;
 
 use colored::Colorize;
@@ -302,9 +301,9 @@ impl SystemContracts {
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
         for (_, path) in yul_system_contracts.iter() {
-            yul_file_paths.push(path.to_owned());
+            yul_file_paths.push(PathBuf::from(path));
         }
-        yul_file_paths.push(Self::PATH_EVM_EMULATOR.to_owned());
+        yul_file_paths.push(PathBuf::from(Self::PATH_EVM_EMULATOR));
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
         let yul_llvm_options = vec![
@@ -342,7 +341,6 @@ impl SystemContracts {
         {
             for path in glob::glob(pattern.to_str().expect("Always valid"))?.filter_map(Result::ok)
             {
-                let path = path.to_string_lossy().to_string();
                 if !solidity_file_paths.contains(&path) {
                     solidity_file_paths.push(path);
                 }
@@ -467,7 +465,7 @@ impl SystemContracts {
     ///
     fn compile<C>(
         compiler: C,
-        paths: Vec<String>,
+        paths: Vec<PathBuf>,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -477,44 +475,24 @@ impl SystemContracts {
     {
         let mut sources = Vec::new();
         for path in paths.into_iter() {
-            let file_path = if compiler.allows_multi_contract_files() {
-                path.split(':').next().expect("Always valid").to_string()
-            } else {
-                path
-            };
-            let file_path = Self::normalize_path(file_path.as_str(), None);
-
-            let mut source = std::fs::read_to_string(
-                PathBuf::from_str(file_path.as_str())
-                    .expect("Always valid")
-                    .as_path(),
-            )
-            .map_err(|error| {
-                anyhow::anyhow!(
-                    "System contract file `{}` reading error: {}",
-                    file_path,
-                    error
-                )
+            let mut source = std::fs::read_to_string(path.as_path()).map_err(|error| {
+                anyhow::anyhow!("System contract file {path:?} reading error: {error}",)
             })?;
 
-            if file_path.as_str()
-                == Self::normalize_path(
-                    "era-contracts/system-contracts/contracts/Constants.sol",
-                    None,
-                )
-            {
-                dbg!(1);
+            if path == PathBuf::from("era-contracts/system-contracts/contracts/Constants.sol") {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
-            sources.push((file_path.to_string(), source));
+            sources.push((path, source));
         }
 
-        dbg!(&sources.iter().map(|(path, _)| path).collect::<Vec<_>>());
         compiler
             .compile_for_eravm(
                 "system-contracts".to_owned(),
-                sources,
+                sources
+                    .into_iter()
+                    .map(|(path, source)| (path.to_string_lossy().to_string(), source))
+                    .collect(),
                 era_solc::StandardJsonInputLibraries::default(),
                 mode,
                 llvm_options,

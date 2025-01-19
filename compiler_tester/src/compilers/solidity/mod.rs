@@ -221,6 +221,7 @@ impl SolidityCompiler {
             mode.via_ir,
         )
         .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
+        eprintln!("solc_input: {:?}", solc_input);
 
         let allow_paths = Path::new(Self::SOLC_ALLOW_PATHS)
             .canonicalize()
