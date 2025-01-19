@@ -220,20 +220,20 @@ impl SystemContracts {
         let solidity_system_contracts = vec![
             (
                 web3::types::Address::zero(),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_EMPTY_CONTRACT.0,
                     Some(Self::PATH_EMPTY_CONTRACT.1),
                 ),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::normalize_path(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
+                Self::normalize_path_fs(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ACCOUNT_CODE_STORAGE.into(),
                 ),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_ACCOUNT_CODE_STORAGE.0,
                     Some(Self::PATH_ACCOUNT_CODE_STORAGE.1),
                 ),
@@ -242,13 +242,13 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_NONCE_HOLDER.into(),
                 ),
-                Self::normalize_path(Self::PATH_NONCE_HOLDER.0, Some(Self::PATH_NONCE_HOLDER.1)),
+                Self::normalize_path_fs(Self::PATH_NONCE_HOLDER.0, Some(Self::PATH_NONCE_HOLDER.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_KNOWN_CODES_STORAGE.into(),
                 ),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_KNOWN_CODES_STORAGE.0,
                     Some(Self::PATH_KNOWN_CODES_STORAGE.1),
                 ),
@@ -257,7 +257,7 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_IMMUTABLE_SIMULATOR.into(),
                 ),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_IMMUTABLE_SIMULATOR.0,
                     Some(Self::PATH_IMMUTABLE_SIMULATOR.1),
                 ),
@@ -266,7 +266,7 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER.into(),
                 ),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_CONTRACT_DEPLOYER.0,
                     Some(Self::PATH_CONTRACT_DEPLOYER.1),
                 ),
@@ -275,11 +275,11 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_L1_MESSENGER.into(),
                 ),
-                Self::normalize_path(Self::PATH_L1_MESSENGER.0, Some(Self::PATH_L1_MESSENGER.1)),
+                Self::normalize_path_fs(Self::PATH_L1_MESSENGER.0, Some(Self::PATH_L1_MESSENGER.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_MSG_VALUE.into()),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_MSG_VALUE_SIMULATOR.0,
                     Some(Self::PATH_MSG_VALUE_SIMULATOR.1),
                 ),
@@ -288,14 +288,14 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
                 ),
-                Self::normalize_path(
+                Self::normalize_path_fs(
                     Self::PATH_SYSTEM_CONTEXT.0,
                     Some(Self::PATH_SYSTEM_CONTEXT.1),
                 ),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
-                Self::normalize_path(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
+                Self::normalize_path_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
             ),
         ];
 
@@ -368,14 +368,14 @@ impl SystemContracts {
 
         let default_aa = builds
             .remove(
-                Self::normalize_path(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
+                Self::normalize_path_fs(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
                     .as_str(),
             )
             .ok_or_else(|| {
                 anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
             })?;
         let evm_emulator = builds
-            .remove(Self::normalize_path(Self::PATH_EVM_EMULATOR, None).as_str())
+            .remove(Self::normalize_path_fs(Self::PATH_EVM_EMULATOR, None).as_str())
             .ok_or_else(|| {
                 anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
             })?;
@@ -415,9 +415,7 @@ impl SystemContracts {
         let system_contracts: SystemContracts = bincode::deserialize_from(system_contracts_file)
             .map_err(|error| {
                 anyhow::anyhow!(
-                    "System contract {:?} deserialization: {}",
-                    system_contracts_path,
-                    error
+                    "System contract {system_contracts_path:?} deserialization: {error}"
                 )
             })?;
         println!(
@@ -434,11 +432,7 @@ impl SystemContracts {
     fn save(&self, system_contracts_path: PathBuf) -> anyhow::Result<()> {
         let system_contracts_file = File::create(system_contracts_path.as_path())?;
         bincode::serialize_into(system_contracts_file, self).map_err(|error| {
-            anyhow::anyhow!(
-                "System contracts {:?} serialization: {}",
-                system_contracts_path,
-                error
-            )
+            anyhow::anyhow!("System contracts {system_contracts_path:?} serialization: {error}")
         })?;
 
         println!(
@@ -450,9 +444,9 @@ impl SystemContracts {
     }
 
     ///
-    /// Returns a unified path for a system contract.
+    /// Normalizes paths with respect to the file system.
     ///
-    fn normalize_path(path: &str, name: Option<&str>) -> String {
+    fn normalize_path_fs(path: &str, name: Option<&str>) -> String {
         let contract_name = era_compiler_common::ContractName::new(
             path.replace("/", std::path::MAIN_SEPARATOR_STR),
             name.map(|name| name.to_string()),
@@ -483,16 +477,17 @@ impl SystemContracts {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
+            let path = path
+                .to_string_lossy()
+                .replace(std::path::MAIN_SEPARATOR_STR, "/");
+
             sources.push((path, source));
         }
 
         compiler
             .compile_for_eravm(
                 "system-contracts".to_owned(),
-                sources
-                    .into_iter()
-                    .map(|(path, source)| (path.to_string_lossy().to_string(), source))
-                    .collect(),
+                sources,
                 era_solc::StandardJsonInputLibraries::default(),
                 mode,
                 llvm_options,
