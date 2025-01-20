@@ -36,36 +36,29 @@ impl Collection for MatterLabsDirectory {
             let entry = entry?;
             let path = entry.path();
             let entry_type = entry.file_type().map_err(|error| {
-                anyhow::anyhow!(
-                    "Failed to get the type of file `{}`: {}",
-                    path.to_string_lossy(),
-                    error
-                )
+                anyhow::anyhow!("Failed to get the type of file {path:?}: {error}")
             })?;
 
             if entry_type.is_dir() {
                 tests.extend(Self::read_all(
                     _target,
-                    &path,
+                    path.as_path(),
                     extension,
                     summary.clone(),
                     filters,
                 )?);
                 continue;
             } else if !entry_type.is_file() {
-                anyhow::bail!("Invalid type of file `{}`", path.to_string_lossy());
+                anyhow::bail!("Invalid type of file {path:?}");
             }
 
             if entry.file_name().to_string_lossy().starts_with('.') {
                 continue;
             }
 
-            let file_extension = path.extension().ok_or_else(|| {
-                anyhow::anyhow!(
-                    "Failed to get the extension of file `{}`",
-                    path.to_string_lossy()
-                )
-            })?;
+            let file_extension = path
+                .extension()
+                .ok_or_else(|| anyhow::anyhow!("Failed to get the extension of file {path:?}"))?;
             if file_extension != extension {
                 continue;
             }

@@ -30,13 +30,17 @@ pub const DEFAULT_CONTRACT_ADDRESS: &str = "c06afe3a8444fc0004668591e8306bfb9968
 /// The index of the account used as the default caller.
 pub const DEFAULT_ACCOUNT_INDEX: usize = 0;
 
-///
 /// First pre-generated account address.
-///
 const ZERO_ADDRESS: &str = "1212121212121212121212121212120000000012";
 
 /// The caller address multiplier.
 const ADDRESS_INDEX_MULTIPLIER: usize = 4096; // 16^3
+
+/// The cross-platform new line character.
+#[cfg(windows)]
+const NEW_LINE: &str = "\r\n";
+#[cfg(not(windows))]
+const NEW_LINE: &str = "\n";
 
 ///
 /// Returns address of pre-generated account by index.

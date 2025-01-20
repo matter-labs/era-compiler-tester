@@ -10,15 +10,15 @@ use evm_interpreter::is_evm_interpreter_cycles_tests_group;
 use evm_interpreter::opcode_cost_ratios;
 
 use crate::model::benchmark::test::codegen::versioned::executable::run::Run;
-use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use crate::model::benchmark::Benchmark;
 use crate::results::group::Group;
+use crate::results::run_description::RunDescription;
 use crate::results::Results;
 use crate::util::btreemap::cross_join_filter_map;
 use crate::util::btreemap::intersect_keys;
 use crate::util::btreemap::intersect_map;
 
-type GroupRuns<'a> = BTreeMap<&'a str, (&'a TestMetadata, &'a Run)>;
+type GroupRuns<'a> = BTreeMap<&'a str, (RunDescription<'a>, &'a Run)>;
 
 ///
 /// Collects measurements from a benchmark into groups.
@@ -29,7 +29,7 @@ fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
 
     for (test_identifier, test) in &benchmark.tests {
         for (codegen, codegen_group) in &test.codegen_groups {
-            for versioned_group in codegen_group.versioned_groups.values() {
+            for (version, versioned_group) in &codegen_group.versioned_groups {
                 for (mode, executable) in &versioned_group.executables {
                     for tag in test
                         .metadata
@@ -39,10 +39,18 @@ fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
                         .chain(std::iter::once(None))
                     {
                         let tag = tag.map(|t| t.as_str());
+                        let run_description = RunDescription {
+                            test_metadata: &test.metadata,
+                            version,
+                            codegen,
+                            mode,
+                            executable_metadata: &executable.metadata,
+                            run: &executable.run,
+                        };
                         result
                             .entry(Group::from_tag(tag, Some(codegen), Some(mode)))
                             .or_default()
-                            .insert(test_identifier.as_str(), (&test.metadata, &executable.run));
+                            .insert(test_identifier.as_str(), (run_description, &executable.run));
                     }
                 }
             }
@@ -81,6 +89,7 @@ pub fn compare<'a>(
     };
 
     let results: Vec<(Group<'_>, Results<'_>)> = groups
+        .into_iter()
         .map(|(group_name, reference_tests, candidate_tests)| {
             let ratios = if is_evm_interpreter_cycles_tests_group(&group_name) {
                 Some((
@@ -91,7 +100,7 @@ pub fn compare<'a>(
                 None
             };
 
-            let runs: Vec<(&TestMetadata, &Run, &Run)> = intersect_map(
+            let runs: Vec<(RunDescription, &Run, &Run)> = intersect_map(
                 reference_tests,
                 candidate_tests,
                 |_id, (metadata, run_reference), (_, run_candidate)| {
@@ -121,30 +130,30 @@ pub fn compare<'a>(
 /// - measurement in the first set,
 /// - measurement in the second set.
 ///
-fn compare_runs<'a>(runs: Vec<(&'a TestMetadata, &'a Run, &'a Run)>) -> Results<'a> {
+fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Results<'a> {
     let elements_number = runs.len();
 
     let mut size_factors = Vec::with_capacity(elements_number);
     let mut size_min = 1.0;
     let mut size_max = 1.0;
-    let mut size_negatives: Vec<(f64, &TestMetadata)> = Vec::with_capacity(elements_number);
-    let mut size_positives: Vec<(f64, &TestMetadata)> = Vec::with_capacity(elements_number);
+    let mut size_negatives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
+    let mut size_positives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut size_total_reference: u64 = 0;
     let mut size_total_candidate: u64 = 0;
 
     let mut cycles_factors = Vec::with_capacity(elements_number);
     let mut cycles_min = 1.0;
     let mut cycles_max = 1.0;
-    let mut cycles_negatives: Vec<(f64, &TestMetadata)> = Vec::with_capacity(elements_number);
-    let mut cycles_positives: Vec<(f64, &TestMetadata)> = Vec::with_capacity(elements_number);
+    let mut cycles_negatives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
+    let mut cycles_positives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut cycles_total_reference: u64 = 0;
     let mut cycles_total_candidate: u64 = 0;
 
     let mut ergs_factors = Vec::with_capacity(elements_number);
     let mut ergs_min = 1.0;
     let mut ergs_max = 1.0;
-    let mut ergs_negatives: Vec<(f64, &TestMetadata)> = Vec::with_capacity(elements_number);
-    let mut ergs_positives: Vec<(f64, &TestMetadata)> = Vec::with_capacity(elements_number);
+    let mut ergs_negatives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
+    let mut ergs_positives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut ergs_total_reference: u64 = 0;
     let mut ergs_total_candidate: u64 = 0;
 
@@ -156,11 +165,11 @@ fn compare_runs<'a>(runs: Vec<(&'a TestMetadata, &'a Run, &'a Run)>) -> Results<
     let mut gas_total_reference: u64 = 0;
     let mut gas_total_candidate: u64 = 0;
 
-    for (metadata, reference, candidate) in runs {
-        let file_path = &metadata.selector.path;
+    for (description, reference, candidate) in runs {
+        let file_path = &description.test_metadata.selector.path;
         // FIXME: ad-hoc patch
         if file_path.contains(crate::model::evm_interpreter::TEST_PATH) {
-            if let Some(input) = &metadata.selector.input {
+            if let Some(input) = &description.test_metadata.selector.input {
                 if input.is_deployer() {
                     continue;
                 }
@@ -171,10 +180,10 @@ fn compare_runs<'a>(runs: Vec<(&'a TestMetadata, &'a Run, &'a Run)>) -> Results<
         cycles_total_candidate += candidate.cycles as u64;
         let cycles_factor = (candidate.cycles as f64) / (reference.cycles as f64);
         if cycles_factor > 1.0 {
-            cycles_negatives.push((cycles_factor, metadata));
+            cycles_negatives.push((cycles_factor, description.clone()));
         }
         if cycles_factor < 1.0 {
-            cycles_positives.push((cycles_factor, metadata));
+            cycles_positives.push((cycles_factor, description.clone()));
         }
         if cycles_factor < cycles_min {
             cycles_min = cycles_factor;
@@ -188,10 +197,10 @@ fn compare_runs<'a>(runs: Vec<(&'a TestMetadata, &'a Run, &'a Run)>) -> Results<
         ergs_total_candidate += candidate.ergs;
         let ergs_factor = (candidate.ergs as f64) / (reference.ergs as f64);
         if ergs_factor > 1.0 {
-            ergs_negatives.push((ergs_factor, metadata));
+            ergs_negatives.push((ergs_factor, description.clone()));
         }
         if ergs_factor < 1.0 {
-            ergs_positives.push((ergs_factor, metadata));
+            ergs_positives.push((ergs_factor, description.clone()));
         }
         if ergs_factor < ergs_min {
             ergs_min = ergs_factor;
@@ -205,10 +214,10 @@ fn compare_runs<'a>(runs: Vec<(&'a TestMetadata, &'a Run, &'a Run)>) -> Results<
         gas_total_candidate += candidate.gas;
         let gas_factor = (candidate.gas as f64) / (reference.gas as f64);
         if gas_factor > 1.0 {
-            gas_negatives.push((gas_factor, metadata));
+            gas_negatives.push((gas_factor, description.clone()));
         }
         if gas_factor < 1.0 {
-            gas_positives.push((gas_factor, metadata));
+            gas_positives.push((gas_factor, description.clone()));
         }
         if gas_factor < gas_min {
             gas_min = gas_factor;
@@ -230,10 +239,10 @@ fn compare_runs<'a>(runs: Vec<(&'a TestMetadata, &'a Run, &'a Run)>) -> Results<
         size_total_candidate += candidate_size as u64;
         let size_factor = (candidate_size as f64) / (reference_size as f64);
         if size_factor > 1.0 {
-            size_negatives.push((size_factor, metadata));
+            size_negatives.push((size_factor, description.clone()));
         }
         if size_factor < 1.0 {
-            size_positives.push((size_factor, metadata));
+            size_positives.push((size_factor, description.clone()));
         }
         if size_factor < size_min {
             size_min = size_factor;

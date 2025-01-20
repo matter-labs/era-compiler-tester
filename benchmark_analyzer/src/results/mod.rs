@@ -3,9 +3,10 @@
 //!
 
 pub mod group;
+pub mod run_description;
 
-use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use colored::Colorize;
+use run_description::RunDescription;
 use std::cmp;
 
 ///
@@ -20,9 +21,9 @@ pub struct Results<'a> {
     /// The size total decrease result.
     pub size_total: f64,
     /// The size negative result test names.
-    pub size_negatives: Vec<(f64, &'a TestMetadata)>,
+    pub size_negatives: Vec<(f64, RunDescription<'a>)>,
     /// The size positive result test names.
-    pub size_positives: Vec<(f64, &'a TestMetadata)>,
+    pub size_positives: Vec<(f64, RunDescription<'a>)>,
 
     /// The cycles best result.
     pub cycles_best: f64,
@@ -31,9 +32,9 @@ pub struct Results<'a> {
     /// The cycles total decrease result.
     pub cycles_total: f64,
     /// The cycles negative result test names.
-    pub cycles_negatives: Vec<(f64, &'a TestMetadata)>,
+    pub cycles_negatives: Vec<(f64, RunDescription<'a>)>,
     /// The cycles positive result test names.
-    pub cycles_positives: Vec<(f64, &'a TestMetadata)>,
+    pub cycles_positives: Vec<(f64, RunDescription<'a>)>,
 
     /// The ergs best result.
     pub ergs_best: f64,
@@ -42,9 +43,9 @@ pub struct Results<'a> {
     /// The ergs total decrease result.
     pub ergs_total: f64,
     /// The ergs negative result test names.
-    pub ergs_negatives: Vec<(f64, &'a TestMetadata)>,
+    pub ergs_negatives: Vec<(f64, RunDescription<'a>)>,
     /// The ergs positive result test names.
-    pub ergs_positives: Vec<(f64, &'a TestMetadata)>,
+    pub ergs_positives: Vec<(f64, RunDescription<'a>)>,
 
     /// The gas best result.
     pub gas_best: f64,
@@ -53,9 +54,9 @@ pub struct Results<'a> {
     /// The gas total decrease result.
     pub gas_total: f64,
     /// The gas negative result test names.
-    pub gas_negatives: Vec<(f64, &'a TestMetadata)>,
+    pub gas_negatives: Vec<(f64, RunDescription<'a>)>,
     /// The gas positive result test names.
-    pub gas_positives: Vec<(f64, &'a TestMetadata)>,
+    pub gas_positives: Vec<(f64, RunDescription<'a>)>,
 
     /// The EVM interpreter reference ratios.
     pub evm_interpreter_reference_ratios: Option<Vec<(String, f64)>>,
@@ -72,26 +73,26 @@ impl<'a> Results<'a> {
         size_best: f64,
         size_worst: f64,
         size_total: f64,
-        size_negatives: Vec<(f64, &'a TestMetadata)>,
-        size_positives: Vec<(f64, &'a TestMetadata)>,
+        size_negatives: Vec<(f64, RunDescription<'a>)>,
+        size_positives: Vec<(f64, RunDescription<'a>)>,
 
         cycles_best: f64,
         cycles_worst: f64,
         cycles_total: f64,
-        cycles_negatives: Vec<(f64, &'a TestMetadata)>,
-        cycles_positives: Vec<(f64, &'a TestMetadata)>,
+        cycles_negatives: Vec<(f64, RunDescription<'a>)>,
+        cycles_positives: Vec<(f64, RunDescription<'a>)>,
 
         ergs_best: f64,
         ergs_worst: f64,
         ergs_total: f64,
-        ergs_negatives: Vec<(f64, &'a TestMetadata)>,
-        ergs_positives: Vec<(f64, &'a TestMetadata)>,
+        ergs_negatives: Vec<(f64, RunDescription<'a>)>,
+        ergs_positives: Vec<(f64, RunDescription<'a>)>,
 
         gas_best: f64,
         gas_worst: f64,
         gas_total: f64,
-        gas_negatives: Vec<(f64, &'a TestMetadata)>,
-        gas_positives: Vec<(f64, &'a TestMetadata)>,
+        gas_negatives: Vec<(f64, RunDescription<'a>)>,
+        gas_positives: Vec<(f64, RunDescription<'a>)>,
     ) -> Self {
         Self {
             size_best,
@@ -208,8 +209,8 @@ impl<'a> Results<'a> {
             count,
             self.size_negatives.len()
         );
-        for (value, path) in self.size_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.size_negatives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
         println!(
@@ -218,8 +219,8 @@ impl<'a> Results<'a> {
             count,
             self.cycles_negatives.len()
         );
-        for (value, path) in self.cycles_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.cycles_negatives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
         println!(
@@ -228,8 +229,8 @@ impl<'a> Results<'a> {
             count,
             self.ergs_negatives.len()
         );
-        for (value, path) in self.ergs_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.ergs_negatives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
         println!(
@@ -238,8 +239,8 @@ impl<'a> Results<'a> {
             count,
             self.gas_negatives.len()
         );
-        for (value, path) in self.gas_negatives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.gas_negatives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
 
@@ -249,8 +250,8 @@ impl<'a> Results<'a> {
             count,
             self.size_positives.len()
         );
-        for (value, path) in self.size_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.size_positives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
         println!(
@@ -259,8 +260,8 @@ impl<'a> Results<'a> {
             count,
             self.cycles_positives.len()
         );
-        for (value, path) in self.cycles_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.cycles_positives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
         println!(
@@ -269,8 +270,8 @@ impl<'a> Results<'a> {
             count,
             self.ergs_positives.len()
         );
-        for (value, path) in self.ergs_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.ergs_positives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
         println!(
@@ -279,8 +280,8 @@ impl<'a> Results<'a> {
             count,
             self.gas_positives.len()
         );
-        for (value, path) in self.gas_positives.iter().take(count) {
-            println!("{:010}: {}", Self::format_f64(*value), path.selector);
+        for (value, entry) in self.gas_positives.iter().take(count) {
+            println!("{:010}: {}", Self::format_f64(*value), entry);
         }
         println!();
     }

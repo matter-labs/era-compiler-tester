@@ -32,7 +32,10 @@ is the mega ultra test application!
         input.len(),
         3,
         1,
-        Comment::new(" This\nis the mega ultra test application!\n".to_owned()),
+        Comment::new(format!(
+            " This{0}is the mega ultra test application!{0}",
+            crate::NEW_LINE
+        )),
     ));
     let result = parse(input);
     assert_eq!(result, expected);
