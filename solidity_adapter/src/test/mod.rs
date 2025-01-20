@@ -51,6 +51,7 @@ impl TryFrom<&Path> for Test {
 
         let sources = process_sources(&data, path)?;
 
+        dbg!(&data, format!("{comment_start}----\n"));
         let (data, function_calls) = data
             .split_once(&format!("{comment_start}----\n"))
             .ok_or_else(|| anyhow::anyhow!("Invalid test format"))?;
