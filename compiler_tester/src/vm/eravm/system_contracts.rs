@@ -5,7 +5,6 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
-use std::str::FromStr;
 use std::time::Instant;
 
 use colored::Colorize;
@@ -36,12 +35,16 @@ pub struct SystemContracts {
 
 impl SystemContracts {
     /// The empty contract implementation path.
-    const PATH_EMPTY_CONTRACT: &'static str =
-        "era-contracts/system-contracts/contracts/EmptyContract.sol:EmptyContract";
+    const PATH_EMPTY_CONTRACT: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/EmptyContract.sol",
+        "EmptyContract",
+    );
 
     /// The default account abstraction contract implementation path.
-    const PATH_DEFAULT_AA: &'static str =
-        "era-contracts/system-contracts/contracts/DefaultAccount.sol:DefaultAccount";
+    const PATH_DEFAULT_AA: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/DefaultAccount.sol",
+        "DefaultAccount",
+    );
 
     /// The EVM emulator system contract implementation path.
     const PATH_EVM_EMULATOR: &'static str =
@@ -60,7 +63,8 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
 
     /// The `identity` system contract implementation path.
-    const PATH_IDENTITY: &'static str = "tests/solidity/simple/system/identity.sol:Identity";
+    const PATH_IDENTITY: (&'static str, &'static str) =
+        ("tests/solidity/simple/system/identity.sol", "Identity");
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
@@ -71,36 +75,52 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/EcMul.yul";
 
     /// The account code storage system contract implementation path.
-    const PATH_ACCOUNT_CODE_STORAGE: &'static str =
-        "era-contracts/system-contracts/contracts/AccountCodeStorage.sol:AccountCodeStorage";
+    const PATH_ACCOUNT_CODE_STORAGE: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/AccountCodeStorage.sol",
+        "AccountCodeStorage",
+    );
 
     /// The contract deployer system contract implementation path.
-    const PATH_CONTRACT_DEPLOYER: &'static str =
-        "era-contracts/system-contracts/contracts/ContractDeployer.sol:ContractDeployer";
+    const PATH_CONTRACT_DEPLOYER: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/ContractDeployer.sol",
+        "ContractDeployer",
+    );
 
     /// The nonce holder system contract implementation path.
-    const PATH_NONCE_HOLDER: &'static str =
-        "era-contracts/system-contracts/contracts/NonceHolder.sol:NonceHolder";
+    const PATH_NONCE_HOLDER: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/NonceHolder.sol",
+        "NonceHolder",
+    );
 
     /// The knows codes storage system contract implementation path.
-    const PATH_KNOWN_CODES_STORAGE: &'static str =
-        "era-contracts/system-contracts/contracts/KnownCodesStorage.sol:KnownCodesStorage";
+    const PATH_KNOWN_CODES_STORAGE: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/KnownCodesStorage.sol",
+        "KnownCodesStorage",
+    );
 
     /// The immutable simulator system contract implementation path.
-    const PATH_IMMUTABLE_SIMULATOR: &'static str =
-        "era-contracts/system-contracts/contracts/ImmutableSimulator.sol:ImmutableSimulator";
+    const PATH_IMMUTABLE_SIMULATOR: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/ImmutableSimulator.sol",
+        "ImmutableSimulator",
+    );
 
     /// The L1-messenger system contract implementation path.
-    const PATH_L1_MESSENGER: &'static str =
-        "era-contracts/system-contracts/contracts/L1Messenger.sol:L1Messenger";
+    const PATH_L1_MESSENGER: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/L1Messenger.sol",
+        "L1Messenger",
+    );
 
     /// The `msg.value` simulator system contract implementation path.
-    const PATH_MSG_VALUE_SIMULATOR: &'static str =
-        "era-contracts/system-contracts/contracts/MsgValueSimulator.sol:MsgValueSimulator";
+    const PATH_MSG_VALUE_SIMULATOR: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/MsgValueSimulator.sol",
+        "MsgValueSimulator",
+    );
 
     /// The system context system contract implementation path.
-    const PATH_SYSTEM_CONTEXT: &'static str =
-        "era-contracts/system-contracts/contracts/SystemContext.sol:SystemContext";
+    const PATH_SYSTEM_CONTEXT: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/SystemContext.sol",
+        "SystemContext",
+    );
 
     /// The event writer system contract implementation path.
     const PATH_EVENT_WRITER: &'static str =
@@ -111,8 +131,10 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/CodeOracle.yul";
 
     /// The base token system contract implementation path.
-    const PATH_BASE_TOKEN: &'static str =
-        "era-contracts/system-contracts/contracts/L2BaseToken.sol:L2BaseToken";
+    const PATH_BASE_TOKEN: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/L2BaseToken.sol",
+        "L2BaseToken",
+    );
 
     /// The EVM gas manager system contract implementation path.
     const PATH_EVM_GAS_MANAGER: &'static str =
@@ -157,107 +179,131 @@ impl SystemContracts {
         let yul_system_contracts = [
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_KECCAK256.into()),
-                Self::PATH_KECCAK256,
+                Self::PATH_KECCAK256.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ECRECOVER.into()),
-                Self::PATH_ECRECOVER,
+                Self::PATH_ECRECOVER.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_SHA256.into()),
-                Self::PATH_SHA256,
+                Self::PATH_SHA256.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::system_params::ADDRESS_ECADD.into(),
                 ),
-                Self::PATH_ECADD,
+                Self::PATH_ECADD.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::system_params::ADDRESS_ECMUL.into(),
                 ),
-                Self::PATH_ECMUL,
+                Self::PATH_ECMUL.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_EVENT_WRITER.into(),
                 ),
-                Self::PATH_EVENT_WRITER,
+                Self::PATH_EVENT_WRITER.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(0x8012),
-                Self::PATH_CODE_ORACLE,
+                Self::PATH_CODE_ORACLE.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
-                Self::PATH_EVM_GAS_MANAGER,
+                Self::PATH_EVM_GAS_MANAGER.to_owned(),
             ),
         ];
 
         let solidity_system_contracts = vec![
-            (web3::types::Address::zero(), Self::PATH_EMPTY_CONTRACT),
+            (
+                web3::types::Address::zero(),
+                Self::normalize_name_fs(
+                    Self::PATH_EMPTY_CONTRACT.0,
+                    Some(Self::PATH_EMPTY_CONTRACT.1),
+                ),
+            ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::PATH_IDENTITY,
+                Self::normalize_name_fs(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ACCOUNT_CODE_STORAGE.into(),
                 ),
-                Self::PATH_ACCOUNT_CODE_STORAGE,
+                Self::normalize_name_fs(
+                    Self::PATH_ACCOUNT_CODE_STORAGE.0,
+                    Some(Self::PATH_ACCOUNT_CODE_STORAGE.1),
+                ),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_NONCE_HOLDER.into(),
                 ),
-                Self::PATH_NONCE_HOLDER,
+                Self::normalize_name_fs(Self::PATH_NONCE_HOLDER.0, Some(Self::PATH_NONCE_HOLDER.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_KNOWN_CODES_STORAGE.into(),
                 ),
-                Self::PATH_KNOWN_CODES_STORAGE,
+                Self::normalize_name_fs(
+                    Self::PATH_KNOWN_CODES_STORAGE.0,
+                    Some(Self::PATH_KNOWN_CODES_STORAGE.1),
+                ),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_IMMUTABLE_SIMULATOR.into(),
                 ),
-                Self::PATH_IMMUTABLE_SIMULATOR,
+                Self::normalize_name_fs(
+                    Self::PATH_IMMUTABLE_SIMULATOR.0,
+                    Some(Self::PATH_IMMUTABLE_SIMULATOR.1),
+                ),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER.into(),
                 ),
-                Self::PATH_CONTRACT_DEPLOYER,
+                Self::normalize_name_fs(
+                    Self::PATH_CONTRACT_DEPLOYER.0,
+                    Some(Self::PATH_CONTRACT_DEPLOYER.1),
+                ),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_L1_MESSENGER.into(),
                 ),
-                Self::PATH_L1_MESSENGER,
+                Self::normalize_name_fs(Self::PATH_L1_MESSENGER.0, Some(Self::PATH_L1_MESSENGER.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_MSG_VALUE.into()),
-                Self::PATH_MSG_VALUE_SIMULATOR,
+                Self::normalize_name_fs(
+                    Self::PATH_MSG_VALUE_SIMULATOR.0,
+                    Some(Self::PATH_MSG_VALUE_SIMULATOR.1),
+                ),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
                 ),
-                Self::PATH_SYSTEM_CONTEXT,
+                Self::normalize_name_fs(
+                    Self::PATH_SYSTEM_CONTEXT.0,
+                    Some(Self::PATH_SYSTEM_CONTEXT.1),
+                ),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
-                Self::PATH_BASE_TOKEN,
+                Self::normalize_name_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
             ),
         ];
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
-        for (_, path) in yul_system_contracts.into_iter() {
-            yul_file_paths.push(path.to_owned());
+        for (_, path) in yul_system_contracts.iter() {
+            yul_file_paths.push(PathBuf::from(path));
         }
-        yul_file_paths.push(Self::PATH_EVM_EMULATOR.to_owned());
+        yul_file_paths.push(PathBuf::from(Self::PATH_EVM_EMULATOR));
         let yul_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
         let yul_mode = YulMode::new(yul_optimizer_settings, true).into();
         let yul_llvm_options = vec![
@@ -289,9 +335,12 @@ impl SystemContracts {
             "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
             "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
             "tests/solidity/complex/interpreter/*.sol",
-        ] {
-            for path in glob::glob(pattern)?.filter_map(Result::ok) {
-                let path = path.to_string_lossy().to_string();
+        ]
+        .into_iter()
+        .map(PathBuf::from)
+        {
+            for path in glob::glob(pattern.to_str().expect("Always valid"))?.filter_map(Result::ok)
+            {
                 if !solidity_file_paths.contains(&path) {
                     solidity_file_paths.push(path);
                 }
@@ -317,12 +366,19 @@ impl SystemContracts {
             debug_config,
         )?);
 
-        let default_aa = builds.remove(Self::PATH_DEFAULT_AA).ok_or_else(|| {
-            anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
-        })?;
-        let evm_emulator = builds.remove(Self::PATH_EVM_EMULATOR).ok_or_else(|| {
-            anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
-        })?;
+        let default_aa = builds
+            .remove(
+                Self::normalize_name_solc(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
+                    .as_str(),
+            )
+            .ok_or_else(|| {
+                anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
+            })?;
+        let evm_emulator = builds
+            .remove(Self::normalize_name_solc(Self::PATH_EVM_EMULATOR, None).as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
+            })?;
 
         let mut system_contracts =
             Vec::with_capacity(solidity_system_contracts.len() + yul_system_contracts.len());
@@ -332,7 +388,7 @@ impl SystemContracts {
         let mut deployed_contracts = Vec::with_capacity(system_contracts.len());
         for (address, path) in system_contracts.into_iter() {
             let build = builds
-                .remove(path)
+                .remove(Self::normalize_name_solc(path.as_str(), None).as_str())
                 .unwrap_or_else(|| panic!("System contract `{path}` not found in the builds"));
             deployed_contracts.push((address, build));
         }
@@ -359,9 +415,7 @@ impl SystemContracts {
         let system_contracts: SystemContracts = bincode::deserialize_from(system_contracts_file)
             .map_err(|error| {
                 anyhow::anyhow!(
-                    "System contract {:?} deserialization: {}",
-                    system_contracts_path,
-                    error
+                    "System contract {system_contracts_path:?} deserialization: {error}"
                 )
             })?;
         println!(
@@ -378,11 +432,7 @@ impl SystemContracts {
     fn save(&self, system_contracts_path: PathBuf) -> anyhow::Result<()> {
         let system_contracts_file = File::create(system_contracts_path.as_path())?;
         bincode::serialize_into(system_contracts_file, self).map_err(|error| {
-            anyhow::anyhow!(
-                "System contracts {:?} serialization: {}",
-                system_contracts_path,
-                error
-            )
+            anyhow::anyhow!("System contracts {system_contracts_path:?} serialization: {error}")
         })?;
 
         println!(
@@ -394,11 +444,33 @@ impl SystemContracts {
     }
 
     ///
+    /// Normalizes contract names with respect to the file system.
+    ///
+    fn normalize_name_fs(path: &str, name: Option<&str>) -> String {
+        let contract_name = era_compiler_common::ContractName::new(
+            path.replace("/", std::path::MAIN_SEPARATOR_STR),
+            name.map(|name| name.to_string()),
+        );
+        contract_name.full_path
+    }
+
+    ///
+    /// Normalizes contract names with respect to `solc`.
+    ///
+    fn normalize_name_solc(path: &str, name: Option<&str>) -> String {
+        let contract_name = era_compiler_common::ContractName::new(
+            path.replace(std::path::MAIN_SEPARATOR_STR, "/"),
+            name.map(|name| name.to_string()),
+        );
+        contract_name.full_path
+    }
+
+    ///
     /// Compiles the system contracts.
     ///
     fn compile<C>(
         compiler: C,
-        paths: Vec<String>,
+        paths: Vec<PathBuf>,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -408,30 +480,19 @@ impl SystemContracts {
     {
         let mut sources = Vec::new();
         for path in paths.into_iter() {
-            let file_path = if compiler.allows_multi_contract_files() {
-                path.split(':').next().expect("Always valid").to_string()
-            } else {
-                path
-            };
-
-            let mut source = std::fs::read_to_string(
-                PathBuf::from_str(file_path.as_str())
-                    .expect("Always valid")
-                    .as_path(),
-            )
-            .map_err(|error| {
-                anyhow::anyhow!(
-                    "System contract file `{}` reading error: {}",
-                    file_path,
-                    error
-                )
+            let mut source = std::fs::read_to_string(path.as_path()).map_err(|error| {
+                anyhow::anyhow!("System contract file {path:?} reading error: {error}",)
             })?;
 
-            if file_path == "era-contracts/system-contracts/contracts/Constants.sol" {
+            if path == PathBuf::from("era-contracts/system-contracts/contracts/Constants.sol") {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
-            sources.push((file_path.to_string(), source));
+            let path = path
+                .to_string_lossy()
+                .replace(std::path::MAIN_SEPARATOR_STR, "/");
+
+            sources.push((path, source));
         }
 
         compiler

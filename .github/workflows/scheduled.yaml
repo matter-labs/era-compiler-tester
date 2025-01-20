@@ -1,0 +1,79 @@
+name: Scheduled
+
+# This workflow is triggered by a schedule or manually
+# It allows to run integration tests
+# for all supported platforms by user's choice
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # every week
+  workflow_dispatch:
+    inputs:
+      run_macos_amd64:
+        description: "Run MacOS amd64?"
+        required: false
+        type: boolean
+        default: true
+      run_macos_arm64:
+        description: "Run MacOS arm64?"
+        required: false
+        type: boolean
+        default: true
+      run_linux_amd64:
+        description: "Run Linux amd64?"
+        required: false
+        type: boolean
+        default: true
+      run_linux_arm64:
+        description: "Run Linux arm64?"
+        required: false
+        type: boolean
+        default: true
+      run_windows_amd64:
+        description: "Run Windows amd64?"
+        required: false
+        type: boolean
+        default: true
+
+
+jobs:
+
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.prepare-matrix.outputs.matrix }}
+    steps:
+      - name: Prepare matrix
+        id: prepare-matrix
+        run: |
+          # Define general matrix parameters
+          # Windows is not supported yet on era-compiler-tester side
+          WINDOWS='{"name":"Windows-x86","runner":"windows-2019-github-hosted-64core"}'
+          MACOS_AMD64='{"name":"MacOS-x86","runner":"macos-12-large"}'
+          MACOS_ARM64='{"name":"MacOS-arm64","runner":["self-hosted","macOS","ARM64"]}'
+          LINUX_AMD64='{"name":"Linux-AMD64","runner":"matterlabs-ci-runner-high-performance","image":"ghcr.io/matter-labs/zksync-llvm-runner:latest"}'
+          LINUX_ARM64='{"name":"Linux-ARM64","runner":"matterlabs-ci-runner-arm","image":"ghcr.io/matter-labs/zksync-llvm-runner:latest"}'
+          # Disable platforms for non-tag builds if user requested
+          if [ ${GITHUB_EVENT_NAME} = workflow_dispatch ]; then
+            [ ${{ github.event.inputs.run_windows_amd64 }} != true ] && WINDOWS=
+            [ ${{ github.event.inputs.run_macos_amd64 }} != true ] && MACOS_AMD64=
+            [ ${{ github.event.inputs.run_macos_arm64 }} != true ] && MACOS_ARM64=
+            [ ${{ github.event.inputs.run_linux_amd64 }} != true ] && LINUX_AMD64=
+            [ ${{ github.event.inputs.run_linux_arm64 }} != true ] && LINUX_ARM64=
+          fi
+          PLATFORMS=(${WINDOWS} ${MACOS_AMD64} ${MACOS_ARM64} ${LINUX_AMD64} ${LINUX_ARM64})
+          echo "matrix={ \"include\": [ $(IFS=, ; echo "${PLATFORMS[*]}") ] }" | tee -a "${GITHUB_OUTPUT}"
+
+
+  integration-tests:
+    needs: prepare-matrix
+    uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@v1
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [ 'eravm' ]
+    with:
+      ccache-key-type: 'static' # rotate ccache key every month
+      target-machine: ${{ matrix.target }}
+      platforms-matrix: ${{ needs.prepare-matrix.outputs.matrix }}
