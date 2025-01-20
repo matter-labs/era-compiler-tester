@@ -220,20 +220,20 @@ impl SystemContracts {
         let solidity_system_contracts = vec![
             (
                 web3::types::Address::zero(),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_EMPTY_CONTRACT.0,
                     Some(Self::PATH_EMPTY_CONTRACT.1),
                 ),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::normalize_path_fs(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
+                Self::normalize_name_fs(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_ACCOUNT_CODE_STORAGE.into(),
                 ),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_ACCOUNT_CODE_STORAGE.0,
                     Some(Self::PATH_ACCOUNT_CODE_STORAGE.1),
                 ),
@@ -242,13 +242,13 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_NONCE_HOLDER.into(),
                 ),
-                Self::normalize_path_fs(Self::PATH_NONCE_HOLDER.0, Some(Self::PATH_NONCE_HOLDER.1)),
+                Self::normalize_name_fs(Self::PATH_NONCE_HOLDER.0, Some(Self::PATH_NONCE_HOLDER.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_KNOWN_CODES_STORAGE.into(),
                 ),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_KNOWN_CODES_STORAGE.0,
                     Some(Self::PATH_KNOWN_CODES_STORAGE.1),
                 ),
@@ -257,7 +257,7 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_IMMUTABLE_SIMULATOR.into(),
                 ),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_IMMUTABLE_SIMULATOR.0,
                     Some(Self::PATH_IMMUTABLE_SIMULATOR.1),
                 ),
@@ -266,7 +266,7 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER.into(),
                 ),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_CONTRACT_DEPLOYER.0,
                     Some(Self::PATH_CONTRACT_DEPLOYER.1),
                 ),
@@ -275,11 +275,11 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_L1_MESSENGER.into(),
                 ),
-                Self::normalize_path_fs(Self::PATH_L1_MESSENGER.0, Some(Self::PATH_L1_MESSENGER.1)),
+                Self::normalize_name_fs(Self::PATH_L1_MESSENGER.0, Some(Self::PATH_L1_MESSENGER.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_MSG_VALUE.into()),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_MSG_VALUE_SIMULATOR.0,
                     Some(Self::PATH_MSG_VALUE_SIMULATOR.1),
                 ),
@@ -288,14 +288,14 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
                 ),
-                Self::normalize_path_fs(
+                Self::normalize_name_fs(
                     Self::PATH_SYSTEM_CONTEXT.0,
                     Some(Self::PATH_SYSTEM_CONTEXT.1),
                 ),
             ),
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
-                Self::normalize_path_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
+                Self::normalize_name_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
             ),
         ];
 
@@ -368,14 +368,14 @@ impl SystemContracts {
 
         let default_aa = builds
             .remove(
-                Self::normalize_path_solc(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
+                Self::normalize_name_solc(Self::PATH_DEFAULT_AA.0, Some(Self::PATH_DEFAULT_AA.1))
                     .as_str(),
             )
             .ok_or_else(|| {
                 anyhow::anyhow!("The default AA code not found in the compiler build artifacts")
             })?;
         let evm_emulator = builds
-            .remove(Self::normalize_path_solc(Self::PATH_EVM_EMULATOR, None).as_str())
+            .remove(Self::normalize_name_solc(Self::PATH_EVM_EMULATOR, None).as_str())
             .ok_or_else(|| {
                 anyhow::anyhow!("The EVM emulator code not found in the compiler build artifacts")
             })?;
@@ -388,7 +388,7 @@ impl SystemContracts {
         let mut deployed_contracts = Vec::with_capacity(system_contracts.len());
         for (address, path) in system_contracts.into_iter() {
             let build = builds
-                .remove(Self::normalize_path_solc(path.as_str(), None).as_str())
+                .remove(Self::normalize_name_solc(path.as_str(), None).as_str())
                 .unwrap_or_else(|| panic!("System contract `{path}` not found in the builds"));
             deployed_contracts.push((address, build));
         }
@@ -444,9 +444,9 @@ impl SystemContracts {
     }
 
     ///
-    /// Normalizes paths with respect to the file system.
+    /// Normalizes contract names with respect to the file system.
     ///
-    fn normalize_path_fs(path: &str, name: Option<&str>) -> String {
+    fn normalize_name_fs(path: &str, name: Option<&str>) -> String {
         let contract_name = era_compiler_common::ContractName::new(
             path.replace("/", std::path::MAIN_SEPARATOR_STR),
             name.map(|name| name.to_string()),
@@ -455,9 +455,9 @@ impl SystemContracts {
     }
 
     ///
-    /// Normalizes paths with respect to `solc`.
+    /// Normalizes contract names with respect to `solc`.
     ///
-    fn normalize_path_solc(path: &str, name: Option<&str>) -> String {
+    fn normalize_name_solc(path: &str, name: Option<&str>) -> String {
         let contract_name = era_compiler_common::ContractName::new(
             path.replace(std::path::MAIN_SEPARATOR_STR, "/"),
             name.map(|name| name.to_string()),

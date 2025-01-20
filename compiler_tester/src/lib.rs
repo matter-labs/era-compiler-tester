@@ -18,7 +18,7 @@ pub(crate) mod utils;
 pub(crate) mod vm;
 pub(crate) mod workflow;
 
-use std::path::Path;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -281,7 +281,7 @@ impl CompilerTester {
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            Self::SOLIDITY_SIMPLE,
+            PathBuf::from(Self::SOLIDITY_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
             era_compiler_common::EXTENSION_SOLIDITY,
             match toolchain {
                 Toolchain::IrLLVM => solidity_compiler.clone(),
@@ -291,14 +291,14 @@ impl CompilerTester {
         if let era_compiler_common::Target::EraVM = target {
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
-                Self::VYPER_SIMPLE,
+                PathBuf::from(Self::VYPER_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler.clone(),
             )?);
         }
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            Self::YUL_SIMPLE,
+            PathBuf::from(Self::YUL_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
             era_compiler_common::EXTENSION_YUL,
             match toolchain {
                 Toolchain::IrLLVM => yul_compiler.clone(),
@@ -307,20 +307,20 @@ impl CompilerTester {
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            Self::LLVM_SIMPLE,
+            PathBuf::from(Self::LLVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
             era_compiler_common::EXTENSION_LLVM_SOURCE,
             llvm_compiler,
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            Self::ERAVM_SIMPLE,
+            PathBuf::from(Self::ERAVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
             era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
             eravm_compiler,
         )?);
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            Self::SOLIDITY_COMPLEX,
+            PathBuf::from(Self::SOLIDITY_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
             era_compiler_common::EXTENSION_JSON,
             match toolchain {
                 Toolchain::IrLLVM => solidity_compiler.clone(),
@@ -330,28 +330,33 @@ impl CompilerTester {
         if let era_compiler_common::Target::EraVM = target {
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
-                Self::VYPER_COMPLEX,
+                PathBuf::from(Self::VYPER_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
                 era_compiler_common::EXTENSION_JSON,
                 vyper_compiler.clone(),
             )?);
         }
 
-        tests.extend(self.directory::<EthereumDirectory>(
-            target,
-            match target {
-                era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
-            },
-            era_compiler_common::EXTENSION_SOLIDITY,
-            match toolchain {
-                Toolchain::IrLLVM => solidity_compiler.clone(),
-                Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
-            },
-        )?);
+        tests.extend(
+            self.directory::<EthereumDirectory>(
+                target,
+                PathBuf::from(
+                    match target {
+                        era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                        era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+                    }
+                    .replace("/", std::path::MAIN_SEPARATOR_STR),
+                ),
+                era_compiler_common::EXTENSION_SOLIDITY,
+                match toolchain {
+                    Toolchain::IrLLVM => solidity_compiler.clone(),
+                    Toolchain::Solc | Toolchain::SolcLLVM => solidity_upstream_compiler.clone(),
+                },
+            )?,
+        );
         if let era_compiler_common::Target::EraVM = target {
             tests.extend(self.directory::<EthereumDirectory>(
                 target,
-                Self::VYPER_ETHEREUM,
+                PathBuf::from(Self::VYPER_ETHEREUM.replace("/", std::path::MAIN_SEPARATOR_STR)),
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler,
             )?);
@@ -366,7 +371,7 @@ impl CompilerTester {
     fn directory<T>(
         &self,
         target: era_compiler_common::Target,
-        path: &str,
+        path: PathBuf,
         extension: &'static str,
         compiler: Arc<dyn Compiler>,
     ) -> anyhow::Result<Vec<Test>>
@@ -375,12 +380,12 @@ impl CompilerTester {
     {
         Ok(T::read_all(
             target,
-            Path::new(path),
+            path.as_path(),
             extension,
             self.summary.clone(),
             &self.filters,
         )
-        .map_err(|error| anyhow::anyhow!("Failed to read the tests directory `{path}`: {error}"))?
+        .map_err(|error| anyhow::anyhow!("Failed to read the tests directory {path:?}: {error}"))?
         .into_iter()
         .map(|test| Arc::new(test) as Arc<dyn Buildable>)
         .cartesian_product(compiler.all_modes())
