@@ -32,12 +32,8 @@ impl TryFrom<&Path> for Test {
     type Error = anyhow::Error;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        let mut file = fs::File::open(path)?;
-
-        let mut data = String::new();
-        file.read_to_string(&mut data).map_err(|error| {
-            anyhow::anyhow!("Failed to read test file (1, {:?}): {}", file, error)
-        })?;
+        let data = std::fs::read_to_string(path)
+            .map_err(|error| anyhow::anyhow!("Failed to read test file {path:?}: {error}"))?;
 
         let comment_start = if path
             .extension()
@@ -51,13 +47,12 @@ impl TryFrom<&Path> for Test {
 
         let sources = process_sources(&data, path)?;
 
-        dbg!(&data, format!("{comment_start}----\n"));
         let (data, function_calls) = data
-            .split_once(&format!("{comment_start}----\n"))
+            .split_once(&format!("{comment_start}----{}", crate::NEW_LINE))
             .ok_or_else(|| anyhow::anyhow!("Invalid test format"))?;
 
         let params = data
-            .split_once(&format!("{comment_start}====\n"))
+            .split_once(&format!("{comment_start}===={}", crate::NEW_LINE))
             .map(|parts| parts.1)
             .unwrap_or_default();
 
@@ -66,7 +61,7 @@ impl TryFrom<&Path> for Test {
             .filter_map(|line| line.strip_prefix(&comment_start))
             .map(|line| {
                 let mut line = line.to_owned();
-                line.push('\n');
+                line.push_str(crate::NEW_LINE);
                 line
             })
             .collect::<Vec<String>>()
@@ -80,7 +75,7 @@ impl TryFrom<&Path> for Test {
             .filter_map(|line| line.strip_prefix(&comment_start))
             .map(|line| {
                 let mut line = line.to_owned();
-                line.push('\n');
+                line.push_str(crate::NEW_LINE);
                 line
             })
             .collect::<Vec<String>>()
@@ -113,7 +108,7 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
             Some(captures) => captures,
             None => {
                 source.push_str(line);
-                source.push('\n');
+                source.push_str(crate::NEW_LINE);
                 continue;
             }
         };
