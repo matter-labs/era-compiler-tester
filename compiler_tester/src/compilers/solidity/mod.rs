@@ -212,11 +212,8 @@ impl SolidityCompiler {
             output_selection,
             era_solc::StandardJsonInputMetadata::default(),
             vec![],
-            vec![
-                era_solc::StandardJsonInputErrorType::SendTransfer,
-                era_solc::StandardJsonInputErrorType::AssemblyCreate,
-            ],
-            vec![],
+            vec![era_solc::StandardJsonInputErrorType::SendTransfer],
+            vec![era_solc::StandardJsonInputWarningType::AssemblyCreate],
             false,
             mode.via_ir,
         )
