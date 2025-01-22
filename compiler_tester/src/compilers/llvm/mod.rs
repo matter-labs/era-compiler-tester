@@ -116,7 +116,6 @@ impl Compiler for LLVMCompiler {
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;
