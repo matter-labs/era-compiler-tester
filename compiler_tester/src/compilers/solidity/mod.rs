@@ -426,6 +426,8 @@ impl Compiler for SolidityCompiler {
 
         let solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
         let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
             mode.solc_codegen,
@@ -441,6 +443,8 @@ impl Compiler for SolidityCompiler {
             llvm_options,
             debug_config,
         )?;
+        build.check_errors()?;
+        let build = build.link(linker_symbols);
         build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .results
