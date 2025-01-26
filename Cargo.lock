@@ -717,7 +717,6 @@ dependencies = [
  "era-compiler-solidity",
  "era-compiler-vyper",
  "era-solc",
- "evm",
  "glob",
  "hex",
  "inkwell",
@@ -804,20 +803,11 @@ dependencies = [
 
 [[package]]
 name = "cpufeatures"
-version = "0.2.16"
+version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16b80225097f2e5ae4e7179dd2266824648f3e2f49d9134d584b76389d31c4c3"
+checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "crossbeam-channel"
-version = "0.5.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06ba6d68e24814cb8de6bb986db8222d3a027d15872cabc0d18817bc3c0e4471"
-dependencies = [
- "crossbeam-utils",
 ]
 
 [[package]]
@@ -847,9 +837,9 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "crunchy"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
+checksum = "43da5946c66ffcc7745f48db692ffbb10a83bfe0afd96235c5c2a4fb23994929"
 
 [[package]]
 name = "crypto-bigint"
@@ -1103,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#564e41b4d9e0b6a3a0d2f875c6dd891477cef70c"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#de72ad122ac3cd0f24a76eee889d08c85cc98f33"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1118,7 +1108,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#8eceeacecd12b7e87c2662a3ba0501b36d05f894"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
 dependencies = [
  "anyhow",
  "clap",
@@ -1131,10 +1121,8 @@ dependencies = [
  "mimalloc",
  "normpath",
  "num",
- "num_cpus",
  "path-slash",
  "rayon",
- "rusty_pool",
  "semver 1.0.23",
  "serde",
  "serde_json",
@@ -1145,7 +1133,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.9"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#51f8baf7514e2482145d1b2f1e37615fb50bb2ca"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#9ea0fb7336021d7740a2c0ad851ea4f96b873e12"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1169,7 +1157,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#8eceeacecd12b7e87c2662a3ba0501b36d05f894"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1186,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#8eceeacecd12b7e87c2662a3ba0501b36d05f894"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
 dependencies = [
  "anyhow",
  "regex",
@@ -1246,30 +1234,6 @@ dependencies = [
  "impl-serde",
  "primitive-types",
  "uint",
-]
-
-[[package]]
-name = "evm"
-version = "1.0.0-dev"
-source = "git+https://github.com/rust-ethereum/evm?rev=f7a23df6c478ca6a151af5f60e62944800529a61#f7a23df6c478ca6a151af5f60e62944800529a61"
-dependencies = [
- "evm-interpreter",
- "primitive-types",
- "sha3 0.10.8",
-]
-
-[[package]]
-name = "evm-interpreter"
-version = "1.0.0-dev"
-source = "git+https://github.com/rust-ethereum/evm?rev=f7a23df6c478ca6a151af5f60e62944800529a61#f7a23df6c478ca6a151af5f60e62944800529a61"
-dependencies = [
- "auto_impl",
- "parity-scale-codec",
- "primitive-types",
- "rlp",
- "scale-info",
- "serde",
- "sha3 0.10.8",
 ]
 
 [[package]]
@@ -1963,7 +1927,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c5d783f52b755f5382e99e3f1179039b9435e3cc"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1972,13 +1936,13 @@ dependencies = [
  "once_cell",
  "parking_lot",
  "serde",
- "thiserror 1.0.64",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#c5d783f52b755f5382e99e3f1179039b9435e3cc"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2159,7 +2123,7 @@ checksum = "4ee93343901ab17bd981295f2cf0026d4ad018c7c31ba84549a4ddbb47a45104"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#b65826dfdb19676637dbddb9f01bcc52ae2c4308"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#5dad04e81f806046e383ee73a8d1b9ed53161624"
 dependencies = [
  "anyhow",
  "cc",
@@ -2438,9 +2402,9 @@ dependencies = [
 
 [[package]]
 name = "openssl-probe"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
+checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 
 [[package]]
 name = "openssl-src"
@@ -3153,9 +3117,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.43"
+version = "0.38.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a78891ee6bf2340288408954ac787aa063d8e8817e9f53abb37c695c6d834ef6"
+checksum = "fdb5bc1ae2baa591800df16c9ca78619bf65c0488b41b96ccec5d11220d8c154"
 dependencies = [
  "bitflags 2.8.0",
  "errno",
@@ -3235,47 +3199,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "rusty_pool"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ed36cdb20de66d89a17ea04b8883fc7a386f2cf877aaedca5005583ce4876ff"
-dependencies = [
- "crossbeam-channel",
- "futures-channel",
- "futures-executor",
- "num_cpus",
-]
-
-[[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
-
-[[package]]
-name = "scale-info"
-version = "2.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "346a3b32eba2640d17a9cb5927056b08f3de90f65b72fe09402c2ad07d684d0b"
-dependencies = [
- "bitvec",
- "cfg-if",
- "derive_more 1.0.0",
- "parity-scale-codec",
- "scale-info-derive",
-]
-
-[[package]]
-name = "scale-info-derive"
-version = "2.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6630024bf739e2179b91fb424b28898baf819414262c5d376677dbff1fe7ebf"
-dependencies = [
- "proc-macro-crate 3.2.0",
- "proc-macro2",
- "quote",
- "syn 2.0.96",
-]
 
 [[package]]
 name = "schannel"
@@ -4006,9 +3933,9 @@ checksum = "eaea85b334db583fe3274d12b4cd1880032beab409c0d774be044d4480ab9a94"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.14"
+version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
+checksum = "11cd88e12b17c6494200a9c1b683a04fcac9573ed74cd1b62aeb2727c5592243"
 
 [[package]]
 name = "unicode-xid"
@@ -4675,7 +4602,7 @@ dependencies = [
 [[package]]
 name = "zksync_vm2"
 version = "0.2.1"
-source = "git+https://github.com/matter-labs/vm2#457d8a7eea9093af9440662e33e598c13ba41633"
+source = "git+https://github.com/matter-labs/vm2#70a6e301b12d98db13fd91f67a505441c0defe9a"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
@@ -4687,7 +4614,7 @@ dependencies = [
 [[package]]
 name = "zksync_vm2_interface"
 version = "0.2.1"
-source = "git+https://github.com/matter-labs/vm2#457d8a7eea9093af9440662e33e598c13ba41633"
+source = "git+https://github.com/matter-labs/vm2#70a6e301b12d98db13fd91f67a505441c0defe9a"
 dependencies = [
  "primitive-types",
 ]

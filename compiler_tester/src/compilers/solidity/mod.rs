@@ -19,8 +19,8 @@ use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::build::Build as EVMBuild;
-use crate::vm::evm::input::Input as EVMInput;
+use crate::vm::revm::input::build::Build as EVMBuild;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::cache_key::CacheKey;
 use self::mode::Mode as SolidityMode;
@@ -426,6 +426,8 @@ impl Compiler for SolidityCompiler {
 
         let solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
 
+        let linker_symbols = libraries.as_linker_symbols()?;
+
         let project = era_compiler_solidity::Project::try_from_solc_output(
             libraries,
             mode.solc_codegen,
@@ -439,9 +441,10 @@ impl Compiler for SolidityCompiler {
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            None,
             debug_config,
         )?;
+        build.check_errors()?;
+        let build = build.link(linker_symbols);
         build.check_errors()?;
         let builds: HashMap<String, EVMBuild> = build
             .results

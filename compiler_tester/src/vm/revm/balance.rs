@@ -5,14 +5,14 @@ use revm::{
     primitives::{EVMError, Env, InvalidTransaction, KECCAK_EMPTY, U256},
 };
 
-use super::{revm_type_conversions::web3_address_to_revm_address, Revm};
+use super::{revm_type_conversions::web3_address_to_revm_address, REVM};
 use revm::Database;
 
-impl<'a> Revm<'a> {
+impl<'a> REVM<'a> {
     ///
     /// All accounts used to deploy the test contracts should have a balance of U256::MAX.
     ///
-    pub fn update_deploy_balance(mut self, account: &web3::types::Address) -> Revm<'a> {
+    pub fn update_deploy_balance(mut self, account: &web3::types::Address) -> REVM<'a> {
         let address = web3_address_to_revm_address(account);
         let nonce = match self.state.db_mut().basic(address) {
             Ok(Some(acc)) => acc.nonce,
@@ -33,7 +33,7 @@ impl<'a> Revm<'a> {
             .modify_env(|env| env.clone_from(&Box::new(Env::default())))
             .build();
         new_state.transact_commit().ok(); // Even if TX fails, the balance update will be committed
-        Revm { state: new_state }
+        REVM { state: new_state }
     }
 
     ///
@@ -59,14 +59,14 @@ impl<'a> Revm<'a> {
             })
             .build();
         new_state.transact_commit().ok();
-        Revm { state: new_state }
+        REVM { state: new_state }
     }
 
     ///
     /// REVM needs to send a transaction to execute a contract call,
     /// the balance of the caller is updated to have enough funds to send the transaction.
     ///
-    pub fn update_balance_if_lack_of_funds(mut self, caller: web3::types::Address) -> Revm<'a> {
+    pub fn update_balance_if_lack_of_funds(mut self, caller: web3::types::Address) -> REVM<'a> {
         if let Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
             fee,
             balance: _balance,
@@ -89,7 +89,7 @@ impl<'a> Revm<'a> {
                     );
                 })
                 .build();
-            Revm { state: new_state }
+            REVM { state: new_state }
         } else {
             Self { state: self.state }
         }
@@ -99,7 +99,7 @@ impl<'a> Revm<'a> {
     /// If the caller is not a rich address, subtract the fee
     /// from the balance used only to previoulsy send the transaction.
     ///
-    pub fn non_rich_update_balance(mut self, caller: web3::types::Address) -> Revm<'a> {
+    pub fn non_rich_update_balance(mut self, caller: web3::types::Address) -> REVM<'a> {
         let post_balance = self
             .state
             .context
@@ -126,6 +126,6 @@ impl<'a> Revm<'a> {
             })
             .build();
         let _ = new_state.transact_commit();
-        Revm { state: new_state }
+        REVM { state: new_state }
     }
 }

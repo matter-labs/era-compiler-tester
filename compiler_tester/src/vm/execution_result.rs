@@ -3,7 +3,6 @@
 //!
 
 use crate::test::case::input::output::Output;
-use crate::vm::evm::output::Output as EVMOutput;
 
 ///
 /// The VM execution result.
@@ -43,17 +42,6 @@ impl From<zkevm_tester::compiler_tests::VmSnapshot> for ExecutionResult {
             output: Output::from(snapshot),
             cycles,
             ergs,
-            gas: 0,
-        }
-    }
-}
-
-impl From<EVMOutput> for ExecutionResult {
-    fn from(output: EVMOutput) -> Self {
-        Self {
-            output: Output::from(output),
-            cycles: 0,
-            ergs: 0,
             gas: 0,
         }
     }

@@ -25,8 +25,7 @@ use crate::test::instance::Instance;
 use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::EVM;
-use crate::vm::revm::Revm;
+use crate::vm::revm::REVM;
 
 use self::balance::Balance;
 use self::calldata::Calldata;
@@ -386,35 +385,15 @@ impl Input {
     }
 
     ///
-    /// Runs the input on EVM emulator.
-    ///
-    pub fn run_evm_emulator(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: &mut EVM,
-        context: InputContext<'_>,
-    ) {
-        match self {
-            Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on EVM"),
-            Self::DeployEVM(deploy) => deploy.run_evm_emulator(summary, vm, context),
-            Self::Runtime(runtime) => runtime.run_evm_emulator(summary, vm, context),
-            Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_evm_emulator(summary, vm, context)
-            }
-            Self::Balance(balance_check) => balance_check.run_evm_emulator(summary, vm, context),
-        };
-    }
-
-    ///
     /// Runs the input on REVM.
     ///
     pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: Revm<'b>,
+        mut vm: REVM<'b>,
         evm_version: Option<solidity_adapter::EVMVersion>,
         context: InputContext<'_>,
-    ) -> Revm<'b> {
+    ) -> REVM<'b> {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
             Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, evm_version, context),

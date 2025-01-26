@@ -16,6 +16,7 @@ use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::cache_key::CacheKey;
 use self::mode::Mode as VyperMode;
@@ -267,7 +268,7 @@ impl Compiler for VyperCompiler {
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<crate::vm::evm::input::Input> {
+    ) -> anyhow::Result<EVMInput> {
         todo!()
     }
 

@@ -11,8 +11,8 @@ use era_solc::CollectableError;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::build::Build as EVMBuild;
-use crate::vm::evm::input::Input as EVMInput;
+use crate::vm::revm::input::build::Build as EVMBuild;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode as LLVMMode;
 
@@ -116,7 +116,6 @@ impl Compiler for LLVMCompiler {
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
-            None,
             debug_config.clone(),
         )?;
         build.check_errors()?;
