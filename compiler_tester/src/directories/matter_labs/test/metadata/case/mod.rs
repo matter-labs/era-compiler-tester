@@ -14,7 +14,7 @@ use crate::environment::Environment;
 use crate::test::instance::Instance;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
-use crate::vm::evm::address_iterator::EVMAddressIterator;
+use crate::vm::revm::address_iterator::EVMAddressIterator;
 
 use self::input::expected::Expected;
 use self::input::Input;

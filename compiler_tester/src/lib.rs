@@ -50,7 +50,7 @@ pub use crate::vm::eravm::deployers::dummy_deployer::DummyDeployer as EraVMNativ
 pub use crate::vm::eravm::deployers::system_contract_deployer::SystemContractDeployer as EraVMSystemContractDeployer;
 pub use crate::vm::eravm::deployers::EraVMDeployer;
 pub use crate::vm::eravm::EraVM;
-pub use crate::vm::evm::EVM;
+pub use crate::vm::revm::REVM;
 pub use crate::workflow::Workflow;
 
 /// The debug directory path.
@@ -148,38 +148,6 @@ impl CompilerTester {
                 ) {
                     if let Workflow::BuildAndRun = self.workflow {
                         test.run_eravm::<D, M>(self.summary.clone(), vm.clone())
-                    };
-                }
-            })
-            .collect();
-
-        Ok(())
-    }
-
-    ///
-    /// Runs all tests on EVM emulator.
-    ///
-    pub fn run_evm(self, toolchain: Toolchain) -> anyhow::Result<()> {
-        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain)?;
-
-        let _: Vec<()> = tests
-            .into_par_iter()
-            .map(|(test, compiler, mode)| {
-                let mode_string = mode.to_string();
-                let specialized_debug_config = self
-                    .debug_config
-                    .as_ref()
-                    .and_then(|config| config.create_subdirectory(mode_string.as_str()).ok());
-                if let Some(test) = test.build_for_evm(
-                    mode,
-                    compiler,
-                    Environment::REVM,
-                    self.summary.clone(),
-                    &self.filters,
-                    specialized_debug_config,
-                ) {
-                    if let Workflow::BuildAndRun = self.workflow {
-                        test.run_evm_emulator(self.summary.clone())
                     };
                 }
             })

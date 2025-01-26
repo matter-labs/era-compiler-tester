@@ -717,7 +717,6 @@ dependencies = [
  "era-compiler-solidity",
  "era-compiler-vyper",
  "era-solc",
- "evm",
  "glob",
  "hex",
  "inkwell",
@@ -804,20 +803,11 @@ dependencies = [
 
 [[package]]
 name = "cpufeatures"
-version = "0.2.16"
+version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16b80225097f2e5ae4e7179dd2266824648f3e2f49d9134d584b76389d31c4c3"
+checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "crossbeam-channel"
-version = "0.5.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06ba6d68e24814cb8de6bb986db8222d3a027d15872cabc0d18817bc3c0e4471"
-dependencies = [
- "crossbeam-utils",
 ]
 
 [[package]]
@@ -1103,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-cpr-1846-support-libraries-in-the-evm-linker#91cb178ddaa7f50f3bf268d8eb91583e3fa8e1d2"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#de72ad122ac3cd0f24a76eee889d08c85cc98f33"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1118,7 +1108,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1846-support-libraries-in-the-evm-linker#737be05b16b26f1e6d2e8c28688b10ec43a7ebf0"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
 dependencies = [
  "anyhow",
  "clap",
@@ -1131,10 +1121,8 @@ dependencies = [
  "mimalloc",
  "normpath",
  "num",
- "num_cpus",
  "path-slash",
  "rayon",
- "rusty_pool",
  "semver 1.0.23",
  "serde",
  "serde_json",
@@ -1145,7 +1133,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.9"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-cpr-1846-support-libraries-in-the-evm-linker#b5f805181c9b9159816ec0e9de9b4a8e16728763"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#9ea0fb7336021d7740a2c0ad851ea4f96b873e12"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1169,7 +1157,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1846-support-libraries-in-the-evm-linker#737be05b16b26f1e6d2e8c28688b10ec43a7ebf0"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1186,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-cpr-1846-support-libraries-in-the-evm-linker#737be05b16b26f1e6d2e8c28688b10ec43a7ebf0"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
 dependencies = [
  "anyhow",
  "regex",
@@ -1246,30 +1234,6 @@ dependencies = [
  "impl-serde",
  "primitive-types",
  "uint",
-]
-
-[[package]]
-name = "evm"
-version = "1.0.0-dev"
-source = "git+https://github.com/rust-ethereum/evm?rev=f7a23df6c478ca6a151af5f60e62944800529a61#f7a23df6c478ca6a151af5f60e62944800529a61"
-dependencies = [
- "evm-interpreter",
- "primitive-types",
- "sha3 0.10.8",
-]
-
-[[package]]
-name = "evm-interpreter"
-version = "1.0.0-dev"
-source = "git+https://github.com/rust-ethereum/evm?rev=f7a23df6c478ca6a151af5f60e62944800529a61#f7a23df6c478ca6a151af5f60e62944800529a61"
-dependencies = [
- "auto_impl",
- "parity-scale-codec",
- "primitive-types",
- "rlp",
- "scale-info",
- "serde",
- "sha3 0.10.8",
 ]
 
 [[package]]
@@ -1963,7 +1927,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-cpr-1846-support-libraries-in-the-evm-linker#54cd693d137a1205618d62123041b2e1cea3471a"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1972,13 +1936,13 @@ dependencies = [
  "once_cell",
  "parking_lot",
  "serde",
- "thiserror 1.0.64",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-cpr-1846-support-libraries-in-the-evm-linker#54cd693d137a1205618d62123041b2e1cea3471a"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2159,7 +2123,7 @@ checksum = "4ee93343901ab17bd981295f2cf0026d4ad018c7c31ba84549a4ddbb47a45104"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=az-cpr-1846-support-libraries-in-the-evm-linker#0f6e72e95dba4a16012a7157dfe4c8ca73e15440"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#5dad04e81f806046e383ee73a8d1b9ed53161624"
 dependencies = [
  "anyhow",
  "cc",
@@ -3235,47 +3199,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "rusty_pool"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ed36cdb20de66d89a17ea04b8883fc7a386f2cf877aaedca5005583ce4876ff"
-dependencies = [
- "crossbeam-channel",
- "futures-channel",
- "futures-executor",
- "num_cpus",
-]
-
-[[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
-
-[[package]]
-name = "scale-info"
-version = "2.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "346a3b32eba2640d17a9cb5927056b08f3de90f65b72fe09402c2ad07d684d0b"
-dependencies = [
- "bitvec",
- "cfg-if",
- "derive_more 1.0.0",
- "parity-scale-codec",
- "scale-info-derive",
-]
-
-[[package]]
-name = "scale-info-derive"
-version = "2.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6630024bf739e2179b91fb424b28898baf819414262c5d376677dbff1fe7ebf"
-dependencies = [
- "proc-macro-crate 3.2.0",
- "proc-macro2",
- "quote",
- "syn 2.0.96",
-]
 
 [[package]]
 name = "schannel"

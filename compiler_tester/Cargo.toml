@@ -40,7 +40,6 @@ lazy_static = "=1.5.0"
 bincode = "=1.3.3"
 chrono = "=0.4.38"
 
-evm = { git = "https://github.com/rust-ethereum/evm", rev = "f7a23df6c478ca6a151af5f60e62944800529a61" }
 revm = { git = "https://github.com/bluealloy/revm", rev = "fa5650ee8a4d802f4f3557014dd157adfb074460" }
 
 zkevm_opcode_defs = "=0.150.6"
@@ -49,10 +48,10 @@ vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
-era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-cpr-1846-support-libraries-in-the-evm-linker" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1846-support-libraries-in-the-evm-linker" }
-era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-cpr-1846-support-libraries-in-the-evm-linker" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-cpr-1846-support-libraries-in-the-evm-linker" }
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
@@ -70,6 +69,6 @@ features = ["blocking"]
 
 [dependencies.inkwell]
 git = "https://github.com/matter-labs-forks/inkwell"
-branch = "az-cpr-1846-support-libraries-in-the-evm-linker"
+branch = "llvm-17"
 default-features = false
 features = ["llvm17-0", "no-libffi-linking", "target-eravm", "target-evm"]

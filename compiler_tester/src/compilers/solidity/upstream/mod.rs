@@ -16,8 +16,8 @@ use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::build::Build as EVMBuild;
-use crate::vm::evm::input::Input as EVMInput;
+use crate::vm::revm::input::build::Build as EVMBuild;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode as SolidityUpstreamMode;
 use self::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;

@@ -19,7 +19,7 @@ use crate::test::selector::TestSelector;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
-use crate::vm::evm::address_iterator::EVMAddressIterator;
+use crate::vm::revm::address_iterator::EVMAddressIterator;
 
 ///
 /// The Ethereum compiler test.

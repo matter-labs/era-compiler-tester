@@ -11,7 +11,7 @@ pub mod vyper;
 pub mod yul;
 
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::Input as EVMInput;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode;
 

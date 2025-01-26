@@ -211,7 +211,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 )
         }
         compiler_tester::Environment::REVM => {
-            compiler_tester::EVM::download(executable_download_config_paths)?;
+            compiler_tester::REVM::download(executable_download_config_paths)?;
             compiler_tester.run_revm(toolchain)
         }
     }?;

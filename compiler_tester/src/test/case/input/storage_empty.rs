@@ -10,8 +10,7 @@ use crate::test::case::input::identifier::InputIdentifier;
 use crate::test::description::TestDescription;
 use crate::test::InputContext;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::EVM;
-use crate::vm::revm::Revm;
+use crate::vm::revm::REVM;
 
 ///
 /// The storage emptiness check input variant.
@@ -48,21 +47,9 @@ impl StorageEmpty {
     }
 
     ///
-    /// Runs the storage empty check on EVM emulator.
-    ///
-    pub fn run_evm_emulator(
-        self,
-        _summary: Arc<Mutex<Summary>>,
-        _vm: &EVM,
-        _context: InputContext<'_>,
-    ) {
-        todo!()
-    }
-
-    ///
     /// Runs the storage empty check on REVM.
     ///
-    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut Revm, context: InputContext<'_>) {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         let input_index = context.selector;
         let test =
             TestDescription::from_context(context, InputIdentifier::StorageEmpty { input_index });

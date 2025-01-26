@@ -11,9 +11,8 @@ use crate::test::context::input::InputContext;
 use crate::test::description::TestDescription;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::EVM;
 use crate::vm::revm::revm_type_conversions::web3_address_to_revm_address;
-use crate::vm::revm::Revm;
+use crate::vm::revm::REVM;
 
 ///
 /// The balance check input variant.
@@ -75,21 +74,9 @@ impl Balance {
     }
 
     ///
-    /// Runs the balance check on EVM emulator.
-    ///
-    pub fn run_evm_emulator(
-        self,
-        _summary: Arc<Mutex<Summary>>,
-        _vm: &EVM,
-        _context: InputContext<'_>,
-    ) {
-        todo!()
-    }
-
-    ///
     /// Runs the balance check on REVM.
     ///
-    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut Revm, context: InputContext<'_>) {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         let input_index = context.selector;
         let test = TestDescription::from_context(context, InputIdentifier::Balance { input_index });
         let found = vm

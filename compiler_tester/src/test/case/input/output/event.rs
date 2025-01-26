@@ -163,39 +163,6 @@ impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
     }
 }
 
-impl From<evm::Log> for Event {
-    fn from(log: evm::Log) -> Self {
-        let _address = log.address;
-        let topics = log
-            .topics
-            .into_iter()
-            .map(|topic| Value::Certain(crate::utils::h256_to_u256(&topic)))
-            .collect();
-        let values: Vec<Value> = log
-            .data
-            .chunks(era_compiler_common::BYTE_LENGTH_FIELD)
-            .map(|word| {
-                let value = if word.len() != era_compiler_common::BYTE_LENGTH_FIELD {
-                    let mut word_padded = word.to_vec();
-                    word_padded.extend(vec![
-                        0u8;
-                        era_compiler_common::BYTE_LENGTH_FIELD - word.len()
-                    ]);
-                    web3::types::U256::from_big_endian(word_padded.as_slice())
-                } else {
-                    web3::types::U256::from_big_endian(word)
-                };
-                Value::Certain(value)
-            })
-            .collect();
-        Self {
-            address: Some(log.address),
-            topics,
-            values,
-        }
-    }
-}
-
 impl PartialEq<Self> for Event {
     fn eq(&self, other: &Self) -> bool {
         if let (Some(address1), Some(address2)) = (self.address, other.address) {

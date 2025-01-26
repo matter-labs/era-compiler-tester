@@ -2,6 +2,8 @@
 //! The compiler tester utils.
 //!
 
+#![allow(dead_code)]
+
 pub mod timer;
 
 use sha3::Digest;

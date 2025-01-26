@@ -19,8 +19,8 @@ use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::build::Build as EVMBuild;
-use crate::vm::evm::input::Input as EVMInput;
+use crate::vm::revm::input::build::Build as EVMBuild;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::cache_key::CacheKey;
 use self::mode::Mode as SolidityMode;
