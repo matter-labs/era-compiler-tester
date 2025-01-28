@@ -14,7 +14,7 @@ pub struct Machine {
     /// Target name, for example "eravm" or "solc".
     pub target: era_compiler_common::Target,
     /// Optimizations level, for example "+M3B3".
-    pub optimizations: String,
+    pub optimization: String,
     /// Type of solc, for example, "zksync".
     pub toolchain: String,
 }
