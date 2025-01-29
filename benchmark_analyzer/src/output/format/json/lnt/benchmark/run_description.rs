@@ -6,12 +6,17 @@ use chrono::DateTime;
 use chrono::Utc;
 
 ///
+/// Run order in the LNT report. Equals to DateTime<Utc> for now.
+///
+type LLVMProjectRevision = DateTime<Utc>;
+
+///
 /// Description of the benchmark run in a JSON file passed to LNT.
 ///
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct RunDescription {
-    /// LNT run order. For now equals to start time.
-    pub llvm_project_revision: DateTime<Utc>,
+    /// LNT run order.
+    pub llvm_project_revision: LLVMProjectRevision,
     /// Time when benchmark run was started.
     pub start_time: DateTime<Utc>,
     /// Time when benchmark run was finished.

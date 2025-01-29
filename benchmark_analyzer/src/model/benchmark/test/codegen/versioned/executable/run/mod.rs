@@ -2,6 +2,7 @@
 //! A run of a test with fixed compiler options (mode).
 //!
 
+use crate::util::is_zero;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -22,14 +23,6 @@ pub struct Run {
     /// The amount of EVM gas.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub gas: u64,
-}
-
-///
-/// Check if a value is zero.
-/// This is a helper function for serialization.
-///
-fn is_zero<T: PartialEq + From<u8>>(value: &T) -> bool {
-    *value == T::from(0)
 }
 
 impl Run {

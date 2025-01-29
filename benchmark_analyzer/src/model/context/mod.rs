@@ -11,7 +11,7 @@ pub struct Context {
     pub machine: String,
     /// Target, for example "eravm" or "evm".
     pub target: era_compiler_common::Target,
-    /// Type of `solc`, for example `llvm_ir`
+    /// Type of `toolchain`, for example `ir-llvm`
     pub toolchain: String,
     /// Version of the `zksolc` compiler.
     pub zksolc_version: String,
