@@ -18,6 +18,7 @@ use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use crate::model::benchmark::test::selector::Selector;
 use crate::model::benchmark::test::Test;
 use crate::model::benchmark::Benchmark;
+use crate::output::format::json::lnt::benchmark::LntReportFormatVersion;
 use crate::output::format::json::make_json_file;
 use crate::output::IBenchmarkSerializer;
 use crate::output::Output;
@@ -34,12 +35,18 @@ pub struct JsonLNT;
 fn test_name(selector: &Selector, version: impl std::fmt::Display) -> String {
     fn shorten_file_name(name: &str) -> String {
         let path_buf = PathBuf::from(name);
-        path_buf
-            .file_name()
-            .expect("Always valid")
-            .to_str()
-            .expect("Always valid")
-            .to_string()
+        if let Some(parent) = path_buf.parent() {
+            if let Some(file_name) = path_buf.file_name() {
+                if let Some(dir_name) = parent.file_name() {
+                    return format!(
+                        "{}/{}",
+                        dir_name.to_string_lossy(),
+                        file_name.to_string_lossy()
+                    );
+                }
+            }
+        }
+        path_buf.to_str().expect("Always valid").to_string()
     }
     let Selector { path, case, input } = selector;
     let short_path = shorten_file_name(path);
@@ -81,28 +88,32 @@ impl IBenchmarkSerializer for JsonLNT {
             for (codegen, codegen_group) in codegen_groups {
                 for (version, versioned_group) in &codegen_group.versioned_groups {
                     for (
-                        optimizations,
+                        optimization,
                         crate::Executable {
                             run: measurements, ..
                         },
                     ) in &versioned_group.executables
                     {
-                        let machine_name = format!("{}-{codegen}-{optimizations}", context.machine);
+                        let machine_name = format!("{}-{codegen}{optimization}", context.machine);
 
                         let machine = Machine {
                             name: context.machine.clone(),
                             target: context.target,
-                            optimizations: optimizations.to_owned(),
+                            codegen: codegen.clone(),
+                            optimization: optimization.clone(),
                             toolchain: context.toolchain.clone(),
                         };
                         let run = RunDescription {
+                            llvm_project_revision: benchmark.metadata.start,
                             start_time: benchmark.metadata.start,
                             end_time: benchmark.metadata.end,
+                            zksolc_version: context.zksolc_version.clone(),
+                            llvm_version: context.llvm_version.clone(),
                         };
                         files
                             .entry(machine_name)
                             .or_insert(LntBenchmark {
-                                format_version: benchmark.metadata.version.clone(),
+                                format_version: LntReportFormatVersion::V2,
                                 machine,
                                 run,
                                 tests: vec![],

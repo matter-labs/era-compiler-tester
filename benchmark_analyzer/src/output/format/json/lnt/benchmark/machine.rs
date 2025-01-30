@@ -9,12 +9,14 @@
 ///
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Machine {
-    /// Machine name, for example "LNT-AArch64-A53-O3__clang_DEV__aarch64".
+    /// Machine name, for example "llvm_eravm_ir-llvm_Y+M3B3".
     pub name: String,
-    /// Target name, for example "eravm" or "solc".
+    /// Target name, for example "eravm" or "evm".
     pub target: era_compiler_common::Target,
-    /// Optimizations level, for example "+M3B3".
-    pub optimizations: String,
-    /// Type of solc, for example, "zksync".
+    /// Code generation, for example "Y+".
+    pub codegen: String,
+    /// Optimization levels, for example "M3B3".
+    pub optimization: String,
+    /// Type of toolchain, for example, "ir-llvm".
     pub toolchain: String,
 }

@@ -11,8 +11,12 @@ pub struct Context {
     pub machine: String,
     /// Target, for example "eravm" or "evm".
     pub target: era_compiler_common::Target,
-    /// Type of `solc`, for example `zksync`
+    /// Type of `toolchain`, for example `ir-llvm`
     pub toolchain: String,
+    /// Version of the `zksolc` compiler.
+    pub zksolc_version: String,
+    /// Version of the LLVM backend.
+    pub llvm_version: String,
 }
 
 ///
@@ -23,6 +27,8 @@ pub fn validate_context(context: &Context) -> anyhow::Result<()> {
         machine,
         toolchain,
         target: _,
+        zksolc_version: _,
+        llvm_version: _,
     } = context;
 
     if machine.is_empty() {
