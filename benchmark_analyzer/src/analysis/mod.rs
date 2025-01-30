@@ -38,7 +38,13 @@ fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
                         .map(Some)
                         .chain(std::iter::once(None))
                     {
-                        let tag = tag.map(|t| t.as_str());
+                        let tag = tag.map(|tag| tag.as_str());
+                        if (tag == Some("EVMInterpreter") && codegen != "Y")
+                            || (tag != Some("Precompiles") && codegen == "NoCodegen")
+                        {
+                            continue;
+                        }
+
                         let run_description = RunDescription {
                             test_metadata: &test.metadata,
                             version,
@@ -134,32 +140,32 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
     let elements_number = runs.len();
 
     let mut size_factors = Vec::with_capacity(elements_number);
-    let mut size_min = 1.0;
-    let mut size_max = 1.0;
+    let mut size_best = 1.0;
+    let mut size_worst = 1.0;
     let mut size_negatives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut size_positives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut size_total_reference: u64 = 0;
     let mut size_total_candidate: u64 = 0;
 
     let mut cycles_factors = Vec::with_capacity(elements_number);
-    let mut cycles_min = 1.0;
-    let mut cycles_max = 1.0;
+    let mut cycles_best = 1.0;
+    let mut cycles_worst = 1.0;
     let mut cycles_negatives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut cycles_positives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut cycles_total_reference: u64 = 0;
     let mut cycles_total_candidate: u64 = 0;
 
     let mut ergs_factors = Vec::with_capacity(elements_number);
-    let mut ergs_min = 1.0;
-    let mut ergs_max = 1.0;
+    let mut ergs_best = 1.0;
+    let mut ergs_worst = 1.0;
     let mut ergs_negatives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut ergs_positives: Vec<(f64, RunDescription<'a>)> = Vec::with_capacity(elements_number);
     let mut ergs_total_reference: u64 = 0;
     let mut ergs_total_candidate: u64 = 0;
 
     let mut gas_factors = Vec::with_capacity(elements_number);
-    let mut gas_min = 1.0;
-    let mut gas_max = 1.0;
+    let mut gas_best = 1.0;
+    let mut gas_worst = 1.0;
     let mut gas_negatives = Vec::with_capacity(elements_number);
     let mut gas_positives = Vec::with_capacity(elements_number);
     let mut gas_total_reference: u64 = 0;
@@ -185,11 +191,11 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         if cycles_factor < 1.0 {
             cycles_positives.push((cycles_factor, description.clone()));
         }
-        if cycles_factor < cycles_min {
-            cycles_min = cycles_factor;
+        if cycles_factor < cycles_best {
+            cycles_best = cycles_factor;
         }
-        if cycles_factor > cycles_max {
-            cycles_max = cycles_factor;
+        if cycles_factor > cycles_worst {
+            cycles_worst = cycles_factor;
         }
         cycles_factors.push(cycles_factor);
 
@@ -202,11 +208,11 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         if ergs_factor < 1.0 {
             ergs_positives.push((ergs_factor, description.clone()));
         }
-        if ergs_factor < ergs_min {
-            ergs_min = ergs_factor;
+        if ergs_factor < ergs_best {
+            ergs_best = ergs_factor;
         }
-        if ergs_factor > ergs_max {
-            ergs_max = ergs_factor;
+        if ergs_factor > ergs_worst {
+            ergs_worst = ergs_factor;
         }
         ergs_factors.push(ergs_factor);
 
@@ -219,11 +225,11 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         if gas_factor < 1.0 {
             gas_positives.push((gas_factor, description.clone()));
         }
-        if gas_factor < gas_min {
-            gas_min = gas_factor;
+        if gas_factor < gas_best {
+            gas_best = gas_factor;
         }
-        if gas_factor > gas_max {
-            gas_max = gas_factor;
+        if gas_factor > gas_worst {
+            gas_worst = gas_factor;
         }
         gas_factors.push(gas_factor);
 
@@ -244,11 +250,11 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         if size_factor < 1.0 {
             size_positives.push((size_factor, description.clone()));
         }
-        if size_factor < size_min {
-            size_min = size_factor;
+        if size_factor < size_best {
+            size_best = size_factor;
         }
-        if size_factor > size_max {
-            size_max = size_factor;
+        if size_factor > size_worst {
+            size_worst = size_factor;
         }
         size_factors.push(size_factor);
     }
@@ -262,23 +268,23 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
     let gas_total = (gas_total_candidate as f64) / (gas_total_reference as f64);
 
     Results::new(
-        size_min,
-        size_max,
+        size_best,
+        size_worst,
         size_total,
         size_negatives,
         size_positives,
-        cycles_min,
-        cycles_max,
+        cycles_best,
+        cycles_worst,
         cycles_total,
         cycles_negatives,
         cycles_positives,
-        ergs_min,
-        ergs_max,
+        ergs_best,
+        ergs_worst,
         ergs_total,
         ergs_negatives,
         ergs_positives,
-        gas_min,
-        gas_max,
+        gas_best,
+        gas_worst,
         gas_total,
         gas_negatives,
         gas_positives,
