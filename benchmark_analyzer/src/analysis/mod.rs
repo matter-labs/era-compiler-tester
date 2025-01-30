@@ -40,7 +40,7 @@ fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
                     {
                         let tag = tag.map(|tag| tag.as_str());
                         if (tag == Some("EVMInterpreter") && codegen != "Y")
-                            || codegen == "NoCodegen"
+                            || (tag != Some("Precompiles") && codegen == "NoCodegen")
                         {
                             continue;
                         }
@@ -97,9 +97,7 @@ pub fn compare<'a>(
     let results: Vec<(Group<'_>, Results<'_>)> = groups
         .into_iter()
         .map(|(group_name, reference_tests, candidate_tests)| {
-            let ratios = if is_evm_interpreter_cycles_tests_group(&group_name)
-                && group_name.codegen().as_deref() == Some("Y")
-            {
+            let ratios = if is_evm_interpreter_cycles_tests_group(&group_name) {
                 Some((
                     opcode_cost_ratios(&reference_tests),
                     opcode_cost_ratios(&candidate_tests),
