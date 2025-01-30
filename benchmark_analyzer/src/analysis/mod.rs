@@ -91,7 +91,9 @@ pub fn compare<'a>(
     let results: Vec<(Group<'_>, Results<'_>)> = groups
         .into_iter()
         .map(|(group_name, reference_tests, candidate_tests)| {
-            let ratios = if is_evm_interpreter_cycles_tests_group(&group_name) {
+            let ratios = if is_evm_interpreter_cycles_tests_group(&group_name)
+                && group_name.codegen().as_deref() == Some("Y")
+            {
                 Some((
                     opcode_cost_ratios(&reference_tests),
                     opcode_cost_ratios(&candidate_tests),
