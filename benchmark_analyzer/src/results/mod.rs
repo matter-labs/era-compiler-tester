@@ -204,9 +204,7 @@ impl<'a> Results<'a> {
     ///
     pub fn print_worst_results(&self, count: usize, group_name: &str) {
         println!(
-            "Group '{}' size (-%) worst {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' size (-%) worst {group_name} out of {count}:",
             self.size_negatives.len()
         );
         for (value, entry) in self.size_negatives.iter().take(count) {
@@ -214,9 +212,7 @@ impl<'a> Results<'a> {
         }
         println!();
         println!(
-            "Group '{}' cycles (-%) worst {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' cycles (-%) worst {group_name} out of {count}:",
             self.cycles_negatives.len()
         );
         for (value, entry) in self.cycles_negatives.iter().take(count) {
@@ -224,9 +220,7 @@ impl<'a> Results<'a> {
         }
         println!();
         println!(
-            "Group '{}' ergs (-%) worst {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' ergs (-%) worst {group_name} out of {count}:",
             self.ergs_negatives.len()
         );
         for (value, entry) in self.ergs_negatives.iter().take(count) {
@@ -234,9 +228,7 @@ impl<'a> Results<'a> {
         }
         println!();
         println!(
-            "Group '{}' gas (-%) worst {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' gas (-%) worst {group_name} out of {count}:",
             self.gas_negatives.len()
         );
         for (value, entry) in self.gas_negatives.iter().take(count) {
@@ -245,9 +237,7 @@ impl<'a> Results<'a> {
         println!();
 
         println!(
-            "Group '{}' size (-%) best {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' size (-%) best {group_name} out of {count}:",
             self.size_positives.len()
         );
         for (value, entry) in self.size_positives.iter().take(count) {
@@ -255,9 +245,7 @@ impl<'a> Results<'a> {
         }
         println!();
         println!(
-            "Group '{}' cycles (-%) best {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' cycles (-%) best {group_name} out of {count}:",
             self.cycles_positives.len()
         );
         for (value, entry) in self.cycles_positives.iter().take(count) {
@@ -265,9 +253,7 @@ impl<'a> Results<'a> {
         }
         println!();
         println!(
-            "Group '{}' ergs (-%) best {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' ergs (-%) best {group_name} out of {count}:",
             self.ergs_positives.len()
         );
         for (value, entry) in self.ergs_positives.iter().take(count) {
@@ -275,9 +261,7 @@ impl<'a> Results<'a> {
         }
         println!();
         println!(
-            "Group '{}' gas (-%) best {} out of {}:",
-            group_name,
-            count,
+            "Group '{}' gas (-%) best {group_name} out of {count}:",
             self.gas_positives.len()
         );
         for (value, entry) in self.gas_positives.iter().take(count) {
@@ -297,24 +281,24 @@ impl<'a> Results<'a> {
             w,
             "╔═╡ {} ╞{}╡ {} ╞═╗",
             "Size (-%)".bright_white(),
-            "═".repeat(cmp::max(44 - group_name.len(), 0)),
+            "═".repeat(cmp::max(34 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.size_best)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.size_worst)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.size_total)
         )?;
@@ -323,24 +307,24 @@ impl<'a> Results<'a> {
             w,
             "╠═╡ {} ╞{}╡ {} ╞═╣",
             "Cycles (-%)".bright_white(),
-            "═".repeat(cmp::max(42 - group_name.len(), 0)),
+            "═".repeat(cmp::max(32 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.cycles_best)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.cycles_worst)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.cycles_total)
         )?;
@@ -349,24 +333,24 @@ impl<'a> Results<'a> {
             w,
             "╠═╡ {} ╞{}╡ {} ╞═╣",
             "Ergs (-%)".bright_white(),
-            "═".repeat(cmp::max(44 - group_name.len(), 0)),
+            "═".repeat(cmp::max(34 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.ergs_best)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.ergs_worst)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.ergs_total)
         )?;
@@ -375,24 +359,24 @@ impl<'a> Results<'a> {
             w,
             "╠══╡ {} ╞{}╡ {} ╞═╣",
             "Gas (-%)".bright_white(),
-            "═".repeat(cmp::max(44 - group_name.len(), 0)),
+            "═".repeat(cmp::max(34 - group_name.len(), 0)),
             group_name.bright_white()
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Best".bright_white(),
             Self::format_f64(self.gas_best)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Worst".bright_white(),
             Self::format_f64(self.gas_worst)
         )?;
         writeln!(
             w,
-            "║ {:53} {:07} ║",
+            "║ {:43} {:07} ║",
             "Total".bright_white(),
             Self::format_f64(self.gas_total)
         )?;
@@ -405,7 +389,7 @@ impl<'a> Results<'a> {
                 w,
                 "╠═╡ {} ╞{}╡ {} ╞═╣",
                 "Ergs/gas".bright_white(),
-                "═".repeat(cmp::max(45 - group_name.len(), 0)),
+                "═".repeat(cmp::max(35 - group_name.len(), 0)),
                 group_name.bright_white()
             )?;
             for (opcode, reference_ratio) in gas_reference_ratios.iter() {
@@ -425,7 +409,7 @@ impl<'a> Results<'a> {
 
                 writeln!(
                     w,
-                    "║ {:52} {} ║",
+                    "║ {:42} {} ║",
                     if is_positive {
                         opcode.green()
                     } else if is_negative {
@@ -447,7 +431,7 @@ impl<'a> Results<'a> {
                 w,
                 "╠═╡ {} ╞{}╡ {} ╞═╣",
                 "Ergs/gas (-%)".bright_white(),
-                "═".repeat(cmp::max(40 - group_name.len(), 0)),
+                "═".repeat(cmp::max(30 - group_name.len(), 0)),
                 group_name.bright_white()
             )?;
             for (opcode, reference_ratio) in gas_reference_ratios.iter() {
@@ -470,7 +454,7 @@ impl<'a> Results<'a> {
 
                     writeln!(
                         w,
-                        "║ {:52} {} ║",
+                        "║ {:42} {} ║",
                         if is_positive {
                             opcode.green()
                         } else if is_negative {
@@ -489,10 +473,7 @@ impl<'a> Results<'a> {
                 }
             }
         }
-        writeln!(
-            w,
-            "╚═══════════════════════════════════════════════════════════════╝"
-        )?;
+        writeln!(w, "╚{}╝", "═".repeat(53),)?;
 
         Ok(())
     }
