@@ -39,7 +39,8 @@ fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
                         .chain(std::iter::once(None))
                     {
                         let tag = tag.map(|tag| tag.as_str());
-                        if (tag == Some("EVMInterpreter") && codegen != "Y")
+                        if codegen == "I"
+                            || (tag == Some("EVMInterpreter") && codegen != "Y")
                             || (tag != Some("Precompiles") && codegen == "NoCodegen")
                         {
                             continue;
