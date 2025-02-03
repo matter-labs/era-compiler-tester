@@ -97,7 +97,7 @@ jobs:
         target: ${{ needs.target-machine.outputs.* }}
     with:
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }} # required to properly test forks
-      ccache-key-type: static
+      ccache-key: 'llvm-Linux-X64-gnu'
       target-machine: ${{ matrix.target }}
 
   # Benchmarks workflow call from the era-compiler-ci repository
@@ -110,7 +110,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ${{ needs.target-machine.outputs.* }}
+        target: '${{ needs.target-machine.outputs.* }}'
+        toolchain: ['ir-llvm']
     with:
       compiler_tester_reference_branch: ${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}
       compiler_tester_candidate_branch: ${{ github.event.inputs.compiler_tester_candidate_branch || '' }}
@@ -119,8 +120,10 @@ jobs:
       compiler_llvm_benchmark_mode: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3' }}
       compiler_llvm_benchmark_path: ${{ github.event.inputs.compiler_llvm_benchmark_path || '' }}
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }}
-      ccache-key-type: static
+      ccache-key: 'llvm-Linux-X64-gnu'
       target-machine: ${{ matrix.target }}
+      toolchain: ${{ matrix.toolchain }}
+      environment: ${{ matrix.target == 'eravm' && 'zk_evm' || 'EVMInterpreter' }}
 
   # Special job that allows some of the jobs to be skipped or failed
   # requiring others to be successful
