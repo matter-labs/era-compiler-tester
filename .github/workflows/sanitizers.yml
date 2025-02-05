@@ -37,6 +37,16 @@ on:
         type: string
         default: 'eravm'
         description: 'Target filter for the era-compiler-tester. Possible values are: `eravm` or `evm`'
+      toolchain:
+        required: false
+        type: string
+        default: 'llvm-ir'
+        description: 'Compiler toolchain. Available arguments: `ir-llvm`, `solc`, `solc-llvm`.'
+      environment:
+        required: false
+        type: string
+        default: 'zk_evm'
+        description: 'Environment to run tests on. Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.'
 
 jobs:
   run-with-sanitizers:
@@ -94,6 +104,8 @@ jobs:
           set -x
           ./target/${TARGET}/debug/compiler-tester \
             --target "${{ inputs.target }}" \
+            --toolchain "${{ inputs.toolchain }}" \
+            --environment "${{ inputs.environment }}" \
             --zksolc "./target-zksolc/${TARGET}/debug/zksolc" \
             --zkvyper "./target-zkvyper/${TARGET}/debug/zkvyper" \
             --path '${{ inputs.path }}' \
