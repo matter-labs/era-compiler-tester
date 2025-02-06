@@ -886,7 +886,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1145d32e826a7748b69ee8fc62d3e6355ff7f1051df53141e7048162fc90481b"
 dependencies = [
  "data-encoding",
- "syn 2.0.96",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -1093,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#de72ad122ac3cd0f24a76eee889d08c85cc98f33"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-evm-immutables-support#5610a74b5a376cb44ef968bc7ccceab6d77011fa"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1107,8 +1107,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-solidity"
-version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
+version = "1.5.11"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-evm-immutables-support#0455ebd749963f8b82385882cde46da8491a8184"
 dependencies = [
  "anyhow",
  "clap",
@@ -1133,7 +1133,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.9"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#9ea0fb7336021d7740a2c0ad851ea4f96b873e12"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-evm-immutables-support#619291bc52e8ebb0ecb1171ffe96fc2df73caae8"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1156,8 +1156,8 @@ dependencies = [
 
 [[package]]
 name = "era-solc"
-version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
+version = "1.5.11"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-evm-immutables-support#0455ebd749963f8b82385882cde46da8491a8184"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1173,8 +1173,8 @@ dependencies = [
 
 [[package]]
 name = "era-yul"
-version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9d8efed4feeab1d2f906b6c2b32635ebb6652c85"
+version = "1.5.11"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-evm-immutables-support#0455ebd749963f8b82385882cde46da8491a8184"
 dependencies = [
  "anyhow",
  "regex",
@@ -1927,7 +1927,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-evm-immutables-support#085e585f7bcb17ecb21533f422957adb131069ce"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1942,7 +1942,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=az-evm-immutables-support#085e585f7bcb17ecb21533f422957adb131069ce"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2123,7 +2123,7 @@ checksum = "4ee93343901ab17bd981295f2cf0026d4ad018c7c31ba84549a4ddbb47a45104"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#5dad04e81f806046e383ee73a8d1b9ed53161624"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=az-evm-immutables-support#d2cb1b76c345dc52ade0c1b5722aeb1f1e9c4173"
 dependencies = [
  "anyhow",
  "cc",
