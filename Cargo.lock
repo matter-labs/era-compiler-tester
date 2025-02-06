@@ -600,9 +600,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.11"
+version = "1.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4730490333d58093109dc02c23174c3f4d490998c3fed3cc8e82d57afedb9cf"
+checksum = "755717a7de9ec452bf7f3f1a3099085deabd7f2962b861dae91ecd7a365903d2"
 dependencies = [
  "shlex",
 ]
@@ -1093,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#a679892e98f111e78d4aadccbdf6b1bfd231be13"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#4ebb07a8fe9d2bde0cde8540736d84019783557e"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1108,7 +1108,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.11"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#4c7bd72eec55866a9528231c66af758f32b3a9c3"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#fae8e7bb6ad9edf6c83c0e919800856ad1bbdef0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1133,7 +1133,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.9"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#a7b8a6536ad5bb78e9a52ae7a178c8a94a2408b4"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#41f1df0f6cfe7ab60fc59de131d211e4cc3357ba"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1157,7 +1157,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.11"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#4c7bd72eec55866a9528231c66af758f32b3a9c3"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#fae8e7bb6ad9edf6c83c0e919800856ad1bbdef0"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.11"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#4c7bd72eec55866a9528231c66af758f32b3a9c3"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#fae8e7bb6ad9edf6c83c0e919800856ad1bbdef0"
 dependencies = [
  "anyhow",
  "regex",
@@ -1891,7 +1891,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#3b7528ecd0815ade04f0ee5b134b2515dcb8c97c"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1906,7 +1906,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b6c1bf7e730d99a8a1e2acf7513befcf80466ba7"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#3b7528ecd0815ade04f0ee5b134b2515dcb8c97c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2087,7 +2087,7 @@ checksum = "4ee93343901ab17bd981295f2cf0026d4ad018c7c31ba84549a4ddbb47a45104"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#5dad04e81f806046e383ee73a8d1b9ed53161624"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#46dfd0c0eb90bb7215885926d1399397cd112ac8"
 dependencies = [
  "anyhow",
  "cc",
@@ -3018,9 +3018,9 @@ checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
 
 [[package]]
 name = "rustc-hash"
-version = "2.1.0"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7fb8039b3032c191086b10f11f319a6e99e1e82889c5cc6046f515c9db1d497"
+checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
 name = "rustc-hex"
