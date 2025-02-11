@@ -63,8 +63,7 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
 
     /// The `identity` system contract implementation path.
-    const PATH_IDENTITY: (&'static str, &'static str) =
-        ("tests/solidity/simple/system/identity.sol", "Identity");
+    const PATH_IDENTITY: &'static str = "era-contracts/system-contracts/contracts/precompiles/Identity.yul";
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
@@ -190,6 +189,10 @@ impl SystemContracts {
                 Self::PATH_SHA256.to_owned(),
             ),
             (
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
+                Self::PATH_IDENTITY.to_owned(),
+            ),
+            (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::system_params::ADDRESS_ECADD.into(),
                 ),
@@ -200,6 +203,12 @@ impl SystemContracts {
                     zkevm_opcode_defs::system_params::ADDRESS_ECMUL.into(),
                 ),
                 Self::PATH_ECMUL.to_owned(),
+            ),
+            (
+                web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::system_params::ADDRESS_IDENTITY.into(),
+                ),
+                Self::PATH_IDENTITY,
             ),
             (
                 web3::types::Address::from_low_u64_be(
@@ -224,10 +233,6 @@ impl SystemContracts {
                     Self::PATH_EMPTY_CONTRACT.0,
                     Some(Self::PATH_EMPTY_CONTRACT.1),
                 ),
-            ),
-            (
-                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::normalize_name_fs(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
@@ -313,8 +318,7 @@ impl SystemContracts {
             "6",
             "-eravm-enable-split-loop-phi-live-ranges",
             "-tail-merge-only-bbs-without-succ",
-            "-join-globalcopies",
-            "-disable-early-taildup",
+            "-tail-dup-fallthrough-bbs",
         ]
         .into_iter()
         .map(|option| option.to_owned())
