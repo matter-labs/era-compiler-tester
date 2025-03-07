@@ -169,6 +169,7 @@ impl SolidityCompiler {
     /// Runs the solc subprocess and returns the output.
     ///
     fn standard_json_output(
+        target: era_compiler_common::Target,
         sources: &[(String, String)],
         libraries: &era_solc::StandardJsonInputLibraries,
         mode: &SolidityMode,
@@ -226,6 +227,7 @@ impl SolidityCompiler {
             .to_string();
 
         solc_compiler.standard_json(
+            target,
             &mut solc_input,
             &mut vec![],
             None,
@@ -240,6 +242,7 @@ impl SolidityCompiler {
     fn standard_json_output_cached(
         &self,
         test_path: String,
+        target: era_compiler_common::Target,
         sources: &[(String, String)],
         libraries: &era_solc::StandardJsonInputLibraries,
         mode: &SolidityMode,
@@ -254,7 +257,7 @@ impl SolidityCompiler {
 
         if !self.cache.contains(&cache_key) {
             self.cache.evaluate(cache_key.clone(), || {
-                Self::standard_json_output(sources, libraries, mode)
+                Self::standard_json_output(target, sources, libraries, mode)
             });
         }
 
@@ -332,7 +335,13 @@ impl Compiler for SolidityCompiler {
         let mode = SolidityMode::unwrap(mode);
 
         let mut solc_output = self
-            .standard_json_output_cached(test_path, &sources, &libraries, mode)
+            .standard_json_output_cached(
+                test_path,
+                era_compiler_common::Target::EraVM,
+                &sources,
+                &libraries,
+                mode,
+            )
             .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
         solc_output.check_errors()?;
 
@@ -416,8 +425,13 @@ impl Compiler for SolidityCompiler {
     ) -> anyhow::Result<EVMInput> {
         let mode = SolidityMode::unwrap(mode);
 
-        let mut solc_output =
-            self.standard_json_output_cached(test_path, &sources, &libraries, mode)?;
+        let mut solc_output = self.standard_json_output_cached(
+            test_path,
+            era_compiler_common::Target::EVM,
+            &sources,
+            &libraries,
+            mode,
+        )?;
         solc_output.check_errors()?;
 
         let method_identifiers = Self::get_method_identifiers(&solc_output)?;
@@ -451,7 +465,10 @@ impl Compiler for SolidityCompiler {
             .into_iter()
             .map(|(path, result)| {
                 let contract = result.expect("Always valid");
-                let build = EVMBuild::new(contract.deploy_build, contract.runtime_build);
+                let build = EVMBuild::new(
+                    contract.deploy_object.bytecode,
+                    contract.runtime_object.bytecode,
+                );
                 (path, build)
             })
             .collect();

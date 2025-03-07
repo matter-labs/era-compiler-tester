@@ -124,7 +124,8 @@ impl Compiler for LLVMCompiler {
             .into_iter()
             .map(|(path, build)| {
                 let build = build.expect("Always valid");
-                let build = EVMBuild::new(vec![], build.runtime_build);
+                let build =
+                    EVMBuild::new(build.deploy_object.bytecode, build.runtime_object.bytecode);
                 (path, build)
             })
             .collect();
