@@ -19,7 +19,6 @@ use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::revm::input::build::Build as EVMBuild;
 use crate::vm::revm::input::Input as EVMInput;
 
 use self::cache_key::CacheKey;
@@ -460,17 +459,10 @@ impl Compiler for SolidityCompiler {
         build.check_errors()?;
         let build = build.link(linker_symbols);
         build.check_errors()?;
-        let builds: HashMap<String, EVMBuild> = build
+        let builds: HashMap<String, Vec<u8>> = build
             .results
             .into_iter()
-            .map(|(path, result)| {
-                let contract = result.expect("Always valid");
-                let build = EVMBuild::new(
-                    contract.deploy_object.bytecode,
-                    contract.runtime_object.bytecode,
-                );
-                (path, build)
-            })
+            .map(|(path, result)| (path, result.expect("Always valid").deploy_object.bytecode))
             .collect();
 
         Ok(EVMInput::new(

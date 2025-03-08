@@ -21,7 +21,6 @@ use crate::test::context::case::CaseContext;
 use crate::test::context::input::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::revm::input::build::Build as EVMBuild;
 
 ///
 /// The test.
@@ -39,7 +38,7 @@ pub struct Test {
     /// The EraVM contract builds.
     eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
     /// The EVM contract builds.
-    evm_builds: HashMap<String, EVMBuild>,
+    evm_builds: HashMap<String, Vec<u8>>,
     /// The EVM version.
     evm_version: Option<EVMVersion>,
 }
@@ -54,7 +53,7 @@ impl Test {
         mode: Mode,
         group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-        evm_builds: HashMap<String, EVMBuild>,
+        evm_builds: HashMap<String, Vec<u8>>,
         evm_version: Option<EVMVersion>,
     ) -> Self {
         Self {

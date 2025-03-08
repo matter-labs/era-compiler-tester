@@ -11,7 +11,6 @@ use era_solc::CollectableError;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::revm::input::build::Build as EVMBuild;
 use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode as LLVMMode;
@@ -119,15 +118,10 @@ impl Compiler for LLVMCompiler {
             debug_config.clone(),
         )?;
         build.check_errors()?;
-        let builds: HashMap<String, EVMBuild> = build
+        let builds: HashMap<String, Vec<u8>> = build
             .results
             .into_iter()
-            .map(|(path, build)| {
-                let build = build.expect("Always valid");
-                let build =
-                    EVMBuild::new(build.deploy_object.bytecode, build.runtime_object.bytecode);
-                (path, build)
-            })
+            .map(|(path, result)| (path, result.expect("Always valid").deploy_object.bytecode))
             .collect();
 
         Ok(EVMInput::new(builds, None, last_contract))
