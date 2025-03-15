@@ -48,10 +48,10 @@ vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
-era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "az-support-evm-dependencies" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-support-evm-dependencies" }
-era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-support-evm-dependencies" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "az-support-evm-dependencies" }
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
+era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }
@@ -69,6 +69,6 @@ features = ["blocking"]
 
 [dependencies.inkwell]
 git = "https://github.com/matter-labs-forks/inkwell"
-branch = "az-support-evm-dependencies"
+branch = "llvm-17"
 default-features = false
 features = ["llvm17-0", "no-libffi-linking", "target-eravm", "target-evm"]
