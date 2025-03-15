@@ -28,7 +28,7 @@ pub struct RunDescription<'a> {
     pub run: &'a Run,
 }
 
-impl<'a> std::fmt::Display for RunDescription<'a> {
+impl std::fmt::Display for RunDescription<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let RunDescription {
             test_metadata: TestMetadata { selector, .. },

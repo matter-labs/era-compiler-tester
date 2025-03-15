@@ -35,7 +35,6 @@ use std::collections::BTreeMap;
 /// expected
 /// )
 /// ```
-
 pub fn intersect_map<K, V1, V2, R>(
     map1: BTreeMap<K, V1>,
     mut map2: BTreeMap<K, V2>,
@@ -97,7 +96,6 @@ where
 /// // Result now contains: [(2, "a", "x"), (4, "b", "y")]
 /// assert_eq!(result, vec![(2, "a", "x"), (4, "b", "y")]);
 /// ```
-
 pub fn cross_join_filter_map<K, N, V1, V2>(
     map1: &BTreeMap<K, V1>,
     map2: &BTreeMap<K, V2>,
@@ -151,7 +149,6 @@ where
 /// expected
 /// )
 /// ```
-///
 pub fn intersect_keys<K, V1, V2>(
     map1: BTreeMap<K, V1>,
     mut map2: BTreeMap<K, V2>,
