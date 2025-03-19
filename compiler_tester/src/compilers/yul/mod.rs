@@ -16,7 +16,6 @@ use crate::compilers::solidity::SolidityCompiler;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::revm::input::build::Build as EVMBuild;
 use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode as YulMode;
@@ -191,8 +190,7 @@ impl Compiler for YulCompiler {
                     })?
                     .object
                     .as_str();
-                let build =
-                    EVMBuild::new(hex::decode(bytecode_string).expect("Always valid"), vec![]);
+                let build = hex::decode(bytecode_string).expect("Always valid");
                 builds.insert(path, build);
             }
         }
