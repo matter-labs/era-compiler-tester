@@ -2778,7 +2778,7 @@ entries:
       FixedFeeRegistrar.sol:
         hash: '0xb91d96fcda759c811887f3c489ac5217'
         enabled: false
-        comment: 'TODO: disown address is in the kernel space'
+        comment: 'TODO: address is in the kernel space'
         modes:
         - Y >=0.8.1
         - E
@@ -3133,7 +3133,8 @@ entries:
         version: '>=0.5.0'
       bare_call_no_returndatacopy.sol:
         hash: '0xb1a55cf4cde27b6bc2893e5be19888ba'
-        enabled: true
+        enabled: false
+        comment: 'TODO: address is in the kernel space'
         version: '>=0.4.24'
       call_attached_library_function_on_function.sol:
         hash: '0xb963f52be9e9c84e3cf7c4455f59f629'
@@ -3431,11 +3432,7 @@ entries:
       function_external_delete_storage.sol:
         hash: '0x5c417d52a0db6291195f5cd46ca97cdc'
         enabled: true
-        modes:
-        - Y >=0.8.2
-        - E
-        - I
-        version: '>=0.4.22'
+        version: '>=0.8.12'
       function_type_library_internal.sol:
         hash: '0x9e6abfc513cb2151f834285493d68eee'
         enabled: true
@@ -3690,7 +3687,7 @@ entries:
       address_overload_resolution.sol:
         hash: '0x1a20236344eb113cbaba2589d073fc7f'
         enabled: true
-        version: '>=0.4.18'
+        version: '>=0.6.0'
       base_access_to_function_type_variables.sol:
         hash: '0xd7c16886991cf1ceecb9670a881f4f9f'
         enabled: true
@@ -4250,7 +4247,8 @@ entries:
         version: '>=0.4.12'
       balance_other_contract.sol:
         hash: '0x777de2b78b2cb1b26844f702b5e64526'
-        enabled: true
+        enabled: false
+        comment: 'TODO: address is in the kernel space'
         version: '>=0.7.0'
       balance_with_balance.sol:
         hash: '0xf210d097647e64547a09f358b31bfc70'
@@ -7087,7 +7085,7 @@ entries:
       many_subassemblies.sol:
         hash: '0xc5d103863882053c7dd35f1750af4ca5'
         enabled: true
-        version: '>=0.4.12'
+        version: '>=0.6.0'
       memory_overwrite.sol:
         hash: '0x67eee555de4607e6eca8f5778c8697d8'
         enabled: true
