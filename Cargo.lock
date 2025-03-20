@@ -738,7 +738,7 @@ dependencies = [
  "solidity-adapter",
  "web3",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
  "zkevm_tester",
  "zksync_vm2",
 ]
@@ -1122,7 +1122,7 @@ dependencies = [
  "num",
  "semver 1.0.23",
  "serde",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -1147,7 +1147,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.64",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -1171,7 +1171,7 @@ dependencies = [
  "serde",
  "serde_json",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -4557,9 +4557,8 @@ dependencies = [
 
 [[package]]
 name = "zk_evm"
-version = "0.150.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c14bda6c101389145cd01fac900f1392876bc0284d98faf7f376237baa2cb19d"
+version = "0.150.18"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=evm-emulator/testing#fdf2edf79d85011e849cce04cb051ecb0c86ac15"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -4567,7 +4566,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions",
+ "zk_evm_abstractions 0.150.18",
 ]
 
 [[package]]
@@ -4580,7 +4579,19 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.150.18"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=evm-emulator/testing#fdf2edf79d85011e849cce04cb051ecb0c86ac15"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.150.18",
 ]
 
 [[package]]
@@ -4601,9 +4612,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "zkevm_opcode_defs"
+version = "0.150.18"
+source = "git+https://github.com/matter-labs/zksync-protocol?branch=evm-emulator/testing#fdf2edf79d85011e849cce04cb051ecb0c86ac15"
+dependencies = [
+ "bitflags 2.6.0",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2 0.10.8",
+ "sha3 0.10.8",
+]
+
+[[package]]
 name = "zkevm_tester"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#393e31814c6838378d84e9932f1b378c1da5b5fe"
+source = "git+https://github.com/0xVolosnikov/era-zkevm_tester?rev=cbade136a9060abd8ec29e06ed6c1bd14dec4ff6#cbade136a9060abd8ec29e06ed6c1bd14dec4ff6"
 dependencies = [
  "anyhow",
  "ethabi",
@@ -4626,8 +4653,8 @@ source = "git+https://github.com/matter-labs/vm2#a6e3f9f49a229e5a160f172c320c0e0
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions",
- "zkevm_opcode_defs",
+ "zk_evm_abstractions 0.150.6",
+ "zkevm_opcode_defs 0.150.6",
  "zksync_vm2_interface",
 ]
 
