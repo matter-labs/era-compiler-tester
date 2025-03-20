@@ -16,7 +16,6 @@ use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::revm::input::build::Build as EVMBuild;
 use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode as SolidityUpstreamMode;
@@ -576,12 +575,9 @@ impl Compiler for SolidityCompiler {
                     })?
                     .object
                     .as_str();
-                let build = EVMBuild::new(
-                    hex::decode(bytecode_string).map_err(|error| {
-                        anyhow::anyhow!("EVM bytecode of the contract `{path}` is invalid: {error}")
-                    })?,
-                    vec![],
-                );
+                let build = hex::decode(bytecode_string).map_err(|error| {
+                    anyhow::anyhow!("EVM bytecode of the contract `{path}` is invalid: {error}")
+                })?;
                 builds.insert(path, build);
             }
         }

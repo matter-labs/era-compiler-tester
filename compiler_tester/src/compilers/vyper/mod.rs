@@ -218,7 +218,6 @@ impl Compiler for VyperCompiler {
             if let Some(ref debug_config) = debug_config {
                 debug_config.dump_lll(
                     path,
-                    None,
                     contract.ir_string().as_deref().expect("Always exists"),
                 )?;
             }

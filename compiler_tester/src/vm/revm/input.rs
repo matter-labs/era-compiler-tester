@@ -2,14 +2,10 @@
 //! The EVM compiler input.
 //!
 
-pub mod build;
-
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 use crate::test::instance::Instance;
-
-use self::build::Build;
 
 ///
 /// The EVM compiler input.
@@ -17,7 +13,7 @@ use self::build::Build;
 #[derive(Debug)]
 pub struct Input {
     /// The contract builds.
-    pub builds: HashMap<String, Build>,
+    pub builds: HashMap<String, Vec<u8>>,
     /// The contracts method identifiers.
     pub method_identifiers: Option<BTreeMap<String, BTreeMap<String, u32>>>,
     /// The last contract name.
@@ -29,7 +25,7 @@ impl Input {
     /// A shortcut constructor.
     ///
     pub fn new(
-        builds: HashMap<String, Build>,
+        builds: HashMap<String, Vec<u8>>,
         method_identifiers: Option<BTreeMap<String, BTreeMap<String, u32>>>,
         last_contract: String,
     ) -> Self {
@@ -56,12 +52,9 @@ impl Input {
                 anyhow::anyhow!("Library `{}` not found in the build artifacts", name)
             })?;
 
-            let mut deploy_code = build.deploy_build.to_owned();
-            deploy_code.extend_from_slice(build.runtime_build.as_slice());
-
             instances.insert(
                 name.clone(),
-                Instance::evm(name, Some(address), false, true, deploy_code),
+                Instance::evm(name, Some(address), false, true, build.to_owned()),
             );
         }
 
@@ -73,9 +66,6 @@ impl Input {
                         anyhow::anyhow!("Main contract not found in the compiler build artifacts")
                     })?;
 
-            let mut deploy_code = main_contract_build.deploy_build.to_owned();
-            deploy_code.extend_from_slice(main_contract_build.runtime_build.as_slice());
-
             instances.insert(
                 "Test".to_owned(),
                 Instance::evm(
@@ -83,7 +73,7 @@ impl Input {
                     main_address,
                     true,
                     false,
-                    deploy_code,
+                    main_contract_build.to_owned(),
                 ),
             );
         } else {
@@ -93,12 +83,9 @@ impl Input {
                 })?;
                 let is_main = path.as_str() == self.last_contract.as_str();
 
-                let mut deploy_code = build.deploy_build.to_owned();
-                deploy_code.extend_from_slice(build.runtime_build.as_slice());
-
                 instances.insert(
                     instance.to_owned(),
-                    Instance::evm(path.to_owned(), None, is_main, false, deploy_code),
+                    Instance::evm(path.to_owned(), None, is_main, false, build.to_owned()),
                 );
             }
         }
