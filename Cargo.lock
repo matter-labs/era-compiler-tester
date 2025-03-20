@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2beb3f261eaa8593b92eaee2ed6acfad6ef08c4e"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
 dependencies = [
  "anyhow",
  "clap",
@@ -1177,7 +1177,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2beb3f261eaa8593b92eaee2ed6acfad6ef08c4e"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2beb3f261eaa8593b92eaee2ed6acfad6ef08c4e"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
 dependencies = [
  "anyhow",
  "regex",
@@ -3660,9 +3660,9 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"
-version = "3.19.0"
+version = "3.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "488960f40a3fd53d72c2a29a58722561dee8afdd175bd88e3db4677d7b2ba600"
+checksum = "7437ac7763b9b123ccf33c338a5cc1bac6f69b45a136c19bdd8a65e3916435bf"
 dependencies = [
  "fastrand",
  "getrandom 0.3.2",

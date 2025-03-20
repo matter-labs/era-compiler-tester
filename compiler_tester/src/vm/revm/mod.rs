@@ -33,13 +33,13 @@ pub struct REVM<'a> {
     pub state: Evm<'a, (), revm::State<EmptyDBTyped<Infallible>>>,
 }
 
-impl<'a> Default for REVM<'a> {
+impl Default for REVM<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a> REVM<'a> {
+impl REVM<'_> {
     ///
     /// A shortcut constructor.
     ///

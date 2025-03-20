@@ -35,6 +35,8 @@ pub struct Params {
     pub revert_strings: RevertStrings,
     /// allowNonExistingFunctions param value.
     pub allow_non_existing_functions: AllowNonExistingFunctions,
+    /// bytecodeFormat param value.
+    pub bytecode_format: String,
 }
 
 impl TryFrom<&str> for Params {
@@ -47,6 +49,7 @@ impl TryFrom<&str> for Params {
         let mut evm_version = EVMVersion::Default;
         let mut revert_strings = RevertStrings::Default;
         let mut allow_non_existing_functions = AllowNonExistingFunctions::Default;
+        let mut bytecode_format = String::new();
 
         for (index, line) in value.lines().enumerate() {
             let regex = Regex::new("^(.*): (.*)$").expect("Always valid");
@@ -91,8 +94,11 @@ impl TryFrom<&str> for Params {
                         .try_into()
                         .map_err(|error| anyhow::anyhow!("{} on line {}", error, index + 1))?;
                 }
+                "bytecodeFormat" => {
+                    bytecode_format = value.to_owned();
+                }
                 word => anyhow::bail!(
-                    r#"Expected "compileViaYul", "compileToEwasm", "ABIEncoderV1Only", "revertStrings", or "EVMVersion" on line {}, found: {}"#,
+                    r#"Expected "compileViaYul", "compileToEwasm", "ABIEncoderV1Only", "EVMVersion", "revertStrings", "allowNonExistingFunctions", "bytecodeFormat" on line {}, found: {}"#,
                     index + 1,
                     word
                 ),
@@ -106,6 +112,7 @@ impl TryFrom<&str> for Params {
             evm_version,
             revert_strings,
             allow_non_existing_functions,
+            bytecode_format,
         })
     }
 }
