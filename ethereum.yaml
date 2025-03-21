@@ -5276,7 +5276,8 @@ entries:
             version: '>=0.8.19'
           recursive_operator.sol:
             hash: '0xf9da9e563a5b9463f71b82cf17ee0e01'
-            enabled: true
+            enabled: false
+            comment: 'Optimized out by LLVM'
             modes:
             - Y
             - E
