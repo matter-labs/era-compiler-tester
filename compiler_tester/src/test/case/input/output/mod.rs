@@ -106,10 +106,9 @@ impl Output {
         exception: bool,
         events: &[solidity_adapter::Event],
         contract_address: &web3::types::Address,
-        revert_strings: bool,
         target: era_compiler_common::Target,
     ) -> Self {
-        let return_data = if exception && revert_strings { vec![] } else { expected
+        let return_data = expected
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
@@ -124,7 +123,7 @@ impl Output {
                         .expect("Solidity adapter default contract address constant is invalid"),
                 )
             })
-            .collect() };
+            .collect();
 
         let events = events
             .iter()

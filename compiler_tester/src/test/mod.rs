@@ -37,8 +37,6 @@ pub struct Test {
     group: Option<String>,
     /// The EraVM contract builds.
     eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-    /// The EVM contract builds.
-    evm_builds: HashMap<String, Vec<u8>>,
     /// The EVM version.
     evm_version: Option<EVMVersion>,
 }
@@ -53,7 +51,6 @@ impl Test {
         mode: Mode,
         group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-        evm_builds: HashMap<String, Vec<u8>>,
         evm_version: Option<EVMVersion>,
     ) -> Self {
         Self {
@@ -62,7 +59,6 @@ impl Test {
             mode,
             group,
             eravm_builds,
-            evm_builds,
             evm_version,
         }
     }

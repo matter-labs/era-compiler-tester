@@ -214,7 +214,6 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
-        revert_strings: bool,
         target: era_compiler_common::Target,
     ) -> anyhow::Result<Option<Self>> {
         let main_contract_instance = instances
@@ -245,7 +244,6 @@ impl Input {
                     false,
                     events,
                     main_contract_address,
-                    revert_strings,
                     target,
                 );
 
@@ -290,7 +288,6 @@ impl Input {
                     false,
                     &[],
                     main_contract_address,
-                    revert_strings,
                     target,
                 );
 
@@ -345,7 +342,6 @@ impl Input {
                     *failure,
                     events,
                     main_contract_address,
-                    revert_strings,
                     target,
                 );
 

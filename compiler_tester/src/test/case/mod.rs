@@ -69,7 +69,6 @@ impl Case {
         case: &[solidity_adapter::FunctionCall],
         instances: BTreeMap<String, Instance>,
         last_source: &str,
-        revert_strings: bool,
         target: era_compiler_common::Target,
     ) -> anyhow::Result<Self> {
         let mut inputs = Vec::with_capacity(case.len());
@@ -82,7 +81,7 @@ impl Case {
                 }
                 input => {
                     if let Some(input) =
-                        Input::try_from_ethereum(input, &instances, last_source, &caller, revert_strings, target)
+                        Input::try_from_ethereum(input, &instances, last_source, &caller, target)
                             .map_err(|error| {
                                 anyhow::anyhow!("Failed to proccess input #{index}: {error}")
                             })?
