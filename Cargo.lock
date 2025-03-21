@@ -738,7 +738,7 @@ dependencies = [
  "solidity-adapter",
  "web3",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
  "zkevm_tester",
  "zksync_vm2",
 ]
@@ -1113,7 +1113,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#02d548e44ad7039bd67a7e8400de6006c0df0c76"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#fdf50bb1a4c08f4774a0c15b3efea22c671bb9ae"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1122,13 +1122,13 @@ dependencies = [
  "num",
  "semver 1.0.23",
  "serde",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-push-deploy-address#b4e3fd884ea875b75fb4048cd733dd24fe2b1927"
 dependencies = [
  "anyhow",
  "clap",
@@ -1147,7 +1147,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.64",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
@@ -1171,13 +1171,13 @@ dependencies = [
  "serde",
  "serde_json",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
 name = "era-solc"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-push-deploy-address#b4e3fd884ea875b75fb4048cd733dd24fe2b1927"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-push-deploy-address#b4e3fd884ea875b75fb4048cd733dd24fe2b1927"
 dependencies = [
  "anyhow",
  "regex",
@@ -4567,7 +4567,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions",
+ "zk_evm_abstractions 0.150.6",
 ]
 
 [[package]]
@@ -4580,7 +4580,20 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.151.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8d0349e9aaa8845759e7ac462427ce7f0f63a8f3e229423aa220f24fca1a12b"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.151.3",
 ]
 
 [[package]]
@@ -4588,6 +4601,23 @@ name = "zkevm_opcode_defs"
 version = "0.150.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "762b5f1c1b283c5388995a85d40a05aef1c14f50eb904998b7e9364739f5b899"
+dependencies = [
+ "bitflags",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2 0.10.8",
+ "sha3 0.10.8",
+]
+
+[[package]]
+name = "zkevm_opcode_defs"
+version = "0.151.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77281d3d9e706f1abdade5b8ffb8feee287a680d492705f012b2db37c516f267"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4622,19 +4652,19 @@ dependencies = [
 [[package]]
 name = "zksync_vm2"
 version = "0.3.0"
-source = "git+https://github.com/matter-labs/vm2#a6e3f9f49a229e5a160f172c320c0e03bd66b723"
+source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a7157510d9"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions",
- "zkevm_opcode_defs",
+ "zk_evm_abstractions 0.151.3",
+ "zkevm_opcode_defs 0.151.3",
  "zksync_vm2_interface",
 ]
 
 [[package]]
 name = "zksync_vm2_interface"
 version = "0.3.0"
-source = "git+https://github.com/matter-labs/vm2#a6e3f9f49a229e5a160f172c320c0e03bd66b723"
+source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a7157510d9"
 dependencies = [
  "primitive-types",
 ]

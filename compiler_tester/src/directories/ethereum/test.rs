@@ -269,6 +269,7 @@ impl Buildable for EthereumTest {
             &calls,
             instances,
             last_source.as_str(),
+            false,
             era_compiler_common::Target::EraVM,
         ) {
             Ok(case) => case,
@@ -373,6 +374,7 @@ impl Buildable for EthereumTest {
             &calls,
             instances,
             last_source.as_str(),
+            self.test.params.revert_strings == solidity_adapter::RevertStrings::Debug,
             era_compiler_common::Target::EVM,
         ) {
             Ok(case) => case,
