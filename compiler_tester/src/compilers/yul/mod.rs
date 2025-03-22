@@ -131,71 +131,126 @@ impl Compiler for YulCompiler {
         libraries: era_solc::StandardJsonInputLibraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
-        _llvm_options: Vec<String>,
-        _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        llvm_options: Vec<String>,
+        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let language = SolcStandardJsonInputLanguage::Yul;
+        match self.toolchain {
+            Toolchain::Solc | Toolchain::SolcLLVM => {
+                let language = SolcStandardJsonInputLanguage::Yul;
 
-        let solc_compiler = SolidityUpstreamCompiler::new(language, self.toolchain);
+                let solc_compiler = SolidityUpstreamCompiler::new(language, self.toolchain);
 
-        let solc_output = solc_compiler.standard_json_output_cached(
-            test_path,
-            language,
-            &sources,
-            &libraries,
-            mode,
-            test_params,
-        )?;
+                let solc_output = solc_compiler.standard_json_output_cached(
+                    test_path,
+                    language,
+                    &sources,
+                    &libraries,
+                    mode,
+                    test_params,
+                )?;
 
-        if let Some(errors) = solc_output.errors.as_deref() {
-            let mut has_errors = false;
-            let mut error_messages = Vec::with_capacity(errors.len());
+                if let Some(errors) = solc_output.errors.as_deref() {
+                    let mut has_errors = false;
+                    let mut error_messages = Vec::with_capacity(errors.len());
 
-            for error in errors.iter() {
-                if error.severity.as_str() == "error" {
-                    has_errors = true;
-                    error_messages.push(error.formatted_message.to_owned());
+                    for error in errors.iter() {
+                        if error.severity.as_str() == "error" {
+                            has_errors = true;
+                            error_messages.push(error.formatted_message.to_owned());
+                        }
+                    }
+
+                    if has_errors {
+                        anyhow::bail!("`solc` errors found: {:?}", error_messages);
+                    }
                 }
-            }
 
-            if has_errors {
-                anyhow::bail!("`solc` errors found: {:?}", error_messages);
+                let last_contract = sources
+                    .last()
+                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
+                    .0
+                    .clone();
+
+                let contracts = solc_output
+                    .contracts
+                    .ok_or_else(|| anyhow::anyhow!("Solidity contracts not found in the output"))?;
+
+                let mut builds = HashMap::with_capacity(contracts.len());
+                for (file, contracts) in contracts.into_iter() {
+                    for (name, contract) in contracts.into_iter() {
+                        let path = format!("{file}:{name}");
+                        let bytecode_string = contract
+                            .evm
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                            })?
+                            .bytecode
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                            })?
+                            .object
+                            .as_str();
+                        let build = hex::decode(bytecode_string).expect("Always valid");
+                        builds.insert(path, build);
+                    }
+                }
+
+                Ok(EVMInput::new(builds, None, last_contract))
+            }
+            Toolchain::IrLLVM => {
+                let mode = YulMode::unwrap(mode);
+
+                let solc_version = era_solc::Version::new(
+                    era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
+                    era_solc::Compiler::LAST_SUPPORTED_VERSION,
+                    SolidityCompiler::LAST_ZKSYNC_SOLC_REVISION,
+                );
+
+                let last_contract = sources
+                    .last()
+                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
+                    .0
+                    .clone();
+
+                let linker_symbols = libraries.as_linker_symbols()?;
+
+                let sources = sources
+                    .into_iter()
+                    .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
+                    .collect();
+
+                let project = era_compiler_solidity::Project::try_from_yul_sources(
+                    sources,
+                    libraries,
+                    None,
+                    Some(&solc_version),
+                    debug_config.as_ref(),
+                )?;
+
+                let build = project.compile_to_evm(
+                    &mut vec![],
+                    era_compiler_common::HashType::Ipfs,
+                    mode.llvm_optimizer_settings.to_owned(),
+                    llvm_options,
+                    debug_config,
+                )?;
+                build.check_errors()?;
+                let build = build.link(linker_symbols);
+                build.check_errors()?;
+                let builds = build
+                    .results
+                    .into_values()
+                    .map(|result| {
+                        let contract = result.expect("Always valid");
+                        Ok((contract.name.path, contract.deploy_object.bytecode))
+                    })
+                    .collect::<anyhow::Result<HashMap<String, Vec<u8>>>>()?;
+
+                Ok(EVMInput::new(builds, None, last_contract))
             }
         }
-
-        let last_contract = sources
-            .last()
-            .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
-            .0
-            .clone();
-
-        let contracts = solc_output
-            .contracts
-            .ok_or_else(|| anyhow::anyhow!("Solidity contracts not found in the output"))?;
-
-        let mut builds = HashMap::with_capacity(contracts.len());
-        for (file, contracts) in contracts.into_iter() {
-            for (name, contract) in contracts.into_iter() {
-                let path = format!("{file}:{name}");
-                let bytecode_string = contract
-                    .evm
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
-                    })?
-                    .bytecode
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
-                    })?
-                    .object
-                    .as_str();
-                let build = hex::decode(bytecode_string).expect("Always valid");
-                builds.insert(path, build);
-            }
-        }
-
-        Ok(EVMInput::new(builds, None, last_contract))
     }
 
     fn all_modes(&self) -> Vec<Mode> {

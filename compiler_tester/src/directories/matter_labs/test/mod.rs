@@ -547,7 +547,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             builds,
-            HashMap::new(),
             None,
         ))
     }
@@ -661,7 +660,7 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             HashMap::new(),
-            evm_input.builds,
+            // evm_input.builds,
             None,
         ))
     }
