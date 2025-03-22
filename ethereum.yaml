@@ -994,12 +994,7 @@ entries:
           calldata_1d_array_into_2d_memory_array_element.sol:
             hash: '0xb87a57d76b946b0d1fc77720f551ec5b'
             enabled: true
-            modes:
-            - Y <=0.8.4
-            - Y >=0.8.12
-            - E
-            - I
-            version: '>=0.7.5'
+            version: '>=0.8.12'
           calldata_2d_bytes_to_memory.sol:
             hash: '0xd803dcba673095b38f853ac17af02c1a'
             enabled: true
@@ -3614,7 +3609,7 @@ entries:
       assign_at_declaration.sol:
         hash: '0xdd916c59f6b71ed3839d33fca2da513b'
         enabled: true
-        version: '>=0.6.5'
+        version: '>=0.8.0'
       assign_from_immutables.sol:
         hash: '0xff1854b0c9cba92812a98c5abc15b8e1'
         enabled: true
@@ -3630,11 +3625,11 @@ entries:
       getter.sol:
         hash: '0x2125ba3f4ab53b3b0f95a29532dedf66'
         enabled: true
-        version: '>=0.6.5'
+        version: '>=0.8.5'
       getter_call_in_constructor.sol:
         hash: '0x32c7b86e2a60acc7b88b9c4d3b6a1d31'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       immutable_signed.sol:
         hash: '0xdb2bbab59f86c6e765b2155a798dd7bd'
         enabled: true
@@ -3654,15 +3649,15 @@ entries:
       inheritance.sol:
         hash: '0xe6faca1a8b82cd37d3619b30bcbc1542'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       internal_function_pointer.sol:
         hash: '0x5cdd08997008769005775834bb10edfd'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       multi_creation.sol:
         hash: '0x97fc02efe25626a0afcda973f6c3226e'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       multiple_initializations.sol:
         hash: '0xaf5138cffc848edec152b4f2800d62db'
         enabled: true
@@ -3678,7 +3673,7 @@ entries:
       stub.sol:
         hash: '0xd2cea6747f81b8087e4a2b79f0301d6b'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       uninitialized.sol:
         hash: '0x86f4ed93d072dd13f75939d54d192596'
         enabled: true
@@ -3686,7 +3681,7 @@ entries:
       use_scratch.sol:
         hash: '0x4219e1d2919d0146242c8f063f7e39c8'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
   inheritance:
     enabled: true
     entries:
