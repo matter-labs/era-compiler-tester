@@ -338,7 +338,8 @@ entries:
         version: '>=0.7.6'
       calldata_nested_array_reencode.sol:
         hash: '0x122bb21805d1612c7cbabcf48b1407c8'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.8.14'
       calldata_nested_array_static_reencode.sol:
         hash: '0x7335b3149d6aa87de47cf0cf575c112a'
@@ -1631,6 +1632,10 @@ entries:
       storage_array_ref.sol:
         hash: '0x29ae95a4422045db33c986e1c6eed4fb'
         enabled: true
+        comment: solc <= 0.6.7 doesn't recognize .max
+        modes:
+        - Y
+        - E
         version: '>=0.6.8'
       string_allocation_bug.sol:
         hash: '0xcc2675beb112996b49af216c726945ec'
@@ -3120,6 +3125,9 @@ entries:
       recursion.sol:
         hash: '0xd9211508a9db26c845da239d26d355e8'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.1'
       storage_calldata_refs.sol:
         hash: '0xaf60d9f80be2cba1acb28060a56479a2'
@@ -4181,6 +4189,9 @@ entries:
       transient_storage_simple_reentrancy_lock.sol:
         hash: '0x6c772ad2e01e89deadc0992ec318848f'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.8.24'
       truefalse.sol:
         hash: '0x5223e4c6a4aa0b155912ca8bd8118d3a'
@@ -5374,7 +5385,8 @@ entries:
         version: '>=0.7.5'
       calldata_too_short_v1.sol:
         hash: '0x32f4443629274eed274f78594b644df2'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       called_contract_has_code.sol:
         hash: '0xcb9795076e8a6ef50ef75dec7b8f1106'
@@ -5391,7 +5403,8 @@ entries:
         version: '>=0.7.5'
       enum_v1.sol:
         hash: '0x1927a8a883be15464711da166a0d0383'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       enum_v2.sol:
         hash: '0x8065041d47b23da4e9b5fff0c12478aa'
@@ -5408,7 +5421,8 @@ entries:
         version: '>=0.6.3'
       function_entry_checks_v1.sol:
         hash: '0x7e2c5396d0334bf1d5deb4144090fc54'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       function_entry_checks_v2.sol:
         hash: '0x6b258f9082da74eb0fe5c832b2b2e37a'
@@ -5417,11 +5431,13 @@ entries:
         version: '>=0.7.5'
       invalid_abi_decoding_calldata_v1.sol:
         hash: '0xa3ae16bfe3ed4f33bf39973be3574df1'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       invalid_abi_decoding_memory_v1.sol:
         hash: '0x7d604a5f4ce779cb6d382871e93e4967'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       library_non_view_call.sol:
         hash: '0xd9b55fe1b39daf159e6ebf19c4997370'
@@ -6263,10 +6279,17 @@ entries:
       recursive_struct_2.sol:
         hash: '0xf435d18f8494bffa7bb0914535f80eaf'
         enabled: true
+        comment: .slot is not recognized by solc <= 0.6
+        modes:
+        - Y
+        - E >=0.7.0
         version: '>=0.7.0'
       recursive_structs.sol:
         hash: '0x74fcd8784adee95e76d96aaedeaba57e'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.4.12'
       simple_struct_allocation.sol:
         hash: '0x3161e6e1b790a1b836da64fd66826f53'
@@ -6381,6 +6404,9 @@ entries:
       create.sol:
         hash: '0xa11e16eca93ba36577f1d2efd4ecadf0'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.0'
       invalid_error_encoding.sol:
         hash: '0x87c1bfbd0f7d4b04f99dd8c7043c15fc'

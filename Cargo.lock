@@ -83,9 +83,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-primitives"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eacedba97e65cdc7ab592f2b22ef5d3ab8d60b2056bc3a6e6363577e8270ec6f"
+checksum = "7283185baefbe66136649dc316c9dcc6f0e9f1d635ae19783615919f83bc298a"
 dependencies = [
  "alloy-rlp",
  "bytes",
@@ -600,9 +600,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.16"
+version = "1.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be714c154be609ec7f5dad223a33bf1482fff90472de28f7362806e6d4832b8c"
+checksum = "1fcb57c740ae1daf453ae85f16e37396f672b039e00d9d866e07ddb24e328e3a"
 dependencies = [
  "shlex",
 ]
@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-push-deploy-address#b4e3fd884ea875b75fb4048cd733dd24fe2b1927"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#146f72a381d51e7ce153f0913364d73e3e3b68dd"
 dependencies = [
  "anyhow",
  "clap",
@@ -1177,7 +1177,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-push-deploy-address#b4e3fd884ea875b75fb4048cd733dd24fe2b1927"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#146f72a381d51e7ce153f0913364d73e3e3b68dd"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-push-deploy-address#b4e3fd884ea875b75fb4048cd733dd24fe2b1927"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#146f72a381d51e7ce153f0913364d73e3e3b68dd"
 dependencies = [
  "anyhow",
  "regex",
@@ -2573,7 +2573,7 @@ version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
- "zerocopy 0.8.23",
+ "zerocopy 0.8.24",
 ]
 
 [[package]]
@@ -2764,7 +2764,7 @@ checksum = "3779b94aeb87e8bd4e834cee3650289ee9e0d5677f976ecdb6d219e5f4f6cd94"
 dependencies = [
  "rand_chacha 0.9.0",
  "rand_core 0.9.3",
- "zerocopy 0.8.23",
+ "zerocopy 0.8.24",
 ]
 
 [[package]]
@@ -4463,11 +4463,11 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd97444d05a4328b90e75e503a34bad781f14e28a823ad3557f0750df1ebcbc6"
+checksum = "2586fea28e186957ef732a5f8b3be2da217d65c5969d4b1e17f973ebbe876879"
 dependencies = [
- "zerocopy-derive 0.8.23",
+ "zerocopy-derive 0.8.24",
 ]
 
 [[package]]
@@ -4483,9 +4483,9 @@ dependencies = [
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6352c01d0edd5db859a63e2605f4ea3183ddbd15e2c4a9e7d32184df75e4f154"
+checksum = "a996a8f63c5c4448cd959ac1bab0aaa3306ccfd060472f85943ee0750f0169be"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4585,15 +4585,15 @@ dependencies = [
 
 [[package]]
 name = "zk_evm_abstractions"
-version = "0.151.3"
+version = "0.151.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8d0349e9aaa8845759e7ac462427ce7f0f63a8f3e229423aa220f24fca1a12b"
+checksum = "138f54be34b1cc6742c43b6bdde876d7a03cbdabc033592d9dcf42b87027b75d"
 dependencies = [
  "anyhow",
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.151.3",
+ "zkevm_opcode_defs 0.151.4",
 ]
 
 [[package]]
@@ -4615,9 +4615,9 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "0.151.3"
+version = "0.151.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77281d3d9e706f1abdade5b8ffb8feee287a680d492705f012b2db37c516f267"
+checksum = "b423f91a70a87a6c7658da01398ebff72fd4ac36f555f745488097ebcc7f1159"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4656,8 +4656,8 @@ source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.151.3",
- "zkevm_opcode_defs 0.151.3",
+ "zk_evm_abstractions 0.151.4",
+ "zkevm_opcode_defs 0.151.4",
  "zksync_vm2_interface",
 ]
 
