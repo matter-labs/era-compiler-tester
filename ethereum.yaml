@@ -3100,6 +3100,9 @@ entries:
       free_runtimecode.sol:
         hash: '0x05f2cb5b1b4d0ac65b1d132316733495'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.1'
       import.sol:
         hash: '0x904d3937a82476a10a794a892b391291'
@@ -6983,11 +6986,8 @@ entries:
         hash: '0x49da78fd3c4c9091d988623eee0fbed2'
         enabled: true
         modes:
-        - Y+
-        - Y- >=0.8.21
+        - Y
         - E
-        - I+
-        - I- >=0.8.21
         version: '>=0.7.0'
       code_access_create.sol:
         hash: '0x9ec7638b0a2a028d824493a169f52eaf'
@@ -6999,11 +6999,13 @@ entries:
         modes:
         - Y >=0.8.1
         - E
-        - I
         version: '>=0.5.4'
       code_access_runtime.sol:
         hash: '0x2c9f93006eb3c9085ba21aa90de1df03'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.0'
       code_length.sol:
         hash: '0xd4a9fa9861e46c9a345dbbaa60b7f369'

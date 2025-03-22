@@ -1084,7 +1084,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#bd45b0ca590810480dfae9f8b49aec4af571ccf5"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9fb4fb47268c9f0b83e02b607d1eca3987d1a3ee"
 dependencies = [
  "anyhow",
  "base58",
@@ -1100,7 +1100,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#bd45b0ca590810480dfae9f8b49aec4af571ccf5"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9fb4fb47268c9f0b83e02b607d1eca3987d1a3ee"
 dependencies = [
  "anyhow",
  "colored",
@@ -1113,7 +1113,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#fdf50bb1a4c08f4774a0c15b3efea22c671bb9ae"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#2639dd42c92fb1be1cd05cf13a9113a1972cd469"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#146f72a381d51e7ce153f0913364d73e3e3b68dd"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
 dependencies = [
  "anyhow",
  "clap",
@@ -1152,8 +1152,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-vyper"
-version = "1.5.9"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#7fb46d3cda1ef21a5f9d3b0907b750b98b84c838"
+version = "1.5.10"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#1935a0bc56ab905c59cdc0bf5c2eaa77098477fe"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1177,7 +1177,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#146f72a381d51e7ce153f0913364d73e3e3b68dd"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#146f72a381d51e7ce153f0913364d73e3e3b68dd"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
 dependencies = [
  "anyhow",
  "regex",
@@ -1913,7 +1913,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#49b96062340ea89a2ac45c3ba037e339592bb783"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b2b81c254e25ffbf42c41e40de0748a81f750f94"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1928,7 +1928,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#49b96062340ea89a2ac45c3ba037e339592bb783"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b2b81c254e25ffbf42c41e40de0748a81f750f94"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2115,7 +2115,7 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#686fdddec1389b48a3a44c32e8725a2817ab5089"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#94f9489e149d6bf99444dc049f6c2fecd1172922"
 dependencies = [
  "anyhow",
  "cc",
