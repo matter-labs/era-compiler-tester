@@ -301,7 +301,8 @@ entries:
         version: '>=0.7.5'
       calldata_array_short.sol:
         hash: '0x39c008c2b709c312e82ab39bd5b6e45c'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_array_short_no_revert_string.sol:
         hash: '0x566da3b56564be7b8f134785e734c61c'
@@ -337,7 +338,8 @@ entries:
         version: '>=0.7.6'
       calldata_nested_array_reencode.sol:
         hash: '0x122bb21805d1612c7cbabcf48b1407c8'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.8.14'
       calldata_nested_array_static_reencode.sol:
         hash: '0x7335b3149d6aa87de47cf0cf575c112a'
@@ -992,12 +994,7 @@ entries:
           calldata_1d_array_into_2d_memory_array_element.sol:
             hash: '0xb87a57d76b946b0d1fc77720f551ec5b'
             enabled: true
-            modes:
-            - Y <=0.8.4
-            - Y >=0.8.12
-            - E
-            - I
-            version: '>=0.7.5'
+            version: '>=0.8.12'
           calldata_2d_bytes_to_memory.sol:
             hash: '0xd803dcba673095b38f853ac17af02c1a'
             enabled: true
@@ -1630,6 +1627,10 @@ entries:
       storage_array_ref.sol:
         hash: '0x29ae95a4422045db33c986e1c6eed4fb'
         enabled: true
+        comment: solc <= 0.6.7 doesn't recognize .max
+        modes:
+        - Y
+        - E
         version: '>=0.6.8'
       string_allocation_bug.sol:
         hash: '0xcc2675beb112996b49af216c726945ec'
@@ -3099,6 +3100,9 @@ entries:
       free_runtimecode.sol:
         hash: '0x05f2cb5b1b4d0ac65b1d132316733495'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.1'
       import.sol:
         hash: '0x904d3937a82476a10a794a892b391291'
@@ -3119,6 +3123,9 @@ entries:
       recursion.sol:
         hash: '0xd9211508a9db26c845da239d26d355e8'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.1'
       storage_calldata_refs.sol:
         hash: '0xaf60d9f80be2cba1acb28060a56479a2'
@@ -3253,7 +3260,8 @@ entries:
         version: '>=0.7.0'
       external_call_to_nonexisting_debugstrings.sol:
         hash: '0x649b5549e5a7a8bdb63a087993e5f4c8'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.0'
       external_call_value.sol:
         hash: '0x11d302a12ed7172f2c5c2dd54e468a8e'
@@ -3604,7 +3612,7 @@ entries:
       assign_at_declaration.sol:
         hash: '0xdd916c59f6b71ed3839d33fca2da513b'
         enabled: true
-        version: '>=0.6.5'
+        version: '>=0.8.0'
       assign_from_immutables.sol:
         hash: '0xff1854b0c9cba92812a98c5abc15b8e1'
         enabled: true
@@ -3620,11 +3628,11 @@ entries:
       getter.sol:
         hash: '0x2125ba3f4ab53b3b0f95a29532dedf66'
         enabled: true
-        version: '>=0.6.5'
+        version: '>=0.8.5'
       getter_call_in_constructor.sol:
         hash: '0x32c7b86e2a60acc7b88b9c4d3b6a1d31'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       immutable_signed.sol:
         hash: '0xdb2bbab59f86c6e765b2155a798dd7bd'
         enabled: true
@@ -3644,15 +3652,15 @@ entries:
       inheritance.sol:
         hash: '0xe6faca1a8b82cd37d3619b30bcbc1542'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       internal_function_pointer.sol:
         hash: '0x5cdd08997008769005775834bb10edfd'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       multi_creation.sol:
         hash: '0x97fc02efe25626a0afcda973f6c3226e'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       multiple_initializations.sol:
         hash: '0xaf5138cffc848edec152b4f2800d62db'
         enabled: true
@@ -3668,7 +3676,7 @@ entries:
       stub.sol:
         hash: '0xd2cea6747f81b8087e4a2b79f0301d6b'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
       uninitialized.sol:
         hash: '0x86f4ed93d072dd13f75939d54d192596'
         enabled: true
@@ -3676,7 +3684,7 @@ entries:
       use_scratch.sol:
         hash: '0x4219e1d2919d0146242c8f063f7e39c8'
         enabled: true
-        version: '>=0.7.0'
+        version: '>=0.8.0'
   inheritance:
     enabled: true
     entries:
@@ -4179,6 +4187,9 @@ entries:
       transient_storage_simple_reentrancy_lock.sol:
         hash: '0x6c772ad2e01e89deadc0992ec318848f'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.8.24'
       truefalse.sol:
         hash: '0x5223e4c6a4aa0b155912ca8bd8118d3a'
@@ -5274,7 +5285,8 @@ entries:
             version: '>=0.8.19'
           recursive_operator.sol:
             hash: '0xf9da9e563a5b9463f71b82cf17ee0e01'
-            enabled: true
+            enabled: false
+            comment: 'Optimized out by LLVM'
             modes:
             - Y
             - E
@@ -5332,7 +5344,8 @@ entries:
     entries:
       array_slices.sol:
         hash: '0x2407c820fbb3feffcdc23d0705694713'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.6.3'
       bubble.sol:
         hash: '0xe698753c8a8b29b85a46af7ae5f394c3'
@@ -5340,35 +5353,43 @@ entries:
         version: '>=0.4.22'
       calldata_array_dynamic_invalid.sol:
         hash: '0x7f01b721ad5a80b4b9db3f4ac07f5cba'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_array_dynamic_static_short_decode.sol:
         hash: '0xb12dde5a7bbf45579504e5011314e355'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_array_dynamic_static_short_reencode.sol:
         hash: '0xbf11a16063599daf628829e3a0db4005'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_array_invalid_length.sol:
         hash: '0x4e64502c6f398a04b9330d1b02257851'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_arrays_too_large.sol:
         hash: '0x278bb1b60564cb7eae92ee43426e501b'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_tail_short.sol:
         hash: '0xd5859d6d4a58b19561630225710c9bb0'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       calldata_too_short_v1.sol:
         hash: '0x32f4443629274eed274f78594b644df2'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       called_contract_has_code.sol:
         hash: '0xcb9795076e8a6ef50ef75dec7b8f1106'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.6.3'
       empty_v1.sol:
         hash: '0x86a63b38e411580adedc03b1aafa34e5'
@@ -5380,7 +5401,8 @@ entries:
         version: '>=0.7.5'
       enum_v1.sol:
         hash: '0x1927a8a883be15464711da166a0d0383'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       enum_v2.sol:
         hash: '0x8065041d47b23da4e9b5fff0c12478aa'
@@ -5388,7 +5410,8 @@ entries:
         version: '>=0.7.5'
       ether_non_payable_function.sol:
         hash: '0x34f0b65e079f1b490dd9d922d5cf336e'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         modes:
         - Y >=0.8.1
         - E
@@ -5396,23 +5419,28 @@ entries:
         version: '>=0.6.3'
       function_entry_checks_v1.sol:
         hash: '0x7e2c5396d0334bf1d5deb4144090fc54'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       function_entry_checks_v2.sol:
         hash: '0x6b258f9082da74eb0fe5c832b2b2e37a'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       invalid_abi_decoding_calldata_v1.sol:
         hash: '0xa3ae16bfe3ed4f33bf39973be3574df1'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       invalid_abi_decoding_memory_v1.sol:
         hash: '0x7d604a5f4ce779cb6d382871e93e4967'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       library_non_view_call.sol:
         hash: '0xd9b55fe1b39daf159e6ebf19c4997370'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         modes:
         - Y+ >=0.8.1
         - E+
@@ -5420,11 +5448,13 @@ entries:
         version: '>=0.6.3'
       short_input_array.sol:
         hash: '0x780633eac999147705e0ae87a15e38f5'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       short_input_bytes.sol:
         hash: '0xdb750c0e57dc32dbe8add909b9ef09bb'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.7.5'
       transfer.sol:
         hash: '0xfa00dd5aa00bb6e0800335054d4a1c4f'
@@ -5432,7 +5462,8 @@ entries:
         version: '>=0.6.3'
       unknown_sig_no_fallback.sol:
         hash: '0x1767776171d38a0523edd4dcf6b3170a'
-        enabled: true
+        enabled: false
+        comment: 'Uses debug strings'
         version: '>=0.6.3'
   reverts:
     enabled: true
@@ -6246,10 +6277,17 @@ entries:
       recursive_struct_2.sol:
         hash: '0xf435d18f8494bffa7bb0914535f80eaf'
         enabled: true
+        comment: .slot is not recognized by solc <= 0.6
+        modes:
+        - Y
+        - E >=0.7.0
         version: '>=0.7.0'
       recursive_structs.sol:
         hash: '0x74fcd8784adee95e76d96aaedeaba57e'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.4.12'
       simple_struct_allocation.sol:
         hash: '0x3161e6e1b790a1b836da64fd66826f53'
@@ -6364,6 +6402,9 @@ entries:
       create.sol:
         hash: '0xa11e16eca93ba36577f1d2efd4ecadf0'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.0'
       invalid_error_encoding.sol:
         hash: '0x87c1bfbd0f7d4b04f99dd8c7043c15fc'
@@ -6945,11 +6986,8 @@ entries:
         hash: '0x49da78fd3c4c9091d988623eee0fbed2'
         enabled: true
         modes:
-        - Y+
-        - Y- >=0.8.21
+        - Y
         - E
-        - I+
-        - I- >=0.8.21
         version: '>=0.7.0'
       code_access_create.sol:
         hash: '0x9ec7638b0a2a028d824493a169f52eaf'
@@ -6961,11 +6999,13 @@ entries:
         modes:
         - Y >=0.8.1
         - E
-        - I
         version: '>=0.5.4'
       code_access_runtime.sol:
         hash: '0x2c9f93006eb3c9085ba21aa90de1df03'
         enabled: true
+        modes:
+        - Y
+        - E
         version: '>=0.7.0'
       code_length.sol:
         hash: '0xd4a9fa9861e46c9a345dbbaa60b7f369'

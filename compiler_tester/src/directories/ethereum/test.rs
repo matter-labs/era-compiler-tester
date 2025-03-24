@@ -297,7 +297,6 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             builds,
-            HashMap::new(),
             Some(evm_version),
         ))
     }
@@ -388,7 +387,7 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             HashMap::new(),
-            evm_input.builds,
+            // evm_input.builds,
             Some(evm_version),
         ))
     }

@@ -83,9 +83,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-primitives"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eacedba97e65cdc7ab592f2b22ef5d3ab8d60b2056bc3a6e6363577e8270ec6f"
+checksum = "7283185baefbe66136649dc316c9dcc6f0e9f1d635ae19783615919f83bc298a"
 dependencies = [
  "alloy-rlp",
  "bytes",
@@ -600,9 +600,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.16"
+version = "1.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be714c154be609ec7f5dad223a33bf1482fff90472de28f7362806e6d4832b8c"
+checksum = "1fcb57c740ae1daf453ae85f16e37396f672b039e00d9d866e07ddb24e328e3a"
 dependencies = [
  "shlex",
 ]
@@ -738,7 +738,7 @@ dependencies = [
  "solidity-adapter",
  "web3",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
  "zkevm_tester",
  "zksync_vm2",
 ]
@@ -1084,7 +1084,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#bd45b0ca590810480dfae9f8b49aec4af571ccf5"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9fb4fb47268c9f0b83e02b607d1eca3987d1a3ee"
 dependencies = [
  "anyhow",
  "base58",
@@ -1100,7 +1100,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#bd45b0ca590810480dfae9f8b49aec4af571ccf5"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9fb4fb47268c9f0b83e02b607d1eca3987d1a3ee"
 dependencies = [
  "anyhow",
  "colored",
@@ -1113,7 +1113,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#02d548e44ad7039bd67a7e8400de6006c0df0c76"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#2639dd42c92fb1be1cd05cf13a9113a1972cd469"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1122,13 +1122,13 @@ dependencies = [
  "num",
  "semver 1.0.23",
  "serde",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
 dependencies = [
  "anyhow",
  "clap",
@@ -1147,13 +1147,13 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.64",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
 name = "era-compiler-vyper"
-version = "1.5.9"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#7fb46d3cda1ef21a5f9d3b0907b750b98b84c838"
+version = "1.5.10"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#1935a0bc56ab905c59cdc0bf5c2eaa77098477fe"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1171,13 +1171,13 @@ dependencies = [
  "serde",
  "serde_json",
  "which",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
 name = "era-solc"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f66641784f5848aeadf46be505d709713d185641"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
 dependencies = [
  "anyhow",
  "regex",
@@ -1913,7 +1913,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#49b96062340ea89a2ac45c3ba037e339592bb783"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b2b81c254e25ffbf42c41e40de0748a81f750f94"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1928,7 +1928,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#49b96062340ea89a2ac45c3ba037e339592bb783"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b2b81c254e25ffbf42c41e40de0748a81f750f94"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2115,7 +2115,7 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 [[package]]
 name = "llvm-sys"
 version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#686fdddec1389b48a3a44c32e8725a2817ab5089"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#94f9489e149d6bf99444dc049f6c2fecd1172922"
 dependencies = [
  "anyhow",
  "cc",
@@ -2573,7 +2573,7 @@ version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
- "zerocopy 0.8.23",
+ "zerocopy 0.8.24",
 ]
 
 [[package]]
@@ -2764,7 +2764,7 @@ checksum = "3779b94aeb87e8bd4e834cee3650289ee9e0d5677f976ecdb6d219e5f4f6cd94"
 dependencies = [
  "rand_chacha 0.9.0",
  "rand_core 0.9.3",
- "zerocopy 0.8.23",
+ "zerocopy 0.8.24",
 ]
 
 [[package]]
@@ -4463,11 +4463,11 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd97444d05a4328b90e75e503a34bad781f14e28a823ad3557f0750df1ebcbc6"
+checksum = "2586fea28e186957ef732a5f8b3be2da217d65c5969d4b1e17f973ebbe876879"
 dependencies = [
- "zerocopy-derive 0.8.23",
+ "zerocopy-derive 0.8.24",
 ]
 
 [[package]]
@@ -4483,9 +4483,9 @@ dependencies = [
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6352c01d0edd5db859a63e2605f4ea3183ddbd15e2c4a9e7d32184df75e4f154"
+checksum = "a996a8f63c5c4448cd959ac1bab0aaa3306ccfd060472f85943ee0750f0169be"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4567,7 +4567,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions",
+ "zk_evm_abstractions 0.150.6",
 ]
 
 [[package]]
@@ -4580,7 +4580,20 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs",
+ "zkevm_opcode_defs 0.150.6",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.151.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "138f54be34b1cc6742c43b6bdde876d7a03cbdabc033592d9dcf42b87027b75d"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.151.4",
 ]
 
 [[package]]
@@ -4588,6 +4601,23 @@ name = "zkevm_opcode_defs"
 version = "0.150.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "762b5f1c1b283c5388995a85d40a05aef1c14f50eb904998b7e9364739f5b899"
+dependencies = [
+ "bitflags",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2 0.10.8",
+ "sha3 0.10.8",
+]
+
+[[package]]
+name = "zkevm_opcode_defs"
+version = "0.151.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b423f91a70a87a6c7658da01398ebff72fd4ac36f555f745488097ebcc7f1159"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4622,19 +4652,19 @@ dependencies = [
 [[package]]
 name = "zksync_vm2"
 version = "0.3.0"
-source = "git+https://github.com/matter-labs/vm2#a6e3f9f49a229e5a160f172c320c0e03bd66b723"
+source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a7157510d9"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions",
- "zkevm_opcode_defs",
+ "zk_evm_abstractions 0.151.4",
+ "zkevm_opcode_defs 0.151.4",
  "zksync_vm2_interface",
 ]
 
 [[package]]
 name = "zksync_vm2_interface"
 version = "0.3.0"
-source = "git+https://github.com/matter-labs/vm2#a6e3f9f49a229e5a160f172c320c0e03bd66b723"
+source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a7157510d9"
 dependencies = [
  "primitive-types",
 ]
