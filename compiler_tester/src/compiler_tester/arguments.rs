@@ -2,15 +2,9 @@
 //! The compiler tester arguments.
 //!
 
-pub mod benchmark_format;
-pub mod validation;
-
 use std::path::PathBuf;
 
-use benchmark_format::BenchmarkFormat;
 use clap::Parser;
-
-pub const ARGUMENT_BENCHMARK_CONTEXT: &str = "benchmark-context";
 
 ///
 /// The compiler tester arguments.
@@ -49,11 +43,11 @@ pub struct Arguments {
     /// The benchmark output format: `json`, `csv`, or `json-lnt`.
     /// Using `json-lnt` requires providing the path to a JSON file describing the
     /// benchmarking context via `--benchmark-context`.
-    #[structopt(long = "benchmark-format", default_value_t = BenchmarkFormat::Json)]
-    pub benchmark_format: BenchmarkFormat,
+    #[structopt(long = "benchmark-format", default_value_t = compiler_tester::BenchmarkFormat::Json)]
+    pub benchmark_format: compiler_tester::BenchmarkFormat,
 
     /// The benchmark context to pass additional data to backends.
-    #[structopt(long = ARGUMENT_BENCHMARK_CONTEXT )]
+    #[structopt(long = compiler_tester::ARGUMENT_BENCHMARK_CONTEXT)]
     pub benchmark_context: Option<PathBuf>,
 
     /// Sets the number of threads, which execute the tests concurrently.
@@ -128,4 +122,25 @@ pub struct Arguments {
     /// Sets the `debug logging` option in LLVM.
     #[structopt(long)]
     pub llvm_debug_logging: bool,
+}
+
+impl Arguments {
+    ///
+    /// Validate the arguments passed from user, checking invariants that are not
+    /// expressed in the type system.
+    ///
+    pub fn validate(arguments: Self) -> anyhow::Result<Self> {
+        match (&arguments.benchmark_format, &arguments.benchmark_context) {
+            (BenchmarkFormat::JsonLNT, None) =>
+                anyhow::bail!("Generation of LNT-compatible benchmark results in JSON format requires passing a valid context in the argument `--{ARGUMENT_BENCHMARK_CONTEXT}` to compiler tester.")
+            ,
+            (BenchmarkFormat::JsonLNT, Some(_)) => (),
+            (_, Some(_)) =>
+                anyhow::bail!("Only LNT backend in JSON format supports passing a valid context in the argument `--{ARGUMENT_BENCHMARK_CONTEXT}` to compiler tester.")
+            ,
+            _ => (),
+        }
+
+        Ok(arguments)
+    }
 }

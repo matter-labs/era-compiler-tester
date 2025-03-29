@@ -51,8 +51,8 @@ impl TryFrom<&str> for Params {
         let mut allow_non_existing_functions = AllowNonExistingFunctions::Default;
         let mut bytecode_format = String::new();
 
+        let regex = Regex::new("^(.*): (.*)$").expect("Always valid");
         for (index, line) in value.lines().enumerate() {
-            let regex = Regex::new("^(.*): (.*)$").expect("Always valid");
             let captures = regex.captures(line).ok_or_else(|| {
                 anyhow::anyhow!(
                     "Expected option description on line: {}, found: {}",

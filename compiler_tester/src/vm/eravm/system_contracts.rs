@@ -10,8 +10,8 @@ use std::time::Instant;
 use colored::Colorize;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::solidity::mode::Mode as SolidityMode;
-use crate::compilers::solidity::SolidityCompiler;
+use crate::compilers::solidity::zksolc::mode::Mode as ZksolcMode;
+use crate::compilers::solidity::zksolc::SolidityCompiler;
 use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
@@ -348,7 +348,7 @@ impl SystemContracts {
         }
 
         let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
-        let solidity_mode = SolidityMode::new(
+        let solidity_mode = ZksolcMode::new(
             solc_version,
             era_solc::StandardJsonInputCodegen::Yul,
             true,

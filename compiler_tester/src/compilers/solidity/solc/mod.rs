@@ -2,8 +2,8 @@
 //! The upstream Solidity compiler.
 //!
 
+pub mod compiler;
 pub mod mode;
-pub mod solc;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -18,14 +18,14 @@ use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
 use crate::vm::revm::input::Input as EVMInput;
 
-use self::mode::Mode as SolidityUpstreamMode;
-use self::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
-use self::solc::standard_json::input::settings::debug::Debug as SolcStandardJsonInputDebug;
-use self::solc::standard_json::input::settings::optimizer::Optimizer as SolcStandardJsonInputOptimizer;
-use self::solc::standard_json::input::settings::selection::Selection as SolcStandardJsonInputSelection;
-use self::solc::standard_json::input::Input as SolcStandardJsonInput;
-use self::solc::standard_json::output::Output as SolcStandardJsonOutput;
-use self::solc::Compiler as SolcUpstreamCompiler;
+use self::compiler::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
+use self::compiler::standard_json::input::settings::debug::Debug as SolcStandardJsonInputDebug;
+use self::compiler::standard_json::input::settings::optimizer::Optimizer as SolcStandardJsonInputOptimizer;
+use self::compiler::standard_json::input::settings::selection::Selection as SolcStandardJsonInputSelection;
+use self::compiler::standard_json::input::Input as SolcStandardJsonInput;
+use self::compiler::standard_json::output::Output as SolcStandardJsonOutput;
+use self::compiler::Compiler as SolcUpstreamCompiler;
+use self::mode::Mode as SolcMode;
 
 ///
 /// The upstream Solidity compiler.
@@ -57,7 +57,7 @@ lazy_static::lazy_static! {
             (era_solc::StandardJsonInputCodegen::Yul, true, true),
         ] {
             for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
-                modes.push(SolidityUpstreamMode::new(version, codegen, via_ir, false, optimize).into());
+                modes.push(SolcMode::new(version, codegen, via_ir, false, optimize).into());
             }
         }
         modes
@@ -86,7 +86,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
-        vec![SolidityUpstreamMode::new(semver::Version::new(0, 8, 26), era_solc::StandardJsonInputCodegen::Yul, false, true, false).into()]
+        vec![SolcMode::new(semver::Version::new(0, 8, 26), era_solc::StandardJsonInputCodegen::Yul, false, true, false).into()]
     };
 
     ///
@@ -198,43 +198,41 @@ impl SolidityCompiler {
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
         let solc_version = match mode {
-            Mode::SolidityUpstream(mode) => &mode.solc_version,
+            Mode::Solc(mode) => &mode.solc_version,
             Mode::YulUpstream(mode) => &mode.solc_version,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
         let mut solc = Self::executable(toolchain, solc_version)?;
 
         let output_selection = SolcStandardJsonInputSelection::new_required(match mode {
-            Mode::SolidityUpstream(mode) => mode.solc_codegen,
+            Mode::Solc(mode) => mode.solc_codegen,
             Mode::YulUpstream(_mode) => era_solc::StandardJsonInputCodegen::Yul,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         });
 
         let optimizer = SolcStandardJsonInputOptimizer::new(match mode {
-            Mode::SolidityUpstream(mode) => mode.solc_optimize,
+            Mode::Solc(mode) => mode.solc_optimize,
             Mode::YulUpstream(mode) => mode.solc_optimize,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         });
 
         let evm_version = match mode {
-            Mode::SolidityUpstream(mode)
-                if mode.solc_version >= SolcUpstreamCompiler::FIRST_CANCUN_VERSION =>
-            {
+            Mode::Solc(mode) if mode.solc_version >= SolcUpstreamCompiler::FIRST_CANCUN_VERSION => {
                 Some(era_compiler_common::EVMVersion::Cancun)
             }
-            Mode::SolidityUpstream(_mode) => None,
+            Mode::Solc(_mode) => None,
             Mode::YulUpstream(_mode) => Some(era_compiler_common::EVMVersion::Cancun),
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
         let via_ir = match mode {
-            Mode::SolidityUpstream(mode) => mode.via_ir,
+            Mode::Solc(mode) => mode.via_ir,
             Mode::YulUpstream(_mode) => true,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
         let via_mlir = match mode {
-            Mode::SolidityUpstream(mode) => mode.via_mlir,
+            Mode::Solc(mode) => mode.via_mlir,
             Mode::YulUpstream(mode) => mode.via_mlir,
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
@@ -283,7 +281,7 @@ impl SolidityCompiler {
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
         let cache_key = match mode {
-            Mode::SolidityUpstream(mode) => CacheKey::new(
+            Mode::Solc(mode) => CacheKey::new(
                 test_path,
                 mode.solc_version.to_owned(),
                 mode.solc_codegen,
