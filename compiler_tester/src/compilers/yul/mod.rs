@@ -10,9 +10,9 @@ use std::collections::HashMap;
 use era_solc::CollectableError;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::solidity::upstream::solc::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
-use crate::compilers::solidity::upstream::SolidityCompiler as SolidityUpstreamCompiler;
-use crate::compilers::solidity::SolidityCompiler;
+use crate::compilers::solidity::solc::compiler::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
+use crate::compilers::solidity::solc::SolidityCompiler as SolcCompiler;
+use crate::compilers::solidity::zksolc::SolidityCompiler;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
 use crate::vm::eravm::input::Input as EraVMInput;
@@ -138,7 +138,7 @@ impl Compiler for YulCompiler {
             Toolchain::Solc | Toolchain::SolcLLVM => {
                 let language = SolcStandardJsonInputLanguage::Yul;
 
-                let solc_compiler = SolidityUpstreamCompiler::new(language, self.toolchain);
+                let solc_compiler = SolcCompiler::new(language, self.toolchain);
 
                 let solc_output = solc_compiler.standard_json_output_cached(
                     test_path,

@@ -101,10 +101,11 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
     let mut source_name = None;
     let mut source = String::new();
 
-    let regex = Regex::new(r"^==== (.*): (.*) ====$").expect("Always valid");
+    let line_regex = Regex::new(r"^==== (.*): (.*) ====$").expect("Always valid");
+    let path_regex = Regex::new("^([^=]*)=(.*)$").expect("Always valid");
 
     for (index, line) in data.lines().enumerate() {
-        let captures = match regex.captures(line) {
+        let captures = match line_regex.captures(line) {
             Some(captures) => captures,
             None => {
                 source.push_str(line);
@@ -116,8 +117,7 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
         match captures.get(1).expect("Always exists").as_str() {
             "ExternalSource" => {
                 let data = captures.get(2).expect("Always exists").as_str();
-                let regex = Regex::new("^([^=]*)=(.*)$").expect("Always valid");
-                let (name, relative_path) = match regex.captures(data) {
+                let (name, relative_path) = match path_regex.captures(data) {
                     Some(captures) => (
                         captures.get(1).expect("Always exists").as_str().to_owned(),
                         PathBuf::from(captures.get(2).expect("Always exists").as_str()),

@@ -2,11 +2,11 @@
     path = tests
     url = https://github.com/matter-labs/era-compiler-tests
     branch = main
-[submodule "solidity"]
-    path = solidity
-    url = https://github.com/ethereum/solidity
-    branch = develop
 [submodule "era-contracts"]
     path = era-contracts
     url = https://github.com/matter-labs/era-contracts
     branch = stable/evm-emulator
+[submodule "era-solidity"]
+	path = era-solidity
+	url = https://github.com/matter-labs/era-solidity
+    branch = app-timelock

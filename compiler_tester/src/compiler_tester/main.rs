@@ -40,7 +40,7 @@ fn main() {
 /// The entry point wrapper used for proper error handling.
 ///
 fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
-    let arguments = validate_arguments(arguments)?;
+    let arguments = Arguments::validate(arguments)?;
     println!(
         "    {} {} v{} (LLVM build {})",
         "Starting".bright_green().bold(),
@@ -96,24 +96,30 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
-    let toolchain = match (arguments.target, arguments.toolchain) {
-        (era_compiler_common::Target::EraVM, Some(toolchain)) => toolchain,
-        (era_compiler_common::Target::EraVM, None) => compiler_tester::Toolchain::IrLLVM,
-        (era_compiler_common::Target::EVM, Some(toolchain)) => toolchain,
-        (era_compiler_common::Target::EVM, None) => compiler_tester::Toolchain::Solc,
-    };
-    let executable_download_config_paths = vec![
-        arguments.solc_bin_config_path.unwrap_or_else(|| {
-            PathBuf::from(match toolchain {
-                compiler_tester::Toolchain::IrLLVM => "./configs/solc-bin-default.json",
-                compiler_tester::Toolchain::Solc => "./configs/solc-bin-upstream.json",
-                compiler_tester::Toolchain::SolcLLVM => "./configs/solc-bin-llvm.json",
-            })
-        }),
-        arguments
-            .vyper_bin_config_path
-            .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
-    ];
+    let toolchain = arguments
+        .toolchain
+        .unwrap_or(compiler_tester::Toolchain::IrLLVM);
+
+    let mut executable_download_config_paths = Vec::with_capacity(2);
+    if let Some(path) = match (target, toolchain) {
+        (era_compiler_common::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
+        (era_compiler_common::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
+            Some("./configs/solc-bin-default.json")
+        }
+        (_, compiler_tester::Toolchain::Zksolc) => Some("./configs/solc-bin-default.json"),
+        (_, compiler_tester::Toolchain::Solc) => Some("./configs/solc-bin-upstream.json"),
+        (_, compiler_tester::Toolchain::SolcLLVM) => Some("./configs/solc-bin-llvm.json"),
+    }
+    .map(PathBuf::from)
+    {
+        executable_download_config_paths.push(path);
+    }
+    // executable_download_config_paths.push(
+    //     arguments
+    //         .vyper_bin_config_path
+    //         .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json"))
+    // );
+
     let environment = match (arguments.target, arguments.environment) {
         (
             era_compiler_common::Target::EraVM,

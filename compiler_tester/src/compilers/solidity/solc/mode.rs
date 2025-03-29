@@ -4,10 +4,7 @@
 
 use itertools::Itertools;
 
-use crate::compilers::mode::llvm_options::LLVMOptions;
-
-use crate::compilers::mode::imode::IMode;
-use crate::compilers::mode::Mode as ModeWrapper;
+use crate::compilers::mode::{imode::IMode, Mode as ModeWrapper};
 
 ///
 /// The compiler tester Solidity mode.
@@ -20,14 +17,10 @@ pub struct Mode {
     pub solc_codegen: era_solc::StandardJsonInputCodegen,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
+    /// Whether to enable the MLIR codegen.
+    pub via_mlir: bool,
     /// Whether to run the Solidity compiler optimizer.
     pub solc_optimize: bool,
-    /// The optimizer settings.
-    pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
-    /// Whether the EraVM extensions are enabled.
-    pub enable_eravm_extensions: bool,
-    /// The system contract mode.
-    pub is_system_contracts_mode: bool,
 }
 
 impl Mode {
@@ -38,24 +31,15 @@ impl Mode {
         solc_version: semver::Version,
         solc_codegen: era_solc::StandardJsonInputCodegen,
         via_ir: bool,
+        via_mlir: bool,
         solc_optimize: bool,
-        mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
-        enable_eravm_extensions: bool,
-        is_system_contracts_mode: bool,
     ) -> Self {
-        let llvm_options = LLVMOptions::get();
-        llvm_optimizer_settings.enable_fallback_to_size();
-        llvm_optimizer_settings.is_verify_each_enabled = llvm_options.is_verify_each_enabled();
-        llvm_optimizer_settings.is_debug_logging_enabled = llvm_options.is_debug_logging_enabled();
-
         Self {
             solc_version,
             solc_codegen,
             via_ir,
+            via_mlir,
             solc_optimize,
-            llvm_optimizer_settings,
-            enable_eravm_extensions,
-            is_system_contracts_mode,
         }
     }
 
@@ -68,8 +52,8 @@ impl Mode {
     ///
     pub fn unwrap(mode: &ModeWrapper) -> &Self {
         match mode {
-            ModeWrapper::Solidity(mode) => mode,
-            _ => panic!("Non-Solidity mode"),
+            ModeWrapper::Solc(mode) => mode,
+            _ => panic!("Non-Solidity-upstream mode"),
         }
     }
 
@@ -131,19 +115,19 @@ impl Mode {
 
 impl IMode for Mode {
     fn optimizations(&self) -> Option<String> {
-        Some(format!(
-            "{}{}",
-            if self.solc_optimize { '+' } else { '-' },
-            self.llvm_optimizer_settings,
-        ))
+        Some((if self.solc_optimize { "+" } else { "-" }).to_string())
     }
 
     fn codegen(&self) -> Option<String> {
         Some(
-            (match self.solc_codegen {
-                era_solc::StandardJsonInputCodegen::Yul => "Y",
-                era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
-                era_solc::StandardJsonInputCodegen::EVMLA => "E",
+            (if self.via_mlir {
+                "L"
+            } else {
+                match self.solc_codegen {
+                    era_solc::StandardJsonInputCodegen::Yul => "Y",
+                    era_solc::StandardJsonInputCodegen::EVMLA if self.via_ir => "I",
+                    era_solc::StandardJsonInputCodegen::EVMLA => "E",
+                }
             })
             .to_string(),
         )
