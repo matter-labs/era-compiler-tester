@@ -88,7 +88,7 @@ impl CompilerTester {
     /// The Solidity Ethereum tests directory.
     const SOLIDITY_ETHEREUM: &'static str = "tests/solidity/ethereum";
     /// The Solidity Ethereum upstream tests directory.
-    const SOLIDITY_ETHEREUM_UPSTREAM: &'static str = "solidity/test/libsolidity/semanticTests";
+    const SOLIDITY_ETHEREUM_UPSTREAM: &'static str = "era-solidity/test/libsolidity/semanticTests";
 
     /// The Vyper simple tests directory.
     const VYPER_SIMPLE: &'static str = "tests/vyper/simple";
