@@ -30,8 +30,8 @@ on:
       mode:
         required: false
         type: string
-        default: 'Y+M3B3 0.8.28'
-        description: 'Mode filter for the era-compiler-tester. For example: Y+M3B3 0.8.28'
+        default: 'Y+M3B3 0.8.29'
+        description: 'Mode filter for the era-compiler-tester. For example: Y+M3B3 0.8.29'
       target:
         required: false
         type: string
@@ -41,7 +41,7 @@ on:
         required: false
         type: string
         default: 'llvm-ir'
-        description: 'Compiler toolchain. Available arguments: `ir-llvm`, `solc`, `solc-llvm`.'
+        description: 'Compiler toolchain. Available arguments: `ir-llvm`, `zksolc`, `solc`, `solc-llvm`.'
       environment:
         required: false
         type: string
@@ -98,6 +98,9 @@ jobs:
           cargo build --target ${TARGET} -Zbuild-std \
             --manifest-path ${CARGO_CHECKOUT_DIR}/era-compiler-vyper-*/*/Cargo.toml \
             --target-dir './target-zkvyper/'
+          cargo build --target ${TARGET} -Zbuild-std \
+            --manifest-path ${CARGO_CHECKOUT_DIR}/solx-*/*/Cargo.toml \
+            --target-dir './target-solx/'
 
       - name: Run tests with sanitizers
         run: |
@@ -108,5 +111,6 @@ jobs:
             --environment "${{ inputs.environment }}" \
             --zksolc "./target-zksolc/${TARGET}/debug/zksolc" \
             --zkvyper "./target-zkvyper/${TARGET}/debug/zkvyper" \
+            --solx "./target-solx/${TARGET}/debug/solx" \
             --path '${{ inputs.path }}' \
             --mode '${{ inputs.mode }}'
