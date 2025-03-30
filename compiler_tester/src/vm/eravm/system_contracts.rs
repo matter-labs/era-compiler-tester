@@ -11,7 +11,7 @@ use colored::Colorize;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::zksolc::mode::Mode as ZksolcMode;
-use crate::compilers::solidity::zksolc::SolidityCompiler;
+use crate::compilers::solidity::zksolc::SolidityCompiler as ZksolcCompiler;
 use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
@@ -352,14 +352,13 @@ impl SystemContracts {
             solc_version,
             era_solc::StandardJsonInputCodegen::Yul,
             true,
-            true,
             solidity_optimizer_settings,
             true,
             true,
         )
         .into();
         builds.extend(Self::compile(
-            SolidityCompiler::new(),
+            ZksolcCompiler::new(),
             solidity_file_paths,
             &solidity_mode,
             vec![],
@@ -499,7 +498,7 @@ impl SystemContracts {
             .compile_for_eravm(
                 "system-contracts".to_owned(),
                 sources,
-                era_solc::StandardJsonInputLibraries::default(),
+                era_compiler_common::Libraries::default(),
                 mode,
                 llvm_options,
                 debug_config,

@@ -83,9 +83,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-primitives"
-version = "0.8.24"
+version = "0.8.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7283185baefbe66136649dc316c9dcc6f0e9f1d635ae19783615919f83bc298a"
+checksum = "8c77490fe91a0ce933a1f219029521f20fc28c2c0ca95d53fa4da9c00b8d9d4e"
 dependencies = [
  "alloy-rlp",
  "bytes",
@@ -736,6 +736,8 @@ dependencies = [
  "serde_yaml",
  "sha3 0.10.8",
  "solidity-adapter",
+ "solx",
+ "solx-solc",
  "web3",
  "which",
  "zkevm_opcode_defs 0.150.6",
@@ -1084,7 +1086,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9fb4fb47268c9f0b83e02b607d1eca3987d1a3ee"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests#698050e8a46040151b1b1d874044bcff616b8502"
 dependencies = [
  "anyhow",
  "base58",
@@ -1100,7 +1102,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#9fb4fb47268c9f0b83e02b607d1eca3987d1a3ee"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests#698050e8a46040151b1b1d874044bcff616b8502"
 dependencies = [
  "anyhow",
  "colored",
@@ -1113,7 +1115,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#2639dd42c92fb1be1cd05cf13a9113a1972cd469"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=evm-llvmit-tests#e90f10a15f8dec74a9a38122029182db02e77250"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1122,13 +1124,14 @@ dependencies = [
  "num",
  "semver 1.0.23",
  "serde",
+ "thiserror 1.0.64",
  "zkevm_opcode_defs 0.150.6",
 ]
 
 [[package]]
 name = "era-compiler-solidity"
-version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
+version = "1.5.13"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-llvmit-tests#70a7e38f3fbdbe2d8672fe9f582abc07cf575bb9"
 dependencies = [
  "anyhow",
  "clap",
@@ -1153,7 +1156,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#1935a0bc56ab905c59cdc0bf5c2eaa77098477fe"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=evm-llvmit-tests#d43c06e1d9414c173ec8b66a1b7a045d2827f420"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1176,12 +1179,13 @@ dependencies = [
 
 [[package]]
 name = "era-solc"
-version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
+version = "1.5.13"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-llvmit-tests#70a7e38f3fbdbe2d8672fe9f582abc07cf575bb9"
 dependencies = [
  "anyhow",
  "boolinator",
  "era-compiler-common",
+ "era-compiler-llvm-context",
  "hex",
  "num",
  "rayon",
@@ -1193,8 +1197,8 @@ dependencies = [
 
 [[package]]
 name = "era-yul"
-version = "1.5.12"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#57caf660c151c62b279212d697ad9396297ba4c6"
+version = "1.5.13"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-llvmit-tests#70a7e38f3fbdbe2d8672fe9f582abc07cf575bb9"
 dependencies = [
  "anyhow",
  "regex",
@@ -1702,14 +1706,15 @@ dependencies = [
 
 [[package]]
 name = "iana-time-zone"
-version = "0.1.61"
+version = "0.1.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "235e081f3925a06703c2d0117ea8b91f042756fd6e7a6e5d901e8ca1a996b220"
+checksum = "b2fd658b06e56721792c5df4475705b6cda790e9298d19d2f8af083457bcd127"
 dependencies = [
  "android_system_properties",
  "core-foundation-sys",
  "iana-time-zone-haiku",
  "js-sys",
+ "log",
  "wasm-bindgen",
  "windows-core",
 ]
@@ -1764,9 +1769,9 @@ dependencies = [
 
 [[package]]
 name = "icu_locid_transform_data"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdc8ff3388f852bede6b579ad4e978ab004f139284d7b28715f773507b946f6e"
+checksum = "7515e6d781098bf9f7205ab3fc7e9709d34554ae0b21ddbcb5febfa4bc7df11d"
 
 [[package]]
 name = "icu_normalizer"
@@ -1788,9 +1793,9 @@ dependencies = [
 
 [[package]]
 name = "icu_normalizer_data"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8cafbf7aa791e9b22bec55a167906f9e1215fd475cd22adfcf660e03e989516"
+checksum = "c5e8338228bdc8ab83303f16b797e177953730f601a96c25d10cb3ab0daa0cb7"
 
 [[package]]
 name = "icu_properties"
@@ -1809,9 +1814,9 @@ dependencies = [
 
 [[package]]
 name = "icu_properties_data"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67a8effbc3dd3e4ba1afa8ad918d5684b8868b3b26500753effea8d2eed19569"
+checksum = "85fb8799753b75aee8d2a21d7c14d9f38921b54b3dbda10f5a3c7a7b82dba5e2"
 
 [[package]]
 name = "icu_provider"
@@ -2137,9 +2142,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.26"
+version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30bde2b3dc3671ae49d8e2e9f044c7c005836e7a023ee57cffa25ab82764bb9e"
+checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
 name = "md5"
@@ -2510,9 +2515,9 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "pest"
-version = "2.7.15"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b7cafe60d6cf8e62e1b9b2ea516a089c008945bb5a275416789e7db0bc199dc"
+checksum = "198db74531d58c70a361c42201efde7e2591e976d518caf7662a47dc5720e7b6"
 dependencies = [
  "memchr",
  "thiserror 2.0.12",
@@ -2712,9 +2717,9 @@ dependencies = [
 
 [[package]]
 name = "quinn-udp"
-version = "0.5.10"
+version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e46f3055866785f6b92bc6164b76be02ca8f2eb4b002c0354b28cf4c119e5944"
+checksum = "541d0f57c6ec747a90738a52741d3221f7960e8ac2f0ff4b1a63680e033b4ab5"
 dependencies = [
  "cfg_aliases",
  "libc",
@@ -3045,9 +3050,9 @@ dependencies = [
 
 [[package]]
 name = "ruint"
-version = "1.13.1"
+version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "825df406ec217a8116bd7b06897c6cc8f65ffefc15d030ae2c9540acc9ed50b6"
+checksum = "78a46eb779843b2c4f21fac5773e25d6d5b7c8f0922876c91541790d2ca27eef"
 dependencies = [
  "alloy-rlp",
  "ark-ff 0.3.0",
@@ -3062,6 +3067,7 @@ dependencies = [
  "primitive-types",
  "proptest",
  "rand 0.8.5",
+ "rand 0.9.0",
  "rlp",
  "ruint-macro",
  "serde",
@@ -3171,9 +3177,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.0"
+version = "0.103.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0aa4eeac2588ffff23e9d7a7e9b3f971c5fb5b7ebc9452745e0c232c64f83b2f"
+checksum = "fef8b8769aaccf73098557a87cd1816b4f9c7c16811c9c77142aa695c16f2c03"
 dependencies = [
  "ring",
  "rustls-pki-types",
@@ -3521,6 +3527,56 @@ dependencies = [
  "serde",
  "serde_yaml",
  "web3",
+]
+
+[[package]]
+name = "solx"
+version = "1.0.0"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#6d0b6a06af9348d1ec11169a879c9606d30880bb"
+dependencies = [
+ "anyhow",
+ "clap",
+ "era-compiler-common",
+ "era-compiler-llvm-context",
+ "hex",
+ "inkwell",
+ "num",
+ "path-slash",
+ "rayon",
+ "semver 1.0.23",
+ "serde",
+ "serde_json",
+ "solx-solc",
+ "solx-yul",
+ "thiserror 1.0.64",
+ "zkevm_opcode_defs 0.150.6",
+]
+
+[[package]]
+name = "solx-solc"
+version = "1.0.0"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#6d0b6a06af9348d1ec11169a879c9606d30880bb"
+dependencies = [
+ "anyhow",
+ "era-compiler-common",
+ "era-compiler-llvm-context",
+ "hex",
+ "libc",
+ "num",
+ "rayon",
+ "semver 1.0.23",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "solx-yul"
+version = "1.0.0"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#6d0b6a06af9348d1ec11169a879c9606d30880bb"
+dependencies = [
+ "anyhow",
+ "serde",
+ "thiserror 1.0.64",
 ]
 
 [[package]]

@@ -34,6 +34,7 @@ pub use crate::compilers::mode::llvm_options::LLVMOptions;
 pub use crate::compilers::mode::Mode;
 pub use crate::compilers::solidity::solc::compiler::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
 pub use crate::compilers::solidity::solc::SolidityCompiler as SolcCompiler;
+pub use crate::compilers::solidity::solx::SolidityCompiler as SolxCompiler;
 pub use crate::compilers::solidity::zksolc::mode::Mode as ZksolcMode;
 pub use crate::compilers::solidity::zksolc::SolidityCompiler as ZksolcCompiler;
 pub use crate::compilers::vyper::VyperCompiler;
@@ -247,7 +248,6 @@ impl CompilerTester {
             toolchain,
         ));
         let yul_compiler = Arc::new(YulCompiler::new(toolchain));
-        let vyper_compiler = Arc::new(VyperCompiler::new());
         let llvm_compiler = Arc::new(LLVMCompiler);
         let eravm_compiler = Arc::new(EraVMCompiler);
 
@@ -260,41 +260,10 @@ impl CompilerTester {
             match (target, toolchain) {
                 (era_compiler_common::Target::EraVM, Toolchain::IrLLVM) => zksolc_compiler.clone(),
                 (era_compiler_common::Target::EVM, Toolchain::IrLLVM) => solx_compiler.clone(),
+                (_, Toolchain::Zksolc) => zksolc_compiler.clone(),
                 (_, Toolchain::Solc | Toolchain::SolcLLVM) => solc_compiler.clone(),
             },
         )?);
-        // if let era_compiler_common::Target::EraVM = target {
-        //     tests.extend(self.directory::<MatterLabsDirectory>(
-        //         target,
-        //         PathBuf::from(Self::VYPER_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
-        //         era_compiler_common::EXTENSION_VYPER,
-        //         vyper_compiler.clone(),
-        //     )?);
-        // }
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            target,
-            PathBuf::from(Self::YUL_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
-            era_compiler_common::EXTENSION_YUL,
-            match toolchain {
-                Toolchain::IrLLVM => yul_compiler.clone(),
-                Toolchain::Solc | Toolchain::SolcLLVM => solc_yul_compiler.clone(),
-            },
-        )?);
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            target,
-            PathBuf::from(Self::LLVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
-            era_compiler_common::EXTENSION_LLVM_SOURCE,
-            llvm_compiler,
-        )?);
-        if let era_compiler_common::Target::EraVM = target {
-            tests.extend(self.directory::<MatterLabsDirectory>(
-                target,
-                PathBuf::from(Self::ERAVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
-                era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
-                eravm_compiler,
-            )?);
-        }
-
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
             PathBuf::from(Self::SOLIDITY_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
@@ -302,18 +271,10 @@ impl CompilerTester {
             match (target, toolchain) {
                 (era_compiler_common::Target::EraVM, Toolchain::IrLLVM) => zksolc_compiler.clone(),
                 (era_compiler_common::Target::EVM, Toolchain::IrLLVM) => solx_compiler.clone(),
+                (_, Toolchain::Zksolc) => zksolc_compiler.clone(),
                 (_, Toolchain::Solc | Toolchain::SolcLLVM) => solc_compiler.clone(),
             },
         )?);
-        // if let era_compiler_common::Target::EraVM = target {
-        //     tests.extend(self.directory::<MatterLabsDirectory>(
-        //         target,
-        //         PathBuf::from(Self::VYPER_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
-        //         era_compiler_common::EXTENSION_JSON,
-        //         vyper_compiler.clone(),
-        //     )?);
-        // }
-
         tests.extend(
             self.directory::<EthereumDirectory>(
                 target,
@@ -330,18 +291,57 @@ impl CompilerTester {
                         zksolc_compiler.clone()
                     }
                     (era_compiler_common::Target::EVM, Toolchain::IrLLVM) => solx_compiler.clone(),
+                    (_, Toolchain::Zksolc) => zksolc_compiler.clone(),
                     (_, Toolchain::Solc | Toolchain::SolcLLVM) => solc_compiler.clone(),
                 },
             )?,
         );
-        // if let era_compiler_common::Target::EraVM = target {
-        //     tests.extend(self.directory::<EthereumDirectory>(
-        //         target,
-        //         PathBuf::from(Self::VYPER_ETHEREUM.replace("/", std::path::MAIN_SEPARATOR_STR)),
-        //         era_compiler_common::EXTENSION_VYPER,
-        //         vyper_compiler,
-        //     )?);
-        // }
+
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
+            PathBuf::from(Self::YUL_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+            era_compiler_common::EXTENSION_YUL,
+            match toolchain {
+                Toolchain::IrLLVM | Toolchain::Zksolc => yul_compiler.clone(),
+                Toolchain::Solc | Toolchain::SolcLLVM => solc_yul_compiler.clone(),
+            },
+        )?);
+
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
+            PathBuf::from(Self::LLVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+            era_compiler_common::EXTENSION_LLVM_SOURCE,
+            llvm_compiler,
+        )?);
+
+        if let era_compiler_common::Target::EraVM = target {
+            let vyper_compiler = Arc::new(VyperCompiler::new());
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
+                PathBuf::from(Self::ERAVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
+                eravm_compiler,
+            )?);
+
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
+                PathBuf::from(Self::VYPER_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler.clone(),
+            )?);
+            tests.extend(self.directory::<MatterLabsDirectory>(
+                target,
+                PathBuf::from(Self::VYPER_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                era_compiler_common::EXTENSION_JSON,
+                vyper_compiler.clone(),
+            )?);
+            tests.extend(self.directory::<EthereumDirectory>(
+                target,
+                PathBuf::from(Self::VYPER_ETHEREUM.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                era_compiler_common::EXTENSION_VYPER,
+                vyper_compiler,
+            )?);
+        }
 
         Ok(tests)
     }

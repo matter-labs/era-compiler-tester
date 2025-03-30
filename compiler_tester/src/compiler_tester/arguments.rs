@@ -131,13 +131,13 @@ impl Arguments {
     ///
     pub fn validate(arguments: Self) -> anyhow::Result<Self> {
         match (&arguments.benchmark_format, &arguments.benchmark_context) {
-            (BenchmarkFormat::JsonLNT, None) =>
-                anyhow::bail!("Generation of LNT-compatible benchmark results in JSON format requires passing a valid context in the argument `--{ARGUMENT_BENCHMARK_CONTEXT}` to compiler tester.")
-            ,
-            (BenchmarkFormat::JsonLNT, Some(_)) => (),
-            (_, Some(_)) =>
-                anyhow::bail!("Only LNT backend in JSON format supports passing a valid context in the argument `--{ARGUMENT_BENCHMARK_CONTEXT}` to compiler tester.")
-            ,
+            (compiler_tester::BenchmarkFormat::JsonLNT, None) => {
+                anyhow::bail!("Generation of LNT-compatible benchmark results in JSON format requires passing a valid context in the argument `--{}` to compiler tester.", compiler_tester::ARGUMENT_BENCHMARK_CONTEXT)
+            }
+            (compiler_tester::BenchmarkFormat::JsonLNT, Some(_)) => (),
+            (_, Some(_)) => {
+                anyhow::bail!("Only LNT backend in JSON format supports passing a valid context in the argument `--{}` to compiler tester.", compiler_tester::ARGUMENT_BENCHMARK_CONTEXT)
+            }
             _ => (),
         }
 

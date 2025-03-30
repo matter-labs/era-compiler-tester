@@ -1,5 +1,5 @@
 //!
-//! The `zksolc` compiler.
+//! The `zksolc` Solidity compiler.
 //!
 
 pub mod mode;
@@ -23,7 +23,7 @@ use crate::vm::revm::input::Input as EVMInput;
 use self::mode::Mode as ZksolcMode;
 
 ///
-/// The `zksolc` compiler.
+/// The `zksolc` Solidity compiler.
 ///
 pub struct SolidityCompiler {
     /// The `solc` process output cache.
@@ -167,7 +167,7 @@ impl SolidityCompiler {
     fn standard_json_output(
         target: era_compiler_common::Target,
         sources: &[(String, String)],
-        libraries: &era_solc::StandardJsonInputLibraries,
+        libraries: &era_compiler_common::Libraries,
         mode: &ZksolcMode,
     ) -> anyhow::Result<era_solc::StandardJsonOutput> {
         let solc_compiler = if mode.is_system_contracts_mode {
@@ -240,13 +240,13 @@ impl SolidityCompiler {
         test_path: String,
         target: era_compiler_common::Target,
         sources: &[(String, String)],
-        libraries: &era_solc::StandardJsonInputLibraries,
+        libraries: &era_compiler_common::Libraries,
         mode: &ZksolcMode,
     ) -> anyhow::Result<era_solc::StandardJsonOutput> {
         let cache_key = CacheKey::new(
             test_path,
             mode.solc_version.clone(),
-            mode.solc_codegen,
+            Some(mode.solc_codegen),
             mode.via_ir,
             true,
         );
@@ -274,7 +274,7 @@ impl SolidityCompiler {
                     .evm
                     .as_ref()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{}:{}` not found", path, name)
+                        anyhow::anyhow!("EVM object of the contract `{path}:{name}` not found")
                     })?
                     .method_identifiers
                     .iter()
@@ -283,9 +283,7 @@ impl SolidityCompiler {
                         u32::from_str_radix(selector, era_compiler_common::BASE_HEXADECIMAL)
                             .map_err(|error| {
                                 anyhow::anyhow!(
-                                    "Invalid selector `{}` received from the Solidity compiler: {}",
-                                    selector,
-                                    error
+                                    "Invalid selector `{selector}` received from the Solidity compiler: {error}"
                                 )
                             })?;
                     contract_identifiers.insert(entry.clone(), selector);
@@ -323,7 +321,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -338,14 +336,14 @@ impl Compiler for SolidityCompiler {
                 &libraries,
                 mode,
             )
-            .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {error}"))?;
         solc_output.check_errors()?;
 
         let method_identifiers = Self::get_method_identifiers(&solc_output)
-            .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to get method identifiers: {error}"))?;
 
         let last_contract = Self::get_last_contract(&solc_output, &sources)
-            .map_err(|error| anyhow::anyhow!("Failed to get the last contract: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Failed to get the last contract: {error}"))?;
 
         let solc_compiler = if mode.is_system_contracts_mode {
             SolidityCompiler::system_contract_executable()
@@ -413,7 +411,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,

@@ -8,8 +8,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
-use arguments::benchmark_format::BenchmarkFormat;
-use arguments::validation::validate_arguments;
 use clap::Parser;
 use colored::Colorize;
 
@@ -96,31 +94,11 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
+    let target = arguments.target;
     let toolchain = arguments
         .toolchain
         .unwrap_or(compiler_tester::Toolchain::IrLLVM);
-
-    let mut executable_download_config_paths = Vec::with_capacity(2);
-    if let Some(path) = match (target, toolchain) {
-        (era_compiler_common::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
-        (era_compiler_common::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
-            Some("./configs/solc-bin-default.json")
-        }
-        (_, compiler_tester::Toolchain::Zksolc) => Some("./configs/solc-bin-default.json"),
-        (_, compiler_tester::Toolchain::Solc) => Some("./configs/solc-bin-upstream.json"),
-        (_, compiler_tester::Toolchain::SolcLLVM) => Some("./configs/solc-bin-llvm.json"),
-    }
-    .map(PathBuf::from)
-    {
-        executable_download_config_paths.push(path);
-    }
-    // executable_download_config_paths.push(
-    //     arguments
-    //         .vyper_bin_config_path
-    //         .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json"))
-    // );
-
-    let environment = match (arguments.target, arguments.environment) {
+    let environment = match (target, arguments.environment) {
         (
             era_compiler_common::Target::EraVM,
             Some(environment @ compiler_tester::Environment::ZkEVM),
@@ -142,6 +120,26 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),
     };
+
+    let mut executable_download_config_paths = Vec::with_capacity(2);
+    if let Some(path) = match (target, toolchain) {
+        (era_compiler_common::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
+        (era_compiler_common::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
+            Some("./configs/solc-bin-default.json")
+        }
+        (_, compiler_tester::Toolchain::Zksolc) => Some("./configs/solc-bin-default.json"),
+        (_, compiler_tester::Toolchain::Solc) => Some("./configs/solc-bin-upstream.json"),
+        (_, compiler_tester::Toolchain::SolcLLVM) => Some("./configs/solc-bin-llvm.json"),
+    }
+    .map(PathBuf::from)
+    {
+        executable_download_config_paths.push(path);
+    }
+    executable_download_config_paths.push(
+        arguments
+            .vyper_bin_config_path
+            .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
+    );
 
     let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet)
         .start_timer()?
@@ -239,17 +237,17 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         };
         let benchmark = summary.benchmark(toolchain, context)?;
         match arguments.benchmark_format {
-            BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
+            compiler_tester::BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
                 &benchmark,
                 path,
                 benchmark_analyzer::JsonNativeSerializer,
             )?,
-            BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
+            compiler_tester::BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
                 &benchmark,
                 path,
                 benchmark_analyzer::CsvSerializer,
             )?,
-            BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
+            compiler_tester::BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
                 &benchmark,
                 path,
                 benchmark_analyzer::JsonLNTSerializer,
@@ -300,7 +298,7 @@ mod tests {
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
-            benchmark_format: crate::BenchmarkFormat::Json,
+            benchmark_format: compiler_tester::BenchmarkFormat::Json,
             benchmark_context: None,
             threads: Some(1),
             dump_system: false,

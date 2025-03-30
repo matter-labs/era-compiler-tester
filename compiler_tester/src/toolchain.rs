@@ -10,7 +10,7 @@ pub enum Toolchain {
     /// The default LLVM-based compiler: `zksolc` for EraVM, `solx` for EVM.
     IrLLVM,
     /// The `zksolc` compiler.
-    ZkSolc,
+    Zksolc,
     /// The upstream `solc` compiler.
     Solc,
     /// The forked `solc` compiler with MLIR.
@@ -23,7 +23,7 @@ impl std::str::FromStr for Toolchain {
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         match string {
             "ir-llvm" => Ok(Self::IrLLVM),
-            "zksolc" => Ok(Self::ZkSolc),
+            "zksolc" => Ok(Self::Zksolc),
             "solc" => Ok(Self::Solc),
             "solc-llvm" => Ok(Self::SolcLLVM),
             string => anyhow::bail!(
@@ -43,7 +43,7 @@ impl std::fmt::Display for Toolchain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::IrLLVM => write!(f, "ir-llvm"),
-            Self::ZkSolc => write!(f, "zksolc"),
+            Self::Zksolc => write!(f, "zksolc"),
             Self::Solc => write!(f, "solc"),
             Self::SolcLLVM => write!(f, "solc-llvm"),
         }

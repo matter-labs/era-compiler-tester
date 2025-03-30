@@ -46,14 +46,14 @@ zkevm_opcode_defs = "=0.150.6"
 zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.0" }
 vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "zksync_vm2" }
 
-era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
-era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
-era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
-era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
-era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
-solx = { git = "https://github.com/matter-labs/solx", branch = "main" }
-solx-solc = { git = "https://github.com/matter-labs/solx", branch = "main" }
+era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "evm-llvmit-tests" }
+era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "evm-llvmit-tests" }
+era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "evm-llvmit-tests" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "evm-llvmit-tests" }
+era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "evm-llvmit-tests" }
+era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "evm-llvmit-tests" }
+solx = { git = "https://github.com/matter-labs/solx", branch = "evm-llvmit-tests" }
+solx-solc = { git = "https://github.com/matter-labs/solx", branch = "evm-llvmit-tests" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }

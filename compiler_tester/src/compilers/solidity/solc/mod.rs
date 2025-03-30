@@ -1,5 +1,5 @@
 //!
-//! The upstream Solidity compiler.
+//! The `solc` Solidity compiler.
 //!
 
 pub mod compiler;
@@ -28,7 +28,7 @@ use self::compiler::Compiler as SolcUpstreamCompiler;
 use self::mode::Mode as SolcMode;
 
 ///
-/// The upstream Solidity compiler.
+/// The `solc` Solidity compiler.
 ///
 pub struct SolidityCompiler {
     /// The language the compiler will compile.
@@ -193,7 +193,7 @@ impl SolidityCompiler {
         language: SolcStandardJsonInputLanguage,
         toolchain: Toolchain,
         sources: &[(String, String)],
-        libraries: &era_solc::StandardJsonInputLibraries,
+        libraries: &era_compiler_common::Libraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
@@ -276,7 +276,7 @@ impl SolidityCompiler {
         test_path: String,
         language: SolcStandardJsonInputLanguage,
         sources: &[(String, String)],
-        libraries: &era_solc::StandardJsonInputLibraries,
+        libraries: &era_compiler_common::Libraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
     ) -> anyhow::Result<SolcStandardJsonOutput> {
@@ -284,14 +284,14 @@ impl SolidityCompiler {
             Mode::Solc(mode) => CacheKey::new(
                 test_path,
                 mode.solc_version.to_owned(),
-                mode.solc_codegen,
+                Some(mode.solc_codegen),
                 mode.via_ir,
                 mode.solc_optimize,
             ),
             Mode::YulUpstream(mode) => CacheKey::new(
                 test_path,
                 mode.solc_version.to_owned(),
-                era_solc::StandardJsonInputCodegen::Yul,
+                Some(era_solc::StandardJsonInputCodegen::Yul),
                 true,
                 mode.solc_optimize,
             ),
@@ -420,7 +420,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -512,7 +512,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,

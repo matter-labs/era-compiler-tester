@@ -38,7 +38,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -87,7 +87,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        _libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -106,7 +106,7 @@ impl Compiler for LLVMCompiler {
                 .into_iter()
                 .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
-            era_solc::StandardJsonInputLibraries::default(),
+            era_compiler_common::Libraries::default(),
             None,
         )?;
 

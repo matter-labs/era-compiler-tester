@@ -11,7 +11,7 @@ use std::path::Path;
 
 use itertools::Itertools;
 
-use era_solc::CollectableError;
+use solx_solc::CollectableError;
 
 use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
@@ -27,7 +27,7 @@ use self::mode::Mode as SolxMode;
 ///
 pub struct SolidityCompiler {
     /// The `solc` process output cache.
-    cache: Cache<CacheKey, era_solc::StandardJsonOutput>,
+    cache: Cache<CacheKey, solx_solc::StandardJsonOutput>,
 }
 
 lazy_static::lazy_static! {
@@ -38,19 +38,17 @@ lazy_static::lazy_static! {
     ///
     static ref MODES: Vec<Mode> = {
         let mut solc_codegen_versions = Vec::new();
-        for (codegen, via_ir) in [
-            (era_solc::StandardJsonInputCodegen::EVMLA, false),
-            (era_solc::StandardJsonInputCodegen::EVMLA, true),
-            (era_solc::StandardJsonInputCodegen::Yul, true),
+        for via_ir in [
+            false, true
         ] {
-            solc_codegen_versions.push((codegen, via_ir, solx_solc::SolcCompiler::default().version));
+            solc_codegen_versions.push((via_ir, solx_solc::Compiler::default().version.default));
         }
 
         era_compiler_llvm_context::OptimizerSettings::combinations()
             .into_iter()
             .cartesian_product(solc_codegen_versions)
             .map(
-                |(mut llvm_optimizer_settings, (codegen, via_ir, version))| {
+                |(mut llvm_optimizer_settings, (via_ir, version))| {
                     llvm_optimizer_settings.enable_fallback_to_size();
                     SolxMode::new(
                         version,
@@ -88,23 +86,15 @@ impl SolidityCompiler {
     ///
     fn standard_json_output(
         sources: &[(String, String)],
-        libraries: &era_solc::StandardJsonInputLibraries,
+        libraries: &era_compiler_common::Libraries,
         mode: &SolxMode,
-    ) -> anyhow::Result<era_solc::StandardJsonOutput> {
-        let mut output_selection = solx_solc::StandardJsonInputSelection::new(mode.solc_codegen);
-
-        let evm_version = if mode.solc_version >= era_solc::Compiler::FIRST_CANCUN_VERSION {
-            Some(era_compiler_common::EVMVersion::Cancun)
-        } else {
-            None
-        };
-
-        let sources: BTreeMap<String, era_solc::StandardJsonInputSource> = sources
+    ) -> anyhow::Result<solx_solc::StandardJsonOutput> {
+        let sources: BTreeMap<String, solx_solc::StandardJsonInputSource> = sources
             .iter()
             .map(|(path, source)| {
                 (
                     path.to_owned(),
-                    era_solc::StandardJsonInputSource::from(source.to_owned()),
+                    solx_solc::StandardJsonInputSource::from(source.to_owned()),
                 )
             })
             .collect();
@@ -113,16 +103,14 @@ impl SolidityCompiler {
             sources,
             libraries.to_owned(),
             BTreeSet::new(),
-            era_solc::StandardJsonInputOptimizer::default(),
-            Some(mode.solc_codegen),
-            evm_version,
-            mode.enable_eravm_extensions,
-            output_selection,
-            era_solc::StandardJsonInputMetadata::default(),
-            vec![],
+            solx_solc::StandardJsonInputOptimizer::default(),
+            None,
             mode.via_ir,
+            solx_solc::StandardJsonInputSelection::new(true, false, Some(mode.via_ir)),
+            solx_solc::StandardJsonInputMetadata::default(),
+            vec![],
         )
-        .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {}", error))?;
+        .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {error}"))?;
 
         let allow_paths = Path::new(Self::SOLC_ALLOW_PATHS)
             .canonicalize()
@@ -130,8 +118,7 @@ impl SolidityCompiler {
             .to_string_lossy()
             .to_string();
 
-        solx_solc::SolcCompiler::default().standard_json(
-            target,
+        solx_solc::Compiler::default().standard_json(
             &mut solc_input,
             &mut vec![],
             None,
@@ -147,9 +134,9 @@ impl SolidityCompiler {
         &self,
         test_path: String,
         sources: &[(String, String)],
-        libraries: &era_solc::StandardJsonInputLibraries,
+        libraries: &era_compiler_common::Libraries,
         mode: &SolxMode,
-    ) -> anyhow::Result<era_solc::StandardJsonOutput> {
+    ) -> anyhow::Result<solx_solc::StandardJsonOutput> {
         let cache_key = CacheKey::new(
             test_path,
             mode.solc_version.clone(),
@@ -171,7 +158,7 @@ impl SolidityCompiler {
     /// Get the method identifiers from the solc output.
     ///
     fn get_method_identifiers(
-        solc_output: &era_solc::StandardJsonOutput,
+        solc_output: &solx_solc::StandardJsonOutput,
     ) -> anyhow::Result<BTreeMap<String, BTreeMap<String, u32>>> {
         let mut method_identifiers = BTreeMap::new();
         for (path, file) in solc_output.contracts.iter() {
@@ -207,7 +194,7 @@ impl SolidityCompiler {
     /// Get the last contract from the solc output.
     ///
     fn get_last_contract(
-        solc_output: &era_solc::StandardJsonOutput,
+        solc_output: &solx_solc::StandardJsonOutput,
         sources: &[(String, String)],
     ) -> anyhow::Result<String> {
         for (path, _source) in sources.iter().rev() {
@@ -230,7 +217,7 @@ impl Compiler for SolidityCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        _libraries: era_compiler_common::Libraries,
         _mode: &Mode,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -242,7 +229,7 @@ impl Compiler for SolidityCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -269,6 +256,7 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_evm(
             &mut vec![],
+            true,
             era_compiler_common::HashType::Ipfs,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -280,7 +268,16 @@ impl Compiler for SolidityCompiler {
         let builds: HashMap<String, Vec<u8>> = build
             .results
             .into_iter()
-            .map(|(path, result)| (path, result.expect("Always valid").deploy_object.bytecode))
+            .map(|(path, result)| {
+                (
+                    path,
+                    result
+                        .expect("Always valid")
+                        .deploy_object
+                        .expect("Always exists")
+                        .bytecode,
+                )
+            })
             .collect();
 
         Ok(EVMInput::new(

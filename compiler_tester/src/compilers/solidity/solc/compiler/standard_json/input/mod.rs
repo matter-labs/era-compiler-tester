@@ -45,7 +45,7 @@ impl Input {
         language: Language,
         evm_version: Option<era_compiler_common::EVMVersion>,
         sources: BTreeMap<String, String>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         remappings: Option<BTreeSet<String>>,
         output_selection: SolcStandardJsonInputSelection,
         via_ir: bool,
