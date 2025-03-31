@@ -1153,7 +1153,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#1935a0bc56ab905c59cdc0bf5c2eaa77098477fe"
+source = "git+https://github.com/s3bc40/era-compiler-vyper?branch=feat%2Fadd-support-vyper-0-4-1#73eb55bcb5add030f9e99f0815cc1190a236753f"
 dependencies = [
  "anyhow",
  "boolinator",
