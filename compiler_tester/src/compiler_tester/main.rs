@@ -75,6 +75,13 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 .unwrap_or_else(|| PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
         )
         .expect("Always valid");
+    solx::EXECUTABLE
+        .set(
+            arguments
+                .solx
+                .unwrap_or_else(|| PathBuf::from(solx::DEFAULT_EXECUTABLE_NAME)),
+        )
+        .expect("Always valid");
 
     let debug_config = if arguments.debug {
         std::fs::create_dir_all(compiler_tester::DEBUG_DIRECTORY)?;
@@ -262,24 +269,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     Ok(())
 }
 
-///
-/// Reads the benchmarking context from a JSON file and validates its correctness.
-/// Benchmarking context provides additional information about benchmarking that
-/// will be used to generate a report.
-///
-/// # Errors
-///
-/// This function will return an error if
-/// - file can't be read,
-/// - deserialization from JSON file failed,
-/// - the context validation failed.
-fn read_context(path: PathBuf) -> anyhow::Result<benchmark_analyzer::BenchmarkContext> {
-    let contents = std::fs::read_to_string(path)?;
-    let context: benchmark_analyzer::BenchmarkContext = serde_json::de::from_str(&contents)?;
-    benchmark_analyzer::validate_context(&context)?;
-    Ok(context)
-}
-
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -294,7 +283,7 @@ mod tests {
             verbose: false,
             quiet: false,
             debug: false,
-            mode: vec!["Y+M3B3 0.8.28".to_owned()],
+            mode: vec!["Y+M3B3 0.8.29".to_owned()],
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
@@ -308,8 +297,9 @@ mod tests {
                 era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
             )),
             zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+            solx: Some(PathBuf::from(solx::DEFAULT_EXECUTABLE_NAME)),
             toolchain: Some(compiler_tester::Toolchain::IrLLVM),
-            target: era_compiler_common::Target::EraVM,
+            target: era_compiler_common::Target::EVM,
             environment: None,
             workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),

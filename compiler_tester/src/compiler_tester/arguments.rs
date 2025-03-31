@@ -76,6 +76,11 @@ pub struct Arguments {
     #[structopt(long)]
     pub zkvyper: Option<PathBuf>,
 
+    /// Path to the `solx` executable.
+    /// Is set to `solx` by default.
+    #[structopt(long)]
+    pub solx: Option<PathBuf>,
+
     /// Specify the compiler toolchain.
     /// Available arguments: `ir-llvm`, `solc`, `solc-llvm`.
     /// The default for `EraVM` target is `ir-llvm`.
