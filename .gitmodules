@@ -1,7 +1,7 @@
 [submodule "tests"]
     path = tests
-    url = https://github.com/matter-labs/era-compiler-tests
-    branch = main
+    url = https://github.com/s3bc40/era-compiler-tests
+    branch = feat/vyper-0-4-1-changes
 [submodule "solidity"]
     path = solidity
     url = https://github.com/ethereum/solidity
