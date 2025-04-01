@@ -888,7 +888,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18e4fdb82bd54a12e42fb58a800dcae6b9e13982238ce2296dc3570b92148e1f"
 dependencies = [
  "data-encoding",
- "syn 2.0.100",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -1213,7 +1213,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33d852cb9b869c2a9b3df2f71a3074817f01e1844f839a144f5fcef059a4eb5d"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2726,7 +2726,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3127,7 +3127,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3140,7 +3140,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.9.3",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3532,7 +3532,7 @@ dependencies = [
 [[package]]
 name = "solx"
 version = "1.0.0"
-source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#6d0b6a06af9348d1ec11169a879c9606d30880bb"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#66464008733963345b4c76b3aee65d0548c202ef"
 dependencies = [
  "anyhow",
  "clap",
@@ -3555,7 +3555,7 @@ dependencies = [
 [[package]]
 name = "solx-solc"
 version = "1.0.0"
-source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#6d0b6a06af9348d1ec11169a879c9606d30880bb"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#66464008733963345b4c76b3aee65d0548c202ef"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3572,7 +3572,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "1.0.0"
-source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#6d0b6a06af9348d1ec11169a879c9606d30880bb"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#66464008733963345b4c76b3aee65d0548c202ef"
 dependencies = [
  "anyhow",
  "serde",
@@ -3611,7 +3611,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3724,7 +3724,7 @@ dependencies = [
  "getrandom 0.3.2",
  "once_cell",
  "rustix 1.0.3",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

@@ -21,7 +21,6 @@ pub use crate::model::benchmark::test::selector::Selector as TestSelector;
 pub use crate::model::benchmark::test::Test;
 pub use crate::model::benchmark::write_to_file;
 pub use crate::model::benchmark::Benchmark;
-pub use crate::model::context::validate_context;
 pub use crate::model::context::Context as BenchmarkContext;
 
 // Metadata for various parts of the model
