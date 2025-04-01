@@ -29,26 +29,6 @@ pub struct VyperCompiler {
     cache: Cache<CacheKey, era_compiler_vyper::Project>,
 }
 
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    static ref MODES: Vec<Mode> = {
-        let vyper_versions = VyperCompiler::all_versions().expect("`vyper` versions analysis error");
-
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .cartesian_product(vyper_versions)
-            .cartesian_product(vec![false, true])
-            .map(
-                |((llvm_optimizer_settings, vyper_version), vyper_optimize)| {
-                    VyperMode::new(vyper_version, vyper_optimize, llvm_optimizer_settings).into()
-                },
-            )
-            .collect::<Vec<Mode>>()
-    };
-}
-
 impl Default for VyperCompiler {
     fn default() -> Self {
         Self::new()
@@ -268,11 +248,23 @@ impl Compiler for VyperCompiler {
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        todo!()
+        anyhow::bail!("Vyper cannot be compiled to EVM");
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        let vyper_versions =
+            VyperCompiler::all_versions().expect("`vyper` versions analysis error");
+
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .cartesian_product(vyper_versions)
+            .cartesian_product(vec![false, true])
+            .map(
+                |((llvm_optimizer_settings, vyper_version), vyper_optimize)| {
+                    VyperMode::new(vyper_version, vyper_optimize, llvm_optimizer_settings).into()
+                },
+            )
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {

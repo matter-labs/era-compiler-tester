@@ -19,19 +19,7 @@ use self::mode::Mode as LLVMMode;
 /// The LLVM compiler.
 ///
 #[derive(Default)]
-pub struct LLVMCompiler;
-
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    static ref MODES: Vec<Mode> = {
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .map(|llvm_optimizer_settings| LLVMMode::new(llvm_optimizer_settings).into())
-            .collect::<Vec<Mode>>()
-    };
-}
+pub struct LLVMCompiler {}
 
 impl Compiler for LLVMCompiler {
     fn compile_for_eravm(
@@ -127,8 +115,11 @@ impl Compiler for LLVMCompiler {
         Ok(EVMInput::new(builds, None, last_contract))
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .map(|llvm_optimizer_settings| LLVMMode::new(llvm_optimizer_settings).into())
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {

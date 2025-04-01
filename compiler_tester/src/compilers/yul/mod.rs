@@ -5,14 +5,18 @@
 pub mod mode;
 pub mod mode_upstream;
 
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use era_solc::CollectableError as ZksolcCollectableError;
-use solx_solc::CollectableError as SolxCollectableError;
+use solx_standard_json::CollectableError as SolxCollectableError;
 
 use crate::compilers::mode::Mode;
 use crate::compilers::solidity::solc::compiler::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
 use crate::compilers::solidity::solc::SolidityCompiler as SolcCompiler;
+use crate::compilers::solidity::solx::SolidityCompiler as SolxCompiler;
 use crate::compilers::solidity::zksolc::SolidityCompiler as ZksolcCompiler;
 use crate::compilers::Compiler;
 use crate::toolchain::Toolchain;
@@ -24,30 +28,15 @@ use self::mode::Mode as YulMode;
 ///
 /// The Yul compiler.
 ///
-pub struct YulCompiler {
-    /// The compiler toolchain to use.
-    toolchain: Toolchain,
-}
-
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    static ref MODES: Vec<Mode> = {
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .map(|llvm_optimizer_settings| YulMode::new(llvm_optimizer_settings, false).into())
-            .collect::<Vec<Mode>>()
-    };
-}
-
-impl YulCompiler {
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new(toolchain: Toolchain) -> Self {
-        Self { toolchain }
-    }
+pub enum YulCompiler {
+    /// `zksolc` toolchain.
+    Zksolc,
+    /// `solx` toolchain.
+    Solx(Arc<SolxCompiler>),
+    /// `solc` toolchain.
+    Solc,
+    /// `solc-llvm` toolchain.
+    SolcLLVM,
 }
 
 impl Compiler for YulCompiler {
@@ -135,11 +124,133 @@ impl Compiler for YulCompiler {
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        match self.toolchain {
-            Toolchain::Solc | Toolchain::SolcLLVM => {
+        match self {
+            Self::Zksolc => {
+                let mode = YulMode::unwrap(mode);
+
+                let solc_version = era_solc::Version::new(
+                    era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
+                    era_solc::Compiler::LAST_SUPPORTED_VERSION,
+                    ZksolcCompiler::LAST_ZKSYNC_SOLC_REVISION,
+                );
+
+                let last_contract = sources
+                    .last()
+                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
+                    .0
+                    .clone();
+
+                let linker_symbols = libraries.as_linker_symbols()?;
+
+                let sources = sources
+                    .into_iter()
+                    .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
+                    .collect();
+
+                let project = era_compiler_solidity::Project::try_from_yul_sources(
+                    sources,
+                    libraries,
+                    None,
+                    Some(&solc_version),
+                    debug_config.as_ref(),
+                )?;
+
+                let build = project.compile_to_evm(
+                    &mut vec![],
+                    era_compiler_common::HashType::Ipfs,
+                    mode.llvm_optimizer_settings.to_owned(),
+                    llvm_options,
+                    debug_config,
+                )?;
+                build.check_errors()?;
+                let build = build.link(linker_symbols);
+                build.check_errors()?;
+                let builds = build
+                    .results
+                    .into_values()
+                    .map(|result| {
+                        let contract = result.expect("Always valid");
+                        Ok((contract.name.path, contract.deploy_object.bytecode))
+                    })
+                    .collect::<anyhow::Result<HashMap<String, Vec<u8>>>>()?;
+
+                Ok(EVMInput::new(builds, None, last_contract))
+            }
+            Self::Solx(solx) => {
+                let mode = YulMode::unwrap(mode);
+
+                let last_contract = sources
+                    .last()
+                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
+                    .0
+                    .clone();
+
+                let sources: BTreeMap<String, solx_standard_json::InputSource> = sources
+                    .iter()
+                    .map(|(path, source)| {
+                        (
+                            path.to_owned(),
+                            solx_standard_json::InputSource::from(source.to_owned()),
+                        )
+                    })
+                    .collect();
+
+                let mut selectors = BTreeSet::new();
+                selectors.insert(solx_standard_json::InputSelector::BytecodeObject);
+                selectors.insert(solx_standard_json::InputSelector::RuntimeBytecodeObject);
+                selectors.insert(solx_standard_json::InputSelector::AST);
+                selectors.insert(solx_standard_json::InputSelector::MethodIdentifiers);
+                selectors.insert(solx_standard_json::InputSelector::Metadata);
+                selectors.insert(solx_standard_json::InputSelector::Yul);
+                let solx_input = solx_standard_json::Input::from_yul_sources(
+                    sources,
+                    libraries.to_owned(),
+                    solx_standard_json::InputOptimizer::new(
+                        mode.llvm_optimizer_settings.middle_end_as_char(),
+                        mode.llvm_optimizer_settings.is_fallback_to_size_enabled,
+                    ),
+                    solx_standard_json::InputSelection::new(selectors),
+                    solx_standard_json::InputMetadata::default(),
+                    vec![],
+                );
+
+                let solx_output = solx.standard_json(
+                    solx_input,
+                    &[],
+                    debug_config
+                        .as_ref()
+                        .map(|debug_config| debug_config.output_directory.as_path()),
+                )?;
+                solx_output.check_errors()?;
+
+                let mut builds = HashMap::with_capacity(solx_output.contracts.len());
+                for (file, contracts) in solx_output.contracts.into_iter() {
+                    for (name, contract) in contracts.into_iter() {
+                        let path = format!("{file}:{name}");
+                        let bytecode_string = contract
+                            .evm
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                            })?
+                            .bytecode
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                            })?
+                            .object
+                            .as_str();
+                        let build = hex::decode(bytecode_string).expect("Always valid");
+                        builds.insert(path, build);
+                    }
+                }
+
+                Ok(EVMInput::new(builds, None, last_contract))
+            }
+            Self::Solc | Self::SolcLLVM => {
                 let language = SolcStandardJsonInputLanguage::Yul;
 
-                let solc_compiler = SolcCompiler::new(language, self.toolchain);
+                let solc_compiler = SolcCompiler::new(language, Toolchain::from(self));
 
                 let solc_output = solc_compiler.standard_json_output_cached(
                     test_path,
@@ -200,114 +311,28 @@ impl Compiler for YulCompiler {
 
                 Ok(EVMInput::new(builds, None, last_contract))
             }
-            Toolchain::IrLLVM => {
-                let mode = YulMode::unwrap(mode);
-
-                let last_contract = sources
-                    .last()
-                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
-                    .0
-                    .clone();
-
-                let linker_symbols = libraries.as_linker_symbols()?;
-
-                let sources = sources
-                    .into_iter()
-                    .map(|(path, source)| (path, solx_solc::StandardJsonInputSource::from(source)))
-                    .collect();
-
-                let project = solx::Project::try_from_yul_sources(
-                    sources,
-                    libraries,
-                    solx_solc::StandardJsonInputSelection::new(true, false, Some(true)),
-                    None,
-                    debug_config.as_ref(),
-                )?;
-
-                let build = project.compile_to_evm(
-                    &mut vec![],
-                    true,
-                    era_compiler_common::HashType::Ipfs,
-                    mode.llvm_optimizer_settings.to_owned(),
-                    llvm_options,
-                    debug_config,
-                )?;
-                build.check_errors()?;
-                let build = build.link(linker_symbols);
-                build.check_errors()?;
-                let builds = build
-                    .results
-                    .into_values()
-                    .map(|result| {
-                        let contract = result.expect("Always valid");
-                        Ok((
-                            contract.name.path,
-                            contract.deploy_object.expect("Always exists").bytecode,
-                        ))
-                    })
-                    .collect::<anyhow::Result<HashMap<String, Vec<u8>>>>()?;
-
-                Ok(EVMInput::new(builds, None, last_contract))
-            }
-            Toolchain::Zksolc => {
-                let mode = YulMode::unwrap(mode);
-
-                let solc_version = era_solc::Version::new(
-                    era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
-                    era_solc::Compiler::LAST_SUPPORTED_VERSION,
-                    ZksolcCompiler::LAST_ZKSYNC_SOLC_REVISION,
-                );
-
-                let last_contract = sources
-                    .last()
-                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
-                    .0
-                    .clone();
-
-                let linker_symbols = libraries.as_linker_symbols()?;
-
-                let sources = sources
-                    .into_iter()
-                    .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
-                    .collect();
-
-                let project = era_compiler_solidity::Project::try_from_yul_sources(
-                    sources,
-                    libraries,
-                    None,
-                    Some(&solc_version),
-                    debug_config.as_ref(),
-                )?;
-
-                let build = project.compile_to_evm(
-                    &mut vec![],
-                    era_compiler_common::HashType::Ipfs,
-                    mode.llvm_optimizer_settings.to_owned(),
-                    llvm_options,
-                    debug_config,
-                )?;
-                build.check_errors()?;
-                let build = build.link(linker_symbols);
-                build.check_errors()?;
-                let builds = build
-                    .results
-                    .into_values()
-                    .map(|result| {
-                        let contract = result.expect("Always valid");
-                        Ok((contract.name.path, contract.deploy_object.bytecode))
-                    })
-                    .collect::<anyhow::Result<HashMap<String, Vec<u8>>>>()?;
-
-                Ok(EVMInput::new(builds, None, last_contract))
-            }
         }
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .map(|llvm_optimizer_settings| YulMode::new(llvm_optimizer_settings, false).into())
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {
         false
+    }
+}
+
+impl From<&YulCompiler> for Toolchain {
+    fn from(value: &YulCompiler) -> Self {
+        match value {
+            YulCompiler::Solc => Self::Solc,
+            YulCompiler::Zksolc => Self::Zksolc,
+            YulCompiler::Solx { .. } => Self::IrLLVM,
+            YulCompiler::SolcLLVM => Self::SolcLLVM,
+        }
     }
 }

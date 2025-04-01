@@ -1,5 +1,5 @@
 //!
-//! The EraVM compiler.
+//! The EraVM assmebly compiler.
 //!
 
 pub mod mode;
@@ -16,12 +16,12 @@ use crate::vm::revm::input::Input as EVMInput;
 use self::mode::Mode as EraVMMode;
 
 ///
-/// The EraVM compiler.
+/// The EraVM assembly compiler.
 ///
 #[derive(Default)]
-pub struct EraVMCompiler;
+pub struct EraVMAssemblyCompiler {}
 
-impl Compiler for EraVMCompiler {
+impl Compiler for EraVMAssemblyCompiler {
     fn compile_for_eravm(
         &self,
         _test_path: String,
@@ -79,7 +79,7 @@ impl Compiler for EraVMCompiler {
         anyhow::bail!("EraVM assembly cannot be compiled to EVM");
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
+    fn all_modes(&self, _target: era_compiler_common::Target) -> Vec<Mode> {
         vec![EraVMMode::default().into()]
     }
 

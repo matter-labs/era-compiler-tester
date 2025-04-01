@@ -10,7 +10,7 @@ use std::fmt::Display;
 
 use imode::{mode_to_string_aux, IMode};
 
-use crate::compilers::eravm::mode::Mode as EraVMMode;
+use crate::compilers::eravm_assembly::mode::Mode as EraVMMode;
 use crate::compilers::llvm::mode::Mode as LLVMMode;
 use crate::compilers::solidity::solc::mode::Mode as SolcMode;
 use crate::compilers::solidity::solx::mode::Mode as SolxMode;

@@ -75,9 +75,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                 .unwrap_or_else(|| PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
         )
         .expect("Always valid");
-    solx::EXECUTABLE
-        .set(arguments.solx.unwrap_or_else(|| PathBuf::from("solx")))
-        .expect("Always valid");
 
     let debug_config = if arguments.debug {
         std::fs::create_dir_all(compiler_tester::DEBUG_DIRECTORY)?;
@@ -107,7 +104,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             Some(environment @ compiler_tester::Environment::ZkEVM),
         ) => environment,
         (era_compiler_common::Target::EraVM, Some(compiler_tester::Environment::FastVM)) => {
-            todo!("FastVM is implemented as a crate feature")
+            anyhow::bail!("FastVM is not supported yet");
         }
         (era_compiler_common::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
         (
@@ -196,7 +193,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm, toolchain),
             }
         }
-        compiler_tester::Environment::FastVM => todo!(),
+        compiler_tester::Environment::FastVM => anyhow::bail!("FastVM is not supported yet"),
         compiler_tester::Environment::EVMInterpreter => {
             let system_contract_debug_config = if arguments.dump_system {
                 debug_config
@@ -214,12 +211,14 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
             compiler_tester
                 .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, true>(
-                    vm, toolchain,
+                    vm,
+                    toolchain,
+                    arguments.solx,
                 )
         }
         compiler_tester::Environment::REVM => {
             compiler_tester::REVM::download(executable_download_config_paths)?;
-            compiler_tester.run_revm(toolchain)
+            compiler_tester.run_revm(toolchain, arguments.solx)
         }
     }?;
 
@@ -295,7 +294,7 @@ mod tests {
                 era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
             )),
             zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
-            solx: Some(PathBuf::from(solx::DEFAULT_EXECUTABLE_NAME)),
+            solx: None,
             toolchain: Some(compiler_tester::Toolchain::IrLLVM),
             target: era_compiler_common::Target::EVM,
             environment: None,

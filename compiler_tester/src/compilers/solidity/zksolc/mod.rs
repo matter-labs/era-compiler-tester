@@ -30,45 +30,6 @@ pub struct SolidityCompiler {
     cache: Cache<CacheKey, era_solc::StandardJsonOutput>,
 }
 
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    /// All compilers must be downloaded before initialization.
-    ///
-    static ref MODES: Vec<Mode> = {
-        let mut solc_codegen_versions = Vec::new();
-        for (codegen, via_ir) in [
-            (era_solc::StandardJsonInputCodegen::EVMLA, false),
-            (era_solc::StandardJsonInputCodegen::EVMLA, true),
-            (era_solc::StandardJsonInputCodegen::Yul, true),
-        ] {
-            for version in SolidityCompiler::all_versions(codegen, via_ir).expect("`solc` versions analysis error") {
-                solc_codegen_versions.push((codegen, via_ir, version));
-            }
-        }
-
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .cartesian_product(solc_codegen_versions)
-            .map(
-                |(mut llvm_optimizer_settings, (codegen, via_ir, version))| {
-                    llvm_optimizer_settings.enable_fallback_to_size();
-                    ZksolcMode::new(
-                        version,
-                        codegen,
-                        via_ir,
-                        llvm_optimizer_settings,
-                        false,
-                        false,
-                    )
-                    .into()
-                },
-            )
-            .collect::<Vec<Mode>>()
-    };
-}
-
 impl Default for SolidityCompiler {
     fn default() -> Self {
         Self::new()
@@ -467,8 +428,38 @@ impl Compiler for SolidityCompiler {
         ))
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        let mut solc_codegen_versions = Vec::new();
+        for (codegen, via_ir) in [
+            (era_solc::StandardJsonInputCodegen::EVMLA, false),
+            (era_solc::StandardJsonInputCodegen::EVMLA, true),
+            (era_solc::StandardJsonInputCodegen::Yul, true),
+        ] {
+            for version in SolidityCompiler::all_versions(codegen, via_ir)
+                .expect("`solc` versions analysis error")
+            {
+                solc_codegen_versions.push((codegen, via_ir, version));
+            }
+        }
+
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .cartesian_product(solc_codegen_versions)
+            .map(
+                |(mut llvm_optimizer_settings, (codegen, via_ir, version))| {
+                    llvm_optimizer_settings.enable_fallback_to_size();
+                    ZksolcMode::new(
+                        version,
+                        codegen,
+                        via_ir,
+                        llvm_optimizer_settings,
+                        false,
+                        false,
+                    )
+                    .into()
+                },
+            )
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {

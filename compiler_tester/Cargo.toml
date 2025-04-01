@@ -52,8 +52,7 @@ era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler
 era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "evm-llvmit-tests" }
 era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "evm-llvmit-tests" }
 era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "evm-llvmit-tests" }
-solx = { git = "https://github.com/matter-labs/solx", branch = "evm-llvmit-tests" }
-solx-solc = { git = "https://github.com/matter-labs/solx", branch = "evm-llvmit-tests" }
+solx-standard-json = { git = "https://github.com/matter-labs/solx", branch = "evm-llvmit-tests" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }

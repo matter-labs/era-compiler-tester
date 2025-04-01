@@ -583,7 +583,7 @@ impl Compiler for SolidityCompiler {
         Ok(EVMInput::new(builds, method_identifiers, last_contract))
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
+    fn all_modes(&self, _target: era_compiler_common::Target) -> Vec<Mode> {
         match (self.language, self.toolchain) {
             (SolcStandardJsonInputLanguage::Solidity, Toolchain::SolcLLVM) => {
                 SOLIDITY_MLIR_MODES.clone()

@@ -83,13 +83,12 @@ pub struct Arguments {
 
     /// Specify the compiler toolchain.
     /// Available arguments: `ir-llvm`, `solc`, `solc-llvm`.
-    /// The default for `EraVM` target is `ir-llvm`.
-    /// The default for `EVM` target is `solc`.
+    /// Is set to `ir-llvm` by default.
     #[structopt(long)]
     pub toolchain: Option<compiler_tester::Toolchain>,
 
     /// Specify the target architecture.
-    /// Available arguments: `eravm`, `evm`.
+    /// Available arguments: `evm`, `eravm`.
     #[structopt(long)]
     pub target: era_compiler_common::Target,
 
