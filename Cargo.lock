@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#e3aa4fbd5ddb1077b721a6df1be4a19897281ca9"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#93c4c7425d18c03a74b28ffbadd15958d577ea00"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -3531,7 +3531,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#b5a9131d555cd50a85da45cfc3757800d9bb79db"
+source = "git+https://github.com/matter-labs/solx?branch=main#3e48447edf9b237631849e3799188f3741387fe0"
 dependencies = [
  "anyhow",
  "era-compiler-common",
