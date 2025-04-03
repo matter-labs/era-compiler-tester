@@ -278,27 +278,18 @@ impl Compiler for SolidityCompiler {
 
         let last_contract = Self::get_last_contract(&solx_output, &sources)?;
 
-        let mut builds = HashMap::with_capacity(solx_output.contracts.len());
-        for (file, contracts) in solx_output.contracts.into_iter() {
-            for (name, contract) in contracts.into_iter() {
-                let path = format!("{file}:{name}");
-                let bytecode_string = contract
-                    .evm
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
-                    })?
-                    .bytecode
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
-                    })?
-                    .object
-                    .as_str();
-                let build = hex::decode(bytecode_string).expect("Always valid");
-                builds.insert(path, build);
-            }
-        }
+        let builds = solx_output
+            .contracts
+            .into_iter()
+            .flat_map(|(file, contracts)| {
+                contracts.into_iter().filter_map(move |(name, contract)| {
+                    let path = format!("{file}:{name}");
+                    let bytecode_string = contract.evm.as_ref()?.bytecode.as_ref()?.object.as_str();
+                    let build = hex::decode(bytecode_string).expect("Always valid");
+                    Some((path, build))
+                })
+            })
+            .collect::<HashMap<String, Vec<u8>>>();
 
         Ok(EVMInput::new(
             builds,

@@ -20,4 +20,4 @@ anyhow = "=1.0.89"
 serde = { version = "=1.0.210", features = [ "derive" ] }
 serde_yaml = "=0.9.34"
 
-era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "evm-llvmit-tests" }
+era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }

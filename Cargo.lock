@@ -434,7 +434,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "regex",
  "serde",
  "serde_json",
@@ -711,7 +711,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "era-compiler-downloader",
  "era-compiler-llvm-context",
  "era-compiler-solidity",
@@ -797,7 +797,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "clap",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "serde",
  "serde_yaml",
 ]
@@ -1085,22 +1085,6 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era-compiler-common"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests#698050e8a46040151b1b1d874044bcff616b8502"
-dependencies = [
- "anyhow",
- "base58",
- "hex",
- "ipfs-hasher",
- "serde",
- "serde_arrays",
- "serde_json",
- "serde_stacker",
- "sha3 0.10.8",
-]
-
-[[package]]
-name = "era-compiler-common"
-version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#8d33194da0c25b16edc09781103509af939d0a8a"
 dependencies = [
  "anyhow",
@@ -1117,7 +1101,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests#698050e8a46040151b1b1d874044bcff616b8502"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#8d33194da0c25b16edc09781103509af939d0a8a"
 dependencies = [
  "anyhow",
  "colored",
@@ -1130,10 +1114,10 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=evm-llvmit-tests#a08b81e9a81956ce857f3b2ae01589b00d24cfe4"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#58f13d13c5edabdfa0427d8c7201744cbf8dbcbe"
 dependencies = [
  "anyhow",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "inkwell",
  "itertools 0.13.0",
  "num",
@@ -1146,11 +1130,11 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-llvmit-tests#70a7e38f3fbdbe2d8672fe9f582abc07cf575bb9"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f421e7a456ba2bfb6f6ccd14b5168753c3b04006"
 dependencies = [
  "anyhow",
  "clap",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "era-compiler-llvm-context",
  "era-solc",
  "era-yul",
@@ -1171,12 +1155,12 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=evm-llvmit-tests#d43c06e1d9414c173ec8b66a1b7a045d2827f420"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#e3aa4fbd5ddb1077b721a6df1be4a19897281ca9"
 dependencies = [
  "anyhow",
  "boolinator",
  "clap",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "era-compiler-llvm-context",
  "hex",
  "inkwell",
@@ -1195,12 +1179,11 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-llvmit-tests#70a7e38f3fbdbe2d8672fe9f582abc07cf575bb9"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f421e7a456ba2bfb6f6ccd14b5168753c3b04006"
 dependencies = [
  "anyhow",
  "boolinator",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
- "era-compiler-llvm-context",
+ "era-compiler-common",
  "hex",
  "num",
  "rayon",
@@ -1213,7 +1196,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-llvmit-tests#70a7e38f3fbdbe2d8672fe9f582abc07cf575bb9"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f421e7a456ba2bfb6f6ccd14b5168753c3b04006"
 dependencies = [
  "anyhow",
  "regex",
@@ -2176,9 +2159,9 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "mimalloc"
-version = "0.1.43"
+version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68914350ae34959d83f732418d51e2427a794055d0b9529f48259ac07af65633"
+checksum = "03cb1f88093fe50061ca1195d336ffec131347c7b833db31f9ab62a2d1b7925f"
 dependencies = [
  "libmimalloc-sys",
 ]
@@ -3536,7 +3519,7 @@ dependencies = [
  "anyhow",
  "clap",
  "colored",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
+ "era-compiler-common",
  "md5",
  "regex",
  "semver 1.0.23",
@@ -3551,7 +3534,7 @@ version = "0.1.0-alpha.1"
 source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#5e2ada53179d7051a36ed70205db4d37f67cb7c0"
 dependencies = [
  "anyhow",
- "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=main)",
+ "era-compiler-common",
  "num",
  "rayon",
  "semver 1.0.23",
