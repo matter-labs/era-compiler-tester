@@ -434,7 +434,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "regex",
  "serde",
  "serde_json",
@@ -711,7 +711,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "era-compiler-downloader",
  "era-compiler-llvm-context",
  "era-compiler-solidity",
@@ -797,7 +797,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "clap",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "serde",
  "serde_yaml",
 ]
@@ -1099,6 +1099,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "era-compiler-common"
+version = "1.5.0"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#8d33194da0c25b16edc09781103509af939d0a8a"
+dependencies = [
+ "anyhow",
+ "base58",
+ "hex",
+ "ipfs-hasher",
+ "serde",
+ "serde_arrays",
+ "serde_json",
+ "serde_stacker",
+ "sha3 0.10.8",
+]
+
+[[package]]
 name = "era-compiler-downloader"
 version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests#698050e8a46040151b1b1d874044bcff616b8502"
@@ -1117,7 +1133,7 @@ version = "1.5.0"
 source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=evm-llvmit-tests#a08b81e9a81956ce857f3b2ae01589b00d24cfe4"
 dependencies = [
  "anyhow",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "inkwell",
  "itertools 0.13.0",
  "num",
@@ -1134,7 +1150,7 @@ source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-ll
 dependencies = [
  "anyhow",
  "clap",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "era-compiler-llvm-context",
  "era-solc",
  "era-yul",
@@ -1160,7 +1176,7 @@ dependencies = [
  "anyhow",
  "boolinator",
  "clap",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "era-compiler-llvm-context",
  "hex",
  "inkwell",
@@ -1183,7 +1199,7 @@ source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=evm-ll
 dependencies = [
  "anyhow",
  "boolinator",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "era-compiler-llvm-context",
  "hex",
  "num",
@@ -2080,9 +2096,9 @@ checksum = "8355be11b20d696c8f18f6cc018c4e372165b1fa8126cef092399c9951984ffa"
 
 [[package]]
 name = "libmimalloc-sys"
-version = "0.1.40"
+version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07d0e07885d6a754b9c7993f2625187ad694ee985d60f23355ff0e7077261502"
+checksum = "6b20daca3a4ac14dbdc753c5e90fc7b490a48a9131daed3c9a9ced7b2defd37b"
 dependencies = [
  "cc",
  "libc",
@@ -3520,7 +3536,7 @@ dependencies = [
  "anyhow",
  "clap",
  "colored",
- "era-compiler-common",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=evm-llvmit-tests)",
  "md5",
  "regex",
  "semver 1.0.23",
@@ -3532,11 +3548,10 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#82f6f32719d5fda802e2dc8b3e15ac1b00a054c8"
+source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#5e2ada53179d7051a36ed70205db4d37f67cb7c0"
 dependencies = [
  "anyhow",
- "era-compiler-common",
- "era-compiler-llvm-context",
+ "era-compiler-common 1.5.0 (git+https://github.com/matter-labs/era-compiler-common?branch=main)",
  "num",
  "rayon",
  "semver 1.0.23",
@@ -4656,15 +4671,15 @@ dependencies = [
 
 [[package]]
 name = "zk_evm_abstractions"
-version = "0.151.4"
+version = "0.151.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "138f54be34b1cc6742c43b6bdde876d7a03cbdabc033592d9dcf42b87027b75d"
+checksum = "c91ea662a71ec92c72f5d1628486d1e68c1a50fd13e07ef57dcd2a6d4161b68f"
 dependencies = [
  "anyhow",
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.151.4",
+ "zkevm_opcode_defs 0.151.5",
 ]
 
 [[package]]
@@ -4686,9 +4701,9 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "0.151.4"
+version = "0.151.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b423f91a70a87a6c7658da01398ebff72fd4ac36f555f745488097ebcc7f1159"
+checksum = "fb02c38d4486568f3ce4aed592a26139aa942eb3cef973a78cfc053cddc54d06"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4727,8 +4742,8 @@ source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.151.4",
- "zkevm_opcode_defs 0.151.4",
+ "zk_evm_abstractions 0.151.5",
+ "zkevm_opcode_defs 0.151.5",
  "zksync_vm2_interface",
 ]
 
