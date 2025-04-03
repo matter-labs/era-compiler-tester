@@ -3531,7 +3531,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=evm-llvmit-tests#5e2ada53179d7051a36ed70205db4d37f67cb7c0"
+source = "git+https://github.com/matter-labs/solx?branch=main#b5a9131d555cd50a85da45cfc3757800d9bb79db"
 dependencies = [
  "anyhow",
  "era-compiler-common",

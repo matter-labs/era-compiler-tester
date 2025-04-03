@@ -4,6 +4,7 @@
 
 pub mod mode;
 
+use core::option::Option::None;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
@@ -147,19 +148,18 @@ impl SolidityCompiler {
     fn get_method_identifiers(
         solc_output: &solx_standard_json::Output,
     ) -> anyhow::Result<BTreeMap<String, BTreeMap<String, u32>>> {
-        let mut method_identifiers = BTreeMap::new();
+        let mut selectors = BTreeMap::new();
         for (path, file) in solc_output.contracts.iter() {
             for (name, contract) in file.iter() {
-                let mut contract_identifiers = BTreeMap::new();
-                for (entry, selector) in contract
-                    .evm
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{path}:{name}` not found")
-                    })?
-                    .method_identifiers
-                    .iter()
-                {
+                let mut contract_selectors = BTreeMap::new();
+                let contract_method_identifiers =
+                    match contract.evm.as_ref().map(|evm| &evm.method_identifiers) {
+                        Some(method_identifiers) => method_identifiers,
+                        None => {
+                            continue;
+                        }
+                    };
+                for (entry, selector) in contract_method_identifiers.iter() {
                     let selector =
                         u32::from_str_radix(selector, era_compiler_common::BASE_HEXADECIMAL)
                             .map_err(|error| {
@@ -167,12 +167,12 @@ impl SolidityCompiler {
                                     "Invalid selector `{selector}` received from the Solidity compiler: {error}"
                                 )
                             })?;
-                    contract_identifiers.insert(entry.clone(), selector);
+                    contract_selectors.insert(entry.clone(), selector);
                 }
-                method_identifiers.insert(format!("{path}:{name}"), contract_identifiers);
+                selectors.insert(format!("{path}:{name}"), contract_selectors);
             }
         }
-        Ok(method_identifiers)
+        Ok(selectors)
     }
 
     ///
