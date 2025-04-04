@@ -85,7 +85,7 @@ impl Compiler for YulCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EraVMMetadataHashType::IPFS,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
@@ -99,14 +99,12 @@ impl Compiler for YulCompiler {
             .into_values()
             .map(|result| {
                 let contract = result.expect("Always valid");
-                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
+                let mut build = era_compiler_llvm_context::EraVMBuild::new(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash.ok_or_else(|| {
-                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
-                    })?,
-                    None,
+                    contract.build.metadata,
                     contract.build.assembly,
                 );
+                build.bytecode_hash = contract.build.bytecode_hash;
                 Ok((contract.name.path, build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
@@ -157,13 +155,16 @@ impl Compiler for YulCompiler {
 
                 let build = project.compile_to_evm(
                     &mut vec![],
-                    era_compiler_common::HashType::Ipfs,
+                    era_compiler_common::EVMMetadataHashType::IPFS,
                     mode.llvm_optimizer_settings.to_owned(),
                     llvm_options,
                     debug_config,
                 )?;
                 build.check_errors()?;
-                let build = build.link(linker_symbols);
+                let build = build.link(
+                    linker_symbols,
+                    vec![("solx".to_owned(), semver::Version::new(1, 0, 0))],
+                );
                 build.check_errors()?;
                 let builds = build
                     .results

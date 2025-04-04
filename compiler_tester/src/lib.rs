@@ -101,8 +101,10 @@ impl CompilerTester {
     /// The Yul simple tests directory.
     const YUL_SIMPLE: &'static str = "tests/yul";
 
-    /// The LLVM simple tests directory.
-    const LLVM_SIMPLE: &'static str = "tests/llvm";
+    /// The EraVM LLVM IR simple tests directory.
+    const LLVM_SIMPLE_ERAVM: &'static str = "tests/llvm/eravm";
+    /// The EVM LLVM IR simple tests directory.
+    const LLVM_SIMPLE_EVM: &'static str = "tests/llvm/evm";
 
     /// The EraVM simple tests directory.
     const ERAVM_SIMPLE: &'static str = "tests/eravm";
@@ -309,12 +311,20 @@ impl CompilerTester {
             yul_compiler,
         )?);
 
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            target,
-            PathBuf::from(Self::LLVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
-            era_compiler_common::EXTENSION_LLVM_SOURCE,
-            llvm_compiler,
-        )?);
+        tests.extend(
+            self.directory::<MatterLabsDirectory>(
+                target,
+                PathBuf::from(
+                    match target {
+                        era_compiler_common::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
+                        era_compiler_common::Target::EVM => Self::LLVM_SIMPLE_EVM,
+                    }
+                    .replace("/", std::path::MAIN_SEPARATOR_STR),
+                ),
+                era_compiler_common::EXTENSION_LLVM_SOURCE,
+                llvm_compiler,
+            )?,
+        );
 
         if let era_compiler_common::Target::EraVM = target {
             let vyper_compiler = Arc::new(VyperCompiler::new());
