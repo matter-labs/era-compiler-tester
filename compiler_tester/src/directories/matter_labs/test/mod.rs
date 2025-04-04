@@ -245,7 +245,7 @@ impl MatterLabsTest {
         &self,
         address_iterator: &mut API,
     ) -> (
-        era_solc::StandardJsonInputLibraries,
+        era_compiler_common::Libraries,
         BTreeMap<String, web3::types::Address>,
     )
     where

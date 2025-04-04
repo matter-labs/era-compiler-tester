@@ -29,26 +29,6 @@ pub struct VyperCompiler {
     cache: Cache<CacheKey, era_compiler_vyper::Project>,
 }
 
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    static ref MODES: Vec<Mode> = {
-        let vyper_versions = VyperCompiler::all_versions().expect("`vyper` versions analysis error");
-
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .cartesian_product(vyper_versions)
-            .cartesian_product(vec![false, true])
-            .map(
-                |((llvm_optimizer_settings, vyper_version), vyper_optimize)| {
-                    VyperMode::new(vyper_version, vyper_optimize, llvm_optimizer_settings).into()
-                },
-            )
-            .collect::<Vec<Mode>>()
-    };
-}
-
 impl Default for VyperCompiler {
     fn default() -> Self {
         Self::new()
@@ -197,7 +177,7 @@ impl Compiler for VyperCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -262,17 +242,29 @@ impl Compiler for VyperCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        _libraries: era_compiler_common::Libraries,
         _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        todo!()
+        anyhow::bail!("Vyper cannot be compiled to EVM");
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        let vyper_versions =
+            VyperCompiler::all_versions().expect("`vyper` versions analysis error");
+
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .cartesian_product(vyper_versions)
+            .cartesian_product(vec![false, true])
+            .map(
+                |((llvm_optimizer_settings, vyper_version), vyper_optimize)| {
+                    VyperMode::new(vyper_version, vyper_optimize, llvm_optimizer_settings).into()
+                },
+            )
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {

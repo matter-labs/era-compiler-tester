@@ -19,26 +19,14 @@ use self::mode::Mode as LLVMMode;
 /// The LLVM compiler.
 ///
 #[derive(Default)]
-pub struct LLVMCompiler;
-
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    static ref MODES: Vec<Mode> = {
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .map(|llvm_optimizer_settings| LLVMMode::new(llvm_optimizer_settings).into())
-            .collect::<Vec<Mode>>()
-    };
-}
+pub struct LLVMCompiler {}
 
 impl Compiler for LLVMCompiler {
     fn compile_for_eravm(
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -87,7 +75,7 @@ impl Compiler for LLVMCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        _libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -106,7 +94,7 @@ impl Compiler for LLVMCompiler {
                 .into_iter()
                 .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
                 .collect(),
-            era_solc::StandardJsonInputLibraries::default(),
+            era_compiler_common::Libraries::default(),
             None,
         )?;
 
@@ -127,8 +115,11 @@ impl Compiler for LLVMCompiler {
         Ok(EVMInput::new(builds, None, last_contract))
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .map(|llvm_optimizer_settings| LLVMMode::new(llvm_optimizer_settings).into())
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {

@@ -1,5 +1,5 @@
 //!
-//! The EraVM compiler.
+//! The EraVM assmebly compiler.
 //!
 
 pub mod mode;
@@ -16,17 +16,17 @@ use crate::vm::revm::input::Input as EVMInput;
 use self::mode::Mode as EraVMMode;
 
 ///
-/// The EraVM compiler.
+/// The EraVM assembly compiler.
 ///
 #[derive(Default)]
-pub struct EraVMCompiler;
+pub struct EraVMAssemblyCompiler {}
 
-impl Compiler for EraVMCompiler {
+impl Compiler for EraVMAssemblyCompiler {
     fn compile_for_eravm(
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         _mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -70,7 +70,7 @@ impl Compiler for EraVMCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        _libraries: era_compiler_common::Libraries,
         _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
@@ -79,7 +79,7 @@ impl Compiler for EraVMCompiler {
         anyhow::bail!("EraVM assembly cannot be compiled to EVM");
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
+    fn all_modes(&self, _target: era_compiler_common::Target) -> Vec<Mode> {
         vec![EraVMMode::default().into()]
     }
 

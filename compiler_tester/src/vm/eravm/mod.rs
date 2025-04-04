@@ -192,9 +192,7 @@ impl EraVM {
     }
 
     ///
-    /// Clones the VM instance from and adds known contracts for a single test run.
-    ///
-    /// TODO: make copyless when the VM supports it.
+    /// Clones the VM instance and adds known contracts for a single test run.
     ///
     pub fn clone_with_contracts(
         vm: Arc<Self>,

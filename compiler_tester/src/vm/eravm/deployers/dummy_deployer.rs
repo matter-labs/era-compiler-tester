@@ -105,7 +105,7 @@ impl EraVMDeployer for DummyDeployer {
         _value: Option<u128>,
         _vm: &mut EraVM,
     ) -> anyhow::Result<ExecutionResult> {
-        todo!()
+        panic!("EraVM deployer cannot deploy EVM bytecode");
     }
 }
 

@@ -8,8 +8,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
-use arguments::benchmark_format::BenchmarkFormat;
-use arguments::validation::validate_arguments;
 use clap::Parser;
 use colored::Colorize;
 
@@ -40,7 +38,7 @@ fn main() {
 /// The entry point wrapper used for proper error handling.
 ///
 fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
-    let arguments = validate_arguments(arguments)?;
+    let arguments = Arguments::validate(arguments)?;
     println!(
         "    {} {} v{} (LLVM build {})",
         "Starting".bright_green().bold(),
@@ -96,31 +94,17 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .build_global()
         .expect("Thread pool configuration failure");
 
-    let toolchain = match (arguments.target, arguments.toolchain) {
-        (era_compiler_common::Target::EraVM, Some(toolchain)) => toolchain,
-        (era_compiler_common::Target::EraVM, None) => compiler_tester::Toolchain::IrLLVM,
-        (era_compiler_common::Target::EVM, Some(toolchain)) => toolchain,
-        (era_compiler_common::Target::EVM, None) => compiler_tester::Toolchain::Solc,
-    };
-    let executable_download_config_paths = vec![
-        arguments.solc_bin_config_path.unwrap_or_else(|| {
-            PathBuf::from(match toolchain {
-                compiler_tester::Toolchain::IrLLVM => "./configs/solc-bin-default.json",
-                compiler_tester::Toolchain::Solc => "./configs/solc-bin-upstream.json",
-                compiler_tester::Toolchain::SolcLLVM => "./configs/solc-bin-llvm.json",
-            })
-        }),
-        arguments
-            .vyper_bin_config_path
-            .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
-    ];
-    let environment = match (arguments.target, arguments.environment) {
+    let target = arguments.target;
+    let toolchain = arguments
+        .toolchain
+        .unwrap_or(compiler_tester::Toolchain::IrLLVM);
+    let environment = match (target, arguments.environment) {
         (
             era_compiler_common::Target::EraVM,
             Some(environment @ compiler_tester::Environment::ZkEVM),
         ) => environment,
         (era_compiler_common::Target::EraVM, Some(compiler_tester::Environment::FastVM)) => {
-            todo!("FastVM is implemented as a crate feature")
+            anyhow::bail!("FastVM is not supported yet");
         }
         (era_compiler_common::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
         (
@@ -136,6 +120,26 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),
     };
+
+    let mut executable_download_config_paths = Vec::with_capacity(2);
+    if let Some(path) = match (target, toolchain) {
+        (era_compiler_common::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
+        (era_compiler_common::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
+            Some("./configs/solc-bin-default.json")
+        }
+        (_, compiler_tester::Toolchain::Zksolc) => Some("./configs/solc-bin-default.json"),
+        (_, compiler_tester::Toolchain::Solc) => Some("./configs/solc-bin-upstream.json"),
+        (_, compiler_tester::Toolchain::SolcLLVM) => Some("./configs/solc-bin-llvm.json"),
+    }
+    .map(PathBuf::from)
+    {
+        executable_download_config_paths.push(path);
+    }
+    executable_download_config_paths.push(
+        arguments
+            .vyper_bin_config_path
+            .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
+    );
 
     let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet)
         .start_timer()?
@@ -189,7 +193,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm, toolchain),
             }
         }
-        compiler_tester::Environment::FastVM => todo!(),
+        compiler_tester::Environment::FastVM => anyhow::bail!("FastVM is not supported yet"),
         compiler_tester::Environment::EVMInterpreter => {
             let system_contract_debug_config = if arguments.dump_system {
                 debug_config
@@ -207,12 +211,14 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
             compiler_tester
                 .run_evm_interpreter::<compiler_tester::EraVMSystemContractDeployer, true>(
-                    vm, toolchain,
+                    vm,
+                    toolchain,
+                    arguments.solx,
                 )
         }
         compiler_tester::Environment::REVM => {
             compiler_tester::REVM::download(executable_download_config_paths)?;
-            compiler_tester.run_revm(toolchain)
+            compiler_tester.run_revm(toolchain, arguments.solx)
         }
     }?;
 
@@ -227,23 +233,25 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let context = if let Some(context_path) = arguments.benchmark_context {
-            Some(read_context(context_path)?)
+            Some(benchmark_analyzer::BenchmarkContext::try_from_path(
+                context_path,
+            )?)
         } else {
             None
         };
         let benchmark = summary.benchmark(toolchain, context)?;
         match arguments.benchmark_format {
-            BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
+            compiler_tester::BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
                 &benchmark,
                 path,
                 benchmark_analyzer::JsonNativeSerializer,
             )?,
-            BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
+            compiler_tester::BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
                 &benchmark,
                 path,
                 benchmark_analyzer::CsvSerializer,
             )?,
-            BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
+            compiler_tester::BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
                 &benchmark,
                 path,
                 benchmark_analyzer::JsonLNTSerializer,
@@ -256,24 +264,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     }
 
     Ok(())
-}
-
-///
-/// Reads the benchmarking context from a JSON file and validates its correctness.
-/// Benchmarking context provides additional information about benchmarking that
-/// will be used to generate a report.
-///
-/// # Errors
-///
-/// This function will return an error if
-/// - file can't be read,
-/// - deserialization from JSON file failed,
-/// - the context validation failed.
-fn read_context(path: PathBuf) -> anyhow::Result<benchmark_analyzer::BenchmarkContext> {
-    let contents = std::fs::read_to_string(path)?;
-    let context: benchmark_analyzer::BenchmarkContext = serde_json::de::from_str(&contents)?;
-    benchmark_analyzer::validate_context(&context)?;
-    Ok(context)
 }
 
 #[cfg(test)]
@@ -290,11 +280,11 @@ mod tests {
             verbose: false,
             quiet: false,
             debug: false,
-            mode: vec!["Y+M3B3 0.8.28".to_owned()],
+            mode: vec!["Y+M3B3 0.8.29".to_owned()],
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
-            benchmark_format: crate::BenchmarkFormat::Json,
+            benchmark_format: compiler_tester::BenchmarkFormat::Json,
             benchmark_context: None,
             threads: Some(1),
             dump_system: false,
@@ -304,8 +294,9 @@ mod tests {
                 era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
             )),
             zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
+            solx: None,
             toolchain: Some(compiler_tester::Toolchain::IrLLVM),
-            target: era_compiler_common::Target::EraVM,
+            target: era_compiler_common::Target::EVM,
             environment: None,
             workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),

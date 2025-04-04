@@ -2,10 +2,10 @@
 //! The Solidity tests file system entity.
 //!
 
-mod changes;
-mod directory;
+pub mod changes;
+pub mod directory;
 pub mod enabled;
-mod test_file;
+pub mod test_file;
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -109,13 +109,9 @@ impl FSEntity {
         for path_part in path.iter() {
             match current_entity {
                 FSEntity::Directory(mut directory) => {
-                    current_entity = match directory
+                    current_entity = directory
                         .entries
-                        .remove(path_part.to_string_lossy().as_ref())
-                    {
-                        Some(entity) => entity,
-                        None => return None,
-                    }
+                        .remove(path_part.to_string_lossy().as_ref())?;
                 }
                 FSEntity::File(_) => return None,
             }

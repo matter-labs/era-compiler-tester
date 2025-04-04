@@ -10,12 +10,11 @@ use std::time::Instant;
 use colored::Colorize;
 
 use crate::compilers::mode::Mode;
-use crate::compilers::solidity::mode::Mode as SolidityMode;
-use crate::compilers::solidity::SolidityCompiler;
+use crate::compilers::solidity::zksolc::mode::Mode as ZksolcMode;
+use crate::compilers::solidity::zksolc::SolidityCompiler as ZksolcCompiler;
 use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::YulCompiler;
 use crate::compilers::Compiler;
-use crate::toolchain::Toolchain;
 
 /// The EVMGasManager system contract address.
 pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
@@ -320,7 +319,7 @@ impl SystemContracts {
         .map(|option| option.to_owned())
         .collect();
         let mut builds = Self::compile(
-            YulCompiler::new(Toolchain::IrLLVM),
+            YulCompiler::Zksolc,
             yul_file_paths,
             &yul_mode,
             yul_llvm_options,
@@ -348,10 +347,9 @@ impl SystemContracts {
         }
 
         let solidity_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::cycles();
-        let solidity_mode = SolidityMode::new(
+        let solidity_mode = ZksolcMode::new(
             solc_version,
             era_solc::StandardJsonInputCodegen::Yul,
-            true,
             true,
             solidity_optimizer_settings,
             true,
@@ -359,7 +357,7 @@ impl SystemContracts {
         )
         .into();
         builds.extend(Self::compile(
-            SolidityCompiler::new(),
+            ZksolcCompiler::new(),
             solidity_file_paths,
             &solidity_mode,
             vec![],
@@ -499,7 +497,7 @@ impl SystemContracts {
             .compile_for_eravm(
                 "system-contracts".to_owned(),
                 sources,
-                era_solc::StandardJsonInputLibraries::default(),
+                era_compiler_common::Libraries::default(),
                 mode,
                 llvm_options,
                 debug_config,
