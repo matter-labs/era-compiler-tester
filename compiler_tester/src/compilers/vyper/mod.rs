@@ -208,7 +208,8 @@ impl Compiler for VyperCompiler {
 
         let mut build = project.compile(
             None,
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EraVMMetadataHashType::IPFS,
+            false,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             vec![],
@@ -219,14 +220,12 @@ impl Compiler for VyperCompiler {
             .contracts
             .into_iter()
             .map(|(path, contract)| {
-                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
+                let mut build = era_compiler_llvm_context::EraVMBuild::new(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash.ok_or_else(|| {
-                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
-                    })?,
-                    None,
+                    contract.build.metadata,
                     contract.build.assembly,
                 );
+                build.bytecode_hash = contract.build.bytecode_hash;
                 Ok((path, build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;

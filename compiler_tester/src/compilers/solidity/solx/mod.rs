@@ -59,8 +59,10 @@ impl SolidityCompiler {
         command.stdout(std::process::Stdio::piped());
         command.stderr(std::process::Stdio::piped());
         command.arg("--standard-json");
-        command.arg("--allow-paths");
-        command.args(allow_paths);
+        if !allow_paths.is_empty() {
+            command.arg("--allow-paths");
+            command.args(allow_paths);
+        }
         if let Some(debug_output_directory) = debug_output_directory {
             command.arg("--debug-output-dir");
             command.args(debug_output_directory);

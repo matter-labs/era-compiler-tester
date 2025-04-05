@@ -101,8 +101,10 @@ impl CompilerTester {
     /// The Yul simple tests directory.
     const YUL_SIMPLE: &'static str = "tests/yul";
 
-    /// The LLVM simple tests directory.
-    const LLVM_SIMPLE: &'static str = "tests/llvm";
+    /// The EraVM LLVM IR simple tests directory.
+    const LLVM_SIMPLE_ERAVM: &'static str = "tests/llvm/eravm";
+    /// The EVM LLVM IR simple tests directory.
+    const LLVM_SIMPLE_EVM: &'static str = "tests/llvm/evm";
 
     /// The EraVM simple tests directory.
     const ERAVM_SIMPLE: &'static str = "tests/eravm";
