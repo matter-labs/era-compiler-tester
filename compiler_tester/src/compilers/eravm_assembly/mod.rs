@@ -49,6 +49,7 @@ impl Compiler for EraVMAssemblyCompiler {
             &mut vec![],
             true,
             era_compiler_common::EraVMMetadataHashType::IPFS,
+            true,
             era_compiler_llvm_context::OptimizerSettings::none(),
             llvm_options,
             true,

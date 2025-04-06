@@ -1150,7 +1150,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-make-ipfs-hash-equivalent-again#a3674675601218aa23687b167d4ccfe13ba705f2"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d6391ce640618f6cd609014d06d14a67c2a1281f"
 dependencies = [
  "anyhow",
  "clap",
@@ -1160,7 +1160,6 @@ dependencies = [
  "era-yul",
  "hex",
  "inkwell",
- "mimalloc",
  "normpath",
  "num",
  "path-slash",
@@ -1198,7 +1197,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-make-ipfs-hash-equivalent-again#a3674675601218aa23687b167d4ccfe13ba705f2"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d6391ce640618f6cd609014d06d14a67c2a1281f"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1215,7 +1214,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-make-ipfs-hash-equivalent-again#a3674675601218aa23687b167d4ccfe13ba705f2"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d6391ce640618f6cd609014d06d14a67c2a1281f"
 dependencies = [
  "anyhow",
  "regex",
@@ -2094,16 +2093,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8355be11b20d696c8f18f6cc018c4e372165b1fa8126cef092399c9951984ffa"
 
 [[package]]
-name = "libmimalloc-sys"
-version = "0.1.41"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b20daca3a4ac14dbdc753c5e90fc7b490a48a9131daed3c9a9ced7b2defd37b"
-dependencies = [
- "cc",
- "libc",
-]
-
-[[package]]
 name = "libredox"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2172,15 +2161,6 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
-
-[[package]]
-name = "mimalloc"
-version = "0.1.45"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03cb1f88093fe50061ca1195d336ffec131347c7b833db31f9ab62a2d1b7925f"
-dependencies = [
- "libmimalloc-sys",
-]
 
 [[package]]
 name = "mime"
@@ -2858,9 +2838,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.10"
+version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b8c0c260b63a8219631167be35e6a988e9554dbd323f8bd08439c8ed1302bd1"
+checksum = "d2f103c6d277498fbceb16e84d317e2a400f160f46904d5f5410848c829511a3"
 dependencies = [
  "bitflags",
 ]
@@ -3550,7 +3530,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=az-make-ipfs-hash-equivalent-again#db600827868e91808d0c4e3ec19292cc1db2ca57"
+source = "git+https://github.com/matter-labs/solx?branch=main#9ea7a95d92ed0a13f4a5d9b8ea263596e9940691"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3794,9 +3774,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.44.1"
+version = "1.44.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f382da615b842244d4b8738c82ed1275e6c5dd90c459a30941cd07080b06c91a"
+checksum = "e6b88822cbe49de4185e3a4cbf8321dd487cf5fe0c5c65695fef6346371e9c48"
 dependencies = [
  "backtrace",
  "bytes",

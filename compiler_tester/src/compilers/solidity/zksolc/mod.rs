@@ -326,6 +326,7 @@ impl Compiler for SolidityCompiler {
             &mut vec![],
             mode.enable_eravm_extensions,
             era_compiler_common::EraVMMetadataHashType::IPFS,
+            true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
@@ -406,6 +407,7 @@ impl Compiler for SolidityCompiler {
         let build = project.compile_to_evm(
             &mut vec![],
             era_compiler_common::EVMMetadataHashType::IPFS,
+            true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             debug_config,
@@ -413,10 +415,10 @@ impl Compiler for SolidityCompiler {
         build.check_errors()?;
         let build = build.link(
             linker_symbols,
-            vec![(
+            Some(vec![(
                 era_compiler_solidity::DEFAULT_EXECUTABLE_NAME.to_owned(),
                 semver::Version::new(2, 0, 0),
-            )],
+            )]),
         );
         build.check_errors()?;
         let builds: HashMap<String, Vec<u8>> = build

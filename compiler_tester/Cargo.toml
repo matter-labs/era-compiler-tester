@@ -1,13 +1,10 @@
 [package]
 name = "compiler-tester"
-version = "2.0.0"
-authors = [
-    "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
-    "Anton Dyadyuk <a.dyadyuk@matterlabs.dev>",
-]
-license = "MIT OR Apache-2.0"
-edition = "2021"
 description = "Integration testing framework for LLVM-based compilers"
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+version.workspace = true
 
 [[bin]]
 name = "compiler-tester"
@@ -49,10 +46,10 @@ vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-llvm-context = { git = "https://github.com/matter-labs/era-compiler-llvm-context", branch = "main" }
-era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-make-ipfs-hash-equivalent-again" }
-era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "az-make-ipfs-hash-equivalent-again" }
+era-compiler-solidity = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
+era-solc = { git = "https://github.com/matter-labs/era-compiler-solidity", branch = "main" }
 era-compiler-vyper = { git = "https://github.com/matter-labs/era-compiler-vyper", branch = "main" }
-solx-standard-json = { git = "https://github.com/matter-labs/solx", branch = "az-make-ipfs-hash-equivalent-again" }
+solx-standard-json = { git = "https://github.com/matter-labs/solx", branch = "main" }
 
 solidity-adapter = { path = "../solidity_adapter" }
 benchmark-analyzer = { path = "../benchmark_analyzer" }

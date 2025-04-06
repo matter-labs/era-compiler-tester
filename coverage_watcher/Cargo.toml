@@ -1,13 +1,10 @@
 [package]
 name = "coverage-watcher"
-version = "2.0.0"
-authors = [
-    "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
-    "Anton Dyadyuk <a.dyadyuk@matterlabs.dev>",
-]
-license = "MIT OR Apache-2.0"
-edition = "2021"
 description = "Test coverage watcher for LLVM-based compilers"
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+version.workspace = true
 
 [[bin]]
 name = "coverage-watcher"

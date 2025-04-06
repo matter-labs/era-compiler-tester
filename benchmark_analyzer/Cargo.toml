@@ -1,13 +1,10 @@
 [package]
 name = "benchmark-analyzer"
-version = "2.0.0"
-authors = [
-    "Oleksandr Zarudnyi <a.zarudnyy@matterlabs.dev>",
-    "Igor Zhirkov <iz@matterlabs.dev>",
-]
-license = "MIT OR Apache-2.0"
-edition = "2021"
 description = "Benchmark analyzer for LLVM-based compilers"
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+version.workspace = true
 
 [[bin]]
 name = "benchmark-analyzer"
