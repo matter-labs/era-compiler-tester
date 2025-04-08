@@ -85,7 +85,8 @@ impl Compiler for YulCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EraVMMetadataHashType::IPFS,
+            true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
@@ -99,14 +100,12 @@ impl Compiler for YulCompiler {
             .into_values()
             .map(|result| {
                 let contract = result.expect("Always valid");
-                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
+                let mut build = era_compiler_llvm_context::EraVMBuild::new(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash.ok_or_else(|| {
-                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
-                    })?,
-                    None,
+                    contract.build.metadata,
                     contract.build.assembly,
                 );
+                build.bytecode_hash = contract.build.bytecode_hash;
                 Ok((contract.name.path, build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
@@ -157,14 +156,20 @@ impl Compiler for YulCompiler {
 
                 let build = project.compile_to_evm(
                     &mut vec![],
-                    era_compiler_common::HashType::Ipfs,
+                    era_compiler_common::EVMMetadataHashType::IPFS,
+                    true,
                     mode.llvm_optimizer_settings.to_owned(),
                     llvm_options,
                     debug_config,
                 )?;
                 build.check_errors()?;
-                let build = build.link(linker_symbols);
+
+                let build = build.link(
+                    linker_symbols,
+                    Some(vec![("zksolc".to_owned(), semver::Version::new(0, 0, 0))]),
+                );
                 build.check_errors()?;
+
                 let builds = build
                     .results
                     .into_values()
@@ -225,23 +230,22 @@ impl Compiler for YulCompiler {
 
                 let mut builds = HashMap::with_capacity(solx_output.contracts.len());
                 for (file, contracts) in solx_output.contracts.into_iter() {
-                    for (name, contract) in contracts.into_iter() {
-                        let path = format!("{file}:{name}");
+                    for (_name, contract) in contracts.into_iter() {
                         let bytecode_string = contract
                             .evm
                             .as_ref()
                             .ok_or_else(|| {
-                                anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                                anyhow::anyhow!("EVM object of the contract `{file}` not found")
                             })?
                             .bytecode
                             .as_ref()
                             .ok_or_else(|| {
-                                anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                                anyhow::anyhow!("EVM bytecode of the contract `{file}` not found")
                             })?
                             .object
                             .as_str();
                         let build = hex::decode(bytecode_string).expect("Always valid");
-                        builds.insert(path, build);
+                        builds.insert(file.clone(), build);
                     }
                 }
 

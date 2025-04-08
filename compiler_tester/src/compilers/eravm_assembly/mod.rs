@@ -48,7 +48,8 @@ impl Compiler for EraVMAssemblyCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EraVMMetadataHashType::IPFS,
+            true,
             era_compiler_llvm_context::OptimizerSettings::none(),
             llvm_options,
             true,

@@ -3695,7 +3695,7 @@ entries:
       address_overload_resolution.sol:
         hash: '0x1a20236344eb113cbaba2589d073fc7f'
         enabled: true
-        version: '>=0.6.0'
+        version: '>=0.6.2'
       base_access_to_function_type_variables.sol:
         hash: '0xd7c16886991cf1ceecb9670a881f4f9f'
         enabled: true
@@ -6398,7 +6398,7 @@ entries:
       assert_pre_byzantium.sol:
         hash: '0x21a42b807364562c03ec4fe16e131ff6'
         enabled: true
-        version: '>=0.6.0'
+        version: '>=0.6.2'
       create.sol:
         hash: '0xa11e16eca93ba36577f1d2efd4ecadf0'
         enabled: true
@@ -6449,7 +6449,7 @@ entries:
       require_pre_byzantium.sol:
         hash: '0x9f30ce27bb435e315af5a00a84fa92b9'
         enabled: true
-        version: '>=0.6.0'
+        version: '>=0.6.2'
       return_function.sol:
         hash: '0x7bcd8243221bfd45d36f80eddd57a341'
         enabled: true
@@ -7125,7 +7125,7 @@ entries:
       many_subassemblies.sol:
         hash: '0xc5d103863882053c7dd35f1750af4ca5'
         enabled: true
-        version: '>=0.6.0'
+        version: '>=0.6.2'
       memory_overwrite.sol:
         hash: '0x67eee555de4607e6eca8f5778c8697d8'
         enabled: true

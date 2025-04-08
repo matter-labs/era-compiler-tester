@@ -325,7 +325,8 @@ impl Compiler for SolidityCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EraVMMetadataHashType::IPFS,
+            true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             true,
@@ -338,15 +339,13 @@ impl Compiler for SolidityCompiler {
             .results
             .iter()
             .map(|(path, build)| {
-                let build = build.to_owned().expect("Always valid");
-                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
-                    build.build.bytecode,
-                    build.build.bytecode_hash.ok_or_else(|| {
-                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
-                    })?,
-                    None,
-                    build.build.assembly,
+                let contract = build.to_owned().expect("Always valid");
+                let mut build = era_compiler_llvm_context::EraVMBuild::new(
+                    contract.build.bytecode,
+                    contract.build.metadata,
+                    contract.build.assembly,
                 );
+                build.bytecode_hash = contract.build.bytecode_hash;
                 Ok((path.to_owned(), build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
@@ -407,13 +406,20 @@ impl Compiler for SolidityCompiler {
 
         let build = project.compile_to_evm(
             &mut vec![],
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EVMMetadataHashType::IPFS,
+            true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             debug_config,
         )?;
         build.check_errors()?;
-        let build = build.link(linker_symbols);
+        let build = build.link(
+            linker_symbols,
+            Some(vec![(
+                era_compiler_solidity::DEFAULT_EXECUTABLE_NAME.to_owned(),
+                semver::Version::new(2, 0, 0),
+            )]),
+        );
         build.check_errors()?;
         let builds: HashMap<String, Vec<u8>> = build
             .results

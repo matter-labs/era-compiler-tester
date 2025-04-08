@@ -29,7 +29,7 @@ use rayon::iter::ParallelIterator;
 
 pub use crate::benchmark_format::BenchmarkFormat;
 pub use crate::compilers::eravm_assembly::EraVMAssemblyCompiler;
-pub use crate::compilers::llvm::LLVMCompiler;
+pub use crate::compilers::llvm_ir::LLVMIRCompiler;
 pub use crate::compilers::mode::llvm_options::LLVMOptions;
 pub use crate::compilers::mode::Mode;
 pub use crate::compilers::solidity::solc::compiler::standard_json::input::language::Language as SolcStandardJsonInputLanguage;
@@ -101,8 +101,10 @@ impl CompilerTester {
     /// The Yul simple tests directory.
     const YUL_SIMPLE: &'static str = "tests/yul";
 
-    /// The LLVM simple tests directory.
-    const LLVM_SIMPLE: &'static str = "tests/llvm";
+    /// The EraVM LLVM IR simple tests directory.
+    const LLVM_SIMPLE_ERAVM: &'static str = "tests/llvm/eravm";
+    /// The EVM LLVM IR simple tests directory.
+    const LLVM_SIMPLE_EVM: &'static str = "tests/llvm/evm";
 
     /// The EraVM simple tests directory.
     const ERAVM_SIMPLE: &'static str = "tests/eravm";
@@ -241,36 +243,42 @@ impl CompilerTester {
     ) -> anyhow::Result<Vec<Test>> {
         let solx_path = solx.unwrap_or_else(|| PathBuf::from("solx"));
 
-        let (solidity_compiler, yul_compiler): (Arc<dyn Compiler>, Arc<dyn Compiler>) =
-            match (target, toolchain) {
-                (era_compiler_common::Target::EraVM, Toolchain::IrLLVM) => {
-                    let solidity_compiler = Arc::new(ZksolcCompiler::new());
-                    let yul_compiler = Arc::new(YulCompiler::Zksolc);
-                    (solidity_compiler, yul_compiler)
-                }
-                (era_compiler_common::Target::EVM, Toolchain::IrLLVM) => {
-                    let solidity_compiler = Arc::new(SolxCompiler::try_from_path(solx_path)?);
-                    let yul_compiler = Arc::new(YulCompiler::Solx(solidity_compiler.clone()));
-                    (solidity_compiler, yul_compiler)
-                }
-                (_, Toolchain::Zksolc) => {
-                    let solidity_compiler = Arc::new(ZksolcCompiler::new());
-                    let yul_compiler = Arc::new(YulCompiler::Zksolc);
-                    (solidity_compiler, yul_compiler)
-                }
-                (_, Toolchain::Solc | Toolchain::SolcLLVM) => {
-                    let solidity_compiler = Arc::new(SolcCompiler::new(
-                        SolcStandardJsonInputLanguage::Solidity,
-                        toolchain,
-                    ));
-                    let yul_compiler = Arc::new(SolcCompiler::new(
-                        SolcStandardJsonInputLanguage::Yul,
-                        toolchain,
-                    ));
-                    (solidity_compiler, yul_compiler)
-                }
-            };
-        let llvm_compiler = Arc::new(LLVMCompiler::default());
+        let (solidity_compiler, yul_compiler, llvm_ir_compiler): (
+            Arc<dyn Compiler>,
+            Arc<dyn Compiler>,
+            Arc<dyn Compiler>,
+        ) = match (target, toolchain) {
+            (era_compiler_common::Target::EraVM, Toolchain::IrLLVM) => {
+                let solidity_compiler = Arc::new(ZksolcCompiler::new());
+                let yul_compiler = Arc::new(YulCompiler::Zksolc);
+                let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Zksolc);
+                (solidity_compiler, yul_compiler, llvm_ir_compiler)
+            }
+            (era_compiler_common::Target::EVM, Toolchain::IrLLVM) => {
+                let solidity_compiler = Arc::new(SolxCompiler::try_from_path(solx_path)?);
+                let yul_compiler = Arc::new(YulCompiler::Solx(solidity_compiler.clone()));
+                let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Solx(solidity_compiler.clone()));
+                (solidity_compiler, yul_compiler, llvm_ir_compiler)
+            }
+            (_, Toolchain::Zksolc) => {
+                let solidity_compiler = Arc::new(ZksolcCompiler::new());
+                let yul_compiler = Arc::new(YulCompiler::Zksolc);
+                let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Zksolc);
+                (solidity_compiler, yul_compiler, llvm_ir_compiler)
+            }
+            (_, Toolchain::Solc | Toolchain::SolcLLVM) => {
+                let solidity_compiler = Arc::new(SolcCompiler::new(
+                    SolcStandardJsonInputLanguage::Solidity,
+                    toolchain,
+                ));
+                let yul_compiler = Arc::new(SolcCompiler::new(
+                    SolcStandardJsonInputLanguage::Yul,
+                    toolchain,
+                ));
+                let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Zksolc);
+                (solidity_compiler, yul_compiler, llvm_ir_compiler)
+            }
+        };
         let eravm_assembly_compiler = Arc::new(EraVMAssemblyCompiler::default());
 
         let mut tests = Vec::with_capacity(16384);
@@ -309,12 +317,20 @@ impl CompilerTester {
             yul_compiler,
         )?);
 
-        tests.extend(self.directory::<MatterLabsDirectory>(
-            target,
-            PathBuf::from(Self::LLVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
-            era_compiler_common::EXTENSION_LLVM_SOURCE,
-            llvm_compiler,
-        )?);
+        tests.extend(
+            self.directory::<MatterLabsDirectory>(
+                target,
+                PathBuf::from(
+                    match target {
+                        era_compiler_common::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
+                        era_compiler_common::Target::EVM => Self::LLVM_SIMPLE_EVM,
+                    }
+                    .replace("/", std::path::MAIN_SEPARATOR_STR),
+                ),
+                era_compiler_common::EXTENSION_LLVM_SOURCE,
+                llvm_ir_compiler,
+            )?,
+        );
 
         if let era_compiler_common::Target::EraVM = target {
             let vyper_compiler = Arc::new(VyperCompiler::new());

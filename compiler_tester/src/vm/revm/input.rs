@@ -49,7 +49,7 @@ impl Input {
 
         for (name, address) in library_addresses.into_iter() {
             let build = self.builds.get(name.as_str()).ok_or_else(|| {
-                anyhow::anyhow!("Library `{}` not found in the build artifacts", name)
+                anyhow::anyhow!("Library `{name}` not found in the build artifacts")
             })?;
 
             instances.insert(
@@ -79,7 +79,7 @@ impl Input {
         } else {
             for (instance, path) in contracts.iter() {
                 let build = self.builds.get(path.as_str()).ok_or_else(|| {
-                    anyhow::anyhow!("{} not found in the compiler build artifacts", path)
+                    anyhow::anyhow!("{path} not found in the compiler build artifacts")
                 })?;
                 let is_main = path.as_str() == self.last_contract.as_str();
 

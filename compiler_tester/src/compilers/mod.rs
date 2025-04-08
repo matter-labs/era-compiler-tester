@@ -4,7 +4,7 @@
 
 pub mod cache;
 pub mod eravm_assembly;
-pub mod llvm;
+pub mod llvm_ir;
 pub mod mode;
 pub mod solidity;
 pub mod vyper;
