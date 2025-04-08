@@ -561,12 +561,13 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         self.check_filters(filters, &mode, era_compiler_common::Target::EVM)?;
+
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
-        let sources = self.sources.to_owned();
 
         let mut evm_address_iterator = EVMAddressIterator::default();
 
+        let sources = self.sources.to_owned();
         let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
 
         let test_description = TestDescription {
@@ -660,7 +661,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             HashMap::new(),
-            // evm_input.builds,
             None,
         ))
     }

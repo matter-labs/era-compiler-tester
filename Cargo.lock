@@ -1134,7 +1134,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#4785cde7dbc949d89cd15ebc13fb5d43bd0e2b9a"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#aa3667e7f0f9af5044b2b977fce1f33bc32901c6"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1150,7 +1150,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d6391ce640618f6cd609014d06d14a67c2a1281f"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#0150aef2bd6f7775440a5d0ca62dc813c17dc7c0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#22d0518b5bba87fa7aa5474fa84d46110c146865"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#27df1d55444fe6d3d4c792a4b1f0d37ac72b0ba1"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1197,7 +1197,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d6391ce640618f6cd609014d06d14a67c2a1281f"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#0150aef2bd6f7775440a5d0ca62dc813c17dc7c0"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1214,7 +1214,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.13"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#d6391ce640618f6cd609014d06d14a67c2a1281f"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#0150aef2bd6f7775440a5d0ca62dc813c17dc7c0"
 dependencies = [
  "anyhow",
  "regex",
@@ -3530,7 +3530,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#9ea7a95d92ed0a13f4a5d9b8ea263596e9940691"
+source = "git+https://github.com/matter-labs/solx?branch=main#6eac0a8f0888bb38d050f5e3287dd1e126bfc35d"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3845,7 +3845,7 @@ checksum = "17b4795ff5edd201c7cd6dca065ae59972ce77d1b80fa0a84d94950ece7d1474"
 dependencies = [
  "indexmap",
  "toml_datetime",
- "winnow 0.7.4",
+ "winnow 0.7.6",
 ]
 
 [[package]]
@@ -4441,9 +4441,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.7.4"
+version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e97b544156e9bebe1a0ffbc03484fc1ffe3100cbce3ffb17eac35f7cdd7ab36"
+checksum = "63d3fcd9bba44b03821e7d699eeee959f3126dcc4aa8e4ae18ec617c2a5cea10"
 dependencies = [
  "memchr",
 ]

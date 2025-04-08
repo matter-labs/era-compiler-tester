@@ -163,11 +163,13 @@ impl Compiler for YulCompiler {
                     debug_config,
                 )?;
                 build.check_errors()?;
+
                 let build = build.link(
                     linker_symbols,
-                    Some(vec![("solx".to_owned(), semver::Version::new(1, 0, 0))]),
+                    Some(vec![("zksolc".to_owned(), semver::Version::new(0, 0, 0))]),
                 );
                 build.check_errors()?;
+
                 let builds = build
                     .results
                     .into_values()
@@ -228,23 +230,22 @@ impl Compiler for YulCompiler {
 
                 let mut builds = HashMap::with_capacity(solx_output.contracts.len());
                 for (file, contracts) in solx_output.contracts.into_iter() {
-                    for (name, contract) in contracts.into_iter() {
-                        let path = format!("{file}:{name}");
+                    for (_name, contract) in contracts.into_iter() {
                         let bytecode_string = contract
                             .evm
                             .as_ref()
                             .ok_or_else(|| {
-                                anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                                anyhow::anyhow!("EVM object of the contract `{file}` not found")
                             })?
                             .bytecode
                             .as_ref()
                             .ok_or_else(|| {
-                                anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                                anyhow::anyhow!("EVM bytecode of the contract `{file}` not found")
                             })?
                             .object
                             .as_str();
                         let build = hex::decode(bytecode_string).expect("Always valid");
-                        builds.insert(path, build);
+                        builds.insert(file.clone(), build);
                     }
                 }
 
