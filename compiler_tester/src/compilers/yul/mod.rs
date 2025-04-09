@@ -182,7 +182,7 @@ impl Compiler for YulCompiler {
                 Ok(EVMInput::new(builds, None, last_contract))
             }
             Self::Solx(solx) => {
-                let mode = YulMode::unwrap(mode);
+                let yul_mode = YulMode::unwrap(mode);
 
                 let last_contract = sources
                     .last()
@@ -211,8 +211,8 @@ impl Compiler for YulCompiler {
                     sources,
                     libraries.to_owned(),
                     solx_standard_json::InputOptimizer::new(
-                        mode.llvm_optimizer_settings.middle_end_as_char(),
-                        mode.llvm_optimizer_settings.is_fallback_to_size_enabled,
+                        yul_mode.llvm_optimizer_settings.middle_end_as_char(),
+                        yul_mode.llvm_optimizer_settings.is_fallback_to_size_enabled,
                     ),
                     solx_standard_json::InputSelection::new(selectors),
                     solx_standard_json::InputMetadata::default(),
@@ -220,6 +220,7 @@ impl Compiler for YulCompiler {
                 );
 
                 let solx_output = solx.standard_json(
+                    mode,
                     solx_input,
                     &[],
                     debug_config
