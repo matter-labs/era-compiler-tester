@@ -91,7 +91,7 @@ impl Compiler for LLVMIRCompiler {
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let mode = LLVMMode::unwrap(mode);
+        let llvm_ir_mode = LLVMMode::unwrap(mode);
 
         let last_contract = sources
             .last()
@@ -116,7 +116,7 @@ impl Compiler for LLVMIRCompiler {
                     &mut vec![],
                     era_compiler_common::EVMMetadataHashType::IPFS,
                     true,
-                    mode.llvm_optimizer_settings.to_owned(),
+                    llvm_ir_mode.llvm_optimizer_settings.to_owned(),
                     llvm_options,
                     debug_config.clone(),
                 )?;
@@ -156,8 +156,10 @@ impl Compiler for LLVMIRCompiler {
                     sources,
                     libraries.to_owned(),
                     solx_standard_json::InputOptimizer::new(
-                        mode.llvm_optimizer_settings.middle_end_as_char(),
-                        mode.llvm_optimizer_settings.is_fallback_to_size_enabled,
+                        llvm_ir_mode.llvm_optimizer_settings.middle_end_as_char(),
+                        llvm_ir_mode
+                            .llvm_optimizer_settings
+                            .is_fallback_to_size_enabled,
                     ),
                     solx_standard_json::InputSelection::new(selectors),
                     solx_standard_json::InputMetadata::default(),
@@ -165,6 +167,7 @@ impl Compiler for LLVMIRCompiler {
                 );
 
                 let solx_output = solx.standard_json(
+                    mode,
                     solx_input,
                     &[],
                     debug_config

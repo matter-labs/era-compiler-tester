@@ -50,6 +50,7 @@ impl SolidityCompiler {
     ///
     pub fn standard_json(
         &self,
+        mode: &Mode,
         solx_input: solx_standard_json::Input,
         allow_paths: &[&str],
         debug_output_directory: Option<&Path>,
@@ -64,13 +65,16 @@ impl SolidityCompiler {
             command.args(allow_paths);
         }
         if let Some(debug_output_directory) = debug_output_directory {
+            let mut output_directory = debug_output_directory.to_owned();
+            output_directory.push(mode.to_string());
+
             command.arg("--debug-output-dir");
-            command.args(debug_output_directory);
+            command.arg(output_directory);
         }
 
         let mut process = command
             .spawn()
-            .map_err(|error| anyhow::anyhow!("{:?} subprocess spawning: {:?}", self.path, error))?;
+            .map_err(|error| anyhow::anyhow!("{:?} subprocess spawning: {error}", self.path))?;
         let stdin = process
             .stdin
             .as_mut()
@@ -116,13 +120,13 @@ impl SolidityCompiler {
 
         let process = command
             .spawn()
-            .map_err(|error| anyhow::anyhow!("spawning: {:?}", error))?;
+            .map_err(|error| anyhow::anyhow!("{path:?} subprocess spawning: {error}"))?;
         let result = process
             .wait_with_output()
-            .map_err(|error| anyhow::anyhow!("output reading: {error:?}"))?;
+            .map_err(|error| anyhow::anyhow!("{path:?} subprocess output reading: {error:?}"))?;
         if !result.status.success() {
             anyhow::bail!(
-                "exit code {:?}:\n{}\n{}",
+                "{path:?} subprocess exit code {:?}:\n{}\n{}",
                 result.status.code(),
                 String::from_utf8_lossy(result.stdout.as_slice()),
                 String::from_utf8_lossy(result.stderr.as_slice()),
@@ -132,15 +136,17 @@ impl SolidityCompiler {
         let version = String::from_utf8_lossy(result.stdout.as_slice())
             .lines()
             .nth(1)
-            .ok_or_else(|| anyhow::anyhow!("missing 2nd line"))?
+            .ok_or_else(|| {
+                anyhow::anyhow!("{path:?} subprocess version getting: missing 2nd line")
+            })?
             .split(' ')
             .nth(1)
-            .ok_or_else(|| anyhow::anyhow!("missing version"))?
+            .ok_or_else(|| anyhow::anyhow!("{path:?} subprocess version getting: missing version"))?
             .split('+')
             .next()
-            .ok_or_else(|| anyhow::anyhow!("missing semver"))?
+            .ok_or_else(|| anyhow::anyhow!("{path:?} subprocess version getting: missing semver"))?
             .parse::<semver::Version>()
-            .map_err(|error| anyhow::anyhow!("version parsing: {error}"))?;
+            .map_err(|error| anyhow::anyhow!("{path:?} subprocess version parsing: {error}"))?;
         Ok(version)
     }
 
@@ -222,7 +228,7 @@ impl Compiler for SolidityCompiler {
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let mode = SolxMode::unwrap(mode);
+        let solx_mode = SolxMode::unwrap(mode);
 
         let sources_json: BTreeMap<String, solx_standard_json::InputSource> = sources
             .iter()
@@ -240,7 +246,7 @@ impl Compiler for SolidityCompiler {
         selectors.insert(solx_standard_json::InputSelector::AST);
         selectors.insert(solx_standard_json::InputSelector::MethodIdentifiers);
         selectors.insert(solx_standard_json::InputSelector::Metadata);
-        selectors.insert(if mode.via_ir {
+        selectors.insert(if solx_mode.via_ir {
             solx_standard_json::InputSelector::Yul
         } else {
             solx_standard_json::InputSelector::EVMLA
@@ -250,11 +256,13 @@ impl Compiler for SolidityCompiler {
             libraries.to_owned(),
             BTreeSet::new(),
             solx_standard_json::InputOptimizer::new(
-                mode.llvm_optimizer_settings.middle_end_as_char(),
-                mode.llvm_optimizer_settings.is_fallback_to_size_enabled,
+                solx_mode.llvm_optimizer_settings.middle_end_as_char(),
+                solx_mode
+                    .llvm_optimizer_settings
+                    .is_fallback_to_size_enabled,
             ),
             None,
-            mode.via_ir,
+            solx_mode.via_ir,
             solx_standard_json::InputSelection::new(selectors),
             solx_standard_json::InputMetadata::default(),
             llvm_options,
@@ -268,6 +276,7 @@ impl Compiler for SolidityCompiler {
             .to_string();
 
         let solx_output = self.standard_json(
+            mode,
             solx_input,
             &[allow_path.as_str()],
             debug_config
