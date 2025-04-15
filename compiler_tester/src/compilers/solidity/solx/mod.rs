@@ -241,8 +241,8 @@ impl Compiler for SolidityCompiler {
             .collect();
 
         let mut selectors = BTreeSet::new();
-        selectors.insert(solx_standard_json::InputSelector::BytecodeObject);
-        selectors.insert(solx_standard_json::InputSelector::RuntimeBytecodeObject);
+        selectors.insert(solx_standard_json::InputSelector::Bytecode);
+        selectors.insert(solx_standard_json::InputSelector::RuntimeBytecode);
         selectors.insert(solx_standard_json::InputSelector::AST);
         selectors.insert(solx_standard_json::InputSelector::MethodIdentifiers);
         selectors.insert(solx_standard_json::InputSelector::Metadata);

@@ -149,8 +149,8 @@ impl Compiler for LLVMIRCompiler {
                     .collect();
 
                 let mut selectors = BTreeSet::new();
-                selectors.insert(solx_standard_json::InputSelector::BytecodeObject);
-                selectors.insert(solx_standard_json::InputSelector::RuntimeBytecodeObject);
+                selectors.insert(solx_standard_json::InputSelector::Bytecode);
+                selectors.insert(solx_standard_json::InputSelector::RuntimeBytecode);
                 selectors.insert(solx_standard_json::InputSelector::Metadata);
                 let solx_input = solx_standard_json::Input::from_llvm_ir_sources(
                     sources,
