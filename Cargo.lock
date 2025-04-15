@@ -1134,7 +1134,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#d73546135703b8d9dfd26d4f7bc4e7539b910157"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-fix-unreachable#e1beccdd3d15af5a9dca455cc9ea720be4d824ab"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1150,7 +1150,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c3041ceb37f7164c21ed8dabb57c6bb986c79b3b"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-fix-unreachable#17659dde28dc6ba2e50bf90ebf6bc35d184df2c2"
 dependencies = [
  "anyhow",
  "clap",
@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#6be39756cf441c12737df8aac6b21225e230841c"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-fix-unreachable#6d79f032e081fd67621d2ac3b884f67fd5cb2937"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1197,7 +1197,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c3041ceb37f7164c21ed8dabb57c6bb986c79b3b"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-fix-unreachable#17659dde28dc6ba2e50bf90ebf6bc35d184df2c2"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1214,7 +1214,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c3041ceb37f7164c21ed8dabb57c6bb986c79b3b"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-fix-unreachable#17659dde28dc6ba2e50bf90ebf6bc35d184df2c2"
 dependencies = [
  "anyhow",
  "regex",
@@ -3511,7 +3511,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#1f0ae3f19e82e050fb35fc10cd5b8ba4519286fd"
+source = "git+https://github.com/matter-labs/solx?branch=az-fix-unreachable#790650d49918fce251dca9924180e8a44edabb9e"
 dependencies = [
  "anyhow",
  "era-compiler-common",
