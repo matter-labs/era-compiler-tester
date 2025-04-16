@@ -1134,7 +1134,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#92f3178a7e15ba399cb6e665e27a180b1cb81baa"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#26eff8c398d0ffe2509846a9ec1f0f346aedcf55"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1150,7 +1150,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#70f9ca06f930413ea28142b62938972b90ff803b"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#749e60118b894f59ae68574c2df98394e76ba3ed"
 dependencies = [
  "anyhow",
  "clap",
@@ -1197,7 +1197,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#70f9ca06f930413ea28142b62938972b90ff803b"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#749e60118b894f59ae68574c2df98394e76ba3ed"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1214,7 +1214,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#70f9ca06f930413ea28142b62938972b90ff803b"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#749e60118b894f59ae68574c2df98394e76ba3ed"
 dependencies = [
  "anyhow",
  "regex",
@@ -2615,9 +2615,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.94"
+version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a31971752e70b8b2686d7e46ec17fb38dad4051d94024c88df49b667caea9c84"
+checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
 dependencies = [
  "unicode-ident",
 ]
@@ -3511,7 +3511,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#b89768d3e8b4f6992026eeb2408b446b8489b7c7"
+source = "git+https://github.com/matter-labs/solx?branch=main#f25d0b971606de61fe4e92cf71bfc798f5558b3b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
