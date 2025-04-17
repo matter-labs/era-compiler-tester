@@ -6,7 +6,7 @@
 /// Output format for benchmark data.
 ///
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub enum BenchmarkFormat {
+pub enum OutputFormat {
     #[default]
     /// Unstable JSON format, corresponds to the inner data model of benchmark analyzer.
     Json,
@@ -16,7 +16,7 @@ pub enum BenchmarkFormat {
     JsonLNT,
 }
 
-impl std::str::FromStr for BenchmarkFormat {
+impl std::str::FromStr for OutputFormat {
     type Err = anyhow::Error;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
@@ -36,13 +36,12 @@ impl std::str::FromStr for BenchmarkFormat {
     }
 }
 
-impl std::fmt::Display for BenchmarkFormat {
+impl std::fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let repr = match self {
-            BenchmarkFormat::Json => "json",
-            BenchmarkFormat::JsonLNT => "json-lnt",
-            BenchmarkFormat::Csv => "csv",
-        };
-        f.write_str(repr)
+        match self {
+            OutputFormat::Json => write!(f, "json"),
+            OutputFormat::JsonLNT => write!(f, "json-lnt"),
+            OutputFormat::Csv => write!(f, "csv"),
+        }
     }
 }

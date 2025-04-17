@@ -430,6 +430,7 @@ dependencies = [
  "colored",
  "era-compiler-common",
  "regex",
+ "semver 1.0.26",
  "serde",
  "serde_json",
 ]
