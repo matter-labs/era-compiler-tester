@@ -21,8 +21,8 @@ pub struct RunDescription {
     pub start_time: DateTime<Utc>,
     /// Time when benchmark run was finished.
     pub end_time: DateTime<Utc>,
-    /// Version of the `zksolc` compiler.
-    pub zksolc_version: String,
     /// Version of the LLVM backend.
     pub llvm_version: String,
+    /// Version of the LLVM-based compiler.
+    pub version: String,
 }

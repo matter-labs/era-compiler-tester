@@ -183,8 +183,8 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             }
         }
 
-        cycles_total_reference += reference.cycles as u64;
-        cycles_total_candidate += candidate.cycles as u64;
+        cycles_total_reference += reference.cycles;
+        cycles_total_candidate += candidate.cycles;
         let cycles_factor = (candidate.cycles as f64) / (reference.cycles as f64);
         if cycles_factor > 1.0 {
             cycles_negatives.push((cycles_factor, description.clone()));
@@ -242,8 +242,8 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             Some(size) => size,
             None => continue,
         };
-        size_total_reference += reference_size as u64;
-        size_total_candidate += candidate_size as u64;
+        size_total_reference += reference_size;
+        size_total_candidate += candidate_size;
         let size_factor = (candidate_size as f64) / (reference_size as f64);
         if size_factor > 1.0 {
             size_negatives.push((size_factor, description.clone()));
