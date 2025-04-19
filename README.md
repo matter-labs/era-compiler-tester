@@ -101,7 +101,7 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
    * If you would like to use your local LLVM build:
       ```shell
-      export LLVM_SYS_170_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
+      export LLVM_SYS_191_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
       ```
 
 </details>
