@@ -642,9 +642,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.36"
+version = "4.5.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2df961d8c8a0d08aa9945718ccf584145eee3f3aa06cddbeac12933781102e04"
+checksum = "eccb054f56cbd38340b380d4a8e69ef1f02f1af43db2f0cc817a4774d80ae071"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -652,9 +652,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.36"
+version = "4.5.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "132dbda40fb6753878316a489d5a1242a8ef2f0d9e47ba01c951ea8aa7d013a5"
+checksum = "efd9466fac8543255d3b1fcad4762c5e116ffe808c8a3043d4263cd4fd4862a2"
 dependencies = [
  "anstream",
  "anstyle",
@@ -906,9 +906,9 @@ dependencies = [
 
 [[package]]
 name = "der"
-version = "0.7.9"
+version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f55bf8e7b65898637379c1b74eb1551107c8294ed26d855ceb9fd1a09cfc9bc0"
+checksum = "e7c1832837b905bbfb5101e07cc24c8deddf52f93225eee6ead5f4d63d53ddcb"
 dependencies = [
  "const-oid",
  "pem-rfc7468",
@@ -1135,7 +1135,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#26eff8c398d0ffe2509846a9ec1f0f346aedcf55"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-update-to-llvm-19#8994ec82d17605b3bd9e4e78a9d9ca98c5303e05"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1151,7 +1151,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#749e60118b894f59ae68574c2df98394e76ba3ed"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-update-to-llvm-19#7a74c165def3a54de543c0fcf998e93bb996bcd4"
 dependencies = [
  "anyhow",
  "clap",
@@ -1174,8 +1174,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-vyper"
-version = "1.5.10"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#b5c2009c74ebc84f75dcfc8be5744d4bd4929399"
+version = "1.5.11"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=az-update-to-llvm-19#24e0e535d24381edb142d0f21d536ce873cb9d84"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1198,7 +1198,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#749e60118b894f59ae68574c2df98394e76ba3ed"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-update-to-llvm-19#7a74c165def3a54de543c0fcf998e93bb996bcd4"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1215,7 +1215,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#749e60118b894f59ae68574c2df98394e76ba3ed"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-update-to-llvm-19#7a74c165def3a54de543c0fcf998e93bb996bcd4"
 dependencies = [
  "anyhow",
  "regex",
@@ -1374,6 +1374,12 @@ checksum = "e13624c2627564efccf4934284bdd98cbaa14e79b0b5a141218e507b3a823456"
 dependencies = [
  "percent-encoding",
 ]
+
+[[package]]
+name = "fuchsia-cprng"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 
 [[package]]
 name = "funty"
@@ -1926,23 +1932,22 @@ dependencies = [
 
 [[package]]
 name = "inkwell"
-version = "0.4.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b7c8cfbce7f9fb3a7e62f4402af4999eeeef1da9"
+version = "0.5.0"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-19#6a6eaf88cde4045c4a05a60cdd48d92dc843da90"
 dependencies = [
  "either",
  "inkwell_internals",
  "libc",
  "llvm-sys",
  "once_cell",
- "parking_lot",
  "serde",
- "thiserror 2.0.12",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
 name = "inkwell_internals"
-version = "0.9.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-17#b7c8cfbce7f9fb3a7e62f4402af4999eeeef1da9"
+version = "0.10.0"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-19#6a6eaf88cde4045c4a05a60cdd48d92dc843da90"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2118,8 +2123,8 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 
 [[package]]
 name = "llvm-sys"
-version = "170.0.1"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-17.0#b952430e02402068588519e3381056bf1093545b"
+version = "191.0.0"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-19#d6d4c23af212d596eda9ac19257d21c84af2729e"
 dependencies = [
  "anyhow",
  "cc",
@@ -2695,7 +2700,7 @@ checksum = "b820744eb4dc9b57a3398183639c511b5a26d2ed702cedd3febaa1393caa22cc"
 dependencies = [
  "bytes",
  "getrandom 0.3.2",
- "rand 0.9.0",
+ "rand 0.9.1",
  "ring",
  "rustc-hash",
  "rustls",
@@ -2744,6 +2749,19 @@ checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
 
 [[package]]
 name = "rand"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "552840b97013b1a26992c11eac34bdd778e464601a4c2054b5f0bff7c6761293"
+dependencies = [
+ "fuchsia-cprng",
+ "libc",
+ "rand_core 0.3.1",
+ "rdrand",
+ "winapi",
+]
+
+[[package]]
+name = "rand"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
@@ -2755,13 +2773,12 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3779b94aeb87e8bd4e834cee3650289ee9e0d5677f976ecdb6d219e5f4f6cd94"
+checksum = "9fbfd9d094a40bf3ae768db9361049ace4c0e04a4fd6b359518bd7b73a73dd97"
 dependencies = [
  "rand_chacha 0.9.0",
  "rand_core 0.9.3",
- "zerocopy 0.8.24",
 ]
 
 [[package]]
@@ -2783,6 +2800,21 @@ dependencies = [
  "ppv-lite86",
  "rand_core 0.9.3",
 ]
+
+[[package]]
+name = "rand_core"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a6fdeb83b075e8266dcc8762c22776f6877a63111121f5f8c7411e5be7eed4b"
+dependencies = [
+ "rand_core 0.4.2",
+]
+
+[[package]]
+name = "rand_core"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c33a3c44ca05fa6f1807d8e6743f3824e8509beca625669633be0acbdf509dc"
 
 [[package]]
 name = "rand_core"
@@ -2829,6 +2861,15 @@ checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
+]
+
+[[package]]
+name = "rdrand"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "678054eb77286b51581ba43620cc911abf02758c91f93f479767aed0f90458b2"
+dependencies = [
+ "rand_core 0.3.1",
 ]
 
 [[package]]
@@ -3060,7 +3101,7 @@ dependencies = [
  "primitive-types",
  "proptest",
  "rand 0.8.5",
- "rand 0.9.0",
+ "rand 0.9.1",
  "rlp",
  "ruint-macro",
  "serde",
@@ -3512,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#f25d0b971606de61fe4e92cf71bfc798f5558b3b"
+source = "git+https://github.com/matter-labs/solx?branch=az-update-to-llvm-19#7fd8d697569685af34a7999ec16123c815582d23"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -4188,6 +4229,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "winapi"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
+dependencies = [
+ "winapi-i686-pc-windows-gnu",
+ "winapi-x86_64-pc-windows-gnu",
+]
+
+[[package]]
+name = "winapi-i686-pc-windows-gnu"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
+
+[[package]]
+name = "winapi-x86_64-pc-windows-gnu"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
 name = "windows-core"
 version = "0.61.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4623,15 +4686,15 @@ dependencies = [
 
 [[package]]
 name = "zk_evm_abstractions"
-version = "0.151.5"
+version = "0.152.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c91ea662a71ec92c72f5d1628486d1e68c1a50fd13e07ef57dcd2a6d4161b68f"
+checksum = "9c24698b675086c05a5bbc9617e975cbfff1b422791a933685038e3bd818cec2"
 dependencies = [
  "anyhow",
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.151.5",
+ "zkevm_opcode_defs 0.152.0",
 ]
 
 [[package]]
@@ -4653,9 +4716,9 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "0.151.5"
+version = "0.152.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb02c38d4486568f3ce4aed592a26139aa942eb3cef973a78cfc053cddc54d06"
+checksum = "cfeb8dda98af21f094199400d10f2ec65d4aa8f9382c339f59be172d493ed351"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4666,6 +4729,7 @@ dependencies = [
  "serde",
  "sha2 0.10.8",
  "sha3 0.10.8",
+ "zksync_pairing",
 ]
 
 [[package]]
@@ -4688,21 +4752,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "zksync_ff"
+version = "0.32.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53326e78698de1dac4bbf0dcd30a2e9d414354cd5780c36312eb880bfadd2350"
+dependencies = [
+ "byteorder",
+ "hex",
+ "rand 0.4.6",
+ "serde",
+ "zksync_ff_derive",
+]
+
+[[package]]
+name = "zksync_ff_derive"
+version = "0.32.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b40ab338f97ecb906a106f7b226042da0736d40fbb134691505c58cea51943fe"
+dependencies = [
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "zksync_pairing"
+version = "0.32.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a43eb42faf379880b35b8f5279e8030093f9f7b7a040824c8ad77b2a90cfe35"
+dependencies = [
+ "byteorder",
+ "cfg-if",
+ "rand 0.4.6",
+ "serde",
+ "zksync_ff",
+]
+
+[[package]]
 name = "zksync_vm2"
 version = "0.3.0"
-source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a7157510d9"
+source = "git+https://github.com/matter-labs/vm2#81375f5a2037bd5ed76f25cd6bea4c908656386b"
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.151.5",
- "zkevm_opcode_defs 0.151.5",
+ "zk_evm_abstractions 0.152.0",
+ "zkevm_opcode_defs 0.152.0",
  "zksync_vm2_interface",
 ]
 
 [[package]]
 name = "zksync_vm2_interface"
 version = "0.3.0"
-source = "git+https://github.com/matter-labs/vm2#831104788ad8250158a6e45b85ebd0a7157510d9"
+source = "git+https://github.com/matter-labs/vm2#81375f5a2037bd5ed76f25cd6bea4c908656386b"
 dependencies = [
  "primitive-types",
 ]
