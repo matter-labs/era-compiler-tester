@@ -31,7 +31,7 @@ impl JsonLNT {
     ///
     /// Generate the test name for a measurement, containing a unique test identifier.
     ///
-    fn test_name(selector: &Selector, version: impl std::fmt::Display) -> String {
+    fn test_name(selector: &Selector) -> String {
         let Selector { path, case, input } = selector;
         let short_path = Self::shorten_file_name(path);
         let short_input = match input {
@@ -42,14 +42,12 @@ impl JsonLNT {
             }),
             _ => input.clone(),
         };
-        format!(
-            "{} {version}",
-            Selector {
-                path: short_path.to_string(),
-                case: case.clone(),
-                input: short_input,
-            }
-        )
+        Selector {
+            path: short_path.to_string(),
+            case: case.clone(),
+            input: short_input,
+        }
+        .to_string()
     }
 
     ///
@@ -98,7 +96,8 @@ impl TryFrom<Benchmark> for JsonLNT {
                         },
                     ) in &versioned_group.executables
                     {
-                        let machine_name = format!("{}-{codegen}{optimization}", context.machine);
+                        let machine_name =
+                            format!("{}-{version}-{codegen}{optimization}", context.machine);
 
                         let machine = Machine {
                             name: context.machine.clone(),
@@ -124,7 +123,7 @@ impl TryFrom<Benchmark> for JsonLNT {
                             })
                             .tests
                             .push(TestDescription {
-                                name: { Self::test_name(selector, version) },
+                                name: { Self::test_name(selector) },
                                 measurements: measurements.clone(),
                             });
                     }
