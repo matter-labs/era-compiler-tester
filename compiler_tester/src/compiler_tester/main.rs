@@ -233,30 +233,16 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let context = if let Some(context_path) = arguments.benchmark_context {
-            Some(benchmark_analyzer::BenchmarkContext::try_from_path(
+            Some(benchmark_analyzer::BenchmarkContext::try_from(
                 context_path,
             )?)
         } else {
             None
         };
         let benchmark = summary.benchmark(toolchain, context)?;
-        match arguments.benchmark_format {
-            compiler_tester::BenchmarkFormat::Json => benchmark_analyzer::write_to_file(
-                &benchmark,
-                path,
-                benchmark_analyzer::JsonNativeSerializer,
-            )?,
-            compiler_tester::BenchmarkFormat::Csv => benchmark_analyzer::write_to_file(
-                &benchmark,
-                path,
-                benchmark_analyzer::CsvSerializer,
-            )?,
-            compiler_tester::BenchmarkFormat::JsonLNT => benchmark_analyzer::write_to_file(
-                &benchmark,
-                path,
-                benchmark_analyzer::JsonLNTSerializer,
-            )?,
-        }
+        let output: benchmark_analyzer::Output =
+            (benchmark, arguments.benchmark_format).try_into()?;
+        output.write_to_file(path)?;
     }
 
     if !summary.is_successful() {
@@ -284,7 +270,7 @@ mod tests {
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
-            benchmark_format: compiler_tester::BenchmarkFormat::Json,
+            benchmark_format: benchmark_analyzer::OutputFormat::Json,
             benchmark_context: None,
             threads: Some(1),
             dump_system: false,

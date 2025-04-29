@@ -87,7 +87,7 @@ impl DeployEVM {
             },
         );
 
-        let size = self.deploy_code.len();
+        let size = self.deploy_code.len() as u64;
         let calldata = self.calldata.inner.clone();
         let mut code = self.deploy_code;
         code.extend(self.calldata.inner);
@@ -159,7 +159,7 @@ impl DeployEVM {
         );
 
         let name = test.selector.to_string();
-        let size = self.deploy_code.len();
+        let size = self.deploy_code.len() as u64;
 
         vm.populate_storage(self.storage.inner);
         let result = match deployer.deploy_evm::<M>(

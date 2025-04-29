@@ -2,32 +2,53 @@
 //! Serializing benchmark data to CSV.
 //!
 
-use std::fmt::Write as _;
+use std::fmt::Write;
 
 use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
 use crate::model::benchmark::test::selector::Selector;
 use crate::model::benchmark::test::Test;
 use crate::model::benchmark::Benchmark;
-use crate::output::IBenchmarkSerializer;
-use crate::output::Output;
 
 ///
 /// Serialize the benchmark to CSV in the following format:
 /// "group", "codegen", "version", "optimizations", "path", "case", "input", "size", "cycles", "ergs", "gas""
 ///
 #[derive(Default)]
-pub struct Csv;
+pub struct Csv {
+    /// The CSV string.
+    pub content: String,
+}
 
-impl IBenchmarkSerializer for Csv {
-    type Err = std::fmt::Error;
+impl Csv {
+    ///
+    /// Estimate the length of a CSV line based on the expected maximum lengths of each field.
+    ///
+    fn estimate_csv_line_length() -> usize {
+        let number_fields = 4;
+        let number_field_estimated_max_length = 15;
+        let group_name_estimated_max = 10;
+        let test_name_estimated_max = 300;
+        group_name_estimated_max
+            + test_name_estimated_max
+            + number_fields * number_field_estimated_max_length
+    }
 
-    fn serialize_to_string(&self, benchmark: &Benchmark) -> Result<Output, Self::Err> {
-        let mut result = String::with_capacity(estimate_csv_size(benchmark));
-        result.push_str(
+    ///
+    /// Estimate the size of the CSV file based on the number of tests and the estimated line length.
+    ///
+    fn estimate_csv_size(benchmark: &Benchmark) -> usize {
+        (benchmark.tests.len() + 1) * Self::estimate_csv_line_length()
+    }
+}
+
+impl From<Benchmark> for Csv {
+    fn from(benchmark: Benchmark) -> Csv {
+        let mut content = String::with_capacity(Self::estimate_csv_size(&benchmark));
+        content.push_str(
             r#""group", "codegen", "version", "optimizations", "path", "case", "input", "size", "cycles", "ergs", "gas""#,
         );
 
-        result.push('\n');
+        content.push('\n');
         for Test {
             metadata:
                 TestMetadata {
@@ -62,27 +83,14 @@ impl IBenchmarkSerializer for Csv {
                         let input = input.clone().map(|s| s.to_string()).unwrap_or_default();
                         let case = case.as_deref().unwrap_or_default();
                         writeln!(
-                            &mut result,
+                            &mut content,
                             r#""{tags}", "{codegen}", "{version}", "{optimizations}", "{path}", "{case}", "{input}", {size_str}, {cycles}, {ergs}, {gas}"#,
-                        )?;
+                        ).expect("Always valid");
                     }
                 }
             }
         }
-        Ok(Output::SingleFile(result))
+
+        Self { content }
     }
-}
-
-fn estimate_csv_line_length() -> usize {
-    let number_fields = 4;
-    let number_field_estimated_max_length = 15;
-    let group_name_estimated_max = 10;
-    let test_name_estimated_max = 300;
-    group_name_estimated_max
-        + test_name_estimated_max
-        + number_fields * number_field_estimated_max_length
-}
-
-fn estimate_csv_size(benchmark: &Benchmark) -> usize {
-    (benchmark.tests.len() + 1) * estimate_csv_line_length()
 }

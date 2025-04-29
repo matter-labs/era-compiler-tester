@@ -10,9 +10,9 @@ pub enum PassedVariant {
     /// The contract deploy.
     Deploy {
         /// The contract size in instructions.
-        size: usize,
+        size: u64,
         /// The number of execution cycles.
-        cycles: usize,
+        cycles: u64,
         /// The number of used ergs.
         ergs: u64,
         /// The number of used gas.
@@ -21,7 +21,7 @@ pub enum PassedVariant {
     /// The contract call.
     Runtime {
         /// The number of execution cycles.
-        cycles: usize,
+        cycles: u64,
         /// The number of used ergs.
         ergs: u64,
         /// The number of used gas.

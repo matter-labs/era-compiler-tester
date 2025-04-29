@@ -8,21 +8,21 @@ pub mod test;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use serde::Deserialize;
-use serde::Serialize;
+use crate::foundry_report::FoundryReport;
 
-use crate::output::comparison_result::Output;
-use crate::output::file::File;
-use crate::output::IBenchmarkSerializer;
-
-use metadata::Metadata;
-
+use self::metadata::Metadata;
+use self::test::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
+use self::test::codegen::versioned::executable::run::Run as ExecutableRun;
+use self::test::codegen::versioned::executable::Executable;
+use self::test::input::Input as TestInput;
+use self::test::metadata::Metadata as TestMetadata;
+use self::test::selector::Selector as TestSelector;
 use self::test::Test;
 
 ///
 /// The benchmark representation.
 ///
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct Benchmark {
     /// Metadata related to the whole benchmark.
     pub metadata: Metadata,
@@ -30,39 +30,107 @@ pub struct Benchmark {
     pub tests: BTreeMap<String, Test>,
 }
 
-///
-/// Writes the benchmark results to a file using a provided serializer.
-///
-pub fn write_to_file(
-    benchmark: &Benchmark,
-    path: PathBuf,
-    serializer: impl IBenchmarkSerializer,
-) -> anyhow::Result<()> {
-    match serializer
-        .serialize_to_string(benchmark)
-        .expect("Always valid")
-    {
-        Output::SingleFile(contents) => {
-            std::fs::write(path.as_path(), contents)
-                .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} writing: {error}"))?;
-        }
-        Output::MultipleFiles(files) => {
-            if !files.is_empty() {
-                std::fs::create_dir_all(&path)?;
-            }
-            for File {
-                path: relative_path,
-                contents,
-            } in files
-            {
-                let file_path = path.join(relative_path);
-                std::fs::write(file_path.as_path(), contents).map_err(|error| {
-                    anyhow::anyhow!("Benchmark file {file_path:?} writing: {error}")
-                })?;
-            }
+impl Benchmark {
+    ///
+    /// A shortcut constructor to set metadata.
+    ///
+    pub fn new(metadata: Metadata) -> Self {
+        Self {
+            metadata,
+            tests: BTreeMap::default(),
         }
     }
-    Ok(())
+
+    ///
+    /// Extend the benchmark with a Foundry report
+    ///
+    pub fn extend_with_foundry(
+        &mut self,
+        project: &str,
+        foundry_report: FoundryReport,
+    ) -> anyhow::Result<()> {
+        let context =
+            self.metadata.context.as_ref().ok_or_else(|| {
+                anyhow::anyhow!("Benchmark context is required for Foundry reports")
+            })?;
+
+        let codegen = context.codegen.as_deref().unwrap_or("codegen-unknown");
+        let optimization = context
+            .optimization
+            .as_deref()
+            .unwrap_or("optimization-unknown");
+
+        for contract_report in foundry_report.0.into_iter() {
+            let selector = TestSelector {
+                path: project.to_owned(),
+                case: Some(contract_report.contract.to_owned()),
+                input: Some(TestInput::Deployer {
+                    contract_identifier: contract_report.contract.to_owned(),
+                }),
+            };
+            let name = selector.to_string();
+
+            let mut test = Test::new(TestMetadata::new(selector, vec![]));
+            test.codegen_groups
+                .entry(codegen.to_owned())
+                .or_default()
+                .versioned_groups
+                .entry(context.compiler_version.clone())
+                .or_default()
+                .executables
+                .insert(
+                    optimization.to_owned(),
+                    Executable {
+                        metadata: ExecutableMetadata::default(),
+                        run: ExecutableRun {
+                            size: Some(contract_report.deployment.size),
+                            cycles: 0,
+                            ergs: 0,
+                            gas: contract_report.deployment.gas,
+                        },
+                    },
+                );
+            self.tests.insert(name, test);
+
+            for (index, (function, function_report)) in
+                contract_report.functions.into_iter().enumerate()
+            {
+                let selector = TestSelector {
+                    path: project.to_owned(),
+                    case: Some(contract_report.contract.to_owned()),
+                    input: Some(TestInput::Runtime {
+                        input_index: index + 1,
+                        name: function,
+                    }),
+                };
+                let name = selector.to_string();
+
+                let mut test = Test::new(TestMetadata::new(selector, vec![]));
+                test.codegen_groups
+                    .entry(codegen.to_owned())
+                    .or_default()
+                    .versioned_groups
+                    .entry(context.compiler_version.clone())
+                    .or_default()
+                    .executables
+                    .insert(
+                        optimization.to_owned(),
+                        Executable {
+                            metadata: ExecutableMetadata::default(),
+                            run: ExecutableRun {
+                                size: None,
+                                cycles: 0,
+                                ergs: 0,
+                                gas: function_report.mean,
+                            },
+                        },
+                    );
+                self.tests.insert(name, test);
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl TryFrom<PathBuf> for Benchmark {

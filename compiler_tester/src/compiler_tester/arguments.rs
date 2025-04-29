@@ -43,11 +43,11 @@ pub struct Arguments {
     /// The benchmark output format: `json`, `csv`, or `json-lnt`.
     /// Using `json-lnt` requires providing the path to a JSON file describing the
     /// benchmarking context via `--benchmark-context`.
-    #[structopt(long = "benchmark-format", default_value_t = compiler_tester::BenchmarkFormat::Json)]
-    pub benchmark_format: compiler_tester::BenchmarkFormat,
+    #[structopt(long = "benchmark-format", default_value_t = benchmark_analyzer::OutputFormat::Json)]
+    pub benchmark_format: benchmark_analyzer::OutputFormat,
 
     /// The benchmark context to pass additional data to backends.
-    #[structopt(long = compiler_tester::ARGUMENT_BENCHMARK_CONTEXT)]
+    #[structopt(long = "benchmark-context")]
     pub benchmark_context: Option<PathBuf>,
 
     /// Sets the number of threads, which execute the tests concurrently.
@@ -135,12 +135,12 @@ impl Arguments {
     ///
     pub fn validate(arguments: Self) -> anyhow::Result<Self> {
         match (&arguments.benchmark_format, &arguments.benchmark_context) {
-            (compiler_tester::BenchmarkFormat::JsonLNT, None) => {
-                anyhow::bail!("Generation of LNT-compatible benchmark results in JSON format requires passing a valid context in the argument `--{}` to compiler tester.", compiler_tester::ARGUMENT_BENCHMARK_CONTEXT)
+            (benchmark_analyzer::OutputFormat::JsonLNT, None) => {
+                anyhow::bail!("Generation of LNT-compatible benchmark results in JSON format requires passing a valid context in the argument `--benchmark-context` to compiler tester.")
             }
-            (compiler_tester::BenchmarkFormat::JsonLNT, Some(_)) => (),
+            (benchmark_analyzer::OutputFormat::JsonLNT, Some(_)) => (),
             (_, Some(_)) => {
-                anyhow::bail!("Only LNT backend in JSON format supports passing a valid context in the argument `--{}` to compiler tester.", compiler_tester::ARGUMENT_BENCHMARK_CONTEXT)
+                anyhow::bail!("Only LNT backend in JSON format supports passing a valid context in the argument `--benchmark-context` to compiler tester.")
             }
             _ => (),
         }

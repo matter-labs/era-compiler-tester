@@ -220,8 +220,8 @@ impl Summary {
     pub fn passed_deploy(
         summary: Arc<Mutex<Self>>,
         test: TestDescription,
-        size: usize,
-        cycles: usize,
+        size: u64,
+        cycles: u64,
         ergs: u64,
         gas: u64,
     ) {
@@ -240,7 +240,7 @@ impl Summary {
     pub fn passed_runtime(
         summary: Arc<Mutex<Self>>,
         test: TestDescription,
-        cycles: usize,
+        cycles: u64,
         ergs: u64,
         gas: u64,
     ) {
