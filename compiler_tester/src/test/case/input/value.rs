@@ -119,7 +119,7 @@ impl Value {
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
                 .split(':')
-                .last()
+                .next_back()
                 .and_then(|value| value.parse().ok())
                 .unwrap_or_default();
             let mut hash =
