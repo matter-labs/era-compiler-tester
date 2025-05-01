@@ -595,9 +595,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.20"
+version = "1.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04da6a0d40b948dfc4fa8f5bbf402b0fc1a64a28dbf7d12ffd683550f2c1b63a"
+checksum = "8691782945451c1c383942c4874dbe63814f61cb57ef773cda2972682b7bb3c0"
 dependencies = [
  "shlex",
 ]
@@ -1135,7 +1135,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#a3eb39828ce99f4cc8c95b42c63901ba9e54578c"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#258108b38421393449b1cc9c60ca493b45703820"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3552,8 +3552,8 @@ dependencies = [
 
 [[package]]
 name = "solx-standard-json"
-version = "0.1.0-alpha.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#b308416a7e1f7155f6d779de0e733e0cc3df72ea"
+version = "0.1.0-alpha.2"
+source = "git+https://github.com/matter-labs/solx?branch=main#900d6d0351b31fce66a29ac84df1cd702bf26c96"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3868,7 +3868,7 @@ checksum = "310068873db2c5b3e7659d2cc35d21855dbafa50d1ce336397c666e3cb08137e"
 dependencies = [
  "indexmap",
  "toml_datetime",
- "winnow 0.7.7",
+ "winnow 0.7.9",
 ]
 
 [[package]]
@@ -4486,9 +4486,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.7.7"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6cb8234a863ea0e8cd7284fcdd4f145233eb00fee02bbdd9861aec44e6477bc5"
+checksum = "d9fb597c990f03753e08d3c29efbfcf2019a003b4bf4ba19225c158e1549f0f3"
 dependencies = [
  "memchr",
 ]
@@ -4686,15 +4686,15 @@ dependencies = [
 
 [[package]]
 name = "zk_evm_abstractions"
-version = "0.152.1"
+version = "0.152.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83a28799d0938239119dbe1ef0487e2b7857d7ca9ce1f6d9dc24e8b371cf6e6f"
+checksum = "5045537f21a73dc99f709daa951e89b857c1b00584d0d8395e8fe6d3b1bedeb5"
 dependencies = [
  "anyhow",
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.152.1",
+ "zkevm_opcode_defs 0.152.2",
 ]
 
 [[package]]
@@ -4716,9 +4716,9 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "0.152.1"
+version = "0.152.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7111345ad3209e6638b3dc0d358de9cc86b6ddd8d588d4f420083fbb1cc0d4e"
+checksum = "117d135367b66f3c4dab8717113eb3898d514e8c3886ac3d4367919ae3f2824d"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4799,8 +4799,8 @@ source = "git+https://github.com/matter-labs/vm2#9b26181b687032526cbebf7bb0a5731
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.152.1",
- "zkevm_opcode_defs 0.152.1",
+ "zk_evm_abstractions 0.152.2",
+ "zkevm_opcode_defs 0.152.2",
  "zksync_vm2_interface",
 ]
 
