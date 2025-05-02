@@ -7,6 +7,6 @@
     url = https://github.com/matter-labs/era-contracts
     branch = stable/evm-emulator
 [submodule "era-solidity"]
-	path = era-solidity
-	url = https://github.com/matter-labs/era-solidity
+    path = era-solidity
+    url = https://github.com/matter-labs/era-solidity
     branch = 0.8.29

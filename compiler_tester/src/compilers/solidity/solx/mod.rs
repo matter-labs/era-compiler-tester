@@ -295,7 +295,14 @@ impl Compiler for SolidityCompiler {
             .flat_map(|(file, contracts)| {
                 contracts.into_iter().filter_map(move |(name, contract)| {
                     let path = format!("{file}:{name}");
-                    let bytecode_string = contract.evm.as_ref()?.bytecode.as_ref()?.object.as_str();
+                    let bytecode_string = contract
+                        .evm
+                        .as_ref()?
+                        .bytecode
+                        .as_ref()?
+                        .object
+                        .as_ref()?
+                        .as_str();
                     let build = hex::decode(bytecode_string).expect("Always valid");
                     Some((path, build))
                 })

@@ -244,6 +244,12 @@ impl Compiler for YulCompiler {
                                 anyhow::anyhow!("EVM bytecode of the contract `{file}` not found")
                             })?
                             .object
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "EVM bytecode object of the contract `{file}` not found"
+                                )
+                            })?
                             .as_str();
                         let build = hex::decode(bytecode_string).expect("Always valid");
                         builds.insert(file.clone(), build);

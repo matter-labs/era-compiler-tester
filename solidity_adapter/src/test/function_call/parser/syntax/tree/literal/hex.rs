@@ -41,7 +41,7 @@ impl Literal {
         web3::types::U256::from_str(self.inner.inner.as_str())
             .expect("Always valid")
             .to_big_endian(&mut result);
-        result = result[result.len() - (self.inner.inner.len() + 1) / 2..].to_owned();
+        result = result[result.len() - self.inner.inner.len().div_ceil(2)..].to_owned();
         result
     }
 }

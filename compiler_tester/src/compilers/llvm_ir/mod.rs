@@ -191,6 +191,12 @@ impl Compiler for LLVMIRCompiler {
                                 anyhow::anyhow!("EVM bytecode of the contract `{name}` not found")
                             })?
                             .object
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "EVM bytecode object of the contract `{name}` not found"
+                                )
+                            })?
                             .as_str();
                         let build = hex::decode(bytecode_string).expect("Always valid");
                         builds.insert(name, build);
