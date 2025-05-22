@@ -1151,7 +1151,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#4bf7270e2d0870bf776bc07085a6c4d7114aa5ca"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c7f183e0c582ea0c4e07b430b31cb6706774eedf"
 dependencies = [
  "anyhow",
  "clap",
@@ -1198,7 +1198,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#4bf7270e2d0870bf776bc07085a6c4d7114aa5ca"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c7f183e0c582ea0c4e07b430b31cb6706774eedf"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1215,7 +1215,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#4bf7270e2d0870bf776bc07085a6c4d7114aa5ca"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#c7f183e0c582ea0c4e07b430b31cb6706774eedf"
 dependencies = [
  "anyhow",
  "regex",
