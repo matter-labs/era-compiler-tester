@@ -10,11 +10,11 @@ use std::collections::BTreeMap;
 /// # Arguments
 ///
 /// * `map1` - The first `BTreeMap` containing keys of type `K` and values of
-///    type `V1`.
+///   type `V1`.
 /// * `map2` - The second `BTreeMap` containing keys of type `K` and values of
-///    type `V2`. This map is modified during the intersection.
+///   type `V2`. This map is modified during the intersection.
 /// * `merger` - A closure that takes a key of type `K`, and a value from each
-///    map (`V1` and `V2`), and returns a merged result of type `R`.
+///   map (`V1` and `V2`), and returns a merged result of type `R`.
 ///
 /// # Returns
 ///

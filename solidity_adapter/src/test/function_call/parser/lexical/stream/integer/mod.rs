@@ -34,10 +34,10 @@ pub enum State {
 /// Integer literals can be of two types:
 ///
 /// 1. Decimal
-///     Example: '-42'
+///    Example: '-42'
 ///
 /// 2. Hexadecimal
-///     Example: '2a'
+///    Example: '2a'
 ///
 pub fn parse(input: &str) -> Result<Output, Error> {
     let mut state = State::Start;
