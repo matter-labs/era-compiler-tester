@@ -1151,7 +1151,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-support-solc-0830#6a7eb07be9db91c9eef141f832c1e79c9dae024a"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b7a6a601e78aed707bad30d4aa9c73e8e60fad0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1198,7 +1198,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-support-solc-0830#6a7eb07be9db91c9eef141f832c1e79c9dae024a"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b7a6a601e78aed707bad30d4aa9c73e8e60fad0"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1215,7 +1215,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-support-solc-0830#6a7eb07be9db91c9eef141f832c1e79c9dae024a"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b7a6a601e78aed707bad30d4aa9c73e8e60fad0"
 dependencies = [
  "anyhow",
  "regex",
@@ -2336,12 +2336,9 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "once_cell_polyfill"
-version = "1.70.0"
+version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2611b99ab098a31bdc8be48b4f1a285ca0ced28bd5b4f23e45efa8c63b09efa5"
-dependencies = [
- "once_cell",
-]
+checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
 
 [[package]]
 name = "opaque-debug"

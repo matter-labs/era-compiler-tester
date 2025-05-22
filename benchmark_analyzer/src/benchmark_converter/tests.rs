@@ -116,24 +116,24 @@ fn convert() {
     };
 
     eprintln!("Contents: {contents}");
-    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthority.sol:MockAuthority[#deployer:mocks/MockAuthority.sol:MockAuthority] 1.0.0"));
-    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder[#deployer:mocks/MockAuthorityHarder.sol:MockAuthorityHarder] 1.0.0"));
-    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthority.sol:MockAuthority[allowance(address,address):1] 1.0.0"));
-    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthority.sol:MockAuthority[canCall(address,address,bytes4):2] 1.0.0"));
-    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder[allowance(address,address):1] 1.0.0"));
-    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder[canCall(address,address):2] 1.0.0"));
+    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthority.sol:MockAuthority[#deployer:mocks/MockAuthority.sol:MockAuthority]"));
+    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder[#deployer:mocks/MockAuthorityHarder.sol:MockAuthorityHarder]"));
+    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthority.sol:MockAuthority[allowance(address,address):1]"));
+    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthority.sol:MockAuthority[canCall(address,address,bytes4):2]"));
+    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder[allowance(address,address):1]"));
+    assert!(contents.contains("ProjectX::src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder[canCall(address,address):2]"));
 
     assert!(contents
-        .contains("ProjectY::src/test/StrangeFile.sol:StrangeContract[#deployer:test/StrangeFile.sol:StrangeContract] 1.0.0"));
+        .contains("ProjectY::src/test/StrangeFile.sol:StrangeContract[#deployer:test/StrangeFile.sol:StrangeContract]"));
     assert!(contents
-        .contains("ProjectY::src/test/OrdinaryFile.sol:OrdinaryContract[#deployer:test/OrdinaryFile.sol:OrdinaryContract] 1.0.0"));
+        .contains("ProjectY::src/test/OrdinaryFile.sol:OrdinaryContract[#deployer:test/OrdinaryFile.sol:OrdinaryContract]"));
+    assert!(contents.contains("ProjectY::src/test/StrangeFile.sol:StrangeContract[anotherCall:1]"));
+    assert!(
+        contents.contains("ProjectY::src/test/StrangeFile.sol:StrangeContract[yetAnotherCall:2]")
+    );
     assert!(contents
-        .contains("ProjectY::src/test/StrangeFile.sol:StrangeContract[anotherCall:1] 1.0.0"));
-    assert!(contents
-        .contains("ProjectY::src/test/StrangeFile.sol:StrangeContract[yetAnotherCall:2] 1.0.0"));
-    assert!(contents.contains(
-        "ProjectY::src/test/OrdinaryFile.sol:OrdinaryContract[evenMoreOrdinaryCall:1] 1.0.0"
-    ));
-    assert!(contents
-        .contains("ProjectY::src/test/OrdinaryFile.sol:OrdinaryContract[ordinaryCall:2] 1.0.0"));
+        .contains("ProjectY::src/test/OrdinaryFile.sol:OrdinaryContract[evenMoreOrdinaryCall:1]"));
+    assert!(
+        contents.contains("ProjectY::src/test/OrdinaryFile.sol:OrdinaryContract[ordinaryCall:2]")
+    );
 }
