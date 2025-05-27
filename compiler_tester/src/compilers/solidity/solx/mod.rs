@@ -160,13 +160,16 @@ impl SolidityCompiler {
         for (path, file) in solc_output.contracts.iter() {
             for (name, contract) in file.iter() {
                 let mut contract_selectors = BTreeMap::new();
-                let contract_method_identifiers =
-                    match contract.evm.as_ref().map(|evm| &evm.method_identifiers) {
-                        Some(method_identifiers) => method_identifiers,
-                        None => {
-                            continue;
-                        }
-                    };
+                let contract_method_identifiers = match contract
+                    .evm
+                    .as_ref()
+                    .and_then(|evm| evm.method_identifiers.as_ref())
+                {
+                    Some(method_identifiers) => method_identifiers,
+                    None => {
+                        continue;
+                    }
+                };
                 for (entry, selector) in contract_method_identifiers.iter() {
                     let selector =
                         u32::from_str_radix(selector, era_compiler_common::BASE_HEXADECIMAL)
@@ -191,17 +194,41 @@ impl SolidityCompiler {
         sources: &[(String, String)],
     ) -> anyhow::Result<String> {
         for (path, _source) in sources.iter().rev() {
-            match solc_output
-                .sources
-                .get(path)
-                .ok_or_else(|| anyhow::anyhow!("The last source not found in the output"))?
-                .last_contract_name()
-            {
+            match Self::last_contract_name(
+                solc_output
+                    .sources
+                    .get(path)
+                    .ok_or_else(|| anyhow::anyhow!("The last source not found in the output"))?,
+            ) {
                 Ok(name) => return Ok(format!("{path}:{name}")),
                 Err(_error) => continue,
             }
         }
         anyhow::bail!("The last source not found in the output")
+    }
+
+    ///
+    /// Returns the last contract name from the sources.
+    ///
+    fn last_contract_name(source: &solx_standard_json::OutputSource) -> anyhow::Result<String> {
+        source
+            .ast
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("The AST is empty"))?
+            .get("nodes")
+            .and_then(|value| value.as_array())
+            .ok_or_else(|| {
+                anyhow::anyhow!("The last contract cannot be found in an empty list of nodes")
+            })?
+            .iter()
+            .filter_map(
+                |node| match node.get("nodeType").and_then(|node| node.as_str()) {
+                    Some("ContractDefinition") => Some(node.get("name")?.as_str()?.to_owned()),
+                    _ => None,
+                },
+            )
+            .next_back()
+            .ok_or_else(|| anyhow::anyhow!("The last contract not found in the AST"))
     }
 }
 
@@ -263,7 +290,7 @@ impl Compiler for SolidityCompiler {
             ),
             None,
             solx_mode.via_ir,
-            solx_standard_json::InputSelection::new(selectors),
+            &solx_standard_json::InputSelection::new(selectors),
             solx_standard_json::InputMetadata::default(),
             llvm_options,
         )
