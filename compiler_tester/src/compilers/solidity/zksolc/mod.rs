@@ -263,17 +263,41 @@ impl SolidityCompiler {
         sources: &[(String, String)],
     ) -> anyhow::Result<String> {
         for (path, _source) in sources.iter().rev() {
-            match solc_output
-                .sources
-                .get(path)
-                .ok_or_else(|| anyhow::anyhow!("The last source not found in the output"))?
-                .last_contract_name()
-            {
+            match Self::last_contract_name(
+                solc_output
+                    .sources
+                    .get(path)
+                    .ok_or_else(|| anyhow::anyhow!("The last source not found in the output"))?,
+            ) {
                 Ok(name) => return Ok(format!("{path}:{name}")),
                 Err(_error) => continue,
             }
         }
         anyhow::bail!("The last source not found in the output")
+    }
+
+    ///
+    /// Returns the last contract name from the sources.
+    ///
+    fn last_contract_name(source: &era_solc::StandardJsonOutputSource) -> anyhow::Result<String> {
+        source
+            .ast
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("The AST is empty"))?
+            .get("nodes")
+            .and_then(|value| value.as_array())
+            .ok_or_else(|| {
+                anyhow::anyhow!("The last contract cannot be found in an empty list of nodes")
+            })?
+            .iter()
+            .filter_map(
+                |node| match node.get("nodeType").and_then(|node| node.as_str()) {
+                    Some("ContractDefinition") => Some(node.get("name")?.as_str()?.to_owned()),
+                    _ => None,
+                },
+            )
+            .next_back()
+            .ok_or_else(|| anyhow::anyhow!("The last contract not found in the AST"))
     }
 }
 
