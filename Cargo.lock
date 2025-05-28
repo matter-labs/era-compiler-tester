@@ -595,9 +595,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.23"
+version = "1.2.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f4ac86a9e5bc1e2b3449ab9d7d3a6a405e3d1bb28d7b9be8614f55846ae3766"
+checksum = "16595d3be041c03b09d08d0858631facccee9221e579704070e6e9e4915d3bc7"
 dependencies = [
  "shlex",
 ]
@@ -642,9 +642,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.38"
+version = "4.5.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed93b9805f8ba930df42c2590f05453d5ec36cbb85d018868a5b24d31f6ac000"
+checksum = "fd60e63e9be68e5fb56422e397cf9baddded06dae1d2e523401542383bc72a9f"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -652,9 +652,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.38"
+version = "4.5.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "379026ff283facf611b0ea629334361c4211d1b12ee01024eec1591133b04120"
+checksum = "89cc6392a1f72bbeb820d71f32108f61fdaf18bc526e1d23954168a67759ef51"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1135,7 +1135,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#2e817a535788458f31bb07d65d8484547e700a16"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#57d287d9ecd66a1136d9e619fe535d8d1450293f"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1150,8 +1150,8 @@ dependencies = [
 
 [[package]]
 name = "era-compiler-solidity"
-version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b7a6a601e78aed707bad30d4aa9c73e8e60fad0"
+version = "1.5.16"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-fix-linker-interfaces#b607dce5252ab0592a25509a57aefbca8eb5d561"
 dependencies = [
  "anyhow",
  "clap",
@@ -1175,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.11"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#b8157bdbd4abf429df54b572a99bb9369701eeea"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#425b005963d9480515e70201f0966f50960568b7"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1197,8 +1197,8 @@ dependencies = [
 
 [[package]]
 name = "era-solc"
-version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b7a6a601e78aed707bad30d4aa9c73e8e60fad0"
+version = "1.5.16"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-fix-linker-interfaces#b607dce5252ab0592a25509a57aefbca8eb5d561"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1214,8 +1214,8 @@ dependencies = [
 
 [[package]]
 name = "era-yul"
-version = "1.5.14"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#2b7a6a601e78aed707bad30d4aa9c73e8e60fad0"
+version = "1.5.16"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-fix-linker-interfaces#b607dce5252ab0592a25509a57aefbca8eb5d561"
 dependencies = [
  "anyhow",
  "regex",
@@ -1667,11 +1667,10 @@ dependencies = [
 
 [[package]]
 name = "hyper-rustls"
-version = "0.27.5"
+version = "0.27.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d191583f3da1305256f22463b9bb0471acad48a4e534a5218b9963e9c1f59b2"
+checksum = "03a01595e11bdcec50946522c32dde3fc6914743000a68b93000965f2f02406d"
 dependencies = [
- "futures-util",
  "http",
  "hyper",
  "hyper-util",
@@ -1680,7 +1679,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots 0.26.11",
+ "webpki-roots",
 ]
 
 [[package]]
@@ -1701,22 +1700,28 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf9f1e950e0d9d1d3c47184416723cf29c0d1f93bd8cccf37e4beb6b44f31710"
+checksum = "b1c293b6b3d21eca78250dc7dbebd6b9210ec5530e038cbfe0661b5c47ab06e8"
 dependencies = [
+ "base64",
  "bytes",
  "futures-channel",
+ "futures-core",
  "futures-util",
  "http",
  "http-body",
  "hyper",
+ "ipnet",
  "libc",
+ "percent-encoding",
  "pin-project-lite",
  "socket2",
+ "system-configuration",
  "tokio",
  "tower-service",
  "tracing",
+ "windows-registry",
 ]
 
 [[package]]
@@ -1901,7 +1906,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.5.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-19#6a6eaf88cde4045c4a05a60cdd48d92dc843da90"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-19#020993dff10d274c59204dd279352eff4f90a897"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1915,7 +1920,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.10.0"
-source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-19#6a6eaf88cde4045c4a05a60cdd48d92dc843da90"
+source = "git+https://github.com/matter-labs-forks/inkwell?branch=llvm-19#020993dff10d274c59204dd279352eff4f90a897"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1950,6 +1955,16 @@ name = "ipnet"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "469fb0b9cefa57e3ef31275ee7cacb78f2fdca44e4765491884a2b119d4eb130"
+
+[[package]]
+name = "iri-string"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbc5ebe9c3a1a7a5127f920a418f7585e9e758e911d0466ed004f393b0e380b2"
+dependencies = [
+ "memchr",
+ "serde",
+]
 
 [[package]]
 name = "is_terminal_polyfill"
@@ -2092,7 +2107,7 @@ checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
 [[package]]
 name = "llvm-sys"
 version = "191.0.0"
-source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-19#d6d4c23af212d596eda9ac19257d21c84af2729e"
+source = "git+https://github.com/matter-labs-forks/llvm-sys.rs?branch=llvm-19#33629f00f941152c2d1f19c760cac0755f1f28b6"
 dependencies = [
  "anyhow",
  "cc",
@@ -2153,13 +2168,13 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2886843bf800fba2e3377cff24abf6379b4c4d5c6681eaf9ea5b0d15090450bd"
+checksum = "78bed444cc8a2160f01cbcf811ef18cac863ad68ae8ca62092e8db51d51c761c"
 dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2908,9 +2923,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reqwest"
-version = "0.12.15"
+version = "0.12.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d19c46a6fdd48bc4dab94b6103fccc55d34c67cc0ad04653aad4ea2a07cd7bbb"
+checksum = "2bf597b113be201cb2269b4c39b39a804d01b99ee95a4278f0ed04e45cff1c71"
 dependencies = [
  "base64",
  "bytes",
@@ -2936,24 +2951,22 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls",
- "rustls-pemfile",
  "rustls-pki-types",
  "serde",
  "serde_json",
  "serde_urlencoded",
  "sync_wrapper",
- "system-configuration",
  "tokio",
  "tokio-native-tls",
  "tokio-rustls",
  "tower",
+ "tower-http",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots 0.26.11",
- "windows-registry",
+ "webpki-roots",
 ]
 
 [[package]]
@@ -3074,9 +3087,9 @@ dependencies = [
 
 [[package]]
 name = "ruint"
-version = "1.14.0"
+version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78a46eb779843b2c4f21fac5773e25d6d5b7c8f0922876c91541790d2ca27eef"
+checksum = "11256b5fe8c68f56ac6f39ef0720e592f33d2367a4782740d9c9142e889c7fb4"
 dependencies = [
  "alloy-rlp",
  "ark-ff 0.3.0",
@@ -3169,15 +3182,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustls-pemfile"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dce314e5fee3f39953d46bb63bb8a46d40c2f8fb7cc5a3b6cab2bde9721d6e50"
-dependencies = [
- "rustls-pki-types",
-]
-
-[[package]]
 name = "rustls-pki-types"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3200,9 +3204,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 
 [[package]]
 name = "rusty-fork"
@@ -3517,9 +3521,9 @@ checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
 
 [[package]]
 name = "socket2"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f5fd57c80058a56cf5c777ab8a126398ece8e442983605d280a44ce79d0edef"
+checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
@@ -3543,8 +3547,8 @@ dependencies = [
 
 [[package]]
 name = "solx-standard-json"
-version = "0.1.0-alpha.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#4f42a93845b9d7c94d5281207bad7a946ed03709"
+version = "0.1.0-alpha.4"
+source = "git+https://github.com/matter-labs/solx?branch=main#15fa3926c32e7809093df148e242877f7b0ec299"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3788,9 +3792,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.45.0"
+version = "1.45.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2513ca694ef9ede0fb23fe71a4ee4107cb102b9dc1930f6d0fd77aae068ae165"
+checksum = "75ef51a33ef1da925cea3e4eb122833cb377c61439ca401b770f54902b806779"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3873,6 +3877,24 @@ dependencies = [
  "pin-project-lite",
  "sync_wrapper",
  "tokio",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
+name = "tower-http"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fdb0c213ca27a9f57ab69ddb290fd80d970922355b83ae380b395d3986b8a2e"
+dependencies = [
+ "bitflags",
+ "bytes",
+ "futures-util",
+ "http",
+ "http-body",
+ "iri-string",
+ "pin-project-lite",
+ "tower",
  "tower-layer",
  "tower-service",
 ]
@@ -4190,15 +4212,6 @@ dependencies = [
  "serde_json",
  "tiny-keccak",
  "url",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "0.26.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "521bc38abb08001b01866da9f51eb7c5d647a19260e00054a8c7fd5f9e57f7a9"
-dependencies = [
- "webpki-roots 1.0.0",
 ]
 
 [[package]]
