@@ -276,7 +276,7 @@ impl Compiler for SolidityCompiler {
         selectors.insert(if solx_mode.via_ir {
             solx_standard_json::InputSelector::Yul
         } else {
-            solx_standard_json::InputSelector::EVMLA
+            solx_standard_json::InputSelector::EVMLegacyAssembly
         });
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
