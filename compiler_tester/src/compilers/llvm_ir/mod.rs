@@ -160,6 +160,7 @@ impl Compiler for LLVMIRCompiler {
                         llvm_ir_mode
                             .llvm_optimizer_settings
                             .is_fallback_to_size_enabled,
+                        None,
                     ),
                     &solx_standard_json::InputSelection::new(selectors),
                     solx_standard_json::InputMetadata::default(),
