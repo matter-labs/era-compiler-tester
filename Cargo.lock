@@ -692,7 +692,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -901,7 +901,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d162beedaa69905488a8da94f5ac3edb4dd4788b732fadb7bd120b2625c1976"
 dependencies = [
  "data-encoding",
- "syn 2.0.102",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -1151,7 +1151,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.16"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-stack-never-too-deep#a4ac8b979dcb07bbf5d5e0ce4551a7c38ba1a035"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-stack-never-too-deep#151235176ea9acc4e9791c94cce359f578b6e7c0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1198,7 +1198,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.16"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-stack-never-too-deep#a4ac8b979dcb07bbf5d5e0ce4551a7c38ba1a035"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-stack-never-too-deep#151235176ea9acc4e9791c94cce359f578b6e7c0"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1215,7 +1215,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.16"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-stack-never-too-deep#a4ac8b979dcb07bbf5d5e0ce4551a7c38ba1a035"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=az-stack-never-too-deep#151235176ea9acc4e9791c94cce359f578b6e7c0"
 dependencies = [
  "anyhow",
  "regex",
@@ -1230,7 +1230,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cea14ef9355e3beab063703aa9dab15afd25f0667c341310c1e5274bb1d0da18"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2728,7 +2728,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3164,7 +3164,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3602,7 +3602,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3715,7 +3715,7 @@ dependencies = [
  "getrandom 0.3.3",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
