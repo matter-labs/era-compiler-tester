@@ -287,6 +287,7 @@ impl Compiler for SolidityCompiler {
                 solx_mode
                     .llvm_optimizer_settings
                     .is_fallback_to_size_enabled,
+                None,
             ),
             None,
             solx_mode.via_ir,
