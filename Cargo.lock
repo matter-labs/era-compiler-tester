@@ -3536,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0-alpha.4"
-source = "git+https://github.com/matter-labs/solx?branch=main#6195b0c90e50bc2cf415702281ca5df9996973bf"
+source = "git+https://github.com/matter-labs/solx?branch=az-env-var-configuration#765d4503a59677a21e720515cc5fe05c3f09ad6a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3553,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0-alpha.4"
-source = "git+https://github.com/matter-labs/solx?branch=main#6195b0c90e50bc2cf415702281ca5df9996973bf"
+source = "git+https://github.com/matter-labs/solx?branch=az-env-var-configuration#765d4503a59677a21e720515cc5fe05c3f09ad6a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0-alpha.4"
-source = "git+https://github.com/matter-labs/solx?branch=main#6195b0c90e50bc2cf415702281ca5df9996973bf"
+source = "git+https://github.com/matter-labs/solx?branch=az-env-var-configuration#765d4503a59677a21e720515cc5fe05c3f09ad6a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
