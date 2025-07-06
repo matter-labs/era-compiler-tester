@@ -132,7 +132,7 @@ impl SolidityCompiler {
             Toolchain::SolcLLVM => Self::DIRECTORY_LLVM,
             toolchain => panic!("Unsupported toolchain: {toolchain}"),
         };
-        SolcUpstreamCompiler::new(format!("{}/solc-{}", directory, version))
+        SolcUpstreamCompiler::new(format!("{directory}/solc-{version}"))
     }
 
     ///
