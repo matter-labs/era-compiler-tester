@@ -3536,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-side-effects-block-and-transaction#264e0f2cf5cf2aee71f3ec5b6355308de5e7615b"
+source = "git+https://github.com/matter-labs/solx?branch=main#3e68943d5504b25e62fa07fa6f4c5791e882c9ef"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3553,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-side-effects-block-and-transaction#264e0f2cf5cf2aee71f3ec5b6355308de5e7615b"
+source = "git+https://github.com/matter-labs/solx?branch=main#3e68943d5504b25e62fa07fa6f4c5791e882c9ef"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-side-effects-block-and-transaction#264e0f2cf5cf2aee71f3ec5b6355308de5e7615b"
+source = "git+https://github.com/matter-labs/solx?branch=main#3e68943d5504b25e62fa07fa6f4c5791e882c9ef"
 dependencies = [
  "anyhow",
  "era-compiler-common",
