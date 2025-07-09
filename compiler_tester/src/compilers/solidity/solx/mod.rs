@@ -353,8 +353,7 @@ impl Compiler for SolidityCompiler {
         era_compiler_llvm_context::OptimizerSettings::combinations(target)
             .into_iter()
             .cartesian_product(solc_codegen_versions)
-            .map(|(mut llvm_optimizer_settings, (via_ir, version))| {
-                llvm_optimizer_settings.enable_fallback_to_size();
+            .map(|(llvm_optimizer_settings, (via_ir, version))| {
                 SolxMode::new(version, via_ir, llvm_optimizer_settings).into()
             })
             .collect::<Vec<Mode>>()
