@@ -172,7 +172,7 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
     let mut gas_total_reference: u64 = 0;
     let mut gas_total_candidate: u64 = 0;
 
-    for (description, reference, candidate) in runs {
+    for (description, reference, candidate) in runs.into_iter() {
         let file_path = &description.test_metadata.selector.path;
         // FIXME: ad-hoc patch
         if file_path.contains(crate::model::evm_interpreter::TEST_PATH) {
@@ -186,10 +186,10 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         cycles_total_reference += reference.cycles;
         cycles_total_candidate += candidate.cycles;
         let cycles_factor = (candidate.cycles as f64) / (reference.cycles as f64);
-        if cycles_factor > 1.0 {
+        if candidate.cycles > reference.cycles {
             cycles_negatives.push((cycles_factor, description.clone()));
         }
-        if cycles_factor < 1.0 {
+        if candidate.cycles < reference.cycles {
             cycles_positives.push((cycles_factor, description.clone()));
         }
         if cycles_factor < cycles_best {
@@ -203,10 +203,10 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         ergs_total_reference += reference.ergs;
         ergs_total_candidate += candidate.ergs;
         let ergs_factor = (candidate.ergs as f64) / (reference.ergs as f64);
-        if ergs_factor > 1.0 {
+        if candidate.ergs > reference.ergs {
             ergs_negatives.push((ergs_factor, description.clone()));
         }
-        if ergs_factor < 1.0 {
+        if candidate.ergs < reference.ergs {
             ergs_positives.push((ergs_factor, description.clone()));
         }
         if ergs_factor < ergs_best {
@@ -220,10 +220,10 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         gas_total_reference += reference.gas;
         gas_total_candidate += candidate.gas;
         let gas_factor = (candidate.gas as f64) / (reference.gas as f64);
-        if gas_factor > 1.0 {
+        if candidate.gas > reference.gas {
             gas_negatives.push((gas_factor, description.clone()));
         }
-        if gas_factor < 1.0 {
+        if candidate.gas < reference.gas {
             gas_positives.push((gas_factor, description.clone()));
         }
         if gas_factor < gas_best {
@@ -245,10 +245,10 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         size_total_reference += reference_size;
         size_total_candidate += candidate_size;
         let size_factor = (candidate_size as f64) / (reference_size as f64);
-        if size_factor > 1.0 {
+        if candidate_size > reference_size {
             size_negatives.push((size_factor, description.clone()));
         }
-        if size_factor < 1.0 {
+        if candidate_size < reference_size {
             size_positives.push((size_factor, description.clone()));
         }
         if size_factor < size_best {

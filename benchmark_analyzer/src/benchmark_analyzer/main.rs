@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
             let mut file = std::fs::File::create(output_path)?;
             for (group_name, mut results) in groups_results.into_iter() {
                 results.sort_worst();
-                results.print_worst_results(arguments.group_max, &group_name.to_string());
+                results.print_top_results(arguments.group_max, &group_name.to_string());
                 results.write_all(&mut file, &group_name.to_string())?;
                 writeln!(file)?;
                 println!();
@@ -67,7 +67,7 @@ fn main() -> anyhow::Result<()> {
             let mut stdout = std::io::stdout();
             for (group_name, mut results) in groups_results.into_iter() {
                 results.sort_worst();
-                results.print_worst_results(arguments.group_max, &group_name.to_string());
+                results.print_top_results(arguments.group_max, &group_name.to_string());
                 results.write_all(&mut stdout, &group_name.to_string())?;
                 writeln!(stdout)?;
                 println!();
