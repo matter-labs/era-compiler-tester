@@ -73,24 +73,42 @@ impl Mode {
         if filters.is_empty() {
             return true;
         }
+
         for filter in filters.iter() {
             let mut split = filter.split_whitespace();
+
             let mode_filter = split.next().unwrap_or_default();
             let normalized_mode = self.normalize(mode_filter);
             if !normalized_mode.contains(mode_filter) {
                 continue;
             }
 
-            let version = match split.next() {
+            let version_or_optimizer_filter = match split.next() {
                 Some(version) => version,
                 None => return true,
             };
-            if let Ok(version_req) = semver::VersionReq::parse(version) {
+            if let Ok(version_req) = semver::VersionReq::parse(version_or_optimizer_filter) {
                 if self.check_version(&version_req) {
                     return true;
                 }
+            } else {
+                let normalized_mode = self.normalize(version_or_optimizer_filter);
+                if !normalized_mode.contains(version_or_optimizer_filter) {
+                    continue;
+                }
+
+                let version = match split.next() {
+                    Some(version) => version,
+                    None => return true,
+                };
+                if let Ok(version_req) = semver::VersionReq::parse(version) {
+                    if self.check_version(&version_req) {
+                        return true;
+                    }
+                }
             }
         }
+
         false
     }
 
