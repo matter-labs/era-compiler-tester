@@ -200,9 +200,9 @@ impl<'a> Results<'a> {
     }
 
     ///
-    /// Writes the worst benchmark results top to the terminal.
+    /// Writes the top benchmark results top to the terminal.
     ///
-    pub fn print_worst_results(&self, count: usize, group_name: &str) {
+    pub fn print_top_results(&self, count: usize, group_name: &str) {
         println!(
             "Group '{}' size (-%) worst {group_name} out of {count}:",
             self.size_negatives.len()

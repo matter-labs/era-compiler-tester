@@ -25,7 +25,7 @@ pub fn mode_to_string_aux(mode: &impl IMode, f: &mut std::fmt::Formatter<'_>) ->
         if i > 0 {
             write!(f, " ")?;
         }
-        write!(f, "{}", element)?;
+        write!(f, "{element}")?;
     }
     Ok(())
 }
