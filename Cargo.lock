@@ -1175,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.11"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#d39ba1fa3fe12e5d184aac50779cf46d621987c7"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#ef162e86b7df1ad624a93c5e7c040271d29d11c6"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -3536,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#0ba8414ab6e759a9d0f38bba3114784171cfad1e"
+source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#6faf6c735105a315335744416e9b960b6937b825"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3553,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#0ba8414ab6e759a9d0f38bba3114784171cfad1e"
+source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#6faf6c735105a315335744416e9b960b6937b825"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#0ba8414ab6e759a9d0f38bba3114784171cfad1e"
+source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#6faf6c735105a315335744416e9b960b6937b825"
 dependencies = [
  "anyhow",
  "era-compiler-common",
