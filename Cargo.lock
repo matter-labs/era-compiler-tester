@@ -3536,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#6faf6c735105a315335744416e9b960b6937b825"
+source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#3e1757450f3c03b777c0e86e216435dcc611da0a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3553,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#6faf6c735105a315335744416e9b960b6937b825"
+source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#3e1757450f3c03b777c0e86e216435dcc611da0a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#6faf6c735105a315335744416e9b960b6937b825"
+source = "git+https://github.com/matter-labs/solx?branch=az-disable-yul-optimizations#3e1757450f3c03b777c0e86e216435dcc611da0a"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3882,7 +3882,7 @@ checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
  "indexmap",
  "toml_datetime",
- "winnow 0.7.11",
+ "winnow 0.7.12",
 ]
 
 [[package]]
@@ -4512,9 +4512,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.7.11"
+version = "0.7.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74c7b26e3480b707944fc872477815d29a8e429d2f93a1ce000f5fa84a15cbcd"
+checksum = "f3edebf492c8125044983378ecb5766203ad3b4c2f7a922bd7dd207f6d443e95"
 dependencies = [
  "memchr",
 ]
