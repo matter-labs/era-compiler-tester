@@ -67,7 +67,7 @@ jobs:
           
       - name: Building solc
         if: inputs.target == 'evm' && inputs.toolchain == 'ir-llvm'
-        uses: matter-labs/era-compiler-ci/.github/actions/build-solc@aba-solc-test-mode-fix
+        uses: matter-labs/era-compiler-ci/.github/actions/build-solc@main
         with:
           cmake-build-type: RelWithDebInfo
           working-dir: 'era-solidity'
