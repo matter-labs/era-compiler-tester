@@ -74,6 +74,7 @@ jobs:
       matrix:
         target: [ 'eravm' ]
     with:
-      ccache-key-type: 'static' # rotate ccache key every month
+      ccache-key: ${{ format('llvm-{0}-{1}-{2}', runner.os, runner.arch, 'gnu') }}
       target-machine: ${{ matrix.target }}
       platforms-matrix: ${{ needs.prepare-matrix.outputs.matrix }}
+      clone-llvm: 'false'
