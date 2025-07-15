@@ -3,11 +3,6 @@ name: Sanitizers tests
 on:
   workflow_dispatch:
     inputs:
-      llvm-branch:
-        description: 'Custom LLVM branch to use. If not specified, the branch from `LLVM.lock` file is used.'
-        required: false
-        default: ''
-        type: string
       # For more information about the supported sanitizers in Rust, see:
       # https://rustc-dev-guide.rust-lang.org/sanitizers.html
       rust-sanitizer:
@@ -64,22 +59,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Checkout submodules
+        run: |
+          git config --global --add safe.directory '*'
+          git submodule update --force --depth=1 --recursive --checkout
           
       - name: Building solc
         if: inputs.target == 'evm' && inputs.toolchain == 'ir-llvm'
-        uses: matter-labs/era-compiler-ci/.github/actions/build-solc@main
+        uses: matter-labs/era-compiler-ci/.github/actions/build-solc@v1
         with:
           cmake-build-type: RelWithDebInfo
           working-dir: 'era-solidity'
           upload-testing-binary: false
-
-      - name: Checkout llvm
-        if: inputs.llvm-branch != ''
-        uses: actions/checkout@v4
-        with:
-          repository: matter-labs/era-compiler-llvm
-          ref: ${{ inputs.llvm-branch }}
-          path: llvm
 
       - name: Build LLVM
         uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
