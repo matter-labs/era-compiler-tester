@@ -707,7 +707,7 @@ dependencies = [
  "colored",
  "era-compiler-common",
  "era-compiler-downloader",
- "era-compiler-llvm-context",
+ "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
  "era-compiler-solidity",
  "era-compiler-vyper",
  "era-solc",
@@ -1135,6 +1135,22 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-move-spill-area-to-solx#beb406bc74b7942fc3d8d8d948aeed9c9bab8bf8"
+dependencies = [
+ "anyhow",
+ "era-compiler-common",
+ "inkwell",
+ "itertools 0.14.0",
+ "num",
+ "semver 1.0.26",
+ "serde",
+ "thiserror 2.0.12",
+ "zkevm_opcode_defs 0.150.6",
+]
+
+[[package]]
+name = "era-compiler-llvm-context"
+version = "2.0.0"
 source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#1dd5c4406071615fdc62ac924751b92e43906b4c"
 dependencies = [
  "anyhow",
@@ -1156,7 +1172,7 @@ dependencies = [
  "anyhow",
  "clap",
  "era-compiler-common",
- "era-compiler-llvm-context",
+ "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
  "era-solc",
  "era-yul",
  "hex",
@@ -1181,7 +1197,7 @@ dependencies = [
  "boolinator",
  "clap",
  "era-compiler-common",
- "era-compiler-llvm-context",
+ "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
  "hex",
  "inkwell",
  "lazy_static",
@@ -3536,11 +3552,11 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#968a36dbaedfd30513612f12ec54857e2bffe69c"
+source = "git+https://github.com/matter-labs/solx?branch=az-move-spill-area-to-solx#cafd8ffd3c0f8a298958848b0c554b0c183f17ec"
 dependencies = [
  "anyhow",
  "era-compiler-common",
- "era-compiler-llvm-context",
+ "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-move-spill-area-to-solx)",
  "inkwell",
  "num",
  "rayon",
@@ -3553,7 +3569,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#968a36dbaedfd30513612f12ec54857e2bffe69c"
+source = "git+https://github.com/matter-labs/solx?branch=az-move-spill-area-to-solx#cafd8ffd3c0f8a298958848b0c554b0c183f17ec"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3584,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#968a36dbaedfd30513612f12ec54857e2bffe69c"
+source = "git+https://github.com/matter-labs/solx?branch=az-move-spill-area-to-solx#cafd8ffd3c0f8a298958848b0c554b0c183f17ec"
 dependencies = [
  "anyhow",
  "era-compiler-common",
