@@ -1105,7 +1105,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era-compiler-common"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#59e8048671cf86341d3f330d8fa57354ad33db81"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#c7c7cb3d92f1c185daa52f7868594763385085e9"
 dependencies = [
  "anyhow",
  "base58",
@@ -1122,7 +1122,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#59e8048671cf86341d3f330d8fa57354ad33db81"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#c7c7cb3d92f1c185daa52f7868594763385085e9"
 dependencies = [
  "anyhow",
  "colored",
@@ -1135,7 +1135,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#1dd5c4406071615fdc62ac924751b92e43906b4c"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#b3561785768dd56f41008dd3ff8242398c4e0dea"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3165,15 +3165,15 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "1.0.7"
+version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c71e83d6afe7ff64890ec6b71d6a69bb8a610ab78ce364b3352876bb4c801266"
+checksum = "11181fbabf243db407ef8df94a6ce0b2f9a733bd8be4ad02b4eda9602296cac8"
 dependencies = [
  "bitflags",
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -3536,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#968a36dbaedfd30513612f12ec54857e2bffe69c"
+source = "git+https://github.com/matter-labs/solx?branch=main#dc436c010852f97b61d9d7f888b64b1b594fb71b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3553,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#968a36dbaedfd30513612f12ec54857e2bffe69c"
+source = "git+https://github.com/matter-labs/solx?branch=main#dc436c010852f97b61d9d7f888b64b1b594fb71b"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#968a36dbaedfd30513612f12ec54857e2bffe69c"
+source = "git+https://github.com/matter-labs/solx?branch=main#dc436c010852f97b61d9d7f888b64b1b594fb71b"
 dependencies = [
  "anyhow",
  "era-compiler-common",

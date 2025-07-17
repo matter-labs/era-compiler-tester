@@ -7447,9 +7447,7 @@ entries:
         hash: '0xbaa4b09b2714b0504efc610aa81905ca'
         enabled: true
         modes:
-        - Y+ >=0.8.17
         - E
-        - I+ >=0.8.17
         version: '>=0.4.12'
       exp.sol:
         hash: '0x0235737cc058af7f28ff4dccd009ad63'

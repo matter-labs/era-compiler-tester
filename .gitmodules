@@ -10,6 +10,7 @@
     path = era-solidity
     url = https://github.com/matter-labs/era-solidity
     branch = 0.8.30
+    update = none
 [submodule "llvm"]
     path = llvm
     url = https://github.com/matter-labs/era-compiler-llvm
