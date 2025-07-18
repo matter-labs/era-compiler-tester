@@ -213,7 +213,6 @@ impl Compiler for YulCompiler {
                     solx_standard_json::InputOptimizer::new(
                         yul_mode.llvm_optimizer_settings.middle_end_as_char(),
                         yul_mode.llvm_optimizer_settings.is_fallback_to_size_enabled,
-                        None,
                     ),
                     &solx_standard_json::InputSelection::new(selectors),
                     solx_standard_json::InputMetadata::default(),
