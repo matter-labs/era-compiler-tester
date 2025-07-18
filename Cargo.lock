@@ -595,9 +595,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.29"
+version = "1.2.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c1599538de2394445747c8cf7935946e3cc27e9625f889d979bfb2aaf569362"
+checksum = "deec109607ca693028562ed836a5f1c4b8bd77755c4e132fc5ce11b0b6211ae7"
 dependencies = [
  "shlex",
 ]
@@ -707,7 +707,7 @@ dependencies = [
  "colored",
  "era-compiler-common",
  "era-compiler-downloader",
- "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
+ "era-compiler-llvm-context",
  "era-compiler-solidity",
  "era-compiler-vyper",
  "era-solc",
@@ -1135,23 +1135,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-move-spill-area-to-solx#beb406bc74b7942fc3d8d8d948aeed9c9bab8bf8"
-dependencies = [
- "anyhow",
- "era-compiler-common",
- "inkwell",
- "itertools 0.14.0",
- "num",
- "semver 1.0.26",
- "serde",
- "thiserror 2.0.12",
- "zkevm_opcode_defs 0.150.6",
-]
-
-[[package]]
-name = "era-compiler-llvm-context"
-version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#b3561785768dd56f41008dd3ff8242398c4e0dea"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#a4821d7e348e1a44b2395a5fd296315504c190d4"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -1172,7 +1156,7 @@ dependencies = [
  "anyhow",
  "clap",
  "era-compiler-common",
- "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
+ "era-compiler-llvm-context",
  "era-solc",
  "era-yul",
  "hex",
@@ -1197,7 +1181,7 @@ dependencies = [
  "boolinator",
  "clap",
  "era-compiler-common",
- "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main)",
+ "era-compiler-llvm-context",
  "hex",
  "inkwell",
  "lazy_static",
@@ -3552,11 +3536,11 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-move-spill-area-to-solx#ba6db1c28c9654ae1708777cd0b4462b9d9c4374"
+source = "git+https://github.com/matter-labs/solx?branch=main#25a798608712cc996f976b5b502a6d1af755ecc2"
 dependencies = [
  "anyhow",
  "era-compiler-common",
- "era-compiler-llvm-context 2.0.0 (git+https://github.com/matter-labs/era-compiler-llvm-context?branch=az-move-spill-area-to-solx)",
+ "era-compiler-llvm-context",
  "inkwell",
  "num",
  "rayon",
@@ -3569,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-move-spill-area-to-solx#ba6db1c28c9654ae1708777cd0b4462b9d9c4374"
+source = "git+https://github.com/matter-labs/solx?branch=main#25a798608712cc996f976b5b502a6d1af755ecc2"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3584,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-move-spill-area-to-solx#ba6db1c28c9654ae1708777cd0b4462b9d9c4374"
+source = "git+https://github.com/matter-labs/solx?branch=main#25a798608712cc996f976b5b502a6d1af755ecc2"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -4251,9 +4235,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-roots"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8782dd5a41a24eed3a4f40b606249b3e236ca61adf1f25ea4d45c73de122b502"
+checksum = "7e8983c3ab33d6fb807cfcdad2491c4ea8cbc8ed839181c7dfd9c67c83e261b2"
 dependencies = [
  "rustls-pki-types",
 ]
