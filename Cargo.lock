@@ -3536,11 +3536,12 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#cd6f4f5779186d6c80a5337111c2fcae81a2cb89"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#92d826e70f30bf1a2c63d004471a37fd0436cdd7"
 dependencies = [
  "anyhow",
  "era-compiler-common",
  "era-compiler-llvm-context",
+ "hex",
  "inkwell",
  "num",
  "rayon",
@@ -3553,7 +3554,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#cd6f4f5779186d6c80a5337111c2fcae81a2cb89"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#92d826e70f30bf1a2c63d004471a37fd0436cdd7"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3569,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#cd6f4f5779186d6c80a5337111c2fcae81a2cb89"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#92d826e70f30bf1a2c63d004471a37fd0436cdd7"
 dependencies = [
  "anyhow",
  "era-compiler-common",
