@@ -3364,9 +3364,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.140"
+version = "1.0.141"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
+checksum = "30b9eff21ebe718216c6ec64e1d9ac57087aad11efc64e32002bce4a0d4c03d3"
 dependencies = [
  "indexmap",
  "itoa",
@@ -3536,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#25a798608712cc996f976b5b502a6d1af755ecc2"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#cd6f4f5779186d6c80a5337111c2fcae81a2cb89"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3553,7 +3553,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#25a798608712cc996f976b5b502a6d1af755ecc2"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#cd6f4f5779186d6c80a5337111c2fcae81a2cb89"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3568,7 +3568,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solx?branch=main#25a798608712cc996f976b5b502a6d1af755ecc2"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#cd6f4f5779186d6c80a5337111c2fcae81a2cb89"
 dependencies = [
  "anyhow",
  "era-compiler-common",
