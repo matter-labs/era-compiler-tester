@@ -312,7 +312,7 @@ impl SystemContracts {
                 Self::normalize_name_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
             ),
             (
-                web3::types::Address::from_low_u64_be(ADDRESS_EVM_HASHES_STORAGE),
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_HASHES_STORAGE.into()),
                 Self::normalize_name_fs(
                     Self::PATH_EVM_HASHES_STORAGE.0,
                     Some(Self::PATH_EVM_HASHES_STORAGE.1),
