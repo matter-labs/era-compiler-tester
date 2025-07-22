@@ -19,6 +19,9 @@ use crate::compilers::Compiler;
 /// The EVMGasManager system contract address.
 pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
 
+/// The EVMHashesStorage system contract address.
+pub const ADDRESS_EVM_HASHES_STORAGE: u16 = 0x8015;
+
 ///
 /// The EraVM system contracts.
 ///
@@ -62,7 +65,8 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
 
     /// The `identity` system contract implementation path.
-    const PATH_IDENTITY: &'static str = "era-contracts/system-contracts/contracts/precompiles/Identity.yul";
+    const PATH_IDENTITY: &'static str =
+        "era-contracts/system-contracts/contracts/precompiles/Identity.yul";
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
@@ -138,6 +142,12 @@ impl SystemContracts {
     const PATH_EVM_GAS_MANAGER: &'static str =
         "era-contracts/system-contracts/contracts/EvmGasManager.yul";
 
+    /// The EVM hashes storage system contract implementation path.
+    const PATH_EVM_HASHES_STORAGE: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/EvmHashesStorage.sol",
+        "EvmHashesStorage",
+    );
+
     ///
     /// Loads or builds the system contracts.
     ///
@@ -207,7 +217,7 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::system_params::ADDRESS_IDENTITY.into(),
                 ),
-                Self::PATH_IDENTITY,
+                Self::PATH_IDENTITY.to_owned(),
             ),
             (
                 web3::types::Address::from_low_u64_be(
@@ -300,6 +310,13 @@ impl SystemContracts {
             (
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
                 Self::normalize_name_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
+            ),
+            (
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_HASHES_STORAGE),
+                Self::normalize_name_fs(
+                    Self::PATH_EVM_HASHES_STORAGE.0,
+                    Some(Self::PATH_EVM_HASHES_STORAGE.1),
+                ),
             ),
         ];
 
