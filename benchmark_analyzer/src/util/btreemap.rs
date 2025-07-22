@@ -10,11 +10,11 @@ use std::collections::BTreeMap;
 /// # Arguments
 ///
 /// * `map1` - The first `BTreeMap` containing keys of type `K` and values of
-///    type `V1`.
+///   type `V1`.
 /// * `map2` - The second `BTreeMap` containing keys of type `K` and values of
-///    type `V2`. This map is modified during the intersection.
+///   type `V2`. This map is modified during the intersection.
 /// * `merger` - A closure that takes a key of type `K`, and a value from each
-///    map (`V1` and `V2`), and returns a merged result of type `R`.
+///   map (`V1` and `V2`), and returns a merged result of type `R`.
 ///
 /// # Returns
 ///
@@ -35,7 +35,6 @@ use std::collections::BTreeMap;
 /// expected
 /// )
 /// ```
-
 pub fn intersect_map<K, V1, V2, R>(
     map1: BTreeMap<K, V1>,
     mut map2: BTreeMap<K, V2>,
@@ -97,7 +96,6 @@ where
 /// // Result now contains: [(2, "a", "x"), (4, "b", "y")]
 /// assert_eq!(result, vec![(2, "a", "x"), (4, "b", "y")]);
 /// ```
-
 pub fn cross_join_filter_map<K, N, V1, V2>(
     map1: &BTreeMap<K, V1>,
     map2: &BTreeMap<K, V2>,
@@ -151,7 +149,6 @@ where
 /// expected
 /// )
 /// ```
-///
 pub fn intersect_keys<K, V1, V2>(
     map1: BTreeMap<K, V1>,
     mut map2: BTreeMap<K, V2>,

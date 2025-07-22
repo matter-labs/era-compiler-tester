@@ -24,16 +24,13 @@ impl EVMContract {
         if size > 0xffff {
             panic!("The bytecode is too large");
         }
-        let mut code_size = format!("60{:02x}", size);
+        let mut code_size = format!("60{size:02x}");
         let mut codecopy_index = "1c";
         if size > 0xff {
-            code_size = format!("61{:04x}", size);
+            code_size = format!("61{size:04x}");
             codecopy_index = "1d";
         }
-        format!(
-            "608060405234801561000f575f80fd5b50{}806100{}5f395ff3fe",
-            code_size, codecopy_index
-        )
+        format!("608060405234801561000f575f80fd5b50{code_size}806100{codecopy_index}5f395ff3fe",)
     }
 
     ///

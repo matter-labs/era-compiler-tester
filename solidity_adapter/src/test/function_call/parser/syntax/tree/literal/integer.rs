@@ -59,7 +59,7 @@ impl Literal {
                 web3::types::U256::from_str(inner)
                     .expect("Always valid")
                     .to_big_endian(&mut result);
-                result = result[result.len() - (inner.len() + 1) / 2..].to_owned();
+                result = result[result.len() - inner.len().div_ceil(2)..].to_owned();
             }
         }
         if self.alignment == Alignment::Left {

@@ -14,8 +14,7 @@ use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::EVM;
-use crate::vm::revm::Revm;
+use crate::vm::revm::REVM;
 
 use self::input::Input;
 
@@ -118,25 +117,6 @@ impl Case {
     }
 
     ///
-    /// Runs the case on EVM emulator.
-    ///
-    pub fn run_evm_emulator(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        mut vm: EVM,
-        context: &CaseContext,
-    ) {
-        for (index, input) in self.inputs.into_iter().enumerate() {
-            let context = InputContext {
-                case_context: context,
-                case_name: &self.name,
-                selector: index,
-            };
-            input.run_evm_emulator(summary.clone(), &mut vm, context)
-        }
-    }
-
-    ///
     /// Runs the case on REVM.
     ///
     pub fn run_revm(
@@ -145,7 +125,7 @@ impl Case {
         evm_version: Option<solidity_adapter::EVMVersion>,
         context: &CaseContext,
     ) {
-        let mut vm = Revm::new();
+        let mut vm = REVM::new();
         for (index, input) in self.inputs.into_iter().enumerate() {
             let context = InputContext {
                 case_context: context,

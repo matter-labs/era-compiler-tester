@@ -1,4 +1,4 @@
-# ZKsync Era: The EraVM Compiler Integration Test Framework
+# Integration Test Framework for LLVM-based Compilers
 
 [![Logo](eraLogo.svg)](https://zksync.io/)
 
@@ -101,7 +101,7 @@ made, and there is no point in running tests in all LLVM optimization modes.
 
    * If you would like to use your local LLVM build:
       ```shell
-      export LLVM_SYS_170_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
+      export LLVM_SYS_191_PREFIX='<ABSOLUTE_PATH_TO_YOUR_LOCAL_LLVM_BUILD>'
       ```
 
 </details>
@@ -337,7 +337,7 @@ If `json-lnt` format is selected:
 
 ## License
 
-The Era Compiler Tester is distributed under the terms of either
+The Compiler Tester is distributed under the terms of either
 
 - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)

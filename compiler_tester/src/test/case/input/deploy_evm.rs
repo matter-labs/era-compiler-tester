@@ -18,11 +18,10 @@ use crate::test::description::TestDescription;
 use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::EVM;
 
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
 use crate::vm::revm::revm_type_conversions::transform_success_output;
-use crate::vm::revm::Revm;
+use crate::vm::revm::REVM;
 
 ///
 /// The EVM deploy contract call input variant.
@@ -72,59 +71,15 @@ impl DeployEVM {
 
 impl DeployEVM {
     ///
-    /// Runs the deploy transaction on EVM emulator.
-    ///
-    pub fn run_evm_emulator(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: &mut EVM,
-        context: InputContext<'_>,
-    ) {
-        let test = TestDescription::from_context(
-            context,
-            InputIdentifier::Deployer {
-                contract_identifier: self.identifier.clone(),
-            },
-        );
-        let name = test.selector.to_string();
-
-        vm.populate_storage(self.storage.inner);
-        let result = match vm.execute_deploy_code(
-            name,
-            self.identifier.as_str(),
-            self.caller,
-            self.value,
-            self.calldata.inner.clone(),
-        ) {
-            Ok(execution_result) => execution_result,
-            Err(error) => {
-                Summary::invalid(summary, test, error);
-                return;
-            }
-        };
-        if result.output == self.expected {
-            Summary::passed_runtime(summary, test, result.cycles, 0, result.gas);
-        } else {
-            Summary::failed(
-                summary,
-                test,
-                self.expected,
-                result.output,
-                self.calldata.inner,
-            );
-        }
-    }
-
-    ///
     /// Runs the deploy transaction on native REVM.
     ///
     pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: Revm<'b>,
+        vm: REVM<'b>,
         evm_version: Option<EVMVersion>,
         context: InputContext<'_>,
-    ) -> Revm<'b> {
+    ) -> REVM<'b> {
         let test = TestDescription::from_context(
             context,
             InputIdentifier::Deployer {
@@ -132,7 +87,7 @@ impl DeployEVM {
             },
         );
 
-        let size = self.deploy_code.len();
+        let size = self.deploy_code.len() as u64;
         let calldata = self.calldata.inner.clone();
         let mut code = self.deploy_code;
         code.extend(self.calldata.inner);
@@ -204,7 +159,7 @@ impl DeployEVM {
         );
 
         let name = test.selector.to_string();
-        let size = self.deploy_code.len();
+        let size = self.deploy_code.len() as u64;
 
         vm.populate_storage(self.storage.inner);
         let result = match deployer.deploy_evm::<M>(

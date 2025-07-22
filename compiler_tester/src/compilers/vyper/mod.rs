@@ -16,6 +16,7 @@ use crate::compilers::cache::Cache;
 use crate::compilers::mode::Mode;
 use crate::compilers::Compiler;
 use crate::vm::eravm::input::Input as EraVMInput;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::cache_key::CacheKey;
 use self::mode::Mode as VyperMode;
@@ -26,26 +27,6 @@ use self::mode::Mode as VyperMode;
 pub struct VyperCompiler {
     /// The vyper process output cache.
     cache: Cache<CacheKey, era_compiler_vyper::Project>,
-}
-
-lazy_static::lazy_static! {
-    ///
-    /// All supported modes.
-    ///
-    static ref MODES: Vec<Mode> = {
-        let vyper_versions = VyperCompiler::all_versions().expect("`vyper` versions analysis error");
-
-        era_compiler_llvm_context::OptimizerSettings::combinations()
-            .into_iter()
-            .cartesian_product(vyper_versions)
-            .cartesian_product(vec![false, true])
-            .map(
-                |((llvm_optimizer_settings, vyper_version), vyper_optimize)| {
-                    VyperMode::new(vyper_version, vyper_optimize, llvm_optimizer_settings).into()
-                },
-            )
-            .collect::<Vec<Mode>>()
-    };
 }
 
 impl Default for VyperCompiler {
@@ -196,7 +177,7 @@ impl Compiler for VyperCompiler {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -217,7 +198,6 @@ impl Compiler for VyperCompiler {
             if let Some(ref debug_config) = debug_config {
                 debug_config.dump_lll(
                     path,
-                    None,
                     contract.ir_string().as_deref().expect("Always exists"),
                 )?;
             }
@@ -228,7 +208,8 @@ impl Compiler for VyperCompiler {
 
         let mut build = project.compile(
             None,
-            era_compiler_common::HashType::Ipfs,
+            era_compiler_common::EraVMMetadataHashType::IPFS,
+            false,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
             vec![],
@@ -239,14 +220,12 @@ impl Compiler for VyperCompiler {
             .contracts
             .into_iter()
             .map(|(path, contract)| {
-                let build = era_compiler_llvm_context::EraVMBuild::new_with_bytecode_hash(
+                let mut build = era_compiler_llvm_context::EraVMBuild::new(
                     contract.build.bytecode,
-                    contract.build.bytecode_hash.ok_or_else(|| {
-                        anyhow::anyhow!("Bytecode hash not found in the build artifacts")
-                    })?,
-                    None,
+                    contract.build.metadata,
                     contract.build.assembly,
                 );
+                build.bytecode_hash = contract.build.bytecode_hash;
                 Ok((path, build))
             })
             .collect::<anyhow::Result<HashMap<String, era_compiler_llvm_context::EraVMBuild>>>()?;
@@ -262,17 +241,29 @@ impl Compiler for VyperCompiler {
         &self,
         _test_path: String,
         _sources: Vec<(String, String)>,
-        _libraries: era_solc::StandardJsonInputLibraries,
+        _libraries: era_compiler_common::Libraries,
         _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         _llvm_options: Vec<String>,
         _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
-    ) -> anyhow::Result<crate::vm::evm::input::Input> {
-        todo!()
+    ) -> anyhow::Result<EVMInput> {
+        anyhow::bail!("Vyper cannot be compiled to EVM");
     }
 
-    fn all_modes(&self) -> Vec<Mode> {
-        MODES.clone()
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+        let vyper_versions =
+            VyperCompiler::all_versions().expect("`vyper` versions analysis error");
+
+        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+            .into_iter()
+            .cartesian_product(vyper_versions)
+            .cartesian_product(vec![false, true])
+            .map(
+                |((llvm_optimizer_settings, vyper_version), vyper_optimize)| {
+                    VyperMode::new(vyper_version, vyper_optimize, llvm_optimizer_settings).into()
+                },
+            )
+            .collect::<Vec<Mode>>()
     }
 
     fn allows_multi_contract_files(&self) -> bool {

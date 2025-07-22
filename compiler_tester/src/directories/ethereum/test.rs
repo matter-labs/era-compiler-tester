@@ -19,7 +19,7 @@ use crate::test::selector::TestSelector;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
-use crate::vm::evm::address_iterator::EVMAddressIterator;
+use crate::vm::revm::address_iterator::EVMAddressIterator;
 
 ///
 /// The Ethereum compiler test.
@@ -131,7 +131,7 @@ impl EthereumTest {
     ) -> anyhow::Result<(
         web3::types::Address,
         BTreeMap<String, web3::types::Address>,
-        era_solc::StandardJsonInputLibraries,
+        era_compiler_common::Libraries,
     )> {
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);
 
@@ -297,7 +297,6 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             builds,
-            HashMap::new(),
             Some(evm_version),
         ))
     }
@@ -388,7 +387,7 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             HashMap::new(),
-            evm_input.builds,
+            // evm_input.builds,
             Some(evm_version),
         ))
     }

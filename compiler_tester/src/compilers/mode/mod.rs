@@ -10,10 +10,11 @@ use std::fmt::Display;
 
 use imode::{mode_to_string_aux, IMode};
 
-use crate::compilers::eravm::mode::Mode as EraVMMode;
-use crate::compilers::llvm::mode::Mode as LLVMMode;
-use crate::compilers::solidity::mode::Mode as SolidityMode;
-use crate::compilers::solidity::upstream::mode::Mode as SolidityUpstreamMode;
+use crate::compilers::eravm_assembly::mode::Mode as EraVMMode;
+use crate::compilers::llvm_ir::mode::Mode as LLVMMode;
+use crate::compilers::solidity::solc::mode::Mode as SolcMode;
+use crate::compilers::solidity::solx::mode::Mode as SolxMode;
+use crate::compilers::solidity::zksolc::mode::Mode as ZksolcMode;
 use crate::compilers::vyper::mode::Mode as VyperMode;
 use crate::compilers::yul::mode::Mode as YulMode;
 use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
@@ -24,10 +25,12 @@ use crate::compilers::yul::mode_upstream::Mode as YulUpstreamMode;
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Mode {
-    /// The `Solidity` mode.
-    Solidity(SolidityMode),
-    /// The `Solidity` upstream mode.
-    SolidityUpstream(SolidityUpstreamMode),
+    /// The `zksolc` mode.
+    Zksolc(ZksolcMode),
+    /// The `solc` upstream mode.
+    Solc(SolcMode),
+    /// The `solx` upstream mode.
+    Solx(SolxMode),
     /// The `Yul` mode.
     Yul(YulMode),
     /// The `Yul` upstream mode.
@@ -46,7 +49,7 @@ impl Mode {
     ///
     pub fn enable_eravm_extensions(&mut self, value: bool) {
         match self {
-            Self::Solidity(mode) => mode.enable_eravm_extensions = value,
+            Self::Zksolc(mode) => mode.enable_eravm_extensions = value,
             Self::Yul(mode) => mode.enable_eravm_extensions = value,
             _ => {}
         }
@@ -70,24 +73,42 @@ impl Mode {
         if filters.is_empty() {
             return true;
         }
+
         for filter in filters.iter() {
             let mut split = filter.split_whitespace();
+
             let mode_filter = split.next().unwrap_or_default();
             let normalized_mode = self.normalize(mode_filter);
             if !normalized_mode.contains(mode_filter) {
                 continue;
             }
 
-            let version = match split.next() {
+            let version_or_optimizer_filter = match split.next() {
                 Some(version) => version,
                 None => return true,
             };
-            if let Ok(version_req) = semver::VersionReq::parse(version) {
+            if let Ok(version_req) = semver::VersionReq::parse(version_or_optimizer_filter) {
                 if self.check_version(&version_req) {
                     return true;
                 }
+            } else {
+                let normalized_mode = self.normalize(version_or_optimizer_filter);
+                if !normalized_mode.contains(version_or_optimizer_filter) {
+                    continue;
+                }
+
+                let version = match split.next() {
+                    Some(version) => version,
+                    None => return true,
+                };
+                if let Ok(version_req) = semver::VersionReq::parse(version) {
+                    if self.check_version(&version_req) {
+                        return true;
+                    }
+                }
             }
         }
+
         false
     }
 
@@ -96,8 +117,9 @@ impl Mode {
     ///
     pub fn check_version(&self, versions: &semver::VersionReq) -> bool {
         let version = match self {
-            Mode::Solidity(mode) => &mode.solc_version,
-            Mode::SolidityUpstream(mode) => &mode.solc_version,
+            Mode::Zksolc(mode) => &mode.solc_version,
+            Mode::Solc(mode) => &mode.solc_version,
+            Mode::Solx(mode) => &mode.solc_version,
             Mode::Vyper(mode) => &mode.vyper_version,
             _ => return false,
         };
@@ -109,8 +131,9 @@ impl Mode {
     ///
     pub fn check_pragmas(&self, sources: &[(String, String)]) -> bool {
         match self {
-            Mode::Solidity(mode) => mode.check_pragmas(sources),
-            Mode::SolidityUpstream(mode) => mode.check_pragmas(sources),
+            Mode::Zksolc(mode) => mode.check_pragmas(sources),
+            Mode::Solc(mode) => mode.check_pragmas(sources),
+            Mode::Solx(mode) => mode.check_pragmas(sources),
             Mode::Vyper(mode) => mode.check_pragmas(sources),
             _ => true,
         }
@@ -121,8 +144,9 @@ impl Mode {
     ///
     pub fn check_ethereum_tests_params(&self, params: &solidity_adapter::Params) -> bool {
         match self {
-            Mode::Solidity(mode) => mode.check_ethereum_tests_params(params),
-            Mode::SolidityUpstream(mode) => mode.check_ethereum_tests_params(params),
+            Mode::Zksolc(mode) => mode.check_ethereum_tests_params(params),
+            Mode::Solc(mode) => mode.check_ethereum_tests_params(params),
+            Mode::Solx(mode) => mode.check_ethereum_tests_params(params),
             _ => true,
         }
     }
@@ -132,8 +156,9 @@ impl Mode {
     ///
     pub fn llvm_optimizer_settings(&self) -> Option<&era_compiler_llvm_context::OptimizerSettings> {
         match self {
-            Mode::Solidity(mode) => Some(&mode.llvm_optimizer_settings),
-            Mode::SolidityUpstream(_mode) => None,
+            Mode::Zksolc(mode) => Some(&mode.llvm_optimizer_settings),
+            Mode::Solc(_mode) => None,
+            Mode::Solx(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::Yul(mode) => Some(&mode.llvm_optimizer_settings),
             Mode::YulUpstream(_mode) => None,
             Mode::Vyper(mode) => Some(&mode.llvm_optimizer_settings),
@@ -192,8 +217,9 @@ impl Mode {
 
         if filter.starts_with('^') {
             match self {
-                Self::Solidity(_)
-                | Self::SolidityUpstream(_)
+                Self::Zksolc(_)
+                | Self::Solc(_)
+                | Self::Solx(_)
                 | Self::YulUpstream(_)
                 | Self::Vyper(_) => {
                     current = regex::Regex::new("[+]")
@@ -216,15 +242,21 @@ impl Mode {
     }
 }
 
-impl From<SolidityMode> for Mode {
-    fn from(inner: SolidityMode) -> Self {
-        Self::Solidity(inner)
+impl From<ZksolcMode> for Mode {
+    fn from(inner: ZksolcMode) -> Self {
+        Self::Zksolc(inner)
     }
 }
 
-impl From<SolidityUpstreamMode> for Mode {
-    fn from(inner: SolidityUpstreamMode) -> Self {
-        Self::SolidityUpstream(inner)
+impl From<SolcMode> for Mode {
+    fn from(inner: SolcMode) -> Self {
+        Self::Solc(inner)
+    }
+}
+
+impl From<SolxMode> for Mode {
+    fn from(inner: SolxMode) -> Self {
+        Self::Solx(inner)
     }
 }
 
@@ -261,8 +293,9 @@ impl From<EraVMMode> for Mode {
 impl IMode for Mode {
     fn optimizations(&self) -> Option<String> {
         match self {
-            Mode::Solidity(mode) => mode.optimizations(),
-            Mode::SolidityUpstream(mode) => mode.optimizations(),
+            Mode::Zksolc(mode) => mode.optimizations(),
+            Mode::Solc(mode) => mode.optimizations(),
+            Mode::Solx(mode) => mode.optimizations(),
             Mode::Yul(mode) => mode.optimizations(),
             Mode::YulUpstream(mode) => mode.optimizations(),
             Mode::Vyper(mode) => mode.optimizations(),
@@ -273,8 +306,9 @@ impl IMode for Mode {
 
     fn codegen(&self) -> Option<String> {
         match self {
-            Mode::Solidity(mode) => mode.codegen(),
-            Mode::SolidityUpstream(mode) => mode.codegen(),
+            Mode::Zksolc(mode) => mode.codegen(),
+            Mode::Solc(mode) => mode.codegen(),
+            Mode::Solx(mode) => mode.codegen(),
             Mode::Yul(mode) => mode.codegen(),
             Mode::YulUpstream(mode) => mode.codegen(),
             Mode::Vyper(mode) => mode.codegen(),
@@ -285,8 +319,9 @@ impl IMode for Mode {
 
     fn version(&self) -> Option<String> {
         match self {
-            Mode::Solidity(mode) => mode.version(),
-            Mode::SolidityUpstream(mode) => mode.version(),
+            Mode::Zksolc(mode) => mode.version(),
+            Mode::Solc(mode) => mode.version(),
+            Mode::Solx(mode) => mode.version(),
             Mode::Yul(mode) => mode.version(),
             Mode::YulUpstream(mode) => mode.version(),
             Mode::Vyper(mode) => mode.version(),

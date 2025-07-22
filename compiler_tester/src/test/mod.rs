@@ -8,10 +8,11 @@ pub mod description;
 pub mod instance;
 pub mod selector;
 
-use solidity_adapter::EVMVersion;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use solidity_adapter::EVMVersion;
 
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
@@ -20,10 +21,6 @@ use crate::test::context::case::CaseContext;
 use crate::test::context::input::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::input::build::Build as EVMBuild;
-use crate::vm::evm::invoker::Invoker as EVMInvoker;
-use crate::vm::evm::runtime::Runtime as EVMRuntime;
-use crate::vm::evm::EVM;
 
 ///
 /// The test.
@@ -40,8 +37,6 @@ pub struct Test {
     group: Option<String>,
     /// The EraVM contract builds.
     eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-    /// The EVM contract builds.
-    evm_builds: HashMap<String, EVMBuild>,
     /// The EVM version.
     evm_version: Option<EVMVersion>,
 }
@@ -56,7 +51,6 @@ impl Test {
         mode: Mode,
         group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-        evm_builds: HashMap<String, EVMBuild>,
         evm_version: Option<EVMVersion>,
     ) -> Self {
         Self {
@@ -65,7 +59,6 @@ impl Test {
             mode,
             group,
             eravm_builds,
-            evm_builds,
             evm_version,
         }
     }
@@ -85,29 +78,6 @@ impl Test {
         for case in self.cases {
             let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone(), None);
             case.run_eravm::<D, M>(summary.clone(), vm.clone(), &context);
-        }
-    }
-
-    ///
-    /// Runs the test on EVM emulator.
-    ///
-    pub fn run_evm_emulator(self, summary: Arc<Mutex<Summary>>) {
-        for case in self.cases {
-            let config = evm::standard::Config::shanghai();
-            let etable =
-                evm::Etable::<evm::standard::State, EVMRuntime, evm::trap::CallCreateTrap>::runtime(
-                );
-            let resolver = evm::standard::EtableResolver::new(&config, &(), &etable);
-            let invoker = EVMInvoker::new(&config, &resolver);
-
-            let vm = EVM::new(self.evm_builds.clone(), invoker);
-
-            let context = CaseContext {
-                name: &self.name,
-                mode: &self.mode,
-                group: &self.group,
-            };
-            case.run_evm_emulator(summary.clone(), vm, &context);
         }
     }
 

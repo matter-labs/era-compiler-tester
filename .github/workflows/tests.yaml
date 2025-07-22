@@ -42,13 +42,21 @@ jobs:
     container:
       image: ghcr.io/matter-labs/zksync-llvm-runner:latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Checkout submodules
+        run: |
+          git config --global --add safe.directory '*'
+          git submodule update --force --depth=1 --recursive --checkout
 
       - name: Build LLVM
         uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
         with:
-          enable-assertions: true
-          ccache-key-type: static
+          clone-llvm: 'false'
+          ccache-key: 'llvm-Linux-X64-gnu'
 
       - name: Cargo checks
         uses: matter-labs/era-compiler-ci/.github/actions/cargo-check@v1
@@ -97,8 +105,9 @@ jobs:
         target: ${{ needs.target-machine.outputs.* }}
     with:
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }} # required to properly test forks
-      ccache-key-type: static
+      ccache-key: 'llvm-Linux-X64-gnu'
       target-machine: ${{ matrix.target }}
+      clone-llvm: 'false'
 
   # Benchmarks workflow call from the era-compiler-ci repository
   # This is a common part of the benchmarks workflow for all repositories
@@ -110,17 +119,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ${{ needs.target-machine.outputs.* }}
+        target: '${{ needs.target-machine.outputs.* }}'
+        toolchain: ['ir-llvm']
     with:
       compiler_tester_reference_branch: ${{ github.event.inputs.compiler_tester_reference_branch || 'main' }}
       compiler_tester_candidate_branch: ${{ github.event.inputs.compiler_tester_candidate_branch || '' }}
       compiler_llvm_candidate_branch: ${{ github.event.inputs.compiler_llvm_candidate_branch || '' }}
       compiler_llvm_reference_branch: ${{ github.event.inputs.compiler_llvm_reference_branch || 'main' }}
-      compiler_llvm_benchmark_mode: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3' }}
-      compiler_llvm_benchmark_path: ${{ github.event.inputs.compiler_llvm_benchmark_path || '' }}
+      compiler_llvm_benchmark_mode: ${{ github.event.inputs.compiler_llvm_benchmark_mode || '^M^B3 0.8.30' }}
+      compiler_llvm_benchmark_path: ${{ github.event.inputs.compiler_llvm_benchmark_path || 'tests/solidity/' }}
       compiler-tester-repo: ${{ github.event.pull_request.head.repo.full_name }}
-      ccache-key-type: static
+      ccache-key: 'llvm-Linux-X64-gnu'
       target-machine: ${{ matrix.target }}
+      toolchain: ${{ matrix.toolchain }}
+      environment: ${{ matrix.target == 'eravm' && 'zk_evm' || 'EVMInterpreter' }}
+      clone-llvm: 'false'
 
   # Special job that allows some of the jobs to be skipped or failed
   # requiring others to be successful

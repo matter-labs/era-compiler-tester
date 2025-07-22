@@ -3,15 +3,15 @@
 //!
 
 pub mod cache;
-pub mod eravm;
-pub mod llvm;
+pub mod eravm_assembly;
+pub mod llvm_ir;
 pub mod mode;
 pub mod solidity;
 pub mod vyper;
 pub mod yul;
 
 use crate::vm::eravm::input::Input as EraVMInput;
-use crate::vm::evm::input::Input as EVMInput;
+use crate::vm::revm::input::Input as EVMInput;
 
 use self::mode::Mode;
 
@@ -26,7 +26,7 @@ pub trait Compiler: Send + Sync + 'static {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         llvm_options: Vec<String>,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
@@ -39,7 +39,7 @@ pub trait Compiler: Send + Sync + 'static {
         &self,
         test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_solc::StandardJsonInputLibraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -49,7 +49,7 @@ pub trait Compiler: Send + Sync + 'static {
     ///
     /// Returns all supported combinations of compiler settings.
     ///
-    fn all_modes(&self) -> Vec<Mode>;
+    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode>;
 
     ///
     /// Whether one source file can contains multiple contracts.

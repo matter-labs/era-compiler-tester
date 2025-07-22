@@ -19,11 +19,10 @@ use crate::test::context::input::InputContext;
 use crate::test::description::TestDescription;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
-use crate::vm::evm::EVM;
 
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
 use crate::vm::revm::revm_type_conversions::transform_success_output;
-use crate::vm::revm::Revm;
+use crate::vm::revm::REVM;
 
 ///
 /// The contract call input variant.
@@ -131,57 +130,15 @@ impl Runtime {
     }
 
     ///
-    /// Runs the call on EVM emulator.
-    ///
-    pub fn run_evm_emulator(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: &mut EVM,
-        context: InputContext<'_>,
-    ) {
-        let input_index = context.selector;
-        let test = TestDescription::from_context(
-            context,
-            Self::select_input_identifier(self.name, input_index),
-        );
-        let name = test.selector.to_string();
-        vm.populate_storage(self.storage.inner);
-        let result = match vm.execute_runtime_code(
-            name,
-            self.address,
-            self.caller,
-            self.value,
-            self.calldata.inner.clone(),
-        ) {
-            Ok(execution_result) => execution_result,
-            Err(error) => {
-                Summary::invalid(summary, test, error);
-                return;
-            }
-        };
-        if result.output == self.expected {
-            Summary::passed_runtime(summary, test, result.cycles, result.ergs, result.gas);
-        } else {
-            Summary::failed(
-                summary,
-                test,
-                self.expected,
-                result.output,
-                self.calldata.inner,
-            );
-        }
-    }
-
-    ///
     /// Runs the call on REVM.
     ///
     pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        vm: Revm<'b>,
+        vm: REVM<'b>,
         evm_version: Option<EVMVersion>,
         context: InputContext<'_>,
-    ) -> Revm<'b> {
+    ) -> REVM<'b> {
         let input_index = context.selector;
         let test = TestDescription::from_context(
             context,

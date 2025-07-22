@@ -1,4 +1,8 @@
-use std::{convert::Infallible, str::FromStr};
+use std::str::FromStr;
+use std::convert::Infallible;
+use std::path::PathBuf;
+use std::time::Duration;
+use std::time::Instant;
 
 use revm::{
     db::{states::plain_account::PlainStorage, EmptyDBTyped},
@@ -13,8 +17,12 @@ use super::revm_type_conversions::{
     web3_address_to_revm_address, web3_u256_to_revm_address, web3_u256_to_revm_u256,
 };
 
+/// 
+/// REVM instance with its internal state.
+/// 
 #[derive(Debug)]
 pub struct Revm<'a> {
+    /// REVM internal state.
     pub state: Evm<'a, (), revm::State<EmptyDBTyped<Infallible>>>,
 }
 
@@ -83,6 +91,38 @@ impl<'a> Revm<'a> {
         }
     }
 
+    ///
+    /// Downloads the necessary compiler executables.
+    ///
+    pub fn download(executable_download_config_paths: Vec<PathBuf>) -> anyhow::Result<()> {
+        let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
+        http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
+        http_client_builder = http_client_builder.pool_idle_timeout(Duration::from_secs(60));
+        http_client_builder = http_client_builder.timeout(Duration::from_secs(60));
+        let http_client = http_client_builder.build()?;
+
+        let download_time_start = Instant::now();
+        println!(
+            " {} compiler executables",
+            "Downloading".bright_green().bold()
+        );
+        for config_path in executable_download_config_paths.into_iter() {
+            era_compiler_downloader::Downloader::new(http_client.clone())
+                .download(config_path.as_path())?;
+        }
+        println!(
+            "    {} downloading compiler executables in {}m{:02}s",
+            "Finished".bright_green().bold(),
+            download_time_start.elapsed().as_secs() / 60,
+            download_time_start.elapsed().as_secs() % 60,
+        );
+
+        Ok(())
+    }
+
+    /// 
+    /// Fills a runtime transaction with the given parameters.
+    /// 
     pub fn fill_runtime_new_transaction(
         self,
         address: web3::types::Address,
@@ -119,6 +159,9 @@ impl<'a> Revm<'a> {
         Self { state: vm }
     }
 
+    /// 
+    /// Fills a deploy transaction with the given parameters.
+    /// 
     pub fn fill_deploy_new_transaction(
         self,
         caller: web3::types::Address,

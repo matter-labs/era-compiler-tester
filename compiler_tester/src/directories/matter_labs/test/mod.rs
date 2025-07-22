@@ -25,7 +25,7 @@ use crate::test::selector::TestSelector;
 use crate::test::Test;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
-use crate::vm::evm::address_iterator::EVMAddressIterator;
+use crate::vm::revm::address_iterator::EVMAddressIterator;
 
 use self::metadata::case::input::calldata::Calldata as MatterLabsCaseInputCalldata;
 use self::metadata::case::input::expected::Expected as MatterLabsCaseInputExpected;
@@ -245,7 +245,7 @@ impl MatterLabsTest {
         &self,
         address_iterator: &mut API,
     ) -> (
-        era_solc::StandardJsonInputLibraries,
+        era_compiler_common::Libraries,
         BTreeMap<String, web3::types::Address>,
     )
     where
@@ -547,7 +547,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             builds,
-            HashMap::new(),
             None,
         ))
     }
@@ -562,12 +561,13 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         self.check_filters(filters, &mode, era_compiler_common::Target::EVM)?;
+
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
-        let sources = self.sources.to_owned();
 
         let mut evm_address_iterator = EVMAddressIterator::default();
 
+        let sources = self.sources.to_owned();
         let (libraries, library_addresses) = self.get_libraries(&mut evm_address_iterator);
 
         let test_description = TestDescription {
@@ -661,7 +661,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             HashMap::new(),
-            evm_input.builds,
             None,
         ))
     }

@@ -2,11 +2,17 @@
     path = tests
     url = https://github.com/matter-labs/era-compiler-tests
     branch = main
-[submodule "solidity"]
-    path = solidity
-    url = https://github.com/ethereum/solidity
-    branch = develop
 [submodule "era-contracts"]
-	path = era-contracts
-	url = https://github.com/matter-labs/era-contracts
-	branch = evm-emulator/fixes
+    path = era-contracts
+    url = https://github.com/matter-labs/era-contracts
+    branch = release-v28
+[submodule "era-solidity"]
+    path = era-solidity
+    url = https://github.com/matter-labs/era-solidity
+    branch = 0.8.30
+    update = none
+[submodule "llvm"]
+    path = llvm
+    url = https://github.com/matter-labs/era-compiler-llvm
+    branch = main
+    update = none
