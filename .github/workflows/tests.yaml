@@ -53,13 +53,13 @@ jobs:
           git submodule update --force --depth=1 --recursive --checkout
 
       - name: Build LLVM
-        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@aba-fix-submodules-checkout
         with:
           clone-llvm: 'false'
           ccache-key: 'llvm-Linux-X64-gnu'
 
       - name: Cargo checks
-        uses: matter-labs/era-compiler-ci/.github/actions/cargo-check@v1
+        uses: matter-labs/era-compiler-ci/.github/actions/cargo-check@aba-fix-submodules-checkout
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -97,7 +97,7 @@ jobs:
   # If you would like to make a change to the integration tests workflow, please do it in the era-compiler-ci repository
   integration-tests:
     needs: target-machine
-    uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@v1
+    uses: matter-labs/era-compiler-ci/.github/workflows/integration-tests.yaml@aba-fix-submodules-checkout
     secrets: inherit
     strategy:
       fail-fast: false
@@ -114,7 +114,7 @@ jobs:
   # If you would like to make a change to the benchmarks workflow, please do it in the era-compiler-ci repository
   benchmarks:
     needs: target-machine
-    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@v1
+    uses: matter-labs/era-compiler-ci/.github/workflows/benchmarks.yml@aba-fix-submodules-checkout
     secrets: inherit
     strategy:
       fail-fast: false
