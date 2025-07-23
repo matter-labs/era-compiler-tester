@@ -106,16 +106,11 @@ impl Value {
             }
             .expect("Always valid")
         } else if value == "$DIFFICULTY" {
-            match target {
-                era_compiler_common::Target::EraVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_DIFFICULTY_ERAVM)
-                }
-                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
-                    SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS,
-                    era_compiler_common::BASE_HEXADECIMAL,
-                )
-                .expect("Always valid"),
-            }
+            web3::types::U256::from_str_radix(
+                SystemContext::BLOCK_DIFFICULTY_POST_PARIS,
+                era_compiler_common::BASE_HEXADECIMAL,
+            )
+            .expect("Always valid")
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
                 .split(':')

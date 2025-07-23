@@ -76,13 +76,11 @@ impl SystemContext {
     pub const COIN_BASE_EVM: &'static str =
         "0x0000000000000000000000007878787878787878787878787878787878787878";
 
-    /// The default block difficulty for EraVM tests.
-    pub const BLOCK_DIFFICULTY_ERAVM: u64 = 2500000000000000;
     /// The block difficulty for EVM tests using a post paris version.
-    pub const BLOCK_DIFFICULTY_EVM_POST_PARIS: &'static str =
-        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    pub const BLOCK_DIFFICULTY_POST_PARIS: &'static str =
+        "0x0000000000000000000000000000000000000000000000000008e1bc9bf04000";
     /// The block difficulty for EVM tests using a pre paris version.
-    pub const BLOCK_DIFFICULTY_EVM_PRE_PARIS: &'static str =
+    pub const BLOCK_DIFFICULTY_PRE_PARIS: &'static str =
         "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
@@ -152,16 +150,8 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
-                match target {
-                    era_compiler_common::Target::EraVM => {
-                        web3::types::H256::from_low_u64_be(Self::BLOCK_DIFFICULTY_ERAVM)
-                    }
-                    // This block difficulty is set by default, but it can be overridden if the test needs it.
-                    era_compiler_common::Target::EVM => {
-                        web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_EVM_POST_PARIS)
-                            .expect("Always valid")
-                    }
-                },
+                web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_POST_PARIS)
+                    .expect("Always valid"),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
@@ -278,8 +268,8 @@ impl SystemContext {
             Some(
                 solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
                 | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
-            ) => &SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS[2..],
-            _ => &SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS[2..],
+            ) => &SystemContext::BLOCK_DIFFICULTY_PRE_PARIS[2..],
+            _ => &SystemContext::BLOCK_DIFFICULTY_POST_PARIS[2..],
         };
 
         EVMContext {
@@ -326,7 +316,7 @@ impl SystemContext {
                     .as_bytes(),
                 ),
             },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_EVM_PRE_PARIS)
+            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_PRE_PARIS)
                 .expect("Always valid"),
         );
     }

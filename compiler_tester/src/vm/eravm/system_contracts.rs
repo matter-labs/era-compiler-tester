@@ -505,11 +505,23 @@ impl SystemContracts {
                 .to_string_lossy()
                 .replace(std::path::MAIN_SEPARATOR_STR, "/");
 
-            if path.as_str() == "era-contracts/system-contracts/contracts/SystemContractErrors.sol" {
-                sources.push(("contracts/SystemContractErrors.sol".to_owned(), source.clone()));
+            if path.as_str() == "era-contracts/system-contracts/contracts/SystemContractErrors.sol"
+            {
+                sources.push((
+                    "contracts/SystemContractErrors.sol".to_owned(),
+                    source.clone(),
+                ));
             }
-            if path.starts_with("era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/") {
-                sources.push((path.replace("era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/", "@openzeppelin/contracts-v4/"), source.clone()));
+            if path.starts_with(
+                "era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/",
+            ) {
+                sources.push((
+                    path.replace(
+                        "era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/",
+                        "@openzeppelin/contracts-v4/",
+                    ),
+                    source.clone(),
+                ));
             }
 
             sources.push((path, source));
