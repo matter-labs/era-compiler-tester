@@ -215,12 +215,6 @@ impl SystemContracts {
             ),
             (
                 web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::system_params::ADDRESS_IDENTITY.into(),
-                ),
-                Self::PATH_IDENTITY.to_owned(),
-            ),
-            (
-                web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::ADDRESS_EVENT_WRITER.into(),
                 ),
                 Self::PATH_EVENT_WRITER.to_owned(),
@@ -349,12 +343,12 @@ impl SystemContracts {
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 2);
         for pattern in [
-            "tests/solidity/simple/system/identity.sol",
+            "tests/solidity/complex/interpreter/*.sol",
             "era-contracts/system-contracts/contracts/*.sol",
             "era-contracts/system-contracts/contracts/libraries/**/*.sol",
             "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
             "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
-            "tests/solidity/complex/interpreter/*.sol",
+            "era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/**/*.sol",
         ]
         .into_iter()
         .map(PathBuf::from)
@@ -510,6 +504,13 @@ impl SystemContracts {
             let path = path
                 .to_string_lossy()
                 .replace(std::path::MAIN_SEPARATOR_STR, "/");
+
+            if path.as_str() == "era-contracts/system-contracts/contracts/SystemContractErrors.sol" {
+                sources.push(("contracts/SystemContractErrors.sol".to_owned(), source.clone()));
+            }
+            if path.starts_with("era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/") {
+                sources.push((path.replace("era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/", "@openzeppelin/contracts-v4/"), source.clone()));
+            }
 
             sources.push((path, source));
         }
