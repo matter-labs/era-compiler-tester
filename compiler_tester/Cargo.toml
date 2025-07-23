@@ -40,7 +40,7 @@ chrono = "0.4"
 revm = { git = "https://github.com/bluealloy/revm", rev = "fa5650ee8a4d802f4f3557014dd157adfb074460" }
 
 zkevm_opcode_defs = "=0.150.6"
-zkevm_tester = { git = "https://github.com/0xVolosnikov/era-zkevm_tester", rev = "a28bf4484d8fc080074f7b58416e6615d8e59839" }
+zkevm_tester = { git = "https://github.com/0xVolosnikov/era-zkevm_tester", rev = "dd4bbe35d5c3e6884331cfaafe613103a8eab249" }
 vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "zksync_vm2" }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
