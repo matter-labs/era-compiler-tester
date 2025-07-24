@@ -19,6 +19,9 @@ use crate::compilers::Compiler;
 /// The EVMGasManager system contract address.
 pub const ADDRESS_EVM_GAS_MANAGER: u16 = 0x8013;
 
+/// The EVMHashesStorage system contract address.
+pub const ADDRESS_EVM_HASHES_STORAGE: u16 = 0x8015;
+
 ///
 /// The EraVM system contracts.
 ///
@@ -62,8 +65,8 @@ impl SystemContracts {
         "era-contracts/system-contracts/contracts/precompiles/SHA256.yul";
 
     /// The `identity` system contract implementation path.
-    const PATH_IDENTITY: (&'static str, &'static str) =
-        ("tests/solidity/simple/system/identity.sol", "Identity");
+    const PATH_IDENTITY: &'static str =
+        "era-contracts/system-contracts/contracts/precompiles/Identity.yul";
 
     /// The `ecadd` system contract implementation path.
     const PATH_ECADD: &'static str =
@@ -139,6 +142,12 @@ impl SystemContracts {
     const PATH_EVM_GAS_MANAGER: &'static str =
         "era-contracts/system-contracts/contracts/EvmGasManager.yul";
 
+    /// The EVM hashes storage system contract implementation path.
+    const PATH_EVM_HASHES_STORAGE: (&'static str, &'static str) = (
+        "era-contracts/system-contracts/contracts/EvmHashesStorage.sol",
+        "EvmHashesStorage",
+    );
+
     ///
     /// Loads or builds the system contracts.
     ///
@@ -189,6 +198,10 @@ impl SystemContracts {
                 Self::PATH_SHA256.to_owned(),
             ),
             (
+                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
+                Self::PATH_IDENTITY.to_owned(),
+            ),
+            (
                 web3::types::Address::from_low_u64_be(
                     zkevm_opcode_defs::system_params::ADDRESS_ECADD.into(),
                 ),
@@ -223,10 +236,6 @@ impl SystemContracts {
                     Self::PATH_EMPTY_CONTRACT.0,
                     Some(Self::PATH_EMPTY_CONTRACT.1),
                 ),
-            ),
-            (
-                web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_IDENTITY.into()),
-                Self::normalize_name_fs(Self::PATH_IDENTITY.0, Some(Self::PATH_IDENTITY.1)),
             ),
             (
                 web3::types::Address::from_low_u64_be(
@@ -296,6 +305,13 @@ impl SystemContracts {
                 web3::types::Address::from_low_u64_be(zkevm_opcode_defs::ADDRESS_ETH_TOKEN.into()),
                 Self::normalize_name_fs(Self::PATH_BASE_TOKEN.0, Some(Self::PATH_BASE_TOKEN.1)),
             ),
+            (
+                web3::types::Address::from_low_u64_be(ADDRESS_EVM_HASHES_STORAGE.into()),
+                Self::normalize_name_fs(
+                    Self::PATH_EVM_HASHES_STORAGE.0,
+                    Some(Self::PATH_EVM_HASHES_STORAGE.1),
+                ),
+            ),
         ];
 
         let mut yul_file_paths = Vec::with_capacity(yul_system_contracts.len() + 1);
@@ -312,8 +328,7 @@ impl SystemContracts {
             "6",
             "-eravm-enable-split-loop-phi-live-ranges",
             "-tail-merge-only-bbs-without-succ",
-            "-join-globalcopies",
-            "-disable-early-taildup",
+            "-tail-dup-fallthrough-bbs",
         ]
         .into_iter()
         .map(|option| option.to_owned())
@@ -328,12 +343,12 @@ impl SystemContracts {
 
         let mut solidity_file_paths = Vec::with_capacity(solidity_system_contracts.len() + 2);
         for pattern in [
-            "tests/solidity/simple/system/identity.sol",
+            "tests/solidity/complex/interpreter/*.sol",
             "era-contracts/system-contracts/contracts/*.sol",
             "era-contracts/system-contracts/contracts/libraries/**/*.sol",
             "era-contracts/system-contracts/contracts/interfaces/**/*.sol",
             "era-contracts/system-contracts/contracts/openzeppelin/**/*.sol",
-            "tests/solidity/complex/interpreter/*.sol",
+            "era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/**/*.sol",
         ]
         .into_iter()
         .map(PathBuf::from)
@@ -489,6 +504,25 @@ impl SystemContracts {
             let path = path
                 .to_string_lossy()
                 .replace(std::path::MAIN_SEPARATOR_STR, "/");
+
+            if path.as_str() == "era-contracts/system-contracts/contracts/SystemContractErrors.sol"
+            {
+                sources.push((
+                    "contracts/SystemContractErrors.sol".to_owned(),
+                    source.clone(),
+                ));
+            }
+            if path.starts_with(
+                "era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/",
+            ) {
+                sources.push((
+                    path.replace(
+                        "era-contracts/system-contracts/lib/openzeppelin-contracts-v4/contracts/",
+                        "@openzeppelin/contracts-v4/",
+                    ),
+                    source.clone(),
+                ));
+            }
 
             sources.push((path, source));
         }

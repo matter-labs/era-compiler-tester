@@ -2,10 +2,12 @@
     path = tests
     url = https://github.com/matter-labs/era-compiler-tests
     branch = main
+    update = none
 [submodule "era-contracts"]
     path = era-contracts
     url = https://github.com/matter-labs/era-contracts
-    branch = stable/evm-emulator
+    branch = release-v28
+    update = none
 [submodule "era-solidity"]
     path = era-solidity
     url = https://github.com/matter-labs/era-solidity

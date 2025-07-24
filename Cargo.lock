@@ -4729,9 +4729,8 @@ dependencies = [
 
 [[package]]
 name = "zk_evm"
-version = "0.150.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c14bda6c101389145cd01fac900f1392876bc0284d98faf7f376237baa2cb19d"
+version = "0.152.3"
+source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -4739,20 +4738,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions 0.150.6",
-]
-
-[[package]]
-name = "zk_evm_abstractions"
-version = "0.150.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a008f2442fc6a508bdd1f902380242cb6ff11b8b27acdac2677c6d9f75cbb004"
-dependencies = [
- "anyhow",
- "num_enum",
- "serde",
- "static_assertions",
- "zkevm_opcode_defs 0.150.6",
+ "zk_evm_abstractions 0.152.3 (git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3)",
 ]
 
 [[package]]
@@ -4765,7 +4751,19 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.152.3",
+ "zkevm_opcode_defs 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.152.3"
+source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.152.3 (git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3)",
 ]
 
 [[package]]
@@ -4804,9 +4802,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "zkevm_opcode_defs"
+version = "0.152.3"
+source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
+dependencies = [
+ "bitflags",
+ "blake2",
+ "ethereum-types",
+ "k256",
+ "lazy_static",
+ "p256",
+ "serde",
+ "sha2 0.10.8",
+ "sha3 0.10.8",
+ "zksync_pairing",
+]
+
+[[package]]
 name = "zkevm_tester"
-version = "1.5.0"
-source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.0#393e31814c6838378d84e9932f1b378c1da5b5fe"
+version = "1.5.2"
+source = "git+https://github.com/matter-labs/era-zkevm_tester?branch=v1.5.2#a4af407a1891e27162d0b35958d44e5fff3be967"
 dependencies = [
  "anyhow",
  "ethabi",
@@ -4870,8 +4885,8 @@ source = "git+https://github.com/matter-labs/vm2#9b26181b687032526cbebf7bb0a5731
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.152.3",
- "zkevm_opcode_defs 0.152.3",
+ "zk_evm_abstractions 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zkevm_opcode_defs 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "zksync_vm2_interface",
 ]
 

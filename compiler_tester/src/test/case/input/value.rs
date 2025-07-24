@@ -19,7 +19,7 @@ pub enum Value {
     /// Any value (used for expected data).
     Any,
     /// The certain value.
-    Certain(web3::types::U256),
+    Known(web3::types::U256),
 }
 
 impl Value {
@@ -32,7 +32,7 @@ impl Value {
     ///
     pub fn unwrap_certain_as_ref(&self) -> &web3::types::U256 {
         match self {
-            Self::Certain(value) => value,
+            Self::Known(value) => value,
             Self::Any => panic!("Value is unknown"),
         }
     }
@@ -106,16 +106,11 @@ impl Value {
             }
             .expect("Always valid")
         } else if value == "$DIFFICULTY" {
-            match target {
-                era_compiler_common::Target::EraVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_DIFFICULTY_ERAVM)
-                }
-                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
-                    SystemContext::BLOCK_DIFFICULTY_EVM_POST_PARIS,
-                    era_compiler_common::BASE_HEXADECIMAL,
-                )
-                .expect("Always valid"),
-            }
+            web3::types::U256::from_str_radix(
+                SystemContext::BLOCK_DIFFICULTY_POST_PARIS,
+                era_compiler_common::BASE_HEXADECIMAL,
+            )
+            .expect("Always valid")
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
                 .split(':')
@@ -142,7 +137,7 @@ impl Value {
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
         };
 
-        Ok(Self::Certain(value))
+        Ok(Self::Known(value))
     }
 
     ///
@@ -170,7 +165,7 @@ impl Serialize for Value {
         S: Serializer,
     {
         let value_str = match self {
-            Value::Certain(value) => format!("0x{}", crate::utils::u256_as_string(value)),
+            Value::Known(value) => format!("0x{}", crate::utils::u256_as_string(value)),
             Value::Any => "*".to_string(),
         };
         serializer.serialize_str(&value_str)

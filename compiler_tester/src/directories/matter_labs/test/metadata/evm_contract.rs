@@ -39,7 +39,8 @@ impl EVMContract {
     pub fn runtime_code(&self, instruction_name: &str) -> String {
         let repeats = match instruction_name {
             "RETURNDATASIZE" | "RETURNDATACOPY" | "EXTCODESIZE" | "EXTCODEHASH" | "EXTCODECOPY"
-            | "CALL" | "STATICCALL" | "DELEGATECALL" | "CREATE" | "CREATE2" => 1,
+            | "CALL" | "STATICCALL" | "DELEGATECALL" | "CREATE" | "CREATE2" | "RETURN"
+            | "REVERT" | "STOP" | "INVALID" => 1,
             _ => Self::RUNTIME_CODE_REPEATS,
         };
 
