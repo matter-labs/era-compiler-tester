@@ -31,11 +31,11 @@ pub fn revm_bytes_to_vec_value(bytes: revm::primitives::Bytes) -> Vec<Value> {
         if data.len() < 32 {
             let mut value = [0u8; 32];
             value[..data.len()].copy_from_slice(data);
-            data_value.push(Value::Certain(web3::types::U256::from_big_endian(&value)));
+            data_value.push(Value::Known(web3::types::U256::from_big_endian(&value)));
         } else {
             let mut value = [0u8; 32];
             value.copy_from_slice(data);
-            data_value.push(Value::Certain(web3::types::U256::from_big_endian(&value)));
+            data_value.push(Value::Known(web3::types::U256::from_big_endian(&value)));
         }
     }
     data_value
@@ -46,7 +46,7 @@ pub fn revm_topics_to_vec_value(revm_topics: &[revm::primitives::B256]) -> Vec<V
     for topic in revm_topics.iter() {
         let mut topic_value = [0u8; 32];
         topic_value.copy_from_slice(topic.as_slice());
-        topics.push(Value::Certain(web3::types::U256::from_big_endian(
+        topics.push(Value::Known(web3::types::U256::from_big_endian(
             &topic_value,
         )));
     }

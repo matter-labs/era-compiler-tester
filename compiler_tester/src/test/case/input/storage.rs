@@ -58,14 +58,14 @@ impl Storage {
                 let key = match Value::try_from_matter_labs(key, instances, target)
                     .map_err(|error| anyhow::anyhow!("Invalid storage key: {}", error))?
                 {
-                    Value::Certain(value) => value,
+                    Value::Known(value) => value,
                     Value::Any => anyhow::bail!("Storage key can not be `*`"),
                 };
 
                 let value = match Value::try_from_matter_labs(value, instances, target)
                     .map_err(|error| anyhow::anyhow!("Invalid storage value: {}", error))?
                 {
-                    Value::Certain(value) => value,
+                    Value::Known(value) => value,
                     Value::Any => anyhow::bail!("Storage value can not be `*`"),
                 };
 

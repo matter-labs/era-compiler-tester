@@ -233,12 +233,12 @@ fn chunk_return_data(bytes: &[u8]) -> Vec<Value> {
     let remainder = iter.remainder();
     let mut res = iter
         .map(U256::from_big_endian)
-        .map(Value::Certain)
+        .map(Value::Known)
         .collect::<Vec<_>>();
     if !remainder.is_empty() {
         let mut last = [0; 32];
         last[..remainder.len()].copy_from_slice(remainder);
-        res.push(Value::Certain(U256::from_big_endian(&last)));
+        res.push(Value::Known(U256::from_big_endian(&last)));
     }
     res
 }
@@ -352,7 +352,7 @@ fn merge_events(events: &[vm2::Event]) -> Vec<Event> {
             let topics = event.topics[1..]
                 .iter()
                 .cloned()
-                .map(Value::Certain)
+                .map(Value::Known)
                 .collect();
             let values = chunk_return_data(&event.data);
             Some(Event::new(Some(address), topics, values))

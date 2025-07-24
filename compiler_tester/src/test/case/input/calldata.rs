@@ -41,7 +41,7 @@ impl Calldata {
                 let calldata = Value::try_from_vec_matter_labs(values, instances, target)?;
                 for value in calldata.into_iter() {
                     let value = match value {
-                        Value::Certain(value) => value,
+                        Value::Known(value) => value,
                         Value::Any => anyhow::bail!("The `*` wildcard is not allowed in calldata"),
                     };
                     let mut bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
