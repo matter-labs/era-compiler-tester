@@ -118,7 +118,7 @@ impl Output {
                         &crate::utils::address_as_string(contract_address),
                     );
                 }
-                Value::Certain(
+                Value::Known(
                     web3::types::U256::from_str(&value_str)
                         .expect("Solidity adapter default contract address constant is invalid"),
                 )
@@ -141,7 +141,7 @@ impl Output {
 impl From<web3::types::U256> for Output {
     fn from(value: web3::types::U256) -> Self {
         Self {
-            return_data: vec![Value::Certain(value)],
+            return_data: vec![Value::Known(value)],
             exception: false,
             events: vec![],
         }
@@ -191,7 +191,7 @@ impl From<zkevm_tester::compiler_tests::VmSnapshot> for Output {
                         } else {
                             web3::types::U256::from_big_endian(word)
                         };
-                        Value::Certain(value)
+                        Value::Known(value)
                     })
                     .collect();
 
@@ -216,7 +216,7 @@ impl From<zkevm_tester::compiler_tests::VmSnapshot> for Output {
                         } else {
                             web3::types::U256::from_big_endian(word)
                         };
-                        Value::Certain(value)
+                        Value::Known(value)
                     })
                     .collect();
 
@@ -255,7 +255,7 @@ impl PartialEq<Self> for Output {
         }
 
         for index in 0..self.return_data.len() {
-            if let (Value::Certain(value_1), Value::Certain(value_2)) =
+            if let (Value::Known(value_1), Value::Known(value_2)) =
                 (&self.return_data[index], &other.return_data[index])
             {
                 if value_1 != value_2 {

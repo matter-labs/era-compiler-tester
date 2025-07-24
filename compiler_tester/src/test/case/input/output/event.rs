@@ -94,7 +94,7 @@ impl Event {
                     solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
                     &crate::utils::address_as_string(contract_address),
                 );
-                Value::Certain(
+                Value::Known(
                     web3::types::U256::from_str(&topic_str)
                         .expect("Solidity adapter default contract address constant is invalid"),
                 )
@@ -110,7 +110,7 @@ impl Event {
                     solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
                     &crate::utils::address_as_string(contract_address),
                 );
-                Value::Certain(
+                Value::Known(
                     web3::types::U256::from_str(&value_str)
                         .expect("Solidity adapter default contract address constant is invalid"),
                 )
@@ -131,7 +131,7 @@ impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
         let mut topics: Vec<Value> = event
             .topics
             .into_iter()
-            .map(|topic| Value::Certain(web3::types::U256::from_big_endian(topic.as_slice())))
+            .map(|topic| Value::Known(web3::types::U256::from_big_endian(topic.as_slice())))
             .collect();
 
         // Event are written by the system contract, and the first topic is the `msg.sender`
@@ -151,7 +151,7 @@ impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
                 } else {
                     web3::types::U256::from_big_endian(word)
                 };
-                Value::Certain(value)
+                Value::Known(value)
             })
             .collect();
 
@@ -179,7 +179,7 @@ impl PartialEq<Self> for Event {
         }
 
         for index in 0..self.topics.len() {
-            if let (Value::Certain(value1), Value::Certain(value2)) =
+            if let (Value::Known(value1), Value::Known(value2)) =
                 (&self.topics[index], &other.topics[index])
             {
                 if value1 != value2 {
@@ -189,7 +189,7 @@ impl PartialEq<Self> for Event {
         }
 
         for index in 0..self.values.len() {
-            if let (Value::Certain(value1), Value::Certain(value2)) =
+            if let (Value::Known(value1), Value::Known(value2)) =
                 (&self.values[index], &other.values[index])
             {
                 if value1 != value2 {

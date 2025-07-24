@@ -21,7 +21,9 @@ use std::time::Instant;
 
 use colored::Colorize;
 use solidity_adapter::EVMVersion;
+use zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER;
 
+use crate::utils;
 use crate::vm::execution_result::ExecutionResult;
 
 use self::system_context::SystemContext;
@@ -49,6 +51,8 @@ pub struct EraVM {
     storage_transient: HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
     /// The current EVM block number.
     current_evm_block_number: u128,
+    /// The target instruction set.
+    target: era_compiler_common::Target,
 }
 
 impl EraVM {
@@ -58,6 +62,9 @@ impl EraVM {
 
     /// The extra amount of gas consumed by every call to the EVM interpreter.
     pub const EVM_INTERPRETER_GAS_OVERHEAD: u64 = 2500;
+
+    /// The `allowedBytecodesToDeploy` variable storage slot in the `ContractDeployer` contract.
+    pub const CONTRACT_DEPLOYER_ALLOWED_BYTECODES_MODE_SLOT: u64 = 1;
 
     /// The `passGas` variable transient storage slot in the `EvmGasManager` contract.
     pub const EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT: u64 = 4;
@@ -122,8 +129,17 @@ impl EraVM {
             system_contracts_save_path,
         )?;
 
-        let storage = SystemContext::create_storage(target);
+        let mut storage = SystemContext::create_storage(target);
         let storage_transient = HashMap::new();
+
+        // TODO move to the SystemContext after EVM emulator is ready
+        storage.insert(
+            zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(ADDRESS_CONTRACT_DEPLOYER.into()),
+                key: web3::types::U256::from(Self::CONTRACT_DEPLOYER_ALLOWED_BYTECODES_MODE_SLOT),
+            },
+            web3::types::H256::from_low_u64_be(1), // Allow EVM contracts deployment
+        );
 
         let mut vm = Self {
             known_contracts: HashMap::new(),
@@ -146,6 +162,7 @@ impl EraVM {
             storage_transient,
             published_evm_bytecodes: HashMap::new(),
             current_evm_block_number: SystemContext::INITIAL_BLOCK_NUMBER,
+            target,
         };
 
         vm.add_known_contract(
@@ -284,6 +301,25 @@ impl EraVM {
         calldata: Vec<u8>,
         vm_launch_option: Option<zkevm_tester::compiler_tests::VmLaunchOption>,
     ) -> anyhow::Result<ExecutionResult> {
+        // add initial frame data in EvmGasManager
+        // set `passGas` to `EVM_CALL_GAS_LIMIT`
+        self.storage_transient.insert(
+            zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT),
+            },
+            web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
+        );
+
+        // set `isActiveFrame` to true
+        self.storage_transient.insert(
+            zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_AUX_DATA_TRANSIENT_SLOT),
+            },
+            web3::types::H256::from_low_u64_be(2), // "activeFrame flag"
+        );
+
         let (vm_launch_option, context_u128_value) =
             if let Some(vm_launch_option) = vm_launch_option {
                 (vm_launch_option, value)
@@ -337,6 +373,34 @@ impl EraVM {
             context_u128_value.unwrap_or_default(),
             0,
         );
+
+        if self.target == era_compiler_common::Target::EVM {
+            // Increase deployment nonce of caller by 1 if it is 0 (we pretend that it is a contract)
+            let address_h256 = utils::address_to_h256(&caller);
+            let bytes = [
+                address_h256.as_bytes(),
+                &[0; era_compiler_common::BYTE_LENGTH_FIELD],
+            ]
+            .concat();
+            let key = web3::signing::keccak256(&bytes).into();
+            let storage_key = zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(
+                    zkevm_opcode_defs::ADDRESS_NONCE_HOLDER.into(),
+                ),
+                key,
+            };
+            let prev_raw_nonce = self
+                .storage
+                .entry(storage_key)
+                .or_insert(web3::types::H256::zero());
+            let prev_raw_nonce_uint = utils::h256_to_u256(prev_raw_nonce);
+            if (prev_raw_nonce_uint >> 128) == web3::types::U256::zero() {
+                let new_raw_nonce = prev_raw_nonce_uint
+                    + (web3::types::U256::from(1) << web3::types::U256::from(128));
+                self.storage
+                    .insert(storage_key, utils::u256_to_h256(&new_raw_nonce));
+            }
+        }
 
         #[cfg(not(feature = "vm2"))]
         {
@@ -456,7 +520,6 @@ impl EraVM {
             .unwrap_certain_as_ref()
             .as_u64();
         result.gas = Self::EVM_CALL_GAS_LIMIT - gas_left;
-
         Ok(result)
     }
 

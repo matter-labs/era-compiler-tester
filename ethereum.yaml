@@ -3277,7 +3277,8 @@ entries:
         version: '>=0.6.0'
       failed_create.sol:
         hash: '0x0a80674efbf9fdc0f8c8413011a7863f'
-        enabled: true
+        enabled: false
+        comment: 'TODO: out-of-ergs in underlying EraVM'
         version: '>=0.7.0'
       file_level_call_via_module.sol:
         hash: '0x7484f59b7118567c0bb54761d5b87405'
@@ -3360,8 +3361,7 @@ entries:
         version: '>=0.5.7'
       precompile_extcodesize_check.sol:
         hash: '0x8bde8f1038d88fc0890b453cf9e801ee'
-        enabled: false
-        comment: 'TODO: identity precompile'
+        enabled: true
         version: '>=0.6.2'
       return_size_bigger_than_expected.sol:
         hash: '0x6fae6783c4ac99fb6983790b67a5ffc4'
@@ -4126,7 +4126,8 @@ entries:
         version: '>=0.8.15'
       prevrandao.sol:
         hash: '0xcd0569ad2ec413eeeed4d4d54771f9ca'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.8.18'
       selfbalance.sol:
         hash: '0x2e91b6be06a564479b4a8abb677e8988'
@@ -5646,11 +5647,13 @@ entries:
         version: '>=0.5.0'
       block_difficulty.sol:
         hash: '0x58b235ea108b6fb65447dac818824654'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.4.12'
       block_difficulty_post_paris.sol:
         hash: '0xaf0b815498b81d9709b312a43f61514d'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.4.12'
       block_gaslimit.sol:
         hash: '0xf81733077b31ae2014e1bff37fb34819'
@@ -5666,11 +5669,13 @@ entries:
         version: '>=0.4.22'
       block_prevrandao.sol:
         hash: '0x0c0fefa7e5f1c572cdb0fa190b71b944'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.8.18'
       block_prevrandao_pre_paris.sol:
         hash: '0x4f1de4a5bf963ccead4e49f5c388a676'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.8.18'
       block_timestamp.sol:
         hash: '0xe33341d130db3aae593b9f66b8acdaab'
@@ -6402,9 +6407,6 @@ entries:
       create.sol:
         hash: '0xa11e16eca93ba36577f1d2efd4ecadf0'
         enabled: true
-        modes:
-        - Y
-        - E
         version: '>=0.7.0'
       invalid_error_encoding.sol:
         hash: '0x87c1bfbd0f7d4b04f99dd8c7043c15fc'

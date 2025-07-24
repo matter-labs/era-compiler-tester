@@ -56,13 +56,18 @@ impl Element {
                 ref group,
             } => {
                 let mut details = Vec::new();
-                if let PassedVariant::Deploy { size, .. } = variant {
-                    details.push(format!("size {size}").bright_white().to_string())
-                };
                 match variant {
-                    PassedVariant::Deploy { cycles, ergs, .. } => {
+                    PassedVariant::Deploy {
+                        size,
+                        cycles,
+                        ergs,
+                        gas,
+                        ..
+                    } => {
+                        details.push(format!("size {size}").bright_white().to_string());
                         details.push(format!("cycles {cycles}").bright_white().to_string());
                         details.push(format!("ergs {ergs}").bright_white().to_string());
+                        details.push(format!("gas {gas}").bright_white().to_string());
                     }
                     PassedVariant::Runtime { cycles, ergs, gas } => {
                         details.push(format!("cycles {cycles}").bright_white().to_string());
