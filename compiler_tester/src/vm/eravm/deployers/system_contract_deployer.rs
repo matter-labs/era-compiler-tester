@@ -217,17 +217,16 @@ impl EraVMDeployer for SystemContractDeployer {
             calldata,
             Some(vm_launch_option),
         )?;
-
-        if result.output.return_data.len() > 1 {
-            let gas_left = result
-                .output
-                .return_data
-                .remove(0)
-                .unwrap_certain_as_ref()
-                .as_u64();
-            result.gas = EraVM::EVM_CALL_GAS_LIMIT - gas_left;
+        if result.output.return_data.is_empty() {
+            anyhow::bail!("Return data is empty");
         }
-
+        let gas_left = result
+            .output
+            .return_data
+            .remove(0)
+            .unwrap_certain_as_ref()
+            .as_u64();
+        result.gas = EraVM::EVM_CALL_GAS_LIMIT - gas_left;
         Ok(result)
     }
 }

@@ -520,7 +520,6 @@ impl EraVM {
             .unwrap_certain_as_ref()
             .as_u64();
         result.gas = Self::EVM_CALL_GAS_LIMIT - gas_left;
-
         Ok(result)
     }
 
