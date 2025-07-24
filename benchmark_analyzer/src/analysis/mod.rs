@@ -183,6 +183,42 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             }
         }
 
+        let reference_size = match reference.size {
+            Some(size) => size,
+            None => continue,
+        };
+        let candidate_size = match candidate.size {
+            Some(size) => size,
+            None => continue,
+        };
+        size_total_reference += reference_size;
+        size_total_candidate += candidate_size;
+        let size_factor = (candidate_size as f64) / (reference_size as f64);
+        if candidate_size > reference_size {
+            size_negatives.push((size_factor, description.clone()));
+        }
+        if candidate_size < reference_size {
+            size_positives.push((size_factor, description.clone()));
+        }
+        if size_factor < size_best {
+            size_best = size_factor;
+        }
+        if size_factor > size_worst {
+            size_worst = size_factor;
+        }
+        size_factors.push(size_factor);
+
+        if description
+            .test_metadata
+            .selector
+            .input
+            .as_ref()
+            .map(|input| input.is_deployer())
+            .unwrap_or_default()
+        {
+            continue;
+        }
+
         cycles_total_reference += reference.cycles;
         cycles_total_candidate += candidate.cycles;
         let cycles_factor = (candidate.cycles as f64) / (reference.cycles as f64);
@@ -233,31 +269,6 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             gas_worst = gas_factor;
         }
         gas_factors.push(gas_factor);
-
-        let reference_size = match reference.size {
-            Some(size) => size,
-            None => continue,
-        };
-        let candidate_size = match candidate.size {
-            Some(size) => size,
-            None => continue,
-        };
-        size_total_reference += reference_size;
-        size_total_candidate += candidate_size;
-        let size_factor = (candidate_size as f64) / (reference_size as f64);
-        if candidate_size > reference_size {
-            size_negatives.push((size_factor, description.clone()));
-        }
-        if candidate_size < reference_size {
-            size_positives.push((size_factor, description.clone()));
-        }
-        if size_factor < size_best {
-            size_best = size_factor;
-        }
-        if size_factor > size_worst {
-            size_worst = size_factor;
-        }
-        size_factors.push(size_factor);
     }
 
     let size_total = (size_total_candidate as f64) / (size_total_reference as f64);
