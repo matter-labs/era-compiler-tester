@@ -177,7 +177,7 @@ impl DeployEVM {
             }
         };
         if result.output == self.expected {
-            Summary::passed_deploy(summary, test, size, result.cycles, result.ergs, result.gas);
+            Summary::passed_deploy(summary, test, size, result.cycles, result.ergs, 0);
         } else {
             Summary::failed(
                 summary,
