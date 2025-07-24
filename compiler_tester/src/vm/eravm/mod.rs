@@ -301,6 +301,25 @@ impl EraVM {
         calldata: Vec<u8>,
         vm_launch_option: Option<zkevm_tester::compiler_tests::VmLaunchOption>,
     ) -> anyhow::Result<ExecutionResult> {
+        // add initial frame data in EvmGasManager
+        // set `passGas` to `EVM_CALL_GAS_LIMIT`
+        self.storage_transient.insert(
+            zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_GAS_TRANSIENT_SLOT),
+            },
+            web3::types::H256::from_low_u64_be(Self::EVM_CALL_GAS_LIMIT),
+        );
+
+        // set `isActiveFrame` to true
+        self.storage_transient.insert(
+            zkevm_tester::compiler_tests::StorageKey {
+                address: web3::types::Address::from_low_u64_be(ADDRESS_EVM_GAS_MANAGER.into()),
+                key: web3::types::U256::from(Self::EVM_GAS_MANAGER_AUX_DATA_TRANSIENT_SLOT),
+            },
+            web3::types::H256::from_low_u64_be(2), // "activeFrame flag"
+        );
+
         let (vm_launch_option, context_u128_value) =
             if let Some(vm_launch_option) = vm_launch_option {
                 (vm_launch_option, value)
