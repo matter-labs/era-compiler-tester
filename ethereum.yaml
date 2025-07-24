@@ -3361,8 +3361,7 @@ entries:
         version: '>=0.5.7'
       precompile_extcodesize_check.sol:
         hash: '0x8bde8f1038d88fc0890b453cf9e801ee'
-        enabled: false
-        comment: 'TODO: identity precompile'
+        enabled: true
         version: '>=0.6.2'
       return_size_bigger_than_expected.sol:
         hash: '0x6fae6783c4ac99fb6983790b67a5ffc4'
@@ -6407,11 +6406,7 @@ entries:
         version: '>=0.6.2'
       create.sol:
         hash: '0xa11e16eca93ba36577f1d2efd4ecadf0'
-        enabled: false
-        comment: 'TODO: VM implementation in Solidity tests is invalid'
-        modes:
-        - Y
-        - E
+        enabled: true
         version: '>=0.7.0'
       invalid_error_encoding.sol:
         hash: '0x87c1bfbd0f7d4b04f99dd8c7043c15fc'
