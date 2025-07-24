@@ -78,7 +78,7 @@ impl SystemContext {
 
     /// The block difficulty for EVM tests using a post paris version.
     pub const BLOCK_DIFFICULTY_POST_PARIS: &'static str =
-        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+        "0x0000000000000000000000000000000000000000000000000008e1bc9bf04000";
     /// The block difficulty for EVM tests using a pre paris version.
     pub const BLOCK_DIFFICULTY_PRE_PARIS: &'static str =
         "0x000000000000000000000000000000000000000000000000000000000bebc200";

@@ -5648,11 +5648,13 @@ entries:
         version: '>=0.5.0'
       block_difficulty.sol:
         hash: '0x58b235ea108b6fb65447dac818824654'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.4.12'
       block_difficulty_post_paris.sol:
         hash: '0xaf0b815498b81d9709b312a43f61514d'
-        enabled: true
+        enabled: false
+        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.4.12'
       block_gaslimit.sol:
         hash: '0xf81733077b31ae2014e1bff37fb34819'
