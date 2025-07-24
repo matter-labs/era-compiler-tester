@@ -4127,8 +4127,7 @@ entries:
         version: '>=0.8.15'
       prevrandao.sol:
         hash: '0xcd0569ad2ec413eeeed4d4d54771f9ca'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.8.18'
       selfbalance.sol:
         hash: '0x2e91b6be06a564479b4a8abb677e8988'
@@ -5668,13 +5667,11 @@ entries:
         version: '>=0.4.22'
       block_prevrandao.sol:
         hash: '0x0c0fefa7e5f1c572cdb0fa190b71b944'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.8.18'
       block_prevrandao_pre_paris.sol:
         hash: '0x4f1de4a5bf963ccead4e49f5c388a676'
         enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
         version: '>=0.8.18'
       block_timestamp.sol:
         hash: '0xe33341d130db3aae593b9f66b8acdaab'
