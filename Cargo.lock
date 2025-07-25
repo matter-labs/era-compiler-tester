@@ -3651,12 +3651,13 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#9ddd10ef9eb13aacbd71f93f2e268df4ddb7f027"
+source = "git+https://github.com/matter-labs/solx?branch=main#6221521f2d6d44a1da9af71aab8e9a9a4f37a1f3"
 dependencies = [
  "anyhow",
  "ciborium",
  "era-compiler-common",
  "era-compiler-llvm-context",
+ "hex",
  "inkwell",
  "num",
  "rayon",
@@ -3669,7 +3670,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#9ddd10ef9eb13aacbd71f93f2e268df4ddb7f027"
+source = "git+https://github.com/matter-labs/solx?branch=main#6221521f2d6d44a1da9af71aab8e9a9a4f37a1f3"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3684,7 +3685,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#9ddd10ef9eb13aacbd71f93f2e268df4ddb7f027"
+source = "git+https://github.com/matter-labs/solx?branch=main#6221521f2d6d44a1da9af71aab8e9a9a4f37a1f3"
 dependencies = [
  "anyhow",
  "era-compiler-common",
