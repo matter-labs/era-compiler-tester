@@ -32,7 +32,11 @@ impl JsonLNT {
     /// Generate the test name for a measurement, containing a unique test identifier.
     ///
     fn test_name(selector: &Selector) -> String {
-        let Selector { path, case, input } = selector;
+        let Selector {
+            domain: path,
+            case,
+            input,
+        } = selector;
         let short_path = Self::shorten_file_name(path);
         let short_input = match input {
             Some(crate::Input::Deployer {
@@ -43,7 +47,7 @@ impl JsonLNT {
             _ => input.clone(),
         };
         Selector {
-            path: short_path.to_string(),
+            domain: short_path.to_string(),
             case: case.clone(),
             input: short_input,
         }

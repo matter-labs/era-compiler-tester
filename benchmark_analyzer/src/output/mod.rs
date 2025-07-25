@@ -5,6 +5,7 @@
 pub mod csv;
 pub mod file;
 pub mod json;
+pub mod xlsx;
 
 use std::path::PathBuf;
 
@@ -12,6 +13,7 @@ use crate::model::benchmark::Benchmark;
 use crate::output::csv::Csv;
 use crate::output::json::lnt::JsonLNT;
 use crate::output::json::Json;
+use crate::output::xlsx::Xlsx;
 use crate::output_format::OutputFormat;
 
 use self::file::File;
@@ -19,10 +21,11 @@ use self::file::File;
 ///
 /// Result of comparing two benchmarks.
 ///
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub enum Output {
     /// Benchmark output is a single unnamed file.
     SingleFile(String),
+    /// Benchmark output is a single unnamed file.
+    SingleFileXlsx(rust_xlsxwriter::Workbook),
     /// Benchmark output is structured as a file tree, relative to some
     /// user-provided output directory.
     MultipleFiles(Vec<File>),
@@ -34,8 +37,13 @@ impl Output {
     ///
     pub fn write_to_file(self, path: PathBuf) -> anyhow::Result<()> {
         match self {
-            Output::SingleFile(contents) => {
-                std::fs::write(path.as_path(), contents)
+            Output::SingleFile(content) => {
+                std::fs::write(path.as_path(), content)
+                    .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} writing: {error}"))?;
+            }
+            Output::SingleFileXlsx(mut workbook) => {
+                workbook
+                    .save(path.as_path())
                     .map_err(|error| anyhow::anyhow!("Benchmark file {path:?} writing: {error}"))?;
             }
             Output::MultipleFiles(files) => {
@@ -44,7 +52,7 @@ impl Output {
                 }
                 for File {
                     path: relative_path,
-                    contents,
+                    content: contents,
                 } in files
                 {
                     let file_path = path.join(relative_path);
@@ -68,6 +76,7 @@ impl TryFrom<(Benchmark, OutputFormat)> for Output {
             OutputFormat::Json => Json::from(benchmark).into(),
             OutputFormat::Csv => Csv::from(benchmark).into(),
             OutputFormat::JsonLNT => JsonLNT::try_from(benchmark)?.into(),
+            OutputFormat::Xlsx => Xlsx::try_from(benchmark)?.into(),
         })
     }
 }
@@ -93,5 +102,11 @@ impl From<JsonLNT> for Output {
                 .map(|(key, value)| File::new(key, value))
                 .collect(),
         )
+    }
+}
+
+impl From<Xlsx> for Output {
+    fn from(value: Xlsx) -> Self {
+        Output::SingleFileXlsx(value.content)
     }
 }

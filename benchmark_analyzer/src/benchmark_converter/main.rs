@@ -17,9 +17,11 @@ fn main() -> anyhow::Result<()> {
     let arguments = Arguments::try_parse()?;
     arguments.validate()?;
 
-    let context = benchmark_analyzer::BenchmarkContext::try_from(arguments.benchmark_context)?;
+    let context = match arguments.benchmark_context {
+        Some(path) => benchmark_analyzer::BenchmarkContext::try_from(path)?,
+        None => benchmark_analyzer::BenchmarkContext::default(),
+    };
     let metadata = benchmark_analyzer::BenchmarkMetadata {
-        version: benchmark_analyzer::BenchmarkVersion::V2,
         start: Utc::now(),
         end: Utc::now(),
         context: Some(context),

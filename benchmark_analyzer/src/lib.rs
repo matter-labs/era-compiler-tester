@@ -2,6 +2,9 @@
 //! The benchmark analyzer library.
 //!
 
+#![allow(clippy::large_enum_variant)]
+#![allow(clippy::let_and_return)]
+
 pub mod analysis;
 pub mod foundry_report;
 pub mod model;
@@ -11,7 +14,6 @@ pub mod results;
 pub mod util;
 
 pub use crate::foundry_report::FoundryReport;
-pub use crate::model::benchmark::metadata::BenchmarkVersion;
 pub use crate::model::benchmark::metadata::Metadata as BenchmarkMetadata;
 pub use crate::model::benchmark::test::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
 pub use crate::model::benchmark::test::codegen::versioned::executable::run::Run;

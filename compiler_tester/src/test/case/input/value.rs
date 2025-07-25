@@ -18,19 +18,19 @@ use crate::vm::eravm::system_context::SystemContext;
 pub enum Value {
     /// Any value (used for expected data).
     Any,
-    /// The certain value.
+    /// The known value.
     Known(web3::types::U256),
 }
 
 impl Value {
     ///
-    /// Unwrap certain value as reference.
+    /// Unwrap known value as reference.
     ///
     /// # Panics
     ///
     /// Will panic if the value is any.
     ///
-    pub fn unwrap_certain_as_ref(&self) -> &web3::types::U256 {
+    pub fn unwrap_known_as_ref(&self) -> &web3::types::U256 {
         match self {
             Self::Known(value) => value,
             Self::Any => panic!("Value is unknown"),

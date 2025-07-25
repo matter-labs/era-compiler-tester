@@ -12,8 +12,8 @@ use crate::model::benchmark::test::input::Input;
 ///
 #[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Selector {
-    /// Path to the file containing test.
-    pub path: String,
+    /// Global test domain, can be the name of the project or toolchain.
+    pub domain: String,
     /// Name of the case, if any. `None` means nameless case.
     pub case: Option<String>,
     /// Identifier of the specific input.
@@ -23,7 +23,7 @@ pub struct Selector {
 impl std::fmt::Display for Selector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self {
-            path: filename,
+            domain: filename,
             case: case_name,
             input,
         } = self;

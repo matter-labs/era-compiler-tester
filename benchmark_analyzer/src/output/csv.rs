@@ -53,7 +53,12 @@ impl From<Benchmark> for Csv {
             metadata:
                 TestMetadata {
                     tags,
-                    selector: Selector { path, case, input },
+                    selector:
+                        Selector {
+                            domain: path,
+                            case,
+                            input,
+                        },
                 },
             codegen_groups,
         } in benchmark.tests.values()

@@ -20,9 +20,6 @@ use self::element::outcome::passed_variant::PassedVariant;
 use self::element::outcome::Outcome;
 use self::element::Element;
 
-const BENCHMARK_FORMAT_VERSION: benchmark_analyzer::BenchmarkVersion =
-    benchmark_analyzer::BenchmarkVersion::V2;
-
 ///
 /// The compiler tester summary.
 ///
@@ -120,7 +117,6 @@ impl Summary {
 
         if let (Some(start), Some(end)) = (self.timer.get_start(), self.timer.get_end()) {
             benchmark.metadata = benchmark_analyzer::BenchmarkMetadata {
-                version: BENCHMARK_FORMAT_VERSION,
                 start,
                 end,
                 context,

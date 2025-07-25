@@ -14,6 +14,8 @@ pub enum OutputFormat {
     Csv,
     /// JSON format compatible with LNT.
     JsonLNT,
+    /// Excel spreadsheet format.
+    Xlsx,
 }
 
 impl std::str::FromStr for OutputFormat {
@@ -24,6 +26,7 @@ impl std::str::FromStr for OutputFormat {
             "json" => Ok(Self::Json),
             "json-lnt" => Ok(Self::JsonLNT),
             "csv" => Ok(Self::Csv),
+            "xlsx" => Ok(Self::Xlsx),
             string => anyhow::bail!(
                 "Unknown benchmark format `{string}`. Supported formats: {}",
                 vec![Self::Json, Self::Csv]
@@ -42,6 +45,7 @@ impl std::fmt::Display for OutputFormat {
             OutputFormat::Json => write!(f, "json"),
             OutputFormat::JsonLNT => write!(f, "json-lnt"),
             OutputFormat::Csv => write!(f, "csv"),
+            OutputFormat::Xlsx => write!(f, "xlsx"),
         }
     }
 }

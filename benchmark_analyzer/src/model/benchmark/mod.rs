@@ -46,7 +46,7 @@ impl Benchmark {
     ///
     pub fn extend_with_foundry(
         &mut self,
-        project: &str,
+        domain: &str,
         foundry_report: FoundryReport,
     ) -> anyhow::Result<()> {
         let context =
@@ -62,7 +62,7 @@ impl Benchmark {
 
         for contract_report in foundry_report.0.into_iter() {
             let selector = TestSelector {
-                path: project.to_owned(),
+                domain: domain.to_owned(),
                 case: Some(contract_report.contract.to_owned()),
                 input: Some(TestInput::Deployer {
                     contract_identifier: contract_report.contract.to_owned(),
@@ -96,7 +96,7 @@ impl Benchmark {
                 contract_report.functions.into_iter().enumerate()
             {
                 let selector = TestSelector {
-                    path: project.to_owned(),
+                    domain: domain.to_owned(),
                     case: Some(contract_report.contract.to_owned()),
                     input: Some(TestInput::Runtime {
                         input_index: index + 1,

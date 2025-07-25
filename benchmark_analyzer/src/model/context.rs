@@ -26,6 +26,20 @@ pub struct Context {
     pub optimization: Option<String>,
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self {
+            machine: "unknown".to_string(),
+            toolchain: "unknown".to_string(),
+            compiler_version: "unknown".to_string(),
+            llvm_version: "unknown".to_string(),
+            target: era_compiler_common::Target::EVM,
+            codegen: Some("unknown".to_string()),
+            optimization: Some("unknown".to_string()),
+        }
+    }
+}
+
 impl Context {
     ///
     /// Checks that the context is well-formed.

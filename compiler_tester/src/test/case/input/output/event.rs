@@ -135,7 +135,7 @@ impl From<zkevm_tester::events::SolidityLikeEvent> for Event {
             .collect();
 
         // Event are written by the system contract, and the first topic is the `msg.sender`
-        let address = crate::utils::u256_to_address(topics.remove(0).unwrap_certain_as_ref());
+        let address = crate::utils::u256_to_address(topics.remove(0).unwrap_known_as_ref());
 
         let values: Vec<Value> = event
             .data

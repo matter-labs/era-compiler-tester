@@ -12,14 +12,13 @@ fn convert() {
         machine: "default".to_owned(),
         toolchain: "solx".to_owned(),
         compiler_version: semver::Version::new(1, 0, 0).to_string(),
-        llvm_version: semver::Version::new(17, 0, 4).to_string(),
+        llvm_version: semver::Version::new(19, 1, 0).to_string(),
         target: era_compiler_common::Target::EVM,
 
         codegen: Some("Y+".to_owned()),
         optimization: Some("M3B3".to_owned()),
     };
     let metadata = benchmark_analyzer::BenchmarkMetadata {
-        version: benchmark_analyzer::BenchmarkVersion::V2,
         start: Utc::now(),
         end: Utc::now(),
         context: Some(context),
@@ -112,7 +111,8 @@ fn convert() {
         .expect("Failed to convert a benchmark report to output");
     let contents = match output {
         benchmark_analyzer::Output::SingleFile(file) => file,
-        benchmark_analyzer::Output::MultipleFiles(mut files) => files.remove(0).contents,
+        benchmark_analyzer::Output::MultipleFiles(mut files) => files.remove(0).content,
+        _ => unimplemented!(),
     };
 
     eprintln!("Contents: {contents}");
