@@ -3586,7 +3586,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#82bde3a71e76d220c51df1762f890f8bc66d399b"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#63adc1bea18e23b5d4fe56480bb2562e16cb8136"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -3605,7 +3605,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#82bde3a71e76d220c51df1762f890f8bc66d399b"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#63adc1bea18e23b5d4fe56480bb2562e16cb8136"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3620,7 +3620,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#82bde3a71e76d220c51df1762f890f8bc66d399b"
+source = "git+https://github.com/matter-labs/solx?branch=az-push-data-support#63adc1bea18e23b5d4fe56480bb2562e16cb8136"
 dependencies = [
  "anyhow",
  "era-compiler-common",
