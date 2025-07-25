@@ -72,9 +72,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ 'eravm' ]
+        target: [ 'evm', 'eravm' ]
     with:
-      ccache-key: ${{ format('llvm-{0}-{1}', runner.os, runner.arch) }}
       target-machine: ${{ matrix.target }}
       platforms-matrix: ${{ needs.prepare-matrix.outputs.matrix }}
       clone-llvm: 'false'
