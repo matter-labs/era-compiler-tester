@@ -1,12 +1,12 @@
 //!
-//! Output format for benchmark data.
+//! Output benchmark format.
 //!
 
 ///
-/// Output format for benchmark data.
+/// Output benchmark format.
 ///
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub enum OutputFormat {
+pub enum Format {
     #[default]
     /// Unstable JSON format, corresponds to the inner data model of benchmark analyzer.
     Json,
@@ -18,7 +18,7 @@ pub enum OutputFormat {
     Xlsx,
 }
 
-impl std::str::FromStr for OutputFormat {
+impl std::str::FromStr for Format {
     type Err = anyhow::Error;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
@@ -29,7 +29,7 @@ impl std::str::FromStr for OutputFormat {
             "xlsx" => Ok(Self::Xlsx),
             string => anyhow::bail!(
                 "Unknown benchmark format `{string}`. Supported formats: {}",
-                vec![Self::Json, Self::Csv]
+                vec![Self::Json, Self::JsonLNT, Self::Csv, Self::Xlsx]
                     .into_iter()
                     .map(|element| element.to_string().to_lowercase())
                     .collect::<Vec<String>>()
@@ -39,13 +39,13 @@ impl std::str::FromStr for OutputFormat {
     }
 }
 
-impl std::fmt::Display for OutputFormat {
+impl std::fmt::Display for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OutputFormat::Json => write!(f, "json"),
-            OutputFormat::JsonLNT => write!(f, "json-lnt"),
-            OutputFormat::Csv => write!(f, "csv"),
-            OutputFormat::Xlsx => write!(f, "xlsx"),
+            Format::Json => write!(f, "json"),
+            Format::JsonLNT => write!(f, "json-lnt"),
+            Format::Csv => write!(f, "csv"),
+            Format::Xlsx => write!(f, "xlsx"),
         }
     }
 }

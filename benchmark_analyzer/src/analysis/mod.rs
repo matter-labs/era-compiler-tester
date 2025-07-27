@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use evm_interpreter::is_evm_interpreter_cycles_tests_group;
 use evm_interpreter::opcode_cost_ratios;
 
-use crate::model::benchmark::test::codegen::versioned::executable::run::Run;
+use crate::model::benchmark::test::toolchain::codegen::versioned::executable::run::Run;
 use crate::model::benchmark::Benchmark;
 use crate::results::group::Group;
 use crate::results::run_description::RunDescription;
@@ -26,44 +26,47 @@ type GroupRuns<'a> = BTreeMap<&'a str, (RunDescription<'a>, &'a Run)>;
 ///
 fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
     let mut result: BTreeMap<Group<'_>, GroupRuns> = BTreeMap::new();
-
-    for (test_identifier, test) in &benchmark.tests {
-        for (codegen, codegen_group) in &test.codegen_groups {
-            for (version, versioned_group) in &codegen_group.versioned_groups {
-                for (mode, executable) in &versioned_group.executables {
-                    for tag in test
-                        .metadata
-                        .tags
-                        .iter()
-                        .map(Some)
-                        .chain(std::iter::once(None))
-                    {
-                        let tag = tag.map(|tag| tag.as_str());
-                        if codegen == "I"
-                            || (tag == Some("EVMInterpreter") && codegen != "Y")
-                            || (tag != Some("Precompiles") && codegen == "NoCodegen")
+    for (test_identifier, test) in benchmark.tests.iter() {
+        for (_toolchain, toolchain_group) in test.toolchain_groups.iter() {
+            for (codegen, codegen_group) in toolchain_group.codegen_groups.iter() {
+                for (version, versioned_group) in codegen_group.versioned_groups.iter() {
+                    for (mode, executable) in versioned_group.executables.iter() {
+                        for tag in test
+                            .metadata
+                            .tags
+                            .iter()
+                            .map(Some)
+                            .chain(std::iter::once(None))
                         {
-                            continue;
-                        }
+                            let tag = tag.map(|tag| tag.as_str());
+                            if codegen == "I"
+                                || (tag == Some("EVMInterpreter") && codegen != "Y")
+                                || (tag != Some("Precompiles") && codegen == "NoCodegen")
+                            {
+                                continue;
+                            }
 
-                        let run_description = RunDescription {
-                            test_metadata: &test.metadata,
-                            version,
-                            codegen,
-                            mode,
-                            executable_metadata: &executable.metadata,
-                            run: &executable.run,
-                        };
-                        result
-                            .entry(Group::from_tag(tag, Some(codegen), Some(mode)))
-                            .or_default()
-                            .insert(test_identifier.as_str(), (run_description, &executable.run));
+                            let run_description = RunDescription {
+                                test_metadata: &test.metadata,
+                                version,
+                                codegen,
+                                mode,
+                                executable_metadata: &executable.metadata,
+                                run: &executable.run,
+                            };
+                            result
+                                .entry(Group::from_tag(tag, Some(codegen), Some(mode)))
+                                .or_default()
+                                .insert(
+                                    test_identifier.as_str(),
+                                    (run_description, &executable.run),
+                                );
+                        }
                     }
                 }
             }
         }
     }
-
     result
 }
 
@@ -173,7 +176,7 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
     let mut gas_total_candidate: u64 = 0;
 
     for (description, reference, candidate) in runs.into_iter() {
-        let file_path = &description.test_metadata.selector.domain;
+        let file_path = &description.test_metadata.selector.project;
         // FIXME: ad-hoc patch
         if file_path.contains(crate::model::evm_interpreter::TEST_PATH) {
             if let Some(input) = &description.test_metadata.selector.input {

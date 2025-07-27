@@ -8,15 +8,15 @@ pub mod test;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use crate::foundry_report::FoundryReport;
+use crate::input::foundry::FoundryReport;
 
 use self::metadata::Metadata;
-use self::test::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
-use self::test::codegen::versioned::executable::run::Run as ExecutableRun;
-use self::test::codegen::versioned::executable::Executable;
 use self::test::input::Input as TestInput;
 use self::test::metadata::Metadata as TestMetadata;
 use self::test::selector::Selector as TestSelector;
+use self::test::toolchain::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
+use self::test::toolchain::codegen::versioned::executable::run::Run as ExecutableRun;
+use self::test::toolchain::codegen::versioned::executable::Executable;
 use self::test::Test;
 
 ///
@@ -44,11 +44,7 @@ impl Benchmark {
     ///
     /// Extend the benchmark with a Foundry report
     ///
-    pub fn extend_with_foundry(
-        &mut self,
-        domain: &str,
-        foundry_report: FoundryReport,
-    ) -> anyhow::Result<()> {
+    pub fn extend_with_foundry(&mut self, foundry_report: FoundryReport) -> anyhow::Result<()> {
         let context =
             self.metadata.context.as_ref().ok_or_else(|| {
                 anyhow::anyhow!("Benchmark context is required for Foundry reports")
@@ -60,9 +56,9 @@ impl Benchmark {
             .as_deref()
             .unwrap_or("optimization-unknown");
 
-        for contract_report in foundry_report.0.into_iter() {
+        for contract_report in foundry_report.data.into_iter() {
             let selector = TestSelector {
-                domain: domain.to_owned(),
+                project: foundry_report.project.clone(),
                 case: Some(contract_report.contract.to_owned()),
                 input: Some(TestInput::Deployer {
                     contract_identifier: contract_report.contract.to_owned(),
@@ -70,8 +66,14 @@ impl Benchmark {
             };
             let name = selector.to_string();
 
-            let mut test = Test::new(TestMetadata::new(selector, vec![]));
-            test.codegen_groups
+            let test = self
+                .tests
+                .entry(name)
+                .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
+            test.toolchain_groups
+                .entry(foundry_report.toolchain.clone())
+                .or_default()
+                .codegen_groups
                 .entry(codegen.to_owned())
                 .or_default()
                 .versioned_groups
@@ -90,13 +92,12 @@ impl Benchmark {
                         },
                     },
                 );
-            self.tests.insert(name, test);
 
             for (index, (function, function_report)) in
                 contract_report.functions.into_iter().enumerate()
             {
                 let selector = TestSelector {
-                    domain: domain.to_owned(),
+                    project: foundry_report.project.clone(),
                     case: Some(contract_report.contract.to_owned()),
                     input: Some(TestInput::Runtime {
                         input_index: index + 1,
@@ -105,8 +106,14 @@ impl Benchmark {
                 };
                 let name = selector.to_string();
 
-                let mut test = Test::new(TestMetadata::new(selector, vec![]));
-                test.codegen_groups
+                let test = self
+                    .tests
+                    .entry(name)
+                    .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
+                test.toolchain_groups
+                    .entry(foundry_report.toolchain.clone())
+                    .or_default()
+                    .codegen_groups
                     .entry(codegen.to_owned())
                     .or_default()
                     .versioned_groups
@@ -125,7 +132,6 @@ impl Benchmark {
                             },
                         },
                     );
-                self.tests.insert(name, test);
             }
         }
 

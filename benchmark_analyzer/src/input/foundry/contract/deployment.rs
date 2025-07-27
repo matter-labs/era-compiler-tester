@@ -5,7 +5,7 @@
 ///
 /// Foundry benchmark deployment report.
 ///
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 pub struct Deployment {
     /// Contract size.
     pub size: u64,

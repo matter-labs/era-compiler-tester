@@ -4,6 +4,7 @@
 
 pub mod csv;
 pub mod file;
+pub mod format;
 pub mod json;
 pub mod xlsx;
 
@@ -11,10 +12,10 @@ use std::path::PathBuf;
 
 use crate::model::benchmark::Benchmark;
 use crate::output::csv::Csv;
+use crate::output::format::Format;
 use crate::output::json::lnt::JsonLNT;
 use crate::output::json::Json;
 use crate::output::xlsx::Xlsx;
-use crate::output_format::OutputFormat;
 
 use self::file::File;
 
@@ -66,17 +67,15 @@ impl Output {
     }
 }
 
-impl TryFrom<(Benchmark, OutputFormat)> for Output {
+impl TryFrom<(Benchmark, Format)> for Output {
     type Error = anyhow::Error;
 
-    fn try_from(
-        (benchmark, output_format): (Benchmark, OutputFormat),
-    ) -> Result<Self, Self::Error> {
+    fn try_from((benchmark, output_format): (Benchmark, Format)) -> Result<Self, Self::Error> {
         Ok(match output_format {
-            OutputFormat::Json => Json::from(benchmark).into(),
-            OutputFormat::Csv => Csv::from(benchmark).into(),
-            OutputFormat::JsonLNT => JsonLNT::try_from(benchmark)?.into(),
-            OutputFormat::Xlsx => Xlsx::try_from(benchmark)?.into(),
+            Format::Json => Json::from(benchmark).into(),
+            Format::Csv => Csv::from(benchmark).into(),
+            Format::JsonLNT => JsonLNT::try_from(benchmark)?.into(),
+            Format::Xlsx => Xlsx::try_from(benchmark)?.into(),
         })
     }
 }
@@ -107,6 +106,6 @@ impl From<JsonLNT> for Output {
 
 impl From<Xlsx> for Output {
     fn from(value: Xlsx) -> Self {
-        Output::SingleFileXlsx(value.content)
+        Output::SingleFileXlsx(value.finalize())
     }
 }

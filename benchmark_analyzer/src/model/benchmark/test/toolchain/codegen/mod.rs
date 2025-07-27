@@ -8,7 +8,8 @@ use std::collections::BTreeMap;
 
 use serde::Deserialize;
 use serde::Serialize;
-use versioned::VersionedGroup;
+
+use self::versioned::VersionedGroup;
 
 ///
 /// The language version associated with a test.

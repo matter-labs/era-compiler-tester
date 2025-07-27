@@ -33,9 +33,10 @@ impl JsonLNT {
     ///
     fn test_name(selector: &Selector) -> String {
         let Selector {
-            domain: path,
+            project: path,
             case,
             input,
+            ..
         } = selector;
         let short_path = Self::shorten_file_name(path);
         let short_input = match input {
@@ -47,7 +48,7 @@ impl JsonLNT {
             _ => input.clone(),
         };
         Selector {
-            domain: short_path.to_string(),
+            project: short_path.to_string(),
             case: case.clone(),
             input: short_input,
         }
@@ -86,50 +87,55 @@ impl TryFrom<Benchmark> for JsonLNT {
             anyhow::bail!("LNT backend requires explicitly passed benchmark context, but no context was provided.");
         };
 
-        for Test {
-            metadata: TestMetadata { selector, .. },
-            codegen_groups,
-        } in benchmark.tests.values()
+        for (
+            _name,
+            Test {
+                metadata: TestMetadata { selector, .. },
+                toolchain_groups,
+            },
+        ) in benchmark.tests.into_iter()
         {
-            for (codegen, codegen_group) in codegen_groups {
-                for (version, versioned_group) in &codegen_group.versioned_groups {
-                    for (
-                        optimization,
-                        crate::Executable {
-                            run: measurements, ..
-                        },
-                    ) in &versioned_group.executables
-                    {
-                        let machine_name =
-                            format!("{}-{version}-{codegen}{optimization}", context.machine);
+            for (_toolchain, toolchain_group) in toolchain_groups.into_iter() {
+                for (codegen, codegen_group) in toolchain_group.codegen_groups.into_iter() {
+                    for (version, versioned_group) in codegen_group.versioned_groups.into_iter() {
+                        for (
+                            optimization,
+                            crate::Executable {
+                                run: measurements, ..
+                            },
+                        ) in versioned_group.executables.into_iter()
+                        {
+                            let machine_name =
+                                format!("{}-{version}-{codegen}{optimization}", context.machine);
 
-                        let machine = Machine {
-                            name: context.machine.clone(),
-                            target: context.target,
-                            codegen: codegen.clone(),
-                            optimization: optimization.clone(),
-                            toolchain: context.toolchain.clone(),
-                        };
-                        let run = RunDescription {
-                            llvm_project_revision: benchmark.metadata.start,
-                            start_time: benchmark.metadata.start,
-                            end_time: benchmark.metadata.end,
-                            llvm_version: context.llvm_version.clone(),
-                            version: context.compiler_version.clone(),
-                        };
-                        files
-                            .entry(machine_name)
-                            .or_insert(LntBenchmark {
-                                format_version: LntReportFormatVersion::V2,
-                                machine,
-                                run,
-                                tests: vec![],
-                            })
-                            .tests
-                            .push(TestDescription {
-                                name: { Self::test_name(selector) },
-                                measurements: measurements.clone(),
-                            });
+                            let machine = Machine {
+                                name: context.machine.clone(),
+                                target: context.target,
+                                codegen: codegen.clone(),
+                                optimization: optimization.clone(),
+                                toolchain: context.toolchain.clone(),
+                            };
+                            let run = RunDescription {
+                                llvm_project_revision: benchmark.metadata.start,
+                                start_time: benchmark.metadata.start,
+                                end_time: benchmark.metadata.end,
+                                llvm_version: context.llvm_version.clone(),
+                                version: context.compiler_version.clone(),
+                            };
+                            files
+                                .entry(machine_name)
+                                .or_insert(LntBenchmark {
+                                    format_version: LntReportFormatVersion::V2,
+                                    machine,
+                                    run,
+                                    tests: vec![],
+                                })
+                                .tests
+                                .push(TestDescription {
+                                    name: { Self::test_name(&selector) },
+                                    measurements: measurements.clone(),
+                                });
+                        }
                     }
                 }
             }

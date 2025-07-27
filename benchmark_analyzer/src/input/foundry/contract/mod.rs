@@ -3,17 +3,17 @@
 //!
 
 pub mod deployment;
-pub mod function_report;
+pub mod function;
 
 use std::collections::BTreeMap;
 
 use self::deployment::Deployment;
-use self::function_report::FunctionReport;
+use self::function::FunctionReport;
 
 ///
 /// Foundry contract benchmark report.
 ///
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 pub struct ContractReport {
     /// Contract identifier.
     pub contract: String,

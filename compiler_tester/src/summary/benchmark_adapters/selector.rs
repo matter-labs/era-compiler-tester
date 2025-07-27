@@ -9,7 +9,7 @@ impl From<TestSelector> for benchmark_analyzer::TestSelector {
         let TestSelector { path, case, input } = selector;
         let input = input.map(Into::into);
         benchmark_analyzer::TestSelector {
-            domain: path,
+            project: path,
             case,
             input,
         }

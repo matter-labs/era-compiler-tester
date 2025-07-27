@@ -2,17 +2,27 @@
 //! Foundry benchmark report format.
 //!
 
-pub mod contract_report;
+pub mod contract;
 
 use std::path::Path;
 
-use self::contract_report::ContractReport;
+use self::contract::ContractReport;
 
 ///
 /// Foundry benchmark report format.
 ///
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct FoundryReport(pub Vec<ContractReport>);
+#[derive(Debug, serde::Deserialize)]
+pub struct FoundryReport {
+    /// The original report.
+    pub data: Vec<ContractReport>,
+
+    /// Project identifier.
+    /// Must be added to the original Foundry report.
+    pub project: String,
+    /// Optional toolchain identifier.
+    /// Must be added to the original Foundry report.
+    pub toolchain: String,
+}
 
 impl TryFrom<&Path> for FoundryReport {
     type Error = anyhow::Error;

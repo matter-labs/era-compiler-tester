@@ -2,11 +2,11 @@
 //! An entry in benchmark comparison results table.
 //!
 
-use crate::model::benchmark::test::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
-use crate::model::benchmark::test::codegen::versioned::Mode;
-use crate::model::benchmark::test::codegen::Version;
 use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
-use crate::model::benchmark::test::Codegen;
+use crate::model::benchmark::test::toolchain::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
+use crate::model::benchmark::test::toolchain::codegen::versioned::Mode;
+use crate::model::benchmark::test::toolchain::codegen::Version;
+use crate::model::benchmark::test::toolchain::Codegen;
 use crate::Run;
 
 ///

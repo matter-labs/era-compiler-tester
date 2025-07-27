@@ -24,50 +24,53 @@ fn convert() {
         context: Some(context),
     };
 
-    let foundry_report_1 = r#"[ {
-    "contract": "src/test/utils/mocks/MockAuthority.sol:MockAuthority",
-    "deployment": { "gas": 111281, "size": 406 },
-    "functions": {
-        "canCall(address,address,bytes4)": {
-            "calls": 5654,
-            "min": 462,
-            "mean": 462,
-            "median": 462,
-            "max": 462
-        },
-        "allowance(address,address)": {
-            "calls": 1801,
-            "min": 753,
-            "mean": 753,
-            "median": 753,
-            "max": 753
+    let foundry_report_1 = r#"
+    { "toolchain": "solx", "project": "Test", "data": [ {
+        "contract": "src/test/utils/mocks/MockAuthority.sol:MockAuthority",
+        "deployment": { "gas": 111281, "size": 406 },
+        "functions": {
+            "canCall(address,address,bytes4)": {
+                "calls": 5654,
+                "min": 462,
+                "mean": 462,
+                "median": 462,
+                "max": 462
+            },
+            "allowance(address,address)": {
+                "calls": 1801,
+                "min": 753,
+                "mean": 753,
+                "median": 753,
+                "max": 753
+            }
         }
-    }
-}, {
-    "contract": "src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder",
-    "deployment": { "gas": 111281, "size": 406 },
-    "functions": {
-        "canCall(address,address)": {
-            "calls": 5654,
-            "min": 462,
-            "mean": 462,
-            "median": 462,
-            "max": 462
-        },
-        "allowance(address,address)": {
-            "calls": 1801,
-            "min": 753,
-            "mean": 753,
-            "median": 753,
-            "max": 753
+    }, {
+        "contract": "src/test/utils/mocks/MockAuthorityHarder.sol:MockAuthorityHarder",
+        "deployment": { "gas": 111281, "size": 406 },
+        "functions": {
+            "canCall(address,address)": {
+                "calls": 5654,
+                "min": 462,
+                "mean": 462,
+                "median": 462,
+                "max": 462
+            },
+            "allowance(address,address)": {
+                "calls": 1801,
+                "min": 753,
+                "mean": 753,
+                "median": 753,
+                "max": 753
+            }
         }
-    }
-} ]"#;
-    let foundry_report_1 =
+    } ] }"#;
+    let mut foundry_report_1 =
         serde_json::from_str::<benchmark_analyzer::FoundryReport>(foundry_report_1)
             .expect("Failed to parse foundry report");
+    foundry_report_1.project = "ProjectX".to_owned();
 
-    let foundry_report_2 = r#"[ {
+    let foundry_report_2 = r#"
+    { "toolchain": "solx", "project": "Test", "data": [ {
         "contract": "src/test/StrangeFile.sol:StrangeContract",
         "deployment": { "gas": 99999, "size": 1111 },
         "functions": {
@@ -93,17 +96,18 @@ fn convert() {
                 "mean": 999
             }
         }
-    } ]"#;
-    let foundry_report_2 =
+    } ] }"#;
+    let mut foundry_report_2 =
         serde_json::from_str::<benchmark_analyzer::FoundryReport>(foundry_report_2)
             .expect("Failed to parse foundry report");
+    foundry_report_2.project = "ProjectY".to_owned();
 
     let mut benchmark = benchmark_analyzer::Benchmark::new(metadata);
     benchmark
-        .extend_with_foundry("ProjectX", foundry_report_1)
+        .extend_with_foundry(foundry_report_1)
         .expect("Failed to extend a benchmark report with a Foundry report");
     benchmark
-        .extend_with_foundry("ProjectY", foundry_report_2)
+        .extend_with_foundry(foundry_report_2)
         .expect("Failed to extend a benchmark report with a Foundry report");
 
     let output: benchmark_analyzer::Output = (benchmark, benchmark_analyzer::OutputFormat::JsonLNT)

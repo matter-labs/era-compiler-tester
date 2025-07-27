@@ -2,22 +2,23 @@
 //! The benchmark group representation.
 //!
 
-pub mod codegen;
 pub mod input;
 pub mod metadata;
 pub mod selector;
+pub mod toolchain;
 
 use std::collections::BTreeMap;
 
-use codegen::CodegenGroup;
-use metadata::Metadata;
 use serde::Deserialize;
 use serde::Serialize;
+
+use self::metadata::Metadata;
+use self::toolchain::ToolchainGroup;
 
 ///
 /// The codegen associated with a test definition.
 ///
-pub type Codegen = String;
+pub type Toolchain = String;
 
 ///
 /// The benchmark group representation.
@@ -27,8 +28,8 @@ pub struct Test {
     /// Metadata for this test.
     #[serde(default)]
     pub metadata: Metadata,
-    /// Versions.
-    pub codegen_groups: BTreeMap<Codegen, CodegenGroup>,
+    /// Toolchain groups.
+    pub toolchain_groups: BTreeMap<Toolchain, ToolchainGroup>,
 }
 
 impl Test {
@@ -37,7 +38,7 @@ impl Test {
     ///
     pub fn new(metadata: Metadata) -> Self {
         Self {
-            codegen_groups: Default::default(),
+            toolchain_groups: Default::default(),
             metadata,
         }
     }

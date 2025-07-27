@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::model::benchmark::test::codegen::versioned::executable::run::Run;
+use crate::model::benchmark::test::toolchain::codegen::versioned::executable::run::Run;
 use crate::model::evm_interpreter::OPCODES;
 use crate::results::group::Group;
 use crate::results::run_description::RunDescription;
