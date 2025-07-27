@@ -4,7 +4,6 @@
 
 pub mod mode;
 
-use core::option::Option::None;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
@@ -249,7 +248,7 @@ impl Compiler for SolidityCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_common::Libraries,
+        mut libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -278,6 +277,15 @@ impl Compiler for SolidityCompiler {
         } else {
             solx_standard_json::InputSelector::EVMLegacyAssembly
         });
+        if cfg!(target_os = "windows") {
+            libraries = era_compiler_common::Libraries::from(
+                libraries
+                    .inner
+                    .into_iter()
+                    .map(|(name, file)| (name.replace('\\', "/"), file))
+                    .collect::<BTreeMap<String, BTreeMap<String, String>>>(),
+            );
+        }
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
             libraries.to_owned(),
