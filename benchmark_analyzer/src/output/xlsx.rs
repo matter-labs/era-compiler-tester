@@ -386,11 +386,11 @@ impl TryFrom<Benchmark> for Xlsx {
         xlsx.set_totals("Deployment Gas")?;
         xlsx.set_totals("Bytecode Size")?;
 
-        if xlsx.next_column_index >= 3 {
-            xlsx.set_diffs("Runtime Gas")?;
-            xlsx.set_diffs("Deployment Gas")?;
-            xlsx.set_diffs("Bytecode Size")?;
-        }
+        // if xlsx.next_column_index >= 3 {
+        //     xlsx.set_diffs("Runtime Gas")?;
+        //     xlsx.set_diffs("Deployment Gas")?;
+        //     xlsx.set_diffs("Bytecode Size")?;
+        // }
 
         Ok(xlsx)
     }

@@ -13,6 +13,7 @@ use clap::Parser;
 #[command(about, long_about = None, arg_required_else_help = true)]
 pub struct Arguments {
     /// Input files.
+    /// If only one path is provided, it is treated as a directory with JSON files.
     pub input_paths: Vec<PathBuf>,
 
     /// Benchmark input format: only `foundry`.
@@ -31,16 +32,4 @@ pub struct Arguments {
     /// Output files.
     #[structopt(long)]
     pub output_path: PathBuf,
-}
-
-impl Arguments {
-    ///
-    /// Validates the command line arguments.
-    ///
-    pub fn validate(&self) -> anyhow::Result<()> {
-        if self.input_paths.is_empty() {
-            anyhow::bail!("No input files provided. Use `--input-paths` to specify input files.");
-        }
-        Ok(())
-    }
 }
