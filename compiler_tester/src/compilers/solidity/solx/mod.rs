@@ -277,15 +277,15 @@ impl Compiler for SolidityCompiler {
         } else {
             solx_standard_json::InputSelector::EVMLegacyAssembly
         });
-        if cfg!(target_os = "windows") {
-            libraries = era_compiler_common::Libraries::from(
-                libraries
-                    .inner
-                    .into_iter()
-                    .map(|(name, file)| (name.replace('/', "\\"), file))
-                    .collect::<BTreeMap<String, BTreeMap<String, String>>>(),
-            );
-        }
+        // if cfg!(target_os = "windows") {
+        //     libraries = era_compiler_common::Libraries::from(
+        //         libraries
+        //             .inner
+        //             .into_iter()
+        //             .map(|(name, file)| (name.replace('/', "\\"), file))
+        //             .collect::<BTreeMap<String, BTreeMap<String, String>>>(),
+        //     );
+        // }
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
             libraries.to_owned(),

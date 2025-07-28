@@ -165,6 +165,9 @@ impl Compiler for LLVMIRCompiler {
                     solx_standard_json::InputMetadata::default(),
                     vec![],
                 );
+                if _test_path.contains("addmod_stdlib.ll") {
+                    eprintln!("{}", serde_json::to_string_pretty(&solx_input).unwrap());
+                }
 
                 let solx_output = solx.standard_json(
                     mode,
