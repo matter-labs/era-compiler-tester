@@ -282,7 +282,7 @@ impl Compiler for SolidityCompiler {
                 libraries
                     .inner
                     .into_iter()
-                    .map(|(name, file)| (name.replace('\\', "/"), file))
+                    .map(|(name, file)| (name.replace('/', "\\"), file))
                     .collect::<BTreeMap<String, BTreeMap<String, String>>>(),
             );
         }
