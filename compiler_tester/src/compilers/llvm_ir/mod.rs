@@ -142,7 +142,11 @@ impl Compiler for LLVMIRCompiler {
                     .iter()
                     .map(|(path, source)| {
                         (
-                            path.to_owned(),
+                            if cfg!(target_os = "windows") {
+                                path.replace('\\', "/")
+                            } else {
+                                path.to_owned()
+                            },
                             solx_standard_json::InputSource::from(source.to_owned()),
                         )
                     })
@@ -165,9 +169,6 @@ impl Compiler for LLVMIRCompiler {
                     solx_standard_json::InputMetadata::default(),
                     vec![],
                 );
-                if _test_path.contains("addmod_stdlib.ll") {
-                    eprintln!("{}", serde_json::to_string_pretty(&solx_input).unwrap());
-                }
 
                 let solx_output = solx.standard_json(
                     mode,
