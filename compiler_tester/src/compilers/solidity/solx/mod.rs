@@ -260,11 +260,7 @@ impl Compiler for SolidityCompiler {
             .iter()
             .map(|(path, source)| {
                 (
-                    if cfg!(target_os = "windows") {
-                        path.replace('\\', "/")
-                    } else {
-                        path.to_owned()
-                    },
+                    path.to_owned(),
                     solx_standard_json::InputSource::from(source.to_owned()),
                 )
             })

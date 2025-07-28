@@ -131,12 +131,14 @@ impl MatterLabsTest {
                 let file_relative_path = path_string_split.next().expect("Always exists");
                 let contract_name = path_string_split.next();
                 file_path.push(file_relative_path);
+
+                let file_path_unified = crate::utils::unify_path(file_path.as_path());
                 *path_string = if let Some(contract_name) = contract_name {
-                    format!("{}:{}", file_path.to_string_lossy(), contract_name)
+                    format!("{file_path_unified}:{contract_name}")
                 } else {
-                    file_path.to_string_lossy().to_string()
+                    file_path_unified.clone()
                 };
-                paths.insert(file_path.to_string_lossy().to_string());
+                paths.insert(file_path_unified);
             }
 
             let mut test_directory_path = path.clone();
@@ -146,7 +148,7 @@ impl MatterLabsTest {
                     .expect("Always valid")
                     .filter_map(Result::ok)
             {
-                paths.insert(entry.to_string_lossy().to_string());
+                paths.insert(crate::utils::unify_path(entry.as_path()));
             }
 
             for path in paths.into_iter() {
@@ -259,6 +261,12 @@ impl MatterLabsTest {
             file_path.pop();
             file_path.push(file);
 
+            let file_path_string = if cfg!(target_os = "windows") {
+                file_path.to_string_lossy().replace('\\', "/")
+            } else {
+                file_path.to_string_lossy().to_string()
+            };
+
             let mut file_libraries = BTreeMap::new();
             for name in metadata_file_libraries.keys() {
                 let address = address_iterator.next(
@@ -269,12 +277,9 @@ impl MatterLabsTest {
                     name.to_owned(),
                     format!("0x{}", crate::utils::address_as_string(&address)),
                 );
-                library_addresses.insert(
-                    format!("{}:{}", file_path.to_string_lossy().as_ref(), name),
-                    address,
-                );
+                library_addresses.insert(format!("{file_path_string}:{name}"), address);
             }
-            libraries.insert(file_path.to_string_lossy().to_string(), file_libraries);
+            libraries.insert(file_path_string, file_libraries);
         }
 
         (libraries.into(), library_addresses)

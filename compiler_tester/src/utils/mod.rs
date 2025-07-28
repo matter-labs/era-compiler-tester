@@ -6,6 +6,8 @@
 
 pub mod timer;
 
+use std::path::Path;
+
 use sha3::Digest;
 
 ///
@@ -78,4 +80,15 @@ pub fn u256_to_h256(value: &web3::types::U256) -> web3::types::H256 {
 ///
 pub fn h256_to_u256(value: &web3::types::H256) -> web3::types::U256 {
     web3::types::U256::from_big_endian(value.as_bytes())
+}
+
+///
+/// Unifies paths by replacing backslashes with forward slashes.
+///
+pub fn unify_path(path: &Path) -> String {
+    if cfg!(target_os = "windows") {
+        path.to_string_lossy().replace('\\', "/")
+    } else {
+        path.to_string_lossy().to_string()
+    }
 }
