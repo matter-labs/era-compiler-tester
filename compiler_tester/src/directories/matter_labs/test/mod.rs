@@ -77,7 +77,7 @@ impl MatterLabsTest {
     ///
     pub fn new(path: PathBuf, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Self> {
         let selector = TestSelector {
-            path: path.to_string_lossy().to_string(),
+            path: crate::utils::unify_path(path.as_path()),
             case: None,
             input: None,
         };
@@ -119,7 +119,7 @@ impl MatterLabsTest {
             if path.ends_with("test.json") {
                 vec![]
             } else {
-                vec![(path.to_string_lossy().to_string(), main_file_string)]
+                vec![(crate::utils::unify_path(path.as_path()), main_file_string)]
             }
         } else {
             let mut sources = HashMap::new();
