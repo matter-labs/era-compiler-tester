@@ -43,7 +43,7 @@ impl EthereumTest {
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
     ) -> Option<Self> {
-        let path = index_entity.path.to_string_lossy().to_string();
+        let path = crate::utils::unify_path(index_entity.path.as_path());
 
         if !filters.check_case_path(&path) {
             return None;
