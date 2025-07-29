@@ -438,6 +438,7 @@ dependencies = [
  "clap",
  "colored",
  "era-compiler-common",
+ "glob",
  "regex",
  "rust_xlsxwriter",
  "semver 1.0.26",

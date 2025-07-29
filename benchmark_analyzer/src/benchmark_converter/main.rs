@@ -34,11 +34,10 @@ fn main() -> anyhow::Result<()> {
                 arguments.input_paths[0].display()
             );
         }
-        let dir = &arguments.input_paths[0];
-        for entry in std::fs::read_dir(dir)? {
-            let entry = entry?;
-            let foundry_report =
-                benchmark_analyzer::FoundryReport::try_from(entry.path().as_path())?;
+        let resolution_pattern =
+            format!("{}/**/*.json", arguments.input_paths[0].to_string_lossy());
+        for path in glob::glob(resolution_pattern.as_str())?.filter_map(Result::ok) {
+            let foundry_report = benchmark_analyzer::FoundryReport::try_from(path.as_path())?;
             benchmark.extend_with_foundry(foundry_report)?;
         }
     } else if arguments.input_paths.is_empty() {
