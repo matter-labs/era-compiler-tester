@@ -248,7 +248,7 @@ impl Compiler for SolidityCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        libraries: era_compiler_common::Libraries,
+        mut libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -266,6 +266,17 @@ impl Compiler for SolidityCompiler {
             })
             .collect();
 
+        libraries.inner = libraries
+            .inner
+            .into_iter()
+            .map(|(path, contracts)| {
+                (
+                    crate::utils::str_to_str_normalized(path.as_str()),
+                    contracts,
+                )
+            })
+            .collect::<BTreeMap<String, BTreeMap<String, String>>>();
+
         let mut selectors = BTreeSet::new();
         selectors.insert(solx_standard_json::InputSelector::Bytecode);
         selectors.insert(solx_standard_json::InputSelector::RuntimeBytecode);
@@ -279,7 +290,7 @@ impl Compiler for SolidityCompiler {
         });
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
-            libraries.to_owned(),
+            libraries,
             BTreeSet::new(),
             solx_standard_json::InputOptimizer::new(
                 solx_mode.llvm_optimizer_settings.middle_end_as_char(),
