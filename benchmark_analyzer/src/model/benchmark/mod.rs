@@ -14,9 +14,6 @@ use self::metadata::Metadata;
 use self::test::input::Input as TestInput;
 use self::test::metadata::Metadata as TestMetadata;
 use self::test::selector::Selector as TestSelector;
-use self::test::toolchain::codegen::versioned::executable::metadata::Metadata as ExecutableMetadata;
-use self::test::toolchain::codegen::versioned::executable::run::Run as ExecutableRun;
-use self::test::toolchain::codegen::versioned::executable::Executable;
 use self::test::Test;
 
 ///
@@ -70,7 +67,8 @@ impl Benchmark {
                 .tests
                 .entry(name)
                 .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
-            test.toolchain_groups
+            let run = test
+                .toolchain_groups
                 .entry(foundry_report.toolchain.clone())
                 .or_default()
                 .codegen_groups
@@ -80,18 +78,10 @@ impl Benchmark {
                 .entry(context.compiler_version.clone())
                 .or_default()
                 .executables
-                .insert(
-                    optimization.to_owned(),
-                    Executable {
-                        metadata: ExecutableMetadata::default(),
-                        run: ExecutableRun {
-                            size: Some(contract_report.deployment.size),
-                            cycles: 0,
-                            ergs: 0,
-                            gas: contract_report.deployment.gas,
-                        },
-                    },
-                );
+                .entry(optimization.to_owned())
+                .or_default();
+            run.run.size.push(contract_report.deployment.size);
+            run.run.gas.push(contract_report.deployment.gas);
 
             for (index, (function, function_report)) in
                 contract_report.functions.into_iter().enumerate()
@@ -110,7 +100,8 @@ impl Benchmark {
                     .tests
                     .entry(name)
                     .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
-                test.toolchain_groups
+                let run = test
+                    .toolchain_groups
                     .entry(foundry_report.toolchain.clone())
                     .or_default()
                     .codegen_groups
@@ -120,18 +111,9 @@ impl Benchmark {
                     .entry(context.compiler_version.clone())
                     .or_default()
                     .executables
-                    .insert(
-                        optimization.to_owned(),
-                        Executable {
-                            metadata: ExecutableMetadata::default(),
-                            run: ExecutableRun {
-                                size: None,
-                                cycles: 0,
-                                ergs: 0,
-                                gas: function_report.mean,
-                            },
-                        },
-                    );
+                    .entry(optimization.to_owned())
+                    .or_default();
+                run.run.gas.push(function_report.mean);
             }
         }
 

@@ -348,7 +348,7 @@ impl TryFrom<Benchmark> for Xlsx {
                                 xlsx.deployment_gas_worksheet.write_with_format(
                                     deployment_gas_row_index,
                                     column_index,
-                                    optimization_group.run.gas,
+                                    optimization_group.run.average_gas(),
                                     &Self::value_format(),
                                 )?;
                             } else {
@@ -359,12 +359,12 @@ impl TryFrom<Benchmark> for Xlsx {
                                 xlsx.runtime_gas_worksheet.write_with_format(
                                     runtime_gas_row_index,
                                     column_index,
-                                    optimization_group.run.gas,
+                                    optimization_group.run.average_gas(),
                                     &Self::value_format(),
                                 )?;
                             }
 
-                            if let Some(size) = optimization_group.run.size {
+                            if !optimization_group.run.size.is_empty() {
                                 let size_row_index = xlsx.add_test_row(
                                     xlsx.size_worksheet.name().as_str(),
                                     row_identifier.as_str(),
@@ -372,7 +372,7 @@ impl TryFrom<Benchmark> for Xlsx {
                                 xlsx.size_worksheet.write_with_format(
                                     size_row_index,
                                     column_index,
-                                    size,
+                                    optimization_group.run.average_size(),
                                     &Self::value_format(),
                                 )?;
                             }

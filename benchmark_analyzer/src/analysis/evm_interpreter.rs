@@ -54,8 +54,8 @@ pub fn opcode_cost_ratios<'a>(
             .try_into()
             .unwrap_or_else(|_| panic!("Failed to extract three #fallback tests from the EVM interpreter tests attributed to the opcode {evm_opcode}"));
 
-        let ergs_difference = full.ergs as i64 - template.ergs as i64;
-        let gas_difference = full.gas as i64 - template.gas as i64;
+        let ergs_difference = full.average_ergs() as i64 - template.average_ergs() as i64;
+        let gas_difference = full.average_gas() as i64 - template.average_gas() as i64;
         let ergs_gas_ratio = (ergs_difference as f64) / (gas_difference as f64);
         results.push((evm_opcode.to_owned(), ergs_gas_ratio));
     }

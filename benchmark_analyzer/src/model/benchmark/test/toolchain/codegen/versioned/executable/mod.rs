@@ -15,7 +15,7 @@ use serde::Serialize;
 /// Executable is the compiled artifact corresponding to the test.
 /// Executables differ by compilation flags.
 ///
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Executable {
     #[serde(default, skip)]
     /// Metadata associated with the compiled executable.
