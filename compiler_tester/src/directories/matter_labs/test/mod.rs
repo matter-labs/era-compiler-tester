@@ -77,7 +77,7 @@ impl MatterLabsTest {
     ///
     pub fn new(path: PathBuf, summary: Arc<Mutex<Summary>>, filters: &Filters) -> Option<Self> {
         let selector = TestSelector {
-            path: crate::utils::unify_path(path.as_path()),
+            path: crate::utils::path_to_string_normalized(path.as_path()),
             case: None,
             input: None,
         };
@@ -119,7 +119,10 @@ impl MatterLabsTest {
             if path.ends_with("test.json") {
                 vec![]
             } else {
-                vec![(crate::utils::unify_path(path.as_path()), main_file_string)]
+                vec![(
+                    crate::utils::path_to_string_normalized(path.as_path()),
+                    main_file_string,
+                )]
             }
         } else {
             let mut sources = HashMap::new();
@@ -132,7 +135,8 @@ impl MatterLabsTest {
                 let contract_name = path_string_split.next();
                 file_path.push(file_relative_path);
 
-                let file_path_unified = crate::utils::unify_path(file_path.as_path());
+                let file_path_unified =
+                    crate::utils::path_to_string_normalized(file_path.as_path());
                 *path_string = if let Some(contract_name) = contract_name {
                     format!("{file_path_unified}:{contract_name}")
                 } else {
@@ -148,7 +152,7 @@ impl MatterLabsTest {
                     .expect("Always valid")
                     .filter_map(Result::ok)
             {
-                paths.insert(crate::utils::unify_path(entry.as_path()));
+                paths.insert(crate::utils::path_to_string_normalized(entry.as_path()));
             }
 
             for path in paths.into_iter() {
@@ -261,11 +265,7 @@ impl MatterLabsTest {
             file_path.pop();
             file_path.push(file);
 
-            let file_path_string = if cfg!(target_os = "windows") {
-                file_path.to_string_lossy().replace('\\', "/")
-            } else {
-                file_path.to_string_lossy().to_string()
-            };
+            let file_path_string = crate::utils::path_to_string_normalized(file_path.as_path());
 
             let mut file_libraries = BTreeMap::new();
             for name in metadata_file_libraries.keys() {

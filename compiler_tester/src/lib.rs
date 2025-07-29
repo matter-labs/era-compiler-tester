@@ -280,77 +280,67 @@ impl CompilerTester {
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            PathBuf::from(Self::SOLIDITY_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+            Self::SOLIDITY_SIMPLE,
             era_compiler_common::EXTENSION_SOLIDITY,
             solidity_compiler.clone(),
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            PathBuf::from(Self::SOLIDITY_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
+            Self::SOLIDITY_COMPLEX,
             era_compiler_common::EXTENSION_JSON,
             solidity_compiler.clone(),
         )?);
-        tests.extend(
-            self.directory::<EthereumDirectory>(
-                target,
-                PathBuf::from(
-                    match target {
-                        era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                        era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
-                    }
-                    .replace("/", std::path::MAIN_SEPARATOR_STR),
-                ),
-                era_compiler_common::EXTENSION_SOLIDITY,
-                solidity_compiler.clone(),
-            )?,
-        );
+        tests.extend(self.directory::<EthereumDirectory>(
+            target,
+            match target {
+                era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+            },
+            era_compiler_common::EXTENSION_SOLIDITY,
+            solidity_compiler.clone(),
+        )?);
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
-            PathBuf::from(Self::YUL_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+            Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
             yul_compiler,
         )?);
 
-        tests.extend(
-            self.directory::<MatterLabsDirectory>(
-                target,
-                PathBuf::from(
-                    match target {
-                        era_compiler_common::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
-                        era_compiler_common::Target::EVM => Self::LLVM_SIMPLE_EVM,
-                    }
-                    .replace("/", std::path::MAIN_SEPARATOR_STR),
-                ),
-                era_compiler_common::EXTENSION_LLVM_SOURCE,
-                llvm_ir_compiler,
-            )?,
-        );
+        tests.extend(self.directory::<MatterLabsDirectory>(
+            target,
+            match target {
+                era_compiler_common::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
+                era_compiler_common::Target::EVM => Self::LLVM_SIMPLE_EVM,
+            },
+            era_compiler_common::EXTENSION_LLVM_SOURCE,
+            llvm_ir_compiler,
+        )?);
 
         if let era_compiler_common::Target::EraVM = target {
             let vyper_compiler = Arc::new(VyperCompiler::new());
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
-                PathBuf::from(Self::ERAVM_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                Self::ERAVM_SIMPLE,
                 era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
                 eravm_assembly_compiler,
             )?);
 
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
-                PathBuf::from(Self::VYPER_SIMPLE.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                Self::VYPER_SIMPLE,
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler.clone(),
             )?);
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
-                PathBuf::from(Self::VYPER_COMPLEX.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                Self::VYPER_COMPLEX,
                 era_compiler_common::EXTENSION_JSON,
                 vyper_compiler.clone(),
             )?);
             tests.extend(self.directory::<EthereumDirectory>(
                 target,
-                PathBuf::from(Self::VYPER_ETHEREUM.replace("/", std::path::MAIN_SEPARATOR_STR)),
+                Self::VYPER_ETHEREUM,
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler,
             )?);
@@ -365,21 +355,24 @@ impl CompilerTester {
     fn directory<T>(
         &self,
         target: era_compiler_common::Target,
-        path: PathBuf,
+        path: &str,
         extension: &'static str,
         compiler: Arc<dyn Compiler>,
     ) -> anyhow::Result<Vec<Test>>
     where
         T: Collection,
     {
+        let directory_path = crate::utils::str_to_path_normalized(path);
         Ok(T::read_all(
             target,
-            path.as_path(),
+            directory_path.as_path(),
             extension,
             self.summary.clone(),
             &self.filters,
         )
-        .map_err(|error| anyhow::anyhow!("Failed to read the tests directory {path:?}: {error}"))?
+        .map_err(|error| {
+            anyhow::anyhow!("Failed to read the tests directory {directory_path:?}: {error}")
+        })?
         .into_iter()
         .map(|test| Arc::new(test) as Arc<dyn Buildable>)
         .cartesian_product(compiler.all_modes(target))

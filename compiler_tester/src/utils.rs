@@ -2,11 +2,8 @@
 //! The compiler tester utils.
 //!
 
-#![allow(dead_code)]
-
-pub mod timer;
-
 use std::path::Path;
+use std::path::PathBuf;
 
 use sha3::Digest;
 
@@ -83,12 +80,16 @@ pub fn h256_to_u256(value: &web3::types::H256) -> web3::types::U256 {
 }
 
 ///
-/// Unifies paths by replacing backslashes with forward slashes.
+/// Normalizes `path` by replacing possible backslashes with ordinar slashes, and returns a string.
 ///
-pub fn unify_path(path: &Path) -> String {
-    if cfg!(target_os = "windows") {
-        path.to_string_lossy().replace('\\', "/")
-    } else {
-        path.to_string_lossy().to_string()
-    }
+pub fn path_to_string_normalized(path: &Path) -> String {
+    path.to_string_lossy()
+        .replace(std::path::MAIN_SEPARATOR_STR, "/")
+}
+
+///
+/// Normalizes `path` by replacing possible backslashes with ordinar slashes, and returns a `PathBuf`.
+///
+pub fn str_to_path_normalized(path: &str) -> PathBuf {
+    PathBuf::from(path.replace(std::path::MAIN_SEPARATOR_STR, "/"))
 }

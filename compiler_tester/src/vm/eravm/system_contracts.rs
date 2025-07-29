@@ -501,9 +501,7 @@ impl SystemContracts {
                 source = source.replace("{{SYSTEM_CONTRACTS_OFFSET}}", "0x8000");
             }
 
-            let path = path
-                .to_string_lossy()
-                .replace(std::path::MAIN_SEPARATOR_STR, "/");
+            let path = crate::utils::path_to_string_normalized(path.as_path());
 
             if path.as_str() == "era-contracts/system-contracts/contracts/SystemContractErrors.sol"
             {
