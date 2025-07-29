@@ -1,5 +1,5 @@
 //!
-//! Foundry contract benchmark report.
+//! Foundry contract gas benchmark report.
 //!
 
 pub mod deployment;
@@ -11,7 +11,7 @@ use self::deployment::Deployment;
 use self::function::FunctionReport;
 
 ///
-/// Foundry contract benchmark report.
+/// Foundry contract gas benchmark report.
 ///
 #[derive(Debug, serde::Deserialize)]
 pub struct ContractReport {

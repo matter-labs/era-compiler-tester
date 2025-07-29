@@ -32,10 +32,8 @@ pub struct Xlsx {
     /// Next row index for the size worksheet.
     pub size_next_row_index: u32,
 
-    /// Columns in all worksheets.
-    pub columns: HashMap<String, u16>,
-    /// Next column index for all worksheets.
-    pub next_column_index: u16,
+    /// Toolchain identifiers used to allocate columns.
+    pub toolchain_ids: HashMap<String, u16>,
 }
 
 impl Xlsx {
@@ -45,30 +43,26 @@ impl Xlsx {
     pub fn new() -> anyhow::Result<Self> {
         let mut runtime_gas_worksheet = rust_xlsxwriter::Worksheet::new();
         runtime_gas_worksheet.set_name("Runtime Gas")?;
-        runtime_gas_worksheet.write_with_format(
-            0,
-            0,
-            runtime_gas_worksheet.name(),
-            &Self::worksheet_caption_format(),
-        )?;
 
         let mut deployment_gas_worksheet = rust_xlsxwriter::Worksheet::new();
         deployment_gas_worksheet.set_name("Deployment Gas")?;
-        deployment_gas_worksheet.write_with_format(
-            0,
-            0,
-            deployment_gas_worksheet.name(),
-            &Self::worksheet_caption_format(),
-        )?;
 
         let mut size_worksheet = rust_xlsxwriter::Worksheet::new();
         size_worksheet.set_name("Bytecode Size")?;
-        size_worksheet.write_with_format(
-            0,
-            0,
-            size_worksheet.name(),
-            &Self::worksheet_caption_format(),
-        )?;
+
+        for (worksheet, column_width) in [
+            (&mut runtime_gas_worksheet, 100),
+            (&mut deployment_gas_worksheet, 100),
+            (&mut size_worksheet, 30),
+        ] {
+            worksheet.write_with_format(
+                0,
+                0,
+                worksheet.name(),
+                &Self::worksheet_caption_format(),
+            )?;
+            worksheet.set_column_width(0, column_width)?;
+        }
 
         Ok(Self {
             runtime_gas_worksheet,
@@ -80,8 +74,7 @@ impl Xlsx {
             size_worksheet,
             size_rows: HashMap::new(),
             size_next_row_index: 1,
-            columns: HashMap::new(),
-            next_column_index: 1,
+            toolchain_ids: HashMap::new(),
         })
     }
 
@@ -120,29 +113,46 @@ impl Xlsx {
     /// Adds a new column for a toolchain.
     ///
     pub fn add_toolchain_column(&mut self, toolchain_name: &str) -> anyhow::Result<u16> {
-        if let Some(index) = self.columns.get(toolchain_name).copied() {
-            return Ok(index);
+        if let Some(toolchain_id) = self.toolchain_ids.get(toolchain_name) {
+            return Ok(*toolchain_id);
         }
 
-        let column_index = self.next_column_index;
-        self.columns.insert(toolchain_name.to_owned(), column_index);
+        let toolchain_id = self.toolchain_ids.len() as u16;
+        self.toolchain_ids
+            .insert(toolchain_name.to_owned(), toolchain_id);
 
         for worksheet in [
             &mut self.runtime_gas_worksheet,
             &mut self.deployment_gas_worksheet,
-            &mut self.size_worksheet,
         ] {
-            worksheet.set_column_width(column_index, toolchain_name.len() as f64)?;
+            worksheet.set_column_width(1 + toolchain_id, 10)?;
             worksheet.write_with_format(
                 0,
-                column_index,
+                1 + toolchain_id,
                 toolchain_name.to_owned(),
                 &Self::column_header_format(),
             )?;
         }
+        for (worksheet, data_column_count) in [(&mut self.size_worksheet, 2)] {
+            let first_column_id = 1 + toolchain_id * data_column_count;
+            let column_names = [
+                era_compiler_common::CodeSegment::Deploy.to_string(),
+                era_compiler_common::CodeSegment::Runtime.to_string(),
+            ];
+            for (column_id, data_identifier) in
+                (first_column_id..first_column_id + data_column_count).zip(column_names.into_iter())
+            {
+                worksheet.set_column_width(column_id, 10)?;
+                worksheet.write_with_format(
+                    0,
+                    column_id,
+                    format!("{toolchain_name}\n{data_identifier}"),
+                    &Self::column_header_format(),
+                )?;
+            }
+        }
 
-        self.next_column_index += 1;
-        Ok(column_index)
+        Ok(toolchain_id)
     }
 
     ///
@@ -172,7 +182,7 @@ impl Xlsx {
     /// Sets totals for each column in the worksheet.
     ///
     pub fn set_totals(&mut self, sheet_name: &str) -> anyhow::Result<()> {
-        let next_column_index = self.next_column_index;
+        let column_count = 1 + self.toolchain_ids.len() * 2;
         let (worksheet, rows, next_row_index) = self.select_worksheet_mut(sheet_name);
         if rows.is_empty() {
             return Ok(());
@@ -184,12 +194,12 @@ impl Xlsx {
             "Total",
             &Self::row_header_summary_format(),
         )?;
-        for column_index in 1..next_column_index {
+        for column_index in 1..column_count {
             let column_name = b'A' + (column_index as u8);
             let formula = format!("SUM({0}2:{0}{1})", column_name as char, *next_row_index);
             worksheet.write_formula_with_format(
                 *next_row_index,
-                column_index,
+                column_index as u16,
                 formula.as_str(),
                 &Self::value_format(),
             )?;
@@ -224,9 +234,9 @@ impl Xlsx {
     /// Returns the final workbook with all worksheets.
     ///
     pub fn finalize(mut self) -> rust_xlsxwriter::Workbook {
-        self.runtime_gas_worksheet.autofit();
-        self.deployment_gas_worksheet.autofit();
-        self.size_worksheet.autofit();
+        self.runtime_gas_worksheet.autofit_to_max_width(100);
+        self.deployment_gas_worksheet.autofit_to_max_width(100);
+        self.size_worksheet.autofit_to_max_width(100);
 
         let mut workbook = rust_xlsxwriter::Workbook::new();
         workbook.push_worksheet(self.runtime_gas_worksheet);
@@ -234,9 +244,7 @@ impl Xlsx {
         workbook.push_worksheet(self.size_worksheet);
         workbook
     }
-}
 
-impl Xlsx {
     ///
     /// Returns the eponymous cell format.
     ///
@@ -337,7 +345,7 @@ impl TryFrom<Benchmark> for Xlsx {
                 for codegen_group in toolchain_group.codegen_groups.into_values() {
                     for version_group in codegen_group.versioned_groups.into_values() {
                         for optimization_group in version_group.executables.into_values() {
-                            let column_index =
+                            let toolchain_id =
                                 xlsx.add_toolchain_column(toolchain_name.as_str())?;
 
                             if is_deployer {
@@ -347,7 +355,7 @@ impl TryFrom<Benchmark> for Xlsx {
                                 )?;
                                 xlsx.deployment_gas_worksheet.write_with_format(
                                     deployment_gas_row_index,
-                                    column_index,
+                                    1 + toolchain_id,
                                     optimization_group.run.average_gas(),
                                     &Self::value_format(),
                                 )?;
@@ -358,7 +366,7 @@ impl TryFrom<Benchmark> for Xlsx {
                                 )?;
                                 xlsx.runtime_gas_worksheet.write_with_format(
                                     runtime_gas_row_index,
-                                    column_index,
+                                    1 + toolchain_id,
                                     optimization_group.run.average_gas(),
                                     &Self::value_format(),
                                 )?;
@@ -371,8 +379,20 @@ impl TryFrom<Benchmark> for Xlsx {
                                 )?;
                                 xlsx.size_worksheet.write_with_format(
                                     size_row_index,
-                                    column_index,
+                                    1 + toolchain_id * 2,
                                     optimization_group.run.average_size(),
+                                    &Self::value_format(),
+                                )?;
+                            }
+                            if !optimization_group.run.runtime_size.is_empty() {
+                                let size_row_index = xlsx.add_test_row(
+                                    xlsx.size_worksheet.name().as_str(),
+                                    row_identifier.as_str(),
+                                )?;
+                                xlsx.size_worksheet.write_with_format(
+                                    size_row_index,
+                                    1 + toolchain_id * 2 + 1,
+                                    optimization_group.run.average_runtime_size(),
                                     &Self::value_format(),
                                 )?;
                             }
@@ -382,9 +402,9 @@ impl TryFrom<Benchmark> for Xlsx {
             }
         }
 
-        xlsx.set_totals("Runtime Gas")?;
-        xlsx.set_totals("Deployment Gas")?;
-        xlsx.set_totals("Bytecode Size")?;
+        // xlsx.set_totals("Runtime Gas")?;
+        // xlsx.set_totals("Deployment Gas")?;
+        // xlsx.set_totals("Bytecode Size")?;
 
         // if xlsx.next_column_index >= 3 {
         //     xlsx.set_diffs("Runtime Gas")?;

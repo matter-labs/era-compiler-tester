@@ -12,9 +12,12 @@ use serde::Serialize;
 ///
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Run {
-    /// Contract size.
+    /// Contract full size, includes both deploy and runtime code.
     #[serde(default)]
     pub size: Vec<u64>,
+    /// Contract runtime code size.
+    #[serde(default)]
+    pub runtime_size: Vec<u64>,
     /// Number of cycles.
     #[serde(default)]
     pub cycles: Vec<u64>,
@@ -36,6 +39,17 @@ impl Run {
         }
 
         self.size.iter().sum::<u64>() / (self.size.len() as u64)
+    }
+
+    ///
+    /// Average runtime code size.
+    ///
+    pub fn average_runtime_size(&self) -> u64 {
+        if self.runtime_size.is_empty() {
+            return 0;
+        }
+
+        self.runtime_size.iter().sum::<u64>() / (self.runtime_size.len() as u64)
     }
 
     ///

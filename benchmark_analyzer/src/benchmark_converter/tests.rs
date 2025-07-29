@@ -25,7 +25,7 @@ fn convert() {
     };
 
     let foundry_report_1 = r#"
-    { "toolchain": "solx", "project": "Test", "data": [ {
+    { "toolchain": "solx", "project": "ProjectX", "data": [ {
         "contract": "src/test/utils/mocks/MockAuthority.sol:MockAuthority",
         "deployment": { "gas": 111281, "size": 406 },
         "functions": {
@@ -64,13 +64,11 @@ fn convert() {
             }
         }
     } ] }"#;
-    let mut foundry_report_1 =
-        serde_json::from_str::<benchmark_analyzer::FoundryReport>(foundry_report_1)
-            .expect("Failed to parse foundry report");
-    foundry_report_1.project = "ProjectX".to_owned();
+    let input_1 = serde_json::from_str::<benchmark_analyzer::InputReport>(foundry_report_1)
+        .expect("Failed to parse foundry report");
 
     let foundry_report_2 = r#"
-    { "toolchain": "solx", "project": "Test", "data": [ {
+    { "toolchain": "solx", "project": "ProjectY", "data": [ {
         "contract": "src/test/StrangeFile.sol:StrangeContract",
         "deployment": { "gas": 99999, "size": 1111 },
         "functions": {
@@ -97,17 +95,15 @@ fn convert() {
             }
         }
     } ] }"#;
-    let mut foundry_report_2 =
-        serde_json::from_str::<benchmark_analyzer::FoundryReport>(foundry_report_2)
-            .expect("Failed to parse foundry report");
-    foundry_report_2.project = "ProjectY".to_owned();
+    let input_2 = serde_json::from_str::<benchmark_analyzer::InputReport>(foundry_report_2)
+        .expect("Failed to parse foundry report");
 
     let mut benchmark = benchmark_analyzer::Benchmark::new(metadata);
     benchmark
-        .extend_with_foundry(foundry_report_1)
+        .extend(input_1)
         .expect("Failed to extend a benchmark report with a Foundry report");
     benchmark
-        .extend_with_foundry(foundry_report_2)
+        .extend(input_2)
         .expect("Failed to extend a benchmark report with a Foundry report");
 
     let output: benchmark_analyzer::Output = (benchmark, benchmark_analyzer::OutputFormat::JsonLNT)

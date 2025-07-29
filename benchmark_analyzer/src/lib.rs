@@ -13,7 +13,9 @@ pub mod results;
 pub mod util;
 
 pub use crate::input::format::Format as InputFormat;
-pub use crate::input::foundry::FoundryReport;
+pub use crate::input::foundry_gas::FoundryGasReport;
+pub use crate::input::Input as InputReport;
+pub use crate::input::Report as InnerReport;
 pub use crate::model::benchmark::metadata::Metadata as BenchmarkMetadata;
 pub use crate::model::benchmark::test::input::Input;
 pub use crate::model::benchmark::test::metadata::Metadata as TestMetadata;

@@ -8,7 +8,10 @@ pub mod test;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use crate::input::foundry::FoundryReport;
+use crate::input::foundry_gas::FoundryGasReport;
+use crate::input::foundry_size::FoundrySizeReport;
+use crate::input::Input;
+use crate::input::Report;
 
 use self::metadata::Metadata;
 use self::test::input::Input as TestInput;
@@ -39,9 +42,31 @@ impl Benchmark {
     }
 
     ///
-    /// Extend the benchmark with a Foundry report
+    /// Extend the benchmark data with a generic report.
     ///
-    pub fn extend_with_foundry(&mut self, foundry_report: FoundryReport) -> anyhow::Result<()> {
+    pub fn extend(&mut self, input: Input) -> anyhow::Result<()> {
+        let toolchain = input.toolchain;
+        let project = input.project;
+        match input.data {
+            Report::FoundryGas(report) => {
+                self.extend_with_foundry_gas_report(toolchain, project, report)?;
+            }
+            Report::FoundrySize(report) => {
+                self.extend_with_foundry_size_report(toolchain, project, report)?;
+            }
+        }
+        Ok(())
+    }
+
+    ///
+    /// Extend the benchmark data with a Foundry gas report.
+    ///
+    pub fn extend_with_foundry_gas_report(
+        &mut self,
+        toolchain: String,
+        project: String,
+        foundry_report: FoundryGasReport,
+    ) -> anyhow::Result<()> {
         let context =
             self.metadata.context.as_ref().ok_or_else(|| {
                 anyhow::anyhow!("Benchmark context is required for Foundry reports")
@@ -53,9 +78,9 @@ impl Benchmark {
             .as_deref()
             .unwrap_or("optimization-unknown");
 
-        for contract_report in foundry_report.data.into_iter() {
+        for contract_report in foundry_report.0.into_iter() {
             let selector = TestSelector {
-                project: foundry_report.project.clone(),
+                project: project.clone(),
                 case: Some(contract_report.contract.to_owned()),
                 input: Some(TestInput::Deployer {
                     contract_identifier: contract_report.contract.to_owned(),
@@ -69,7 +94,7 @@ impl Benchmark {
                 .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
             let run = test
                 .toolchain_groups
-                .entry(foundry_report.toolchain.clone())
+                .entry(toolchain.clone())
                 .or_default()
                 .codegen_groups
                 .entry(codegen.to_owned())
@@ -80,14 +105,13 @@ impl Benchmark {
                 .executables
                 .entry(optimization.to_owned())
                 .or_default();
-            run.run.size.push(contract_report.deployment.size);
             run.run.gas.push(contract_report.deployment.gas);
 
             for (index, (function, function_report)) in
                 contract_report.functions.into_iter().enumerate()
             {
                 let selector = TestSelector {
-                    project: foundry_report.project.clone(),
+                    project: project.clone(),
                     case: Some(contract_report.contract.to_owned()),
                     input: Some(TestInput::Runtime {
                         input_index: index + 1,
@@ -102,7 +126,7 @@ impl Benchmark {
                     .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
                 let run = test
                     .toolchain_groups
-                    .entry(foundry_report.toolchain.clone())
+                    .entry(toolchain.clone())
                     .or_default()
                     .codegen_groups
                     .entry(codegen.to_owned())
@@ -115,6 +139,60 @@ impl Benchmark {
                     .or_default();
                 run.run.gas.push(function_report.mean);
             }
+        }
+
+        Ok(())
+    }
+
+    ///
+    /// Extend the benchmark data with a Foundry size report.
+    ///
+    pub fn extend_with_foundry_size_report(
+        &mut self,
+        toolchain: String,
+        project: String,
+        foundry_report: FoundrySizeReport,
+    ) -> anyhow::Result<()> {
+        let context =
+            self.metadata.context.as_ref().ok_or_else(|| {
+                anyhow::anyhow!("Benchmark context is required for Foundry reports")
+            })?;
+
+        let codegen = context.codegen.as_deref().unwrap_or("codegen-unknown");
+        let optimization = context
+            .optimization
+            .as_deref()
+            .unwrap_or("optimization-unknown");
+
+        for (contract_name, contract_report) in foundry_report.0.into_iter() {
+            let selector = TestSelector {
+                project: project.clone(),
+                case: Some(contract_name.clone()),
+                input: Some(TestInput::Deployer {
+                    contract_identifier: contract_name.clone(),
+                }),
+            };
+            let name = selector.to_string();
+
+            let test = self
+                .tests
+                .entry(name)
+                .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
+            let run = test
+                .toolchain_groups
+                .entry(toolchain.clone())
+                .or_default()
+                .codegen_groups
+                .entry(codegen.to_owned())
+                .or_default()
+                .versioned_groups
+                .entry(context.compiler_version.clone())
+                .or_default()
+                .executables
+                .entry(optimization.to_owned())
+                .or_default();
+            run.run.size.push(contract_report.init_size);
+            run.run.runtime_size.push(contract_report.runtime_size);
         }
 
         Ok(())
