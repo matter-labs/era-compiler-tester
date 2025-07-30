@@ -290,7 +290,7 @@ impl Compiler for SolidityCompiler {
         });
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
-            libraries,
+            libraries.clone(),
             BTreeSet::new(),
             solx_standard_json::InputOptimizer::new(
                 solx_mode.llvm_optimizer_settings.middle_end_as_char(),
@@ -339,7 +339,9 @@ impl Compiler for SolidityCompiler {
                     Some(bytecode) => bytecode.as_str(),
                     None => continue,
                 };
-                let build = hex::decode(bytecode_string)?;
+                let build = hex::decode(bytecode_string).inspect_err(|_error| {
+                    dbg!(&libraries);
+                })?;
                 builds.insert(path, build);
             }
         }
