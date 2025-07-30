@@ -271,7 +271,7 @@ impl Compiler for SolidityCompiler {
             .into_iter()
             .map(|(path, contracts)| {
                 (
-                    crate::utils::str_to_str_normalized(path.as_str()),
+                    crate::utils::str_to_string_normalized(path.as_str()),
                     contracts,
                 )
             })

@@ -91,12 +91,12 @@ pub fn path_to_string_normalized(path: &Path) -> String {
 /// Normalizes `path` by replacing possible backslashes with ordinar slashes, and returns a `PathBuf`.
 ///
 pub fn str_to_path_normalized(path: &str) -> PathBuf {
-    PathBuf::from(self::str_to_str_normalized(path))
+    PathBuf::from(self::str_to_string_normalized(path))
 }
 
 ///
 /// Normalizes stringified `path` by replacing possible backslashes with ordinar slashes, and returns a string.
 ///
-pub fn str_to_str_normalized(path: &str) -> String {
+pub fn str_to_string_normalized(path: &str) -> String {
     path.replace(std::path::MAIN_SEPARATOR_STR, "/")
 }

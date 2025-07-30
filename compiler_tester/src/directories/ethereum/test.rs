@@ -147,7 +147,7 @@ impl EthereumTest {
                     contract_address = Some(address_iterator.next(&caller, true));
                 }
                 solidity_adapter::FunctionCall::Library { name, source } => {
-                    let source = source.clone().unwrap_or_else(|| last_source.to_owned());
+                    let source = source.to_owned().unwrap_or_else(|| last_source.to_owned());
                     let address = address_iterator.next(&caller, true);
                     libraries
                         .entry(source.clone())
@@ -161,7 +161,7 @@ impl EthereumTest {
                 solidity_adapter::FunctionCall::Account { input, expected } => {
                     let address = solidity_adapter::account_address(*input);
                     if !expected.eq(&address) {
-                        anyhow::bail!("Expected address: `{}`, found `{}`", expected, address);
+                        anyhow::bail!("Expected address: `{expected}`, found `{address}`");
                     }
                     caller = address;
                 }
