@@ -335,7 +335,14 @@ impl Compiler for SolidityCompiler {
                     None => continue,
                 };
                 let build = hex::decode(bytecode_string).inspect_err(|_error| {
-                    dbg!(&libraries);
+                    dbg!(
+                        &libraries,
+                        contract
+                            .evm
+                            .as_ref()
+                            .and_then(|evm| evm.deployed_bytecode.as_ref())
+                            .and_then(|bytecode| bytecode.link_references.as_ref())
+                    );
                 })?;
                 builds.insert(path, build);
             }
