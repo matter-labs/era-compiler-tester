@@ -147,7 +147,9 @@ impl EthereumTest {
                     contract_address = Some(address_iterator.next(&caller, true));
                 }
                 solidity_adapter::FunctionCall::Library { name, source } => {
-                    let source = source.to_owned().unwrap_or_else(|| last_source.to_owned());
+                    let source = crate::utils::str_to_string_normalized(
+                        source.as_deref().unwrap_or(last_source),
+                    );
                     let address = address_iterator.next(&caller, true);
                     libraries
                         .entry(source.clone())
@@ -387,7 +389,6 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             HashMap::new(),
-            // evm_input.builds,
             Some(evm_version),
         ))
     }
