@@ -269,12 +269,7 @@ impl Compiler for SolidityCompiler {
         libraries.inner = libraries
             .inner
             .into_iter()
-            .map(|(path, contracts)| {
-                (
-                    crate::utils::str_to_string_normalized(path.as_str()),
-                    contracts,
-                )
-            })
+            .map(|(path, contracts)| (path.replace('/', std::path::MAIN_SEPARATOR_STR), contracts))
             .collect::<BTreeMap<String, BTreeMap<String, String>>>();
 
         let mut selectors = BTreeSet::new();
