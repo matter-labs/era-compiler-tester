@@ -444,6 +444,7 @@ dependencies = [
  "semver 1.0.26",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

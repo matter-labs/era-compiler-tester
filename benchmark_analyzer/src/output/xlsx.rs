@@ -121,6 +121,8 @@ impl Xlsx {
         self.toolchain_ids
             .insert(toolchain_name.to_owned(), toolchain_id);
 
+        let column_toolchain_name = toolchain_name.replace('-', "\n");
+
         for worksheet in [
             &mut self.runtime_gas_worksheet,
             &mut self.deployment_gas_worksheet,
@@ -129,7 +131,7 @@ impl Xlsx {
             worksheet.write_with_format(
                 0,
                 1 + toolchain_id,
-                toolchain_name.to_owned(),
+                column_toolchain_name.clone(),
                 &Self::column_header_format(),
             )?;
         }
@@ -146,7 +148,7 @@ impl Xlsx {
                 worksheet.write_with_format(
                     0,
                     column_id,
-                    format!("{toolchain_name}\n{data_identifier}"),
+                    format!("{column_toolchain_name}\n{data_identifier}"),
                     &Self::column_header_format(),
                 )?;
             }
@@ -254,6 +256,7 @@ impl Xlsx {
         let format = format.set_font_size(24);
         let format = format.set_font_color("#FFFFFF");
         let format = format.set_background_color("#4C6EF5");
+        let format = format.set_align(rust_xlsxwriter::FormatAlign::Left);
         let format = format.set_align(rust_xlsxwriter::FormatAlign::VerticalCenter);
         let format = format.set_border(rust_xlsxwriter::FormatBorder::None);
         format
@@ -269,6 +272,7 @@ impl Xlsx {
         let format = format.set_font_color("#1E1E1E");
         let format = format.set_background_color("#EEF3FF");
         let format = format.set_align(rust_xlsxwriter::FormatAlign::Center);
+        let format = format.set_align(rust_xlsxwriter::FormatAlign::Top);
         let format = format.set_border(rust_xlsxwriter::FormatBorder::None);
         format
     }

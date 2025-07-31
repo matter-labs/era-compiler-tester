@@ -27,7 +27,7 @@ fn main() -> anyhow::Result<()> {
     };
 
     let mut benchmark = benchmark_analyzer::Benchmark::new(metadata);
-    if arguments.input_paths.len() == 1 {
+    let input_paths = if arguments.input_paths.len() == 1 {
         if !arguments.input_paths[0].is_dir() {
             anyhow::bail!(
                 "Expected a directory with JSON files, but got a file: {:?}",
@@ -36,16 +36,22 @@ fn main() -> anyhow::Result<()> {
         }
         let resolution_pattern =
             format!("{}/**/*.json", arguments.input_paths[0].to_string_lossy());
-        for path in glob::glob(resolution_pattern.as_str())?.filter_map(Result::ok) {
-            let input = benchmark_analyzer::InputReport::try_from(path.as_path())?;
-            benchmark.extend(input)?;
-        }
+        glob::glob(resolution_pattern.as_str())?
+            .filter_map(Result::ok)
+            .collect()
     } else if arguments.input_paths.is_empty() {
         anyhow::bail!("No input files provided. Use `--input-paths` to specify input files.");
     } else {
-        for input_path in arguments.input_paths.into_iter() {
-            let input = benchmark_analyzer::InputReport::try_from(input_path.as_path())?;
-            benchmark.extend(input)?;
+        arguments.input_paths
+    };
+    for path in input_paths.into_iter() {
+        match benchmark_analyzer::InputReport::try_from(path.as_path()) {
+            Ok(input) => benchmark.extend(input)?,
+            Err(benchmark_analyzer::InputReportError::EmptyFile { path }) => {
+                eprintln!("Warning: Input file {path:?} is empty and will be skipped.");
+                continue;
+            }
+            Err(error) => Err(error)?,
         }
     }
     benchmark.metadata.end = Utc::now();

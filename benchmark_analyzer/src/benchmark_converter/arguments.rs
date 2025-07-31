@@ -16,10 +16,6 @@ pub struct Arguments {
     /// If only one path is provided, it is treated as a directory with JSON files.
     pub input_paths: Vec<PathBuf>,
 
-    /// Benchmark input format: only `foundry`.
-    #[structopt(long = "input-format", default_value_t = benchmark_analyzer::InputFormat::Foundry)]
-    pub input_format: benchmark_analyzer::InputFormat,
-
     /// Benchmark context to pass additional data.
     /// Deprecated: use separate arguments instead.
     #[structopt(long = "benchmark-context")]

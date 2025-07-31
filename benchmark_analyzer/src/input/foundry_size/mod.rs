@@ -4,7 +4,7 @@
 
 pub mod contract;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use self::contract::ContractReport;
 
@@ -12,4 +12,4 @@ use self::contract::ContractReport;
 /// Foundry size benchmark report format.
 ///
 #[derive(Debug, serde::Deserialize)]
-pub struct FoundrySizeReport(pub HashMap<String, ContractReport>);
+pub struct FoundrySizeReport(pub BTreeMap<String, ContractReport>);
