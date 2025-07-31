@@ -248,7 +248,7 @@ impl Compiler for SolidityCompiler {
         &self,
         _test_path: String,
         sources: Vec<(String, String)>,
-        mut libraries: era_compiler_common::Libraries,
+        libraries: era_compiler_common::Libraries,
         mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
         llvm_options: Vec<String>,
@@ -265,12 +265,6 @@ impl Compiler for SolidityCompiler {
                 )
             })
             .collect();
-
-        libraries.inner = libraries
-            .inner
-            .into_iter()
-            .map(|(path, contracts)| (path.replace('/', std::path::MAIN_SEPARATOR_STR), contracts))
-            .collect::<BTreeMap<String, BTreeMap<String, String>>>();
 
         let mut selectors = BTreeSet::new();
         selectors.insert(solx_standard_json::InputSelector::Bytecode);
@@ -335,14 +329,11 @@ impl Compiler for SolidityCompiler {
                     None => continue,
                 };
                 let build = hex::decode(bytecode_string).inspect_err(|_error| {
-                    dbg!(
-                        &libraries,
-                        contract
-                            .evm
-                            .as_ref()
-                            .and_then(|evm| evm.deployed_bytecode.as_ref())
-                            .and_then(|bytecode| bytecode.link_references.as_ref())
-                    );
+                    dbg!(contract
+                        .evm
+                        .as_ref()
+                        .and_then(|evm| evm.deployed_bytecode.as_ref())
+                        .and_then(|bytecode| bytecode.link_references.as_ref()));
                 })?;
                 builds.insert(path, build);
             }
