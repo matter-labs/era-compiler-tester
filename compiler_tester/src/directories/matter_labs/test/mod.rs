@@ -521,7 +521,7 @@ impl Buildable for MatterLabsTest {
                 &eravm_input.method_identifiers,
                 era_compiler_common::Target::EraVM,
             )
-            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
+            .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {
                 Ok(case) => case,
                 Err(error) => {
