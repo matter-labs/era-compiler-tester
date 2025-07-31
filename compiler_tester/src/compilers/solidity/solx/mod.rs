@@ -279,7 +279,7 @@ impl Compiler for SolidityCompiler {
         });
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
-            libraries.clone(),
+            libraries,
             BTreeSet::new(),
             solx_standard_json::InputOptimizer::new(
                 solx_mode.llvm_optimizer_settings.middle_end_as_char(),
@@ -318,24 +318,16 @@ impl Compiler for SolidityCompiler {
         let mut builds = HashMap::with_capacity(solx_output.contracts.len());
         for (file, source) in solx_output.contracts.iter() {
             for (name, contract) in source.iter() {
-                let path = format!("{file}:{name}");
-                let bytecode_string = match contract
+                let bytecode = match contract
                     .evm
                     .as_ref()
                     .and_then(|evm| evm.bytecode.as_ref())
                     .and_then(|bytecode| bytecode.object.as_ref())
                 {
-                    Some(bytecode) => bytecode.as_str(),
+                    Some(bytecode) => hex::decode(bytecode.as_str())?,
                     None => continue,
                 };
-                let build = hex::decode(bytecode_string).inspect_err(|_error| {
-                    dbg!(contract
-                        .evm
-                        .as_ref()
-                        .and_then(|evm| evm.deployed_bytecode.as_ref())
-                        .and_then(|bytecode| bytecode.link_references.as_ref()));
-                })?;
-                builds.insert(path, build);
+                builds.insert(format!("{file}:{name}"), bytecode);
             }
         }
 

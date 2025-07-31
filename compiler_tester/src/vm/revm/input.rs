@@ -49,7 +49,6 @@ impl Input {
 
         for (name, address) in library_addresses.into_iter() {
             let build = self.builds.get(name.as_str()).ok_or_else(|| {
-                dbg!(&self.builds.keys(), &name);
                 anyhow::anyhow!("Library `{name}` not found in the build artifacts")
             })?;
 
