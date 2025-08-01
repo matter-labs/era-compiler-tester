@@ -137,7 +137,7 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
                     anyhow::anyhow!("Failed to read source code file: {}", error)
                 })?;
 
-                sources.push((name, data));
+                sources.push((name.replace(std::path::MAIN_SEPARATOR, "/"), data));
             }
             "Source" => {
                 let name = captures.get(2).expect("Always exists").as_str().to_owned();
@@ -166,7 +166,9 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
     if !source.is_empty() {
         let name = match source_name {
             Some(source_name) => source_name,
-            None => path.to_string_lossy().to_string(),
+            None => path
+                .to_string_lossy()
+                .replace(std::path::MAIN_SEPARATOR, "/"),
         };
         sources.push((name, source));
     }

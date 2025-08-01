@@ -14,14 +14,10 @@ use colored::Colorize;
 use crate::test::case::input::output::Output;
 use crate::test::description::TestDescription;
 use crate::toolchain::Toolchain;
-use crate::utils::timer::Timer;
 
 use self::element::outcome::passed_variant::PassedVariant;
 use self::element::outcome::Outcome;
 use self::element::Element;
-
-const BENCHMARK_FORMAT_VERSION: benchmark_analyzer::BenchmarkVersion =
-    benchmark_analyzer::BenchmarkVersion::V2;
 
 ///
 /// The compiler tester summary.
@@ -42,7 +38,6 @@ pub struct Summary {
     invalid: usize,
     /// The ignored tests counter.
     ignored: usize,
-    timer: Timer,
 }
 
 impl Summary {
@@ -61,33 +56,9 @@ impl Summary {
             failed: 0,
             invalid: 0,
             ignored: 0,
-            timer: Timer::default(),
         }
     }
 
-    /// Starts the timer associated with the object.
-    ///
-    /// # Returns
-    ///
-    /// `anyhow::Result<Self>`: If the timer is successfully started, the function
-    /// returns `Ok(self)`, allowing method chaining. If the timer is in an invalid
-    /// state (e.g., already started or stopped), it returns an error.
-    pub fn start_timer(mut self) -> anyhow::Result<Self> {
-        self.timer.start()?;
-        Ok(self)
-    }
-
-    /// Stops the timer associated with the object.
-    ///
-    /// # Returns
-    ///
-    /// `anyhow::Result<Self>`: If the timer is successfully stopped, the function
-    /// returns `Ok(self)`, permitting method chaining. An error is returned if the
-    /// timer is in an invalid state (e.g., not started or already stopped).
-    pub fn stop_timer(mut self) -> anyhow::Result<Self> {
-        self.timer.stop()?;
-        Ok(self)
-    }
     ///
     /// Whether the test run has been successful.
     ///
@@ -107,27 +78,12 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(
-        &self,
-        toolchain: Toolchain,
-        context: Option<benchmark_analyzer::BenchmarkContext>,
-    ) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+    pub fn benchmark(&self, toolchain: Toolchain) -> anyhow::Result<benchmark_analyzer::Benchmark> {
         if let Toolchain::SolcLLVM = toolchain {
             anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
         }
 
         let mut benchmark = benchmark_analyzer::Benchmark::default();
-
-        if let (Some(start), Some(end)) = (self.timer.get_start(), self.timer.get_end()) {
-            benchmark.metadata = benchmark_analyzer::BenchmarkMetadata {
-                version: BENCHMARK_FORMAT_VERSION,
-                start,
-                end,
-                context,
-            };
-        } else {
-            anyhow::bail!("Invalid state: the time of running the benchmark was not measured.");
-        }
 
         for Element {
             test_description:

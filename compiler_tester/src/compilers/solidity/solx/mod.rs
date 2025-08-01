@@ -4,7 +4,6 @@
 
 pub mod mode;
 
-use core::option::Option::None;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
@@ -280,7 +279,7 @@ impl Compiler for SolidityCompiler {
         });
         let solx_input = solx_standard_json::Input::try_from_solidity_sources(
             sources_json,
-            libraries.to_owned(),
+            libraries,
             BTreeSet::new(),
             solx_standard_json::InputOptimizer::new(
                 solx_mode.llvm_optimizer_settings.middle_end_as_char(),
@@ -316,25 +315,21 @@ impl Compiler for SolidityCompiler {
 
         let last_contract = Self::get_last_contract(&solx_output, &sources)?;
 
-        let builds = solx_output
-            .contracts
-            .into_iter()
-            .flat_map(|(file, contracts)| {
-                contracts.into_iter().filter_map(move |(name, contract)| {
-                    let path = format!("{file}:{name}");
-                    let bytecode_string = contract
-                        .evm
-                        .as_ref()?
-                        .bytecode
-                        .as_ref()?
-                        .object
-                        .as_ref()?
-                        .as_str();
-                    let build = hex::decode(bytecode_string).expect("Always valid");
-                    Some((path, build))
-                })
-            })
-            .collect::<HashMap<String, Vec<u8>>>();
+        let mut builds = HashMap::with_capacity(solx_output.contracts.len());
+        for (file, source) in solx_output.contracts.iter() {
+            for (name, contract) in source.iter() {
+                let bytecode = match contract
+                    .evm
+                    .as_ref()
+                    .and_then(|evm| evm.bytecode.as_ref())
+                    .and_then(|bytecode| bytecode.object.as_ref())
+                {
+                    Some(bytecode) => hex::decode(bytecode.as_str())?,
+                    None => continue,
+                };
+                builds.insert(format!("{file}:{name}"), bytecode);
+            }
+        }
 
         Ok(EVMInput::new(
             builds,
