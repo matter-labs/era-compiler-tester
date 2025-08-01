@@ -186,13 +186,13 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             }
         }
 
-        cycles_total_reference += reference.average_cycles();
-        cycles_total_candidate += candidate.average_cycles();
-        let cycles_factor = (cycles_total_candidate as f64) / (cycles_total_reference as f64);
-        if cycles_total_candidate > cycles_total_reference {
+        let cycles_reference = reference.average_cycles();
+        let cycles_candidate = candidate.average_cycles();
+        let cycles_factor = (cycles_candidate as f64) / (cycles_reference as f64);
+        if cycles_candidate > cycles_reference {
             cycles_negatives.push((cycles_factor, description.clone()));
         }
-        if cycles_total_candidate < cycles_total_reference {
+        if cycles_candidate < cycles_reference {
             cycles_positives.push((cycles_factor, description.clone()));
         }
         if cycles_factor < cycles_best {
@@ -202,14 +202,16 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             cycles_worst = cycles_factor;
         }
         cycles_factors.push(cycles_factor);
+        cycles_total_reference += cycles_reference;
+        cycles_total_candidate += cycles_candidate;
 
-        ergs_total_reference += reference.average_ergs();
-        ergs_total_candidate += candidate.average_ergs();
-        let ergs_factor = (ergs_total_candidate as f64) / (ergs_total_reference as f64);
-        if ergs_total_candidate > ergs_total_reference {
+        let ergs_reference = reference.average_ergs();
+        let ergs_candidate = candidate.average_ergs();
+        let ergs_factor = (ergs_candidate as f64) / (ergs_reference as f64);
+        if ergs_candidate > ergs_reference {
             ergs_negatives.push((ergs_factor, description.clone()));
         }
-        if ergs_total_candidate < ergs_total_reference {
+        if ergs_candidate < ergs_reference {
             ergs_positives.push((ergs_factor, description.clone()));
         }
         if ergs_factor < ergs_best {
@@ -219,14 +221,16 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             ergs_worst = ergs_factor;
         }
         ergs_factors.push(ergs_factor);
+        ergs_total_reference += ergs_reference;
+        ergs_total_candidate += ergs_candidate;
 
-        gas_total_reference += reference.average_gas();
-        gas_total_candidate += candidate.average_gas();
-        let gas_factor = (gas_total_candidate as f64) / (gas_total_reference as f64);
-        if gas_total_candidate > gas_total_reference {
+        let gas_reference = reference.average_gas();
+        let gas_candidate = candidate.average_gas();
+        let gas_factor = (gas_candidate as f64) / (gas_reference as f64);
+        if gas_candidate > gas_reference {
             gas_negatives.push((gas_factor, description.clone()));
         }
-        if gas_total_candidate < gas_total_reference {
+        if gas_candidate < gas_reference {
             gas_positives.push((gas_factor, description.clone()));
         }
         if gas_factor < gas_best {
@@ -236,6 +240,8 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             gas_worst = gas_factor;
         }
         gas_factors.push(gas_factor);
+        gas_total_reference += gas_reference;
+        gas_total_candidate += gas_candidate;
 
         let reference_size = if !reference.size.is_empty() {
             reference.average_size()
@@ -247,8 +253,6 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         } else {
             continue;
         };
-        size_total_reference += reference_size;
-        size_total_candidate += candidate_size;
         let size_factor = (candidate_size as f64) / (reference_size as f64);
         if candidate_size > reference_size {
             size_negatives.push((size_factor, description.clone()));
@@ -263,6 +267,8 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
             size_worst = size_factor;
         }
         size_factors.push(size_factor);
+        size_total_reference += reference_size;
+        size_total_candidate += candidate_size;
     }
 
     let size_total = (size_total_candidate as f64) / (size_total_reference as f64);
