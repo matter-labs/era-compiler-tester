@@ -681,9 +681,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.41"
+version = "4.5.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be92d32e80243a54711e5d7ce823c35c41c9d929dc4ab58e1276f625841aadf9"
+checksum = "ed87a9d530bb41a67537289bafcac159cb3ee28460e0a4571123d2a778a6a882"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -691,9 +691,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.41"
+version = "4.5.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707eab41e9622f9139419d573eca0900137718000c517d47da73045f54331c3d"
+checksum = "64f4f3f3c77c94aff3c7e9aac9a2ca1974a5adf392a8bb751e827d6d127ab966"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1073,9 +1073,9 @@ dependencies = [
 
 [[package]]
 name = "dyn-clone"
-version = "1.0.19"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c7a8fb8a9fbf66c1f703fe16184d10ca0ee9d23be5b4436400408ba54a95005"
+checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "ecdsa"
@@ -2177,9 +2177,9 @@ checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "libredox"
-version = "0.1.6"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4488594b9328dee448adb906d8b126d9b7deb7cf5c22161ee591610bb1be83c0"
+checksum = "391290121bad3d37fbddad76d8f5d1c1c314cfc646d143d7e07a3086ddff0ce3"
 dependencies = [
  "bitflags",
  "libc",
@@ -2982,9 +2982,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.15"
+version = "0.5.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e8af0dde094006011e6a740d4879319439489813bd0bcdc7d821beaeeff48ec"
+checksum = "5407465600fb0548f1442edf71dd20683c6ed326200ace4b1ef0763521bb3b77"
 dependencies = [
  "bitflags",
 ]
@@ -3230,9 +3230,9 @@ dependencies = [
 
 [[package]]
 name = "rustc-demangle"
-version = "0.1.25"
+version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "989e6739f80c4ad5b13e0fd7fe89531180375b18520cc8c82080e4dc4035b84f"
+checksum = "56f7d92ca342cea22a06f2121d944b4fd82af56988c270852495420f961d4ace"
 
 [[package]]
 name = "rustc-hash"
@@ -3279,9 +3279,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.29"
+version = "0.23.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2491382039b29b9b11ff08b76ff6c97cf287671dbb74f0be44bda389fffe9bd1"
+checksum = "c0ebcbd2f03de0fc1122ad9bb24b127a5a6cd51d72604a3f3c50ac459762b6cc"
 dependencies = [
  "once_cell",
  "ring",
@@ -3465,9 +3465,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.141"
+version = "1.0.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30b9eff21ebe718216c6ec64e1d9ac57087aad11efc64e32002bce4a0d4c03d3"
+checksum = "030fedb782600dcbd6f02d479bf0d817ac3bb40d644745b769d6a96bc3afc5a7"
 dependencies = [
  "indexmap",
  "itoa",
@@ -3653,7 +3653,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#6221521f2d6d44a1da9af71aab8e9a9a4f37a1f3"
+source = "git+https://github.com/matter-labs/solx?branch=main#baf0e59fb21b6e0ac348838db1b02318b8592f5c"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -3672,7 +3672,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#6221521f2d6d44a1da9af71aab8e9a9a4f37a1f3"
+source = "git+https://github.com/matter-labs/solx?branch=main#baf0e59fb21b6e0ac348838db1b02318b8592f5c"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3687,7 +3687,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#6221521f2d6d44a1da9af71aab8e9a9a4f37a1f3"
+source = "git+https://github.com/matter-labs/solx?branch=main#baf0e59fb21b6e0ac348838db1b02318b8592f5c"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3928,9 +3928,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.46.1"
+version = "1.47.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0cc3a2344dafbe23a245241fe8b09735b521110d30fcefbbd5feb1797ca35d17"
+checksum = "43864ed400b6043a4757a25c7a64a8efde741aed79a056a2fb348a406701bb35"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3939,8 +3939,8 @@ dependencies = [
  "mio",
  "pin-project-lite",
  "slab",
- "socket2 0.5.10",
- "windows-sys 0.52.0",
+ "socket2 0.6.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4498,7 +4498,7 @@ version = "0.60.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
 dependencies = [
- "windows-targets 0.53.2",
+ "windows-targets 0.53.3",
 ]
 
 [[package]]
@@ -4519,10 +4519,11 @@ dependencies = [
 
 [[package]]
 name = "windows-targets"
-version = "0.53.2"
+version = "0.53.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c66f69fcc9ce11da9966ddb31a40968cad001c5bedeb5c2b82ede4253ab48aef"
+checksum = "d5fe6031c4041849d7c496a8ded650796e7b6ecc19df1a431c1a363342e5dc91"
 dependencies = [
+ "windows-link",
  "windows_aarch64_gnullvm 0.53.0",
  "windows_aarch64_msvc 0.53.0",
  "windows_i686_gnu 0.53.0",
@@ -4820,20 +4821,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions 0.152.3 (git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3)",
-]
-
-[[package]]
-name = "zk_evm_abstractions"
-version = "0.152.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7c45a892c8c254aeff3617df7507650815925943b423cf888bac201c94b926c"
-dependencies = [
- "anyhow",
- "num_enum",
- "serde",
- "static_assertions",
- "zkevm_opcode_defs 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zk_evm_abstractions 0.152.3",
 ]
 
 [[package]]
@@ -4845,7 +4833,20 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.152.3 (git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3)",
+ "zkevm_opcode_defs 0.152.3",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.152.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c8c376763e04f0f06a533fa578dd2028e0fab2b9c76ca9d7aba3657399e3dac"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.152.4",
 ]
 
 [[package]]
@@ -4868,8 +4869,7 @@ dependencies = [
 [[package]]
 name = "zkevm_opcode_defs"
 version = "0.152.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04f02fb6f185df1aa4f33b18002024c50e73e3f701d25070e7da0c419bb93d77"
+source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4885,8 +4885,9 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "0.152.3"
-source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
+version = "0.152.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef4f77fb59a9481fd44574b8888f5afda11d44956a785da6f92f86ddaeef4859"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4967,8 +4968,8 @@ source = "git+https://github.com/matter-labs/vm2#9b26181b687032526cbebf7bb0a5731
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "zkevm_opcode_defs 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zk_evm_abstractions 0.152.4",
+ "zkevm_opcode_defs 0.152.4",
  "zksync_vm2_interface",
 ]
 

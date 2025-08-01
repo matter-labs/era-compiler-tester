@@ -43,7 +43,7 @@ impl EthereumTest {
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
     ) -> Option<Self> {
-        let path = index_entity.path.to_string_lossy().to_string();
+        let path = crate::utils::path_to_string_normalized(index_entity.path.as_path());
 
         if !filters.check_case_path(&path) {
             return None;
@@ -147,7 +147,9 @@ impl EthereumTest {
                     contract_address = Some(address_iterator.next(&caller, true));
                 }
                 solidity_adapter::FunctionCall::Library { name, source } => {
-                    let source = source.clone().unwrap_or_else(|| last_source.to_owned());
+                    let source = crate::utils::str_to_string_normalized(
+                        source.as_deref().unwrap_or(last_source),
+                    );
                     let address = address_iterator.next(&caller, true);
                     libraries
                         .entry(source.clone())
@@ -161,7 +163,7 @@ impl EthereumTest {
                 solidity_adapter::FunctionCall::Account { input, expected } => {
                     let address = solidity_adapter::account_address(*input);
                     if !expected.eq(&address) {
-                        anyhow::bail!("Expected address: `{}`, found `{}`", expected, address);
+                        anyhow::bail!("Expected address: `{expected}`, found `{address}`");
                     }
                     caller = address;
                 }
@@ -387,7 +389,6 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             HashMap::new(),
-            // evm_input.builds,
             Some(evm_version),
         ))
     }

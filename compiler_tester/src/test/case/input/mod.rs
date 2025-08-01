@@ -269,14 +269,13 @@ impl Input {
                 }
             }
             solidity_adapter::FunctionCall::Library { name, source } => {
-                let library = format!(
-                    "{}:{}",
-                    source.clone().unwrap_or_else(|| last_source.to_string()),
-                    name
+                let source = crate::utils::str_to_string_normalized(
+                    source.as_deref().unwrap_or(last_source),
                 );
+                let library = format!("{source}:{name}");
                 let instance = instances
                     .get(library.as_str())
-                    .ok_or_else(|| anyhow::anyhow!("Library `{}` not found", library))?;
+                    .ok_or_else(|| anyhow::anyhow!("Library `{library}` not found"))?;
 
                 let expected = Output::from_ethereum_expected(
                     &[web3::types::U256::from_big_endian(
@@ -332,7 +331,7 @@ impl Input {
             } => {
                 let value = match value {
                     Some(value) => Some((*value).try_into().map_err(|error| {
-                        anyhow::anyhow!("Invalid value literal `{:X}`: {}", value, error)
+                        anyhow::anyhow!("Invalid value literal `{value:X}`: {error}")
                     })?),
                     None => None,
                 };

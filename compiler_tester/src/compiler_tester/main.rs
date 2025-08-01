@@ -141,9 +141,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             .unwrap_or_else(|| PathBuf::from("./configs/vyper-bin-default.json")),
     );
 
-    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet)
-        .start_timer()?
-        .wrap();
+    let summary = compiler_tester::Summary::new(arguments.verbose, arguments.quiet).wrap();
 
     let filters = compiler_tester::Filters::new(arguments.path, arguments.mode, arguments.group);
 
@@ -222,7 +220,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         }
     }?;
 
-    let summary = compiler_tester::Summary::unwrap_arc(summary).stop_timer()?;
+    let summary = compiler_tester::Summary::unwrap_arc(summary);
     print!("{summary}");
     println!(
         "    {} running tests in {}m{:02}s",
@@ -232,14 +230,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
 
     if let Some(path) = arguments.benchmark {
-        let context = if let Some(context_path) = arguments.benchmark_context {
-            Some(benchmark_analyzer::BenchmarkContext::try_from(
-                context_path,
-            )?)
-        } else {
-            None
-        };
-        let benchmark = summary.benchmark(toolchain, context)?;
+        let benchmark = summary.benchmark(toolchain)?;
         let output: benchmark_analyzer::Output =
             (benchmark, arguments.benchmark_format).try_into()?;
         output.write_to_file(path)?;
