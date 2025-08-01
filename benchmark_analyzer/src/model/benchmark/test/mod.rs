@@ -30,6 +30,10 @@ pub struct Test {
     pub metadata: Metadata,
     /// Toolchain groups.
     pub toolchain_groups: BTreeMap<Toolchain, ToolchainGroup>,
+
+    /// The number of non-zero gas values across all toolchains.
+    #[serde(skip)]
+    pub non_zero_gas_values: usize,
 }
 
 impl Test {
@@ -40,6 +44,20 @@ impl Test {
         Self {
             toolchain_groups: Default::default(),
             metadata,
+
+            non_zero_gas_values: 0,
         }
+    }
+
+    ///
+    /// Whether the test is for a deploy transaction.
+    ///
+    pub fn is_deploy(&self) -> bool {
+        self.metadata
+            .selector
+            .input
+            .as_ref()
+            .map(|input| input.is_deploy())
+            .unwrap_or_default()
     }
 }

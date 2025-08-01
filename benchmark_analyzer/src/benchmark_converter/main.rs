@@ -54,6 +54,7 @@ fn main() -> anyhow::Result<()> {
             Err(error) => Err(error)?,
         }
     }
+    benchmark.remove_zero_deploy_gas();
     benchmark.metadata.end = Utc::now();
 
     let output: benchmark_analyzer::Output = (benchmark, arguments.output_format).try_into()?;

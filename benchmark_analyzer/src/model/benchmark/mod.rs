@@ -197,6 +197,56 @@ impl Benchmark {
 
         Ok(())
     }
+
+    ///
+    /// Removes tests with zero deployment gas, that are supposed to be non-deployable contracts.
+    ///
+    pub fn remove_zero_deploy_gas(&mut self) {
+        // let max_toolchain_groups = self.tests
+        //     .values()
+        //     .map(|test| test.toolchain_groups.len())
+        //     .max()
+        //     .unwrap_or_default();
+        self.tests.retain(|_, test| {
+            if test.toolchain_groups.is_empty() {
+                return false;
+            }
+            if !test.is_deploy() {
+                return true;
+            }
+            test.non_zero_gas_values = test
+                .toolchain_groups
+                .values()
+                .filter(|group| {
+                    group.codegen_groups.values().any(|codegen_group| {
+                        codegen_group
+                            .versioned_groups
+                            .values()
+                            .any(|versioned_group| {
+                                versioned_group
+                                    .executables
+                                    .values()
+                                    .any(|executable| executable.run.average_gas() != 0)
+                            })
+                    })
+                })
+                .count();
+            test.toolchain_groups.values().any(|group| {
+                group.codegen_groups.values().any(|codegen_group| {
+                    codegen_group
+                        .versioned_groups
+                        .values()
+                        .any(|versioned_group| {
+                            versioned_group.executables.values().any(|executable| {
+                                executable.run.average_size() != 0
+                                    || executable.run.average_runtime_size() != 0
+                                    || executable.run.average_gas() != 0
+                            })
+                        })
+                })
+            })
+        });
+    }
 }
 
 impl TryFrom<PathBuf> for Benchmark {

@@ -62,6 +62,7 @@ impl From<Benchmark> for Csv {
                         },
                 },
             toolchain_groups,
+            ..
         } in benchmark.tests.into_values()
         {
             for (_toolchain, toolchain_group) in toolchain_groups.into_iter() {

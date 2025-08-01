@@ -92,6 +92,7 @@ impl TryFrom<Benchmark> for JsonLNT {
             Test {
                 metadata: TestMetadata { selector, .. },
                 toolchain_groups,
+                ..
             },
         ) in benchmark.tests.into_iter()
         {

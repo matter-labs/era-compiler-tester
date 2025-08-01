@@ -180,7 +180,7 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         // FIXME: ad-hoc patch
         if file_path.contains(crate::model::evm_interpreter::TEST_PATH) {
             if let Some(input) = &description.test_metadata.selector.input {
-                if input.is_deployer() {
+                if input.is_deploy() {
                     continue;
                 }
             }

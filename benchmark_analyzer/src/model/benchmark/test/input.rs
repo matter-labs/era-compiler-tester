@@ -44,7 +44,7 @@ impl Input {
     ///
     /// [`Deployer`]: Input::Deployer
     #[must_use]
-    pub fn is_deployer(&self) -> bool {
+    pub fn is_deploy(&self) -> bool {
         matches!(self, Self::Deployer { .. })
     }
 
