@@ -11,8 +11,8 @@ use std::path::PathBuf;
 pub struct File {
     /// Path to this file relative to user-provided root.
     pub path: PathBuf,
-    /// File contents.
-    pub contents: String,
+    /// File content.
+    pub content: String,
 }
 
 impl File {
@@ -25,7 +25,7 @@ impl File {
         V: Sized + serde::Serialize,
     {
         let path = format!("{path}.{}", era_compiler_common::EXTENSION_JSON).into();
-        let contents = serde_json::to_string_pretty(&object).expect("Always valid");
-        Self { path, contents }
+        let content = serde_json::to_string_pretty(&object).expect("Always valid");
+        Self { path, content }
     }
 }

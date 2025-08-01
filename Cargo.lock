@@ -201,6 +201,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
+name = "arbitrary"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
+dependencies = [
+ "derive_arbitrary",
+]
+
+[[package]]
 name = "ark-ff"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -429,10 +438,13 @@ dependencies = [
  "clap",
  "colored",
  "era-compiler-common",
+ "glob",
  "regex",
+ "rust_xlsxwriter",
  "semver 1.0.26",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -853,6 +865,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "crc32fast"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -951,6 +972,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "derive_arbitrary"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30542c1ad912e0e3d22a1935c290e12e8a29d704a420177a31faad4a601a0800"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1366,6 +1398,17 @@ dependencies = [
  "rand 0.8.5",
  "rustc-hex",
  "static_assertions",
+]
+
+[[package]]
+name = "flate2"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a3d7db9596fecd151c5f638c0ee5d5bd487b6e0ea232e5dc96d5250f6f94b1d"
+dependencies = [
+ "crc32fast",
+ "libz-rs-sys",
+ "miniz_oxide",
 ]
 
 [[package]]
@@ -2134,13 +2177,22 @@ checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "libredox"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "360e552c93fa0e8152ab463bc4c4837fce76a225df11dfaeea66c313de5e61f7"
+checksum = "391290121bad3d37fbddad76d8f5d1c1c314cfc646d143d7e07a3086ddff0ce3"
 dependencies = [
  "bitflags",
  "libc",
  "redox_syscall",
+]
+
+[[package]]
+name = "libz-rs-sys"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "172a788537a2221661b480fee8dc5f96c580eb34fa88764d3205dc356c7e4221"
+dependencies = [
+ "zlib-rs",
 ]
 
 [[package]]
@@ -3168,6 +3220,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48fd7bd8a6377e15ad9d42a8ec25371b94ddc67abe7c8b9127bec79bebaaae18"
 
 [[package]]
+name = "rust_xlsxwriter"
+version = "0.89.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a34eb37ee39e82b74f8a56cf0fe425586cee6e721839f14469d2648352651db"
+dependencies = [
+ "zip",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3404,9 +3465,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.141"
+version = "1.0.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30b9eff21ebe718216c6ec64e1d9ac57087aad11efc64e32002bce4a0d4c03d3"
+checksum = "030fedb782600dcbd6f02d479bf0d817ac3bb40d644745b769d6a96bc3afc5a7"
 dependencies = [
  "indexmap",
  "itoa",
@@ -3536,6 +3597,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "simd-adler32"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
+
+[[package]]
 name = "slab"
 version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3586,7 +3653,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#f953060f4ea8a25d8b2c30500887ed8679dba076"
+source = "git+https://github.com/matter-labs/solx?branch=main#baf0e59fb21b6e0ac348838db1b02318b8592f5c"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -3605,7 +3672,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#f953060f4ea8a25d8b2c30500887ed8679dba076"
+source = "git+https://github.com/matter-labs/solx?branch=main#baf0e59fb21b6e0ac348838db1b02318b8592f5c"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -3620,7 +3687,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.1"
-source = "git+https://github.com/matter-labs/solx?branch=main#f953060f4ea8a25d8b2c30500887ed8679dba076"
+source = "git+https://github.com/matter-labs/solx?branch=main#baf0e59fb21b6e0ac348838db1b02318b8592f5c"
 dependencies = [
  "anyhow",
  "era-compiler-common",
@@ -4730,6 +4797,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "zip"
+version = "4.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9aed4ac33e8eb078c89e6cbb1d5c4c7703ec6d299fc3e7c3695af8f8b423468b"
+dependencies = [
+ "arbitrary",
+ "crc32fast",
+ "flate2",
+ "indexmap",
+ "memchr",
+ "zopfli",
+]
+
+[[package]]
 name = "zk_evm"
 version = "0.152.3"
 source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
@@ -4740,20 +4821,7 @@ dependencies = [
  "serde",
  "serde_json",
  "static_assertions",
- "zk_evm_abstractions 0.152.3 (git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3)",
-]
-
-[[package]]
-name = "zk_evm_abstractions"
-version = "0.152.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7c45a892c8c254aeff3617df7507650815925943b423cf888bac201c94b926c"
-dependencies = [
- "anyhow",
- "num_enum",
- "serde",
- "static_assertions",
- "zkevm_opcode_defs 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zk_evm_abstractions 0.152.3",
 ]
 
 [[package]]
@@ -4765,7 +4833,20 @@ dependencies = [
  "num_enum",
  "serde",
  "static_assertions",
- "zkevm_opcode_defs 0.152.3 (git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3)",
+ "zkevm_opcode_defs 0.152.3",
+]
+
+[[package]]
+name = "zk_evm_abstractions"
+version = "0.152.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c8c376763e04f0f06a533fa578dd2028e0fab2b9c76ca9d7aba3657399e3dac"
+dependencies = [
+ "anyhow",
+ "num_enum",
+ "serde",
+ "static_assertions",
+ "zkevm_opcode_defs 0.152.4",
 ]
 
 [[package]]
@@ -4788,8 +4869,7 @@ dependencies = [
 [[package]]
 name = "zkevm_opcode_defs"
 version = "0.152.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04f02fb6f185df1aa4f33b18002024c50e73e3f701d25070e7da0c419bb93d77"
+source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4805,8 +4885,9 @@ dependencies = [
 
 [[package]]
 name = "zkevm_opcode_defs"
-version = "0.152.3"
-source = "git+https://github.com/matter-labs/zksync-protocol?tag=v0.152.3#30c185fe4ab7a0e33c5a70d49a6bbde66b5862d1"
+version = "0.152.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef4f77fb59a9481fd44574b8888f5afda11d44956a785da6f92f86ddaeef4859"
 dependencies = [
  "bitflags",
  "blake2",
@@ -4887,8 +4968,8 @@ source = "git+https://github.com/matter-labs/vm2#9b26181b687032526cbebf7bb0a5731
 dependencies = [
  "enum_dispatch",
  "primitive-types",
- "zk_evm_abstractions 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "zkevm_opcode_defs 0.152.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zk_evm_abstractions 0.152.4",
+ "zkevm_opcode_defs 0.152.4",
  "zksync_vm2_interface",
 ]
 
@@ -4898,4 +4979,22 @@ version = "0.4.0"
 source = "git+https://github.com/matter-labs/vm2#9b26181b687032526cbebf7bb0a573177a37e062"
 dependencies = [
  "primitive-types",
+]
+
+[[package]]
+name = "zlib-rs"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "626bd9fa9734751fc50d6060752170984d7053f5a39061f524cda68023d4db8a"
+
+[[package]]
+name = "zopfli"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edfc5ee405f504cd4984ecc6f14d02d55cfda60fa4b689434ef4102aae150cd7"
+dependencies = [
+ "bumpalo",
+ "crc32fast",
+ "log",
+ "simd-adler32",
 ]

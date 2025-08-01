@@ -47,45 +47,48 @@ impl From<Benchmark> for Csv {
         content.push_str(
             r#""group", "codegen", "version", "optimizations", "path", "case", "input", "size", "cycles", "ergs", "gas""#,
         );
-
         content.push('\n');
+
         for Test {
             metadata:
                 TestMetadata {
                     tags,
-                    selector: Selector { path, case, input },
-                },
-            codegen_groups,
-        } in benchmark.tests.values()
-        {
-            for (codegen, codegen_group) in codegen_groups {
-                for (version, versioned_group) in &codegen_group.versioned_groups {
-                    for (
-                        optimizations,
-                        crate::Executable {
-                            run:
-                                crate::Run {
-                                    size,
-                                    cycles,
-                                    ergs,
-                                    gas,
-                                },
+                    selector:
+                        Selector {
+                            project: path,
+                            case,
+                            input,
                             ..
                         },
-                    ) in &versioned_group.executables
-                    {
-                        let tags = {
-                            let mut tags = tags.clone();
-                            tags.sort();
-                            tags.join(" ")
-                        };
-                        let size_str = size.map(|s| s.to_string()).unwrap_or_default();
-                        let input = input.clone().map(|s| s.to_string()).unwrap_or_default();
-                        let case = case.as_deref().unwrap_or_default();
-                        writeln!(
-                            &mut content,
-                            r#""{tags}", "{codegen}", "{version}", "{optimizations}", "{path}", "{case}", "{input}", {size_str}, {cycles}, {ergs}, {gas}"#,
-                        ).expect("Always valid");
+                },
+            toolchain_groups,
+            ..
+        } in benchmark.tests.into_values()
+        {
+            for (_toolchain, toolchain_group) in toolchain_groups.into_iter() {
+                for (codegen, codegen_group) in toolchain_group.codegen_groups.into_iter() {
+                    for (version, versioned_group) in codegen_group.versioned_groups.into_iter() {
+                        for (optimizations, crate::Executable { run, .. }) in
+                            versioned_group.executables.into_iter()
+                        {
+                            let tags = {
+                                let mut tags = tags.clone();
+                                tags.sort();
+                                tags.join(" ")
+                            };
+                            let input = input.clone().map(|s| s.to_string()).unwrap_or_default();
+                            let case = case.as_deref().unwrap_or_default();
+
+                            let size = run.average_size();
+                            let cycles = run.average_cycles();
+                            let ergs = run.average_ergs();
+                            let gas = run.average_gas();
+
+                            writeln!(
+                                &mut content,
+                                r#""{tags}", "{codegen}", "{version}", "{optimizations}", "{path}", "{case}", "{input}", {size}, {cycles}, {ergs}, {gas}"#,
+                            ).expect("Always valid");
+                        }
                     }
                 }
             }

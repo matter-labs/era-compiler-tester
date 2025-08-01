@@ -126,12 +126,15 @@ impl Summary {
                 .expect("The compiler mode is missing from description.")
                 .into();
 
-            benchmark
+            let run = benchmark
                 .tests
                 .entry(test_name)
                 .or_insert(benchmark_analyzer::Test::new(
                     benchmark_analyzer::TestMetadata::new(selector.clone().into(), tags),
                 ))
+                .toolchain_groups
+                .entry(toolchain.to_string())
+                .or_insert(Default::default())
                 .codegen_groups
                 .entry(codegen)
                 .or_insert(Default::default())
@@ -140,15 +143,13 @@ impl Summary {
                 .or_insert(Default::default())
                 .executables
                 .entry(optimizations)
-                .or_insert(benchmark_analyzer::Executable {
-                    metadata: benchmark_analyzer::ExecutableMetadata {},
-                    run: benchmark_analyzer::Run {
-                        size,
-                        cycles,
-                        ergs,
-                        gas,
-                    },
-                });
+                .or_default();
+            if let Some(size) = size {
+                run.run.size.push(size);
+            }
+            run.run.cycles.push(cycles);
+            run.run.ergs.push(ergs);
+            run.run.gas.push(gas);
         }
         Ok(benchmark)
     }

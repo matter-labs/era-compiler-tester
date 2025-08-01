@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use evm_interpreter::is_evm_interpreter_cycles_tests_group;
 use evm_interpreter::opcode_cost_ratios;
 
-use crate::model::benchmark::test::codegen::versioned::executable::run::Run;
+use crate::model::benchmark::test::toolchain::codegen::versioned::executable::run::Run;
 use crate::model::benchmark::Benchmark;
 use crate::results::group::Group;
 use crate::results::run_description::RunDescription;
@@ -26,44 +26,47 @@ type GroupRuns<'a> = BTreeMap<&'a str, (RunDescription<'a>, &'a Run)>;
 ///
 fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
     let mut result: BTreeMap<Group<'_>, GroupRuns> = BTreeMap::new();
-
-    for (test_identifier, test) in &benchmark.tests {
-        for (codegen, codegen_group) in &test.codegen_groups {
-            for (version, versioned_group) in &codegen_group.versioned_groups {
-                for (mode, executable) in &versioned_group.executables {
-                    for tag in test
-                        .metadata
-                        .tags
-                        .iter()
-                        .map(Some)
-                        .chain(std::iter::once(None))
-                    {
-                        let tag = tag.map(|tag| tag.as_str());
-                        if codegen == "I"
-                            || (tag == Some("EVMInterpreter") && codegen != "Y")
-                            || (tag != Some("Precompiles") && codegen == "NoCodegen")
+    for (test_identifier, test) in benchmark.tests.iter() {
+        for (_toolchain, toolchain_group) in test.toolchain_groups.iter() {
+            for (codegen, codegen_group) in toolchain_group.codegen_groups.iter() {
+                for (version, versioned_group) in codegen_group.versioned_groups.iter() {
+                    for (mode, executable) in versioned_group.executables.iter() {
+                        for tag in test
+                            .metadata
+                            .tags
+                            .iter()
+                            .map(Some)
+                            .chain(std::iter::once(None))
                         {
-                            continue;
-                        }
+                            let tag = tag.map(|tag| tag.as_str());
+                            if codegen == "I"
+                                || (tag == Some("EVMInterpreter") && codegen != "Y")
+                                || (tag != Some("Precompiles") && codegen == "NoCodegen")
+                            {
+                                continue;
+                            }
 
-                        let run_description = RunDescription {
-                            test_metadata: &test.metadata,
-                            version,
-                            codegen,
-                            mode,
-                            executable_metadata: &executable.metadata,
-                            run: &executable.run,
-                        };
-                        result
-                            .entry(Group::from_tag(tag, Some(codegen), Some(mode)))
-                            .or_default()
-                            .insert(test_identifier.as_str(), (run_description, &executable.run));
+                            let run_description = RunDescription {
+                                test_metadata: &test.metadata,
+                                version,
+                                codegen,
+                                mode,
+                                executable_metadata: &executable.metadata,
+                                run: &executable.run,
+                            };
+                            result
+                                .entry(Group::from_tag(tag, Some(codegen), Some(mode)))
+                                .or_default()
+                                .insert(
+                                    test_identifier.as_str(),
+                                    (run_description, &executable.run),
+                                );
+                        }
                     }
                 }
             }
         }
     }
-
     result
 }
 
@@ -173,23 +176,23 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
     let mut gas_total_candidate: u64 = 0;
 
     for (description, reference, candidate) in runs.into_iter() {
-        let file_path = &description.test_metadata.selector.path;
+        let file_path = &description.test_metadata.selector.project;
         // FIXME: ad-hoc patch
         if file_path.contains(crate::model::evm_interpreter::TEST_PATH) {
             if let Some(input) = &description.test_metadata.selector.input {
-                if input.is_deployer() {
+                if input.is_deploy() {
                     continue;
                 }
             }
         }
 
-        cycles_total_reference += reference.cycles;
-        cycles_total_candidate += candidate.cycles;
-        let cycles_factor = (candidate.cycles as f64) / (reference.cycles as f64);
-        if candidate.cycles > reference.cycles {
+        cycles_total_reference += reference.average_cycles();
+        cycles_total_candidate += candidate.average_cycles();
+        let cycles_factor = (cycles_total_candidate as f64) / (cycles_total_reference as f64);
+        if cycles_total_candidate > cycles_total_reference {
             cycles_negatives.push((cycles_factor, description.clone()));
         }
-        if candidate.cycles < reference.cycles {
+        if cycles_total_candidate < cycles_total_reference {
             cycles_positives.push((cycles_factor, description.clone()));
         }
         if cycles_factor < cycles_best {
@@ -200,13 +203,13 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         }
         cycles_factors.push(cycles_factor);
 
-        ergs_total_reference += reference.ergs;
-        ergs_total_candidate += candidate.ergs;
-        let ergs_factor = (candidate.ergs as f64) / (reference.ergs as f64);
-        if candidate.ergs > reference.ergs {
+        ergs_total_reference += reference.average_ergs();
+        ergs_total_candidate += candidate.average_ergs();
+        let ergs_factor = (ergs_total_candidate as f64) / (ergs_total_reference as f64);
+        if ergs_total_candidate > ergs_total_reference {
             ergs_negatives.push((ergs_factor, description.clone()));
         }
-        if candidate.ergs < reference.ergs {
+        if ergs_total_candidate < ergs_total_reference {
             ergs_positives.push((ergs_factor, description.clone()));
         }
         if ergs_factor < ergs_best {
@@ -217,13 +220,13 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         }
         ergs_factors.push(ergs_factor);
 
-        gas_total_reference += reference.gas;
-        gas_total_candidate += candidate.gas;
-        let gas_factor = (candidate.gas as f64) / (reference.gas as f64);
-        if candidate.gas > reference.gas {
+        gas_total_reference += reference.average_gas();
+        gas_total_candidate += candidate.average_gas();
+        let gas_factor = (gas_total_candidate as f64) / (gas_total_reference as f64);
+        if gas_total_candidate > gas_total_reference {
             gas_negatives.push((gas_factor, description.clone()));
         }
-        if candidate.gas < reference.gas {
+        if gas_total_candidate < gas_total_reference {
             gas_positives.push((gas_factor, description.clone()));
         }
         if gas_factor < gas_best {
@@ -234,13 +237,15 @@ fn compare_runs<'a>(runs: Vec<(RunDescription<'a>, &'a Run, &'a Run)>) -> Result
         }
         gas_factors.push(gas_factor);
 
-        let reference_size = match reference.size {
-            Some(size) => size,
-            None => continue,
+        let reference_size = if !reference.size.is_empty() {
+            reference.average_size()
+        } else {
+            continue;
         };
-        let candidate_size = match candidate.size {
-            Some(size) => size,
-            None => continue,
+        let candidate_size = if !candidate.size.is_empty() {
+            candidate.average_size()
+        } else {
+            continue;
         };
         size_total_reference += reference_size;
         size_total_candidate += candidate_size;

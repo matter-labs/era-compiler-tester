@@ -122,7 +122,7 @@ impl DummyDeployer {
             .iter()
             .flat_map(|value| {
                 let mut bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
-                value.unwrap_certain_as_ref().to_big_endian(&mut bytes);
+                value.unwrap_known_as_ref().to_big_endian(&mut bytes);
                 bytes
             })
             .collect::<Vec<u8>>();

@@ -10,35 +10,22 @@ use clap::Parser;
 /// The benchmark analyzer arguments.
 ///
 #[derive(Debug, Parser)]
-#[command(about, long_about = None)]
+#[command(about, long_about = None, arg_required_else_help = true)]
 pub struct Arguments {
     /// Input files.
-    #[structopt(long)]
+    /// If only one path is provided, it is treated as a directory with JSON files.
     pub input_paths: Vec<PathBuf>,
 
-    /// Benchmark output format: `json`, `csv`, or `json-lnt`.
-    /// Using `json-lnt` requires providing the path to a JSON file describing the
-    /// benchmarking context via `--benchmark-context`.
-    #[structopt(long = "benchmark-format", default_value_t = benchmark_analyzer::OutputFormat::Json)]
-    pub benchmark_format: benchmark_analyzer::OutputFormat,
-
     /// Benchmark context to pass additional data.
+    /// Deprecated: use separate arguments instead.
     #[structopt(long = "benchmark-context")]
-    pub benchmark_context: PathBuf,
+    pub benchmark_context: Option<PathBuf>,
+
+    /// Benchmark output format: `json`, `csv`, or `json-lnt`.
+    #[structopt(long = "output-format", alias = "benchmark-format", default_value_t = benchmark_analyzer::OutputFormat::Xlsx)]
+    pub output_format: benchmark_analyzer::OutputFormat,
 
     /// Output files.
     #[structopt(long)]
     pub output_path: PathBuf,
-}
-
-impl Arguments {
-    ///
-    /// Validates the command line arguments.
-    ///
-    pub fn validate(&self) -> anyhow::Result<()> {
-        if self.input_paths.is_empty() {
-            anyhow::bail!("No input files provided. Use `--input-paths` to specify input files.");
-        }
-        Ok(())
-    }
 }

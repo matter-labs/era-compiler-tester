@@ -8,6 +8,10 @@ impl From<TestSelector> for benchmark_analyzer::TestSelector {
     fn from(selector: TestSelector) -> Self {
         let TestSelector { path, case, input } = selector;
         let input = input.map(Into::into);
-        benchmark_analyzer::TestSelector { path, case, input }
+        benchmark_analyzer::TestSelector {
+            project: path,
+            case,
+            input,
+        }
     }
 }

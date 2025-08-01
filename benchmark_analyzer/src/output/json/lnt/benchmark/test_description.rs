@@ -2,7 +2,7 @@
 //! Description of a single measurement in a JSON file passed to LNT.
 //!
 
-use crate::model::benchmark::test::codegen::versioned::executable::run::Run;
+use crate::model::benchmark::test::toolchain::codegen::versioned::executable::run::Run;
 
 ///
 /// Description of a single measurement in a JSON file passed to LNT.
