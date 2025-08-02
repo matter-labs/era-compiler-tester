@@ -55,6 +55,16 @@ impl Input {
     pub fn is_fallback(&self) -> bool {
         matches!(self, Self::Fallback { .. })
     }
+
+    ///
+    /// Returns the runtime function name if it is applicable.
+    ///
+    pub fn runtime_name(&self) -> Option<&str> {
+        match self {
+            Self::Runtime { name, .. } => Some(name.as_str()),
+            _ => None,
+        }
+    }
 }
 
 impl std::fmt::Display for Input {
