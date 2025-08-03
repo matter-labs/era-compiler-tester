@@ -48,7 +48,9 @@ fn main() -> anyhow::Result<()> {
         match benchmark_analyzer::InputReport::try_from(path.as_path()) {
             Ok(input) => benchmark.extend(input)?,
             Err(benchmark_analyzer::InputReportError::EmptyFile { path }) => {
-                eprintln!("Warning: Input file {path:?} is empty and will be skipped.");
+                if !arguments.quiet {
+                    eprintln!("Warning: Input file {path:?} is empty and will be skipped.");
+                }
                 continue;
             }
             Err(error) => Err(error)?,

@@ -182,7 +182,11 @@ impl Worksheet {
         total_toolchains: u16,
         diff_index: u16,
     ) -> anyhow::Result<()> {
-        let column_identifier = format!("{toolchain_name_1}\nvs\n{toolchain_name_2}");
+        let column_identifier = format!(
+            "{}\n------- vs -------\n{}",
+            toolchain_name_1.replace('-', "\n"),
+            toolchain_name_2.replace('-', "\n")
+        );
         let column_index = (self.headers.len() as u16) + total_toolchains + diff_index;
         self.worksheet.write_with_format(
             0,
@@ -197,7 +201,7 @@ impl Worksheet {
                 (row_id + 1) as u32,
                 column_index,
                 format!(
-                    "(({0}{2}/{1}{2})-1)*100",
+                    r#"=IF(AND({0}{2}<>"", {1}{2}<>"", {0}{2}<>0, {1}{2}<>0), ({0}{2}-{1}{2}) / {1}{2}, "")"#,
                     Self::column_identifier((self.headers.len() as u16) + toolchain_id_1),
                     Self::column_identifier((self.headers.len() as u16) + toolchain_id_2),
                     row_id + 2
@@ -240,7 +244,7 @@ impl Worksheet {
     fn worksheet_caption_format() -> rust_xlsxwriter::Format {
         let format = rust_xlsxwriter::Format::new();
         let format = format.set_bold();
-        let format = format.set_font_size(14);
+        let format = format.set_font_size(16);
         let format = format.set_font_color("#FFFFFF");
         let format = format.set_background_color("#4C6EF5");
         let format = format.set_align(rust_xlsxwriter::FormatAlign::Center);
@@ -255,7 +259,7 @@ impl Worksheet {
     fn column_header_format() -> rust_xlsxwriter::Format {
         let format = rust_xlsxwriter::Format::new();
         let format = format.set_bold();
-        let format = format.set_font_size(14);
+        let format = format.set_font_size(12);
         let format = format.set_font_color("#1E1E1E");
         let format = format.set_background_color("#EEF3FF");
         let format = format.set_align(rust_xlsxwriter::FormatAlign::Center);
@@ -270,11 +274,11 @@ impl Worksheet {
     fn column_comparison_header_format() -> rust_xlsxwriter::Format {
         let format = rust_xlsxwriter::Format::new();
         let format = format.set_bold();
-        let format = format.set_font_size(9);
+        let format = format.set_font_size(11);
         let format = format.set_font_color("#1E1E1E");
         let format = format.set_background_color("#EEF3FF");
         let format = format.set_align(rust_xlsxwriter::FormatAlign::Center);
-        let format = format.set_align(rust_xlsxwriter::FormatAlign::Top);
+        let format = format.set_align(rust_xlsxwriter::FormatAlign::VerticalCenter);
         let format = format.set_border(rust_xlsxwriter::FormatBorder::None);
         format
     }

@@ -12,6 +12,10 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[command(about, long_about = None, arg_required_else_help = true)]
 pub struct Arguments {
+    /// Suppresses the terminal output.
+    #[arg(short, long)]
+    pub quiet: bool,
+
     /// Input files.
     /// If only one path is provided, it is treated as a directory with JSON files.
     pub input_paths: Vec<PathBuf>,

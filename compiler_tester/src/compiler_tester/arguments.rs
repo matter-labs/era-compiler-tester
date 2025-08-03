@@ -16,7 +16,7 @@ pub struct Arguments {
     #[arg(short, long)]
     pub verbose: bool,
 
-    /// Suppresses the output completely.
+    /// Suppresses the terminal output.
     #[arg(short, long)]
     pub quiet: bool,
 
