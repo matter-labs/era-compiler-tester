@@ -128,29 +128,43 @@ impl Worksheet {
             return Ok(());
         }
 
-        let next_row_index = (self.rows.len() + 1) as u32;
-        for index in 0..self.headers.len() {
-            let total_caption = if index == self.headers.len() - 1 {
-                "Total"
-            } else {
-                ""
-            };
-            self.worksheet.write_with_format(
-                next_row_index,
-                index as u16,
-                total_caption,
-                &Self::row_header_summary_format(),
-            )?;
-        }
-        for column_index in 0..column_count {
-            let column_name = b'A' + (self.headers.len() as u8) + (column_index as u8);
-            let formula = format!("SUM({0}2:{0}{1})", column_name as char, next_row_index);
-            self.worksheet.write_formula_with_format(
-                next_row_index,
-                (self.headers.len() + column_index) as u16,
-                formula.as_str(),
-                &Self::value_format(),
-            )?;
+        let summary_names = &["Total", "Median"];
+        let summary_formulas = &["SUM", "MEDIAN"];
+
+        let first_row_index = self.rows.len() + 1;
+        for row_index in 0..summary_names.len() {
+            for column_index in 0..self.headers.len() {
+                let total_caption = if column_index == self.headers.len() - 1 {
+                    summary_names[row_index]
+                } else {
+                    ""
+                };
+                self.worksheet.write_with_format(
+                    (first_row_index + row_index) as u32,
+                    column_index as u16,
+                    total_caption,
+                    &Self::row_header_summary_format(),
+                )?;
+            }
+            // let first_column_name = Self::column_identifier(self.headers.len() as u16);
+            // let last_column_name = Self::column_identifier((self.headers.len() + column_count - 1) as u16);
+            for column_index in 0..column_count {
+                let column_name =
+                    Self::column_identifier((self.headers.len() + column_index) as u16);
+
+                let formula = format!(
+                    "{}({column_name}2:{column_name}{})",
+                    summary_formulas[row_index],
+                    (first_row_index + row_index)
+                );
+
+                self.worksheet.write_formula_with_format(
+                    (first_row_index + row_index) as u32,
+                    (self.headers.len() + column_index) as u16,
+                    formula.as_str(),
+                    &Self::value_format(),
+                )?;
+            }
         }
 
         Ok(())
@@ -159,22 +173,36 @@ impl Worksheet {
     ///
     /// Sets diffs for the first two data columns in the worksheet.
     ///
-    pub fn set_diffs(&mut self) -> anyhow::Result<()> {
-        let column_identifier = "-%";
+    pub fn set_diffs(
+        &mut self,
+        toolchain_id_1: u16,
+        toolchain_name_1: &str,
+        toolchain_id_2: u16,
+        toolchain_name_2: &str,
+        total_toolchains: u16,
+        diff_index: u16,
+    ) -> anyhow::Result<()> {
+        let column_identifier = format!("{toolchain_name_1}\nvs\n{toolchain_name_2}");
+        let column_index = (self.headers.len() as u16) + total_toolchains + diff_index;
         self.worksheet.write_with_format(
             0,
-            self.headers.len() as u16,
+            column_index,
             column_identifier,
-            &Self::column_header_format(),
+            &Self::column_comparison_header_format(),
         )?;
-        self.worksheet
-            .set_column_width(self.headers.len() as u16, 10)?;
+        self.worksheet.set_column_width(column_index, 10)?;
 
-        for row_id in 0..self.rows.len() + 1 {
+        for row_id in 0..self.rows.len() + 2 {
             self.worksheet.write_formula_with_format(
                 (row_id + 1) as u32,
-                3,
-                format!("((C{0}/B{0})-1)*100", row_id + 2).as_str(),
+                column_index,
+                format!(
+                    "(({0}{2}/{1}{2})-1)*100",
+                    Self::column_identifier((self.headers.len() as u16) + toolchain_id_1),
+                    Self::column_identifier((self.headers.len() as u16) + toolchain_id_2),
+                    row_id + 2
+                )
+                .as_str(),
                 &Self::percent_format(),
             )?;
         }
@@ -187,6 +215,23 @@ impl Worksheet {
     ///
     pub fn into_inner(self) -> rust_xlsxwriter::Worksheet {
         self.worksheet
+    }
+
+    ///
+    /// Returns the alphabetical column identifier by its index.
+    ///
+    pub fn column_identifier(index: u16) -> String {
+        let mut identifier = String::new();
+        let mut index = index;
+
+        while index > 0 {
+            let letter = (b'A' + (index % 26) as u8) as char;
+            identifier.insert(0, letter);
+            index /= 26;
+            index = index.saturating_sub(1);
+        }
+
+        identifier
     }
 
     ///
@@ -211,6 +256,21 @@ impl Worksheet {
         let format = rust_xlsxwriter::Format::new();
         let format = format.set_bold();
         let format = format.set_font_size(14);
+        let format = format.set_font_color("#1E1E1E");
+        let format = format.set_background_color("#EEF3FF");
+        let format = format.set_align(rust_xlsxwriter::FormatAlign::Center);
+        let format = format.set_align(rust_xlsxwriter::FormatAlign::Top);
+        let format = format.set_border(rust_xlsxwriter::FormatBorder::None);
+        format
+    }
+
+    ///
+    /// Returns the eponymous cell format.
+    ///
+    fn column_comparison_header_format() -> rust_xlsxwriter::Format {
+        let format = rust_xlsxwriter::Format::new();
+        let format = format.set_bold();
+        let format = format.set_font_size(9);
         let format = format.set_font_color("#1E1E1E");
         let format = format.set_background_color("#EEF3FF");
         let format = format.set_align(rust_xlsxwriter::FormatAlign::Center);

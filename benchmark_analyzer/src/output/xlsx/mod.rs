@@ -23,7 +23,10 @@ pub struct Xlsx {
     pub runtime_size_worksheet: Worksheet,
     /// Worksheet for deploy bytecode size measurements.
     pub deploy_size_worksheet: Worksheet,
-    /// Toolchain identifiers used to allocate columns.
+
+    /// Toolchain identifiers.
+    pub toolchains: Vec<String>,
+    /// Toolchain indexes used to allocate columns.
     pub toolchain_ids: HashMap<String, u16>,
 }
 
@@ -52,7 +55,9 @@ impl Xlsx {
             deploy_gas_worksheet,
             runtime_size_worksheet,
             deploy_size_worksheet,
-            toolchain_ids: HashMap::new(),
+
+            toolchains: Vec::with_capacity(8),
+            toolchain_ids: HashMap::with_capacity(8),
         })
     }
 
@@ -67,6 +72,7 @@ impl Xlsx {
         let toolchain_id = self.toolchain_ids.len() as u16;
         self.toolchain_ids
             .insert(toolchain_name.to_owned(), toolchain_id);
+        self.toolchains.push(toolchain_name.to_owned());
         toolchain_id
     }
 
@@ -178,11 +184,44 @@ impl TryFrom<Benchmark> for Xlsx {
         xlsx.deploy_size_worksheet
             .set_totals(xlsx.toolchain_ids.len())?;
 
-        // if xlsx.next_column_index >= 3 {
-        //     xlsx.set_diffs("Runtime Gas")?;
-        //     xlsx.set_diffs("Deployment Gas")?;
-        //     xlsx.set_diffs("Bytecode Size")?;
-        // }
+        for (index, (toolchain_id_1, toolchain_id_2)) in
+            [(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)]
+                .into_iter()
+                .enumerate()
+        {
+            xlsx.runtime_gas_worksheet.set_diffs(
+                toolchain_id_1,
+                xlsx.toolchains[toolchain_id_1 as usize].as_str(),
+                toolchain_id_2,
+                xlsx.toolchains[toolchain_id_2 as usize].as_str(),
+                xlsx.toolchain_ids.len() as u16,
+                index as u16,
+            )?;
+            xlsx.deploy_gas_worksheet.set_diffs(
+                toolchain_id_1,
+                xlsx.toolchains[toolchain_id_1 as usize].as_str(),
+                toolchain_id_2,
+                xlsx.toolchains[toolchain_id_2 as usize].as_str(),
+                xlsx.toolchain_ids.len() as u16,
+                index as u16,
+            )?;
+            xlsx.runtime_size_worksheet.set_diffs(
+                toolchain_id_1,
+                xlsx.toolchains[toolchain_id_1 as usize].as_str(),
+                toolchain_id_2,
+                xlsx.toolchains[toolchain_id_2 as usize].as_str(),
+                xlsx.toolchain_ids.len() as u16,
+                index as u16,
+            )?;
+            xlsx.deploy_size_worksheet.set_diffs(
+                toolchain_id_1,
+                xlsx.toolchains[toolchain_id_1 as usize].as_str(),
+                toolchain_id_2,
+                xlsx.toolchains[toolchain_id_2 as usize].as_str(),
+                xlsx.toolchain_ids.len() as u16,
+                index as u16,
+            )?;
+        }
 
         Ok(xlsx)
     }
