@@ -127,39 +127,62 @@ impl Worksheet {
         if self.rows.is_empty() {
             return Ok(());
         }
+        let last_data_row_index = self.rows.len() + 1;
 
-        let summary_names = &["Total", "Median"];
-        let summary_formulas = &["SUM", "MEDIAN"];
+        let sum_criterion = (self.headers.len()..=(self.headers.len() + column_count - 1)).map(|column_index| {
+            let column_name = Self::column_identifier(column_index as u16);
+            format!(r#"{column_name}2:{column_name}{last_data_row_index},"<>", {column_name}2:{column_name}{last_data_row_index},"<>0""#)
+        }).collect::<Vec<String>>().join(", ");
+        let median_criterion = (self.headers.len()..=(self.headers.len() + column_count - 1)).map(|column_index| {
+            let column_name = Self::column_identifier(column_index as u16);
+            format!(r#"(${column_name}$2:${column_name}${last_data_row_index}<>"")*(${column_name}$2:${column_name}${last_data_row_index}<>0)"#)
+        }).collect::<Vec<String>>().join("*");
 
-        let first_row_index = self.rows.len() + 1;
-        for row_index in 0..summary_names.len() {
+        for (total_row_index, summary_name) in ["Total", "Median"].iter().enumerate() {
+            let value_row_index = last_data_row_index + total_row_index;
+
             for column_index in 0..self.headers.len() {
                 let total_caption = if column_index == self.headers.len() - 1 {
-                    summary_names[row_index]
+                    summary_name
                 } else {
                     ""
                 };
                 self.worksheet.write_with_format(
-                    (first_row_index + row_index) as u32,
+                    value_row_index as u32,
                     column_index as u16,
                     total_caption,
                     &Self::row_header_summary_format(),
                 )?;
             }
-            // let first_column_name = Self::column_identifier(self.headers.len() as u16);
-            // let last_column_name = Self::column_identifier((self.headers.len() + column_count - 1) as u16);
+
             for column_index in 0..column_count {
                 let column_name =
                     Self::column_identifier((self.headers.len() + column_index) as u16);
 
-                let formula = format!(
-                    "{}({column_name}2:{column_name}{})",
-                    summary_formulas[row_index],
-                    (first_row_index + row_index)
-                );
+                let formula = match total_row_index {
+                    0 => {
+                        format!(
+                            "SUMIFS(
+                        {column_name}2:{column_name}{last_data_row_index},
+                        {sum_criterion})"
+                        )
+                    }
+                    1 => {
+                        format!(
+                            "MEDIAN(FILTER(
+                    {column_name}2:{column_name}{last_data_row_index},
+                    {median_criterion}))"
+                        )
+                    }
+                    _ => {
+                        return Err(anyhow::anyhow!(
+                            "Unexpected total row index: {total_row_index}",
+                        ));
+                    }
+                };
 
                 self.worksheet.write_formula_with_format(
-                    (first_row_index + row_index) as u32,
+                    value_row_index as u32,
                     (self.headers.len() + column_index) as u16,
                     formula.as_str(),
                     &Self::value_format(),
@@ -330,7 +353,7 @@ impl Worksheet {
         let format = format.set_background_color("#FFFFFF");
         let format = format.set_align(rust_xlsxwriter::FormatAlign::Right);
         let format = format.set_border(rust_xlsxwriter::FormatBorder::None);
-        let format = format.set_num_format("0.000");
+        let format = format.set_num_format("0.000%");
         format
     }
 }
