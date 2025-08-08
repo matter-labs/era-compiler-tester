@@ -20,29 +20,6 @@ pub struct Selector {
     pub input: Option<Input>,
 }
 
-impl Selector {
-    ///
-    /// Returns the identifier for XLSX reports.
-    ///
-    pub fn xlsx_identifier(&self) -> String {
-        let Self {
-            project,
-            case,
-            input,
-        } = self;
-        let mut identifier = project.clone();
-        if let Some(case) = case {
-            identifier.push('/');
-            identifier.push_str(case.as_str());
-        }
-        if let Some(Input::Runtime { name, .. }) = input {
-            identifier.push('.');
-            identifier.push_str(name.as_str());
-        }
-        identifier
-    }
-}
-
 impl std::fmt::Display for Selector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self {

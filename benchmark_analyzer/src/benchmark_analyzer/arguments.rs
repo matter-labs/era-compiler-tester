@@ -12,6 +12,10 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[command(about, long_about = None)]
 pub struct Arguments {
+    /// Suppresses the terminal output.
+    #[arg(short, long)]
+    pub quiet: bool,
+
     /// The reference build benchmark.
     #[structopt(long, default_value = "reference.json")]
     pub reference: PathBuf,
