@@ -117,9 +117,13 @@ impl TryFrom<Benchmark> for Xlsx {
                 .and_then(|input| input.runtime_name());
 
             for (toolchain_name, toolchain_group) in test.toolchain_groups.into_iter() {
-                for codegen_group in toolchain_group.codegen_groups.into_values() {
-                    for version_group in codegen_group.versioned_groups.into_values() {
-                        for optimization_group in version_group.executables.into_values() {
+                for (codegen_name, codegen_group) in toolchain_group.codegen_groups.into_iter() {
+                    for (version_name, version_group) in codegen_group.versioned_groups.into_iter()
+                    {
+                        for (optimization_name, optimization_group) in
+                            version_group.executables.into_iter()
+                        {
+                            let toolchain_name = format!("{toolchain_name}-{version_name}-{codegen_name}-{optimization_name}");
                             let toolchain_id = xlsx.get_toolchain_id(toolchain_name.as_str());
 
                             if is_deployer {
@@ -185,9 +189,8 @@ impl TryFrom<Benchmark> for Xlsx {
             .set_totals(xlsx.toolchain_ids.len())?;
 
         for (index, (toolchain_id_1, toolchain_id_2)) in
-            [(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)]
-                .into_iter()
-                .enumerate()
+            // [(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)]
+            [(6, 2), (7, 3), (4, 0), (5, 1)].into_iter().enumerate()
         {
             xlsx.runtime_gas_worksheet.set_diffs(
                 toolchain_id_1,

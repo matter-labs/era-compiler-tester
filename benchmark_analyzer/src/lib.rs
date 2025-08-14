@@ -12,9 +12,9 @@ pub mod output;
 pub mod results;
 pub mod util;
 
+pub use crate::input::error::Error as InputReportError;
 pub use crate::input::foundry_gas::FoundryGasReport;
 pub use crate::input::Input as InputReport;
-pub use crate::input::InputError as InputReportError;
 pub use crate::model::benchmark::metadata::Metadata as BenchmarkMetadata;
 pub use crate::model::benchmark::test::input::Input;
 pub use crate::model::benchmark::test::metadata::Metadata as TestMetadata;
