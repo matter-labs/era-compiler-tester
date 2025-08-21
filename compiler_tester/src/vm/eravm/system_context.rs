@@ -275,7 +275,7 @@ impl SystemContext {
         EVMContext {
             chain_id: SystemContext::CHAIND_ID_EVM,
             coinbase: &SystemContext::COIN_BASE_EVM[2..],
-            block_number: SystemContext::INITIAL_BLOCK_NUMBER,
+            block_number: SystemContext::CURRENT_BLOCK_NUMBER,
             block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
             block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
             block_difficulty,

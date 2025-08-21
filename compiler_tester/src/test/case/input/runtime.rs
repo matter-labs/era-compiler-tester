@@ -169,6 +169,7 @@ impl Runtime {
             self.calldata.clone(),
             self.value,
             evm_version,
+            input_index,
         );
         vm = vm.update_balance_if_lack_of_funds(caller);
 

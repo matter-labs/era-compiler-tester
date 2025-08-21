@@ -175,6 +175,7 @@ impl REVM<'_> {
         calldata: Calldata,
         value: Option<u128>,
         evm_version: Option<EVMVersion>,
+        input_index: usize,
     ) -> Self {
         let vm = self
             .state
@@ -186,7 +187,7 @@ impl REVM<'_> {
                 env.tx.value = revm::primitives::U256::from(value.unwrap_or_default());
                 env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&address));
                 env.cfg.chain_id = evm_context.chain_id;
-                env.block.number = U256::from(evm_context.block_number);
+                env.block.number = U256::from(input_index);
                 let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
                 env.block.coinbase = web3_u256_to_revm_address(coinbase);
                 env.block.timestamp = U256::from(evm_context.block_timestamp);
