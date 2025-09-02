@@ -86,7 +86,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
-        vec![SolcMode::new(semver::Version::new(0, 8, 26), era_solc::StandardJsonInputCodegen::Yul, false, true, false).into()]
+        vec![SolcMode::new(semver::Version::new(0, 8, 30), era_solc::StandardJsonInputCodegen::Yul, false, true, false).into()]
     };
 
     ///
@@ -95,7 +95,7 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref YUL_MLIR_MODES: Vec<Mode> = {
-        vec![YulUpstreamMode::new(semver::Version::new(0, 8, 26), true, false).into()]
+        vec![YulUpstreamMode::new(semver::Version::new(0, 8, 30), true, false).into()]
     };
 }
 
@@ -210,12 +210,6 @@ impl SolidityCompiler {
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         });
 
-        let optimizer = SolcStandardJsonInputOptimizer::new(match mode {
-            Mode::Solc(mode) => mode.solc_optimize,
-            Mode::YulUpstream(mode) => mode.solc_optimize,
-            mode => anyhow::bail!("Unsupported mode: {mode}"),
-        });
-
         let evm_version = match mode {
             Mode::Solc(mode) if mode.solc_version >= SolcUpstreamCompiler::FIRST_CANCUN_VERSION => {
                 Some(era_compiler_common::EVMVersion::Cancun)
@@ -237,6 +231,15 @@ impl SolidityCompiler {
             mode => anyhow::bail!("Unsupported mode: {mode}"),
         };
 
+        let optimizer = SolcStandardJsonInputOptimizer::new(
+            match mode {
+                Mode::Solc(mode) => mode.solc_optimize,
+                Mode::YulUpstream(mode) => mode.solc_optimize,
+                mode => anyhow::bail!("Unsupported mode: {mode}"),
+            },
+            if via_mlir { Some('3') } else { None },
+        );
+
         let debug = if solc_version >= &semver::Version::new(0, 6, 3) {
             test_params.map(|test_params| {
                 SolcStandardJsonInputDebug::new(Some(test_params.revert_strings.to_string()))
@@ -253,7 +256,11 @@ impl SolidityCompiler {
             None,
             output_selection,
             via_ir,
-            via_mlir,
+            if via_mlir {
+                Some("mlir".to_owned())
+            } else {
+                None
+            },
             optimizer,
             debug,
         )

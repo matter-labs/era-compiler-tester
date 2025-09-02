@@ -1,6 +1,6 @@
 {
   "binaries": {
-    "0.8.26": {
+    "0.8.30": {
       "is_enabled": true,
       "protocol": "https",
       "source": "https://github.com/matter-labs/era-solidity/releases/download/mlir-${VERSION}-tag/solc-${PLATFORM}-${VERSION}-mlir",
