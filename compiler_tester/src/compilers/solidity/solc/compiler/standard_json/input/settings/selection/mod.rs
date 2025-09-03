@@ -22,7 +22,7 @@ impl Selection {
     ///
     /// Creates the selection required by EVM compilation process.
     ///
-    pub fn new_required(codegen: era_solc::StandardJsonInputCodegen) -> Self {
+    pub fn new_required(codegen: Option<era_solc::StandardJsonInputCodegen>) -> Self {
         Self {
             all: Some(FileSelection::new_required(codegen)),
         }

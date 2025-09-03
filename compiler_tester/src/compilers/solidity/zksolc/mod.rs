@@ -209,6 +209,7 @@ impl SolidityCompiler {
             mode.solc_version.clone(),
             Some(mode.solc_codegen),
             mode.via_ir,
+            false,
             true,
         );
 
