@@ -8,9 +8,6 @@ pub mod input;
 pub mod system_context;
 pub mod system_contracts;
 
-#[cfg(feature = "vm2")]
-mod vm2_adapter;
-
 use std::collections::HashMap;
 use std::ops::Add;
 use std::path::PathBuf;
@@ -402,73 +399,42 @@ impl EraVM {
             }
         }
 
-        #[cfg(not(feature = "vm2"))]
-        {
-            let snapshot = zkevm_tester::compiler_tests::run_vm_multi_contracts(
-                trace_file_path.to_string_lossy().to_string(),
-                self.deployed_contracts.clone(),
-                &calldata,
-                self.storage.clone(),
-                self.storage_transient.clone(),
-                entry_address,
-                Some(context),
-                vm_launch_option,
-                usize::MAX,
-                self.known_contracts.clone(),
-                self.published_evm_bytecodes.clone(),
-                self.default_aa_code_hash,
-                self.evm_interpreter_code_hash,
-            )?;
+        let snapshot = zkevm_tester::compiler_tests::run_vm_multi_contracts(
+            trace_file_path.to_string_lossy().to_string(),
+            self.deployed_contracts.clone(),
+            &calldata,
+            self.storage.clone(),
+            self.storage_transient.clone(),
+            entry_address,
+            Some(context),
+            vm_launch_option,
+            usize::MAX,
+            self.known_contracts.clone(),
+            self.published_evm_bytecodes.clone(),
+            self.default_aa_code_hash,
+            self.evm_interpreter_code_hash,
+        )?;
 
-            for (address, assembly) in snapshot.deployed_contracts.iter() {
-                if self.deployed_contracts.contains_key(address) {
-                    continue;
-                }
-
-                self.deployed_contracts
-                    .insert(*address, assembly.to_owned());
+        for (address, assembly) in snapshot.deployed_contracts.iter() {
+            if self.deployed_contracts.contains_key(address) {
+                continue;
             }
 
-            for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
-                if self.published_evm_bytecodes.contains_key(hash) {
-                    continue;
-                }
-
-                self.published_evm_bytecodes.insert(*hash, preimage.clone());
-            }
-
-            self.storage.clone_from(&snapshot.storage);
-
-            Ok(snapshot.into())
+            self.deployed_contracts
+                .insert(*address, assembly.to_owned());
         }
-        #[cfg(feature = "vm2")]
-        {
-            let (result, storage_changes, deployed_contracts) = vm2_adapter::run_vm(
-                self.deployed_contracts.clone(),
-                &calldata,
-                self.storage.clone(),
-                entry_address,
-                Some(context),
-                vm_launch_option,
-                self.known_contracts.clone(),
-                self.default_aa_code_hash,
-                self.evm_interpreter_code_hash,
-            )
-            .map_err(|error| anyhow::anyhow!("EraVM failure: {}", error))?;
 
-            for (key, value) in storage_changes.into_iter() {
-                self.storage.insert(key, value);
-            }
-            for (address, assembly) in deployed_contracts.into_iter() {
-                if self.deployed_contracts.contains_key(&address) {
-                    continue;
-                }
-
-                self.deployed_contracts.insert(address, assembly);
+        for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
+            if self.published_evm_bytecodes.contains_key(hash) {
+                continue;
             }
 
-            Ok(result)
+            self.published_evm_bytecodes.insert(*hash, preimage.clone());
         }
+
+        self.storage.clone_from(&snapshot.storage);
+
+        Ok(snapshot.into())
     }
 
     ///

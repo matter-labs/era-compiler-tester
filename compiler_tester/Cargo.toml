@@ -40,7 +40,6 @@ chrono = "0.4"
 revm = "29.0"
 zkevm_opcode_defs = { git = "https://github.com/matter-labs/zksync-protocol", branch = "main" }
 zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.2" }
-vm2 = { git = "https://github.com/matter-labs/vm2", optional = true, package = "zksync_vm2" }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
 era-compiler-downloader = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
