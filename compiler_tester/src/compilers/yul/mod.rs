@@ -124,63 +124,6 @@ impl Compiler for YulCompiler {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
         match self {
-            Self::Zksolc => {
-                let mode = YulMode::unwrap(mode);
-
-                let solc_version = era_solc::Version::new(
-                    era_solc::Compiler::LAST_SUPPORTED_VERSION.to_string(),
-                    era_solc::Compiler::LAST_SUPPORTED_VERSION,
-                    ZksolcCompiler::LAST_ZKSYNC_SOLC_REVISION,
-                );
-
-                let last_contract = sources
-                    .last()
-                    .ok_or_else(|| anyhow::anyhow!("Yul sources are empty"))?
-                    .0
-                    .clone();
-
-                let linker_symbols = libraries.as_linker_symbols()?;
-
-                let sources = sources
-                    .into_iter()
-                    .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
-                    .collect();
-
-                let project = era_compiler_solidity::Project::try_from_yul_sources(
-                    sources,
-                    libraries,
-                    None,
-                    Some(&solc_version),
-                    debug_config.as_ref(),
-                )?;
-
-                let build = project.compile_to_evm(
-                    &mut vec![],
-                    era_compiler_common::EVMMetadataHashType::IPFS,
-                    true,
-                    mode.llvm_optimizer_settings.to_owned(),
-                    llvm_options,
-                    debug_config,
-                )?;
-                build.check_errors()?;
-
-                let build = build.link(
-                    linker_symbols,
-                    Some(vec![("zksolc".to_owned(), semver::Version::new(0, 0, 0))]),
-                );
-                build.check_errors()?;
-
-                let builds = build
-                    .results
-                    .into_values()
-                    .map(|result| {
-                        let contract = result.expect("Always valid");
-                        Ok((contract.name.path, contract.deploy_object.bytecode))
-                    })
-                    .collect::<anyhow::Result<HashMap<String, Vec<u8>>>>()?;
-
-                Ok(EVMInput::new(builds, None, last_contract))
-            }
             Self::Solx(solx) => {
                 let yul_mode = YulMode::unwrap(mode);
 
@@ -216,7 +159,7 @@ impl Compiler for YulCompiler {
                     ),
                     &solx_standard_json::InputSelection::new(selectors),
                     solx_standard_json::InputMetadata::default(),
-                    vec![],
+                    llvm_options,
                 );
 
                 let solx_output = solx.standard_json(
@@ -322,6 +265,7 @@ impl Compiler for YulCompiler {
 
                 Ok(EVMInput::new(builds, None, last_contract))
             }
+            Self::Zksolc => unimplemented!(),
         }
     }
 

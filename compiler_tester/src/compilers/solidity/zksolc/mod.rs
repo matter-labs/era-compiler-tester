@@ -126,7 +126,6 @@ impl SolidityCompiler {
     /// Runs the solc subprocess and returns the output.
     ///
     fn standard_json_output(
-        target: era_compiler_common::Target,
         sources: &[(String, String)],
         libraries: &era_compiler_common::Libraries,
         mode: &ZksolcMode,
@@ -184,7 +183,6 @@ impl SolidityCompiler {
             .to_string();
 
         solc_compiler.standard_json(
-            target,
             &mut solc_input,
             &mut vec![],
             None,
@@ -199,7 +197,6 @@ impl SolidityCompiler {
     fn standard_json_output_cached(
         &self,
         test_path: String,
-        target: era_compiler_common::Target,
         sources: &[(String, String)],
         libraries: &era_compiler_common::Libraries,
         mode: &ZksolcMode,
@@ -215,7 +212,7 @@ impl SolidityCompiler {
 
         if !self.cache.contains(&cache_key) {
             self.cache.evaluate(cache_key.clone(), || {
-                Self::standard_json_output(target, sources, libraries, mode)
+                Self::standard_json_output(sources, libraries, mode)
             });
         }
 
@@ -315,13 +312,7 @@ impl Compiler for SolidityCompiler {
         let mode = ZksolcMode::unwrap(mode);
 
         let mut solc_output = self
-            .standard_json_output_cached(
-                test_path,
-                era_compiler_common::Target::EraVM,
-                &sources,
-                &libraries,
-                mode,
-            )
+            .standard_json_output_cached(test_path, &sources, &libraries, mode)
             .map_err(|error| anyhow::anyhow!("Solidity standard JSON I/O error: {error}"))?;
         solc_output.check_errors()?;
 
@@ -394,69 +385,15 @@ impl Compiler for SolidityCompiler {
 
     fn compile_for_evm(
         &self,
-        test_path: String,
-        sources: Vec<(String, String)>,
-        libraries: era_compiler_common::Libraries,
-        mode: &Mode,
+        _test_path: String,
+        _sources: Vec<(String, String)>,
+        _libraries: era_compiler_common::Libraries,
+        _mode: &Mode,
         _test_params: Option<&solidity_adapter::Params>,
-        llvm_options: Vec<String>,
-        debug_config: Option<era_compiler_llvm_context::DebugConfig>,
+        _llvm_options: Vec<String>,
+        _debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> anyhow::Result<EVMInput> {
-        let mode = ZksolcMode::unwrap(mode);
-
-        let mut solc_output = self.standard_json_output_cached(
-            test_path,
-            era_compiler_common::Target::EVM,
-            &sources,
-            &libraries,
-            mode,
-        )?;
-        solc_output.check_errors()?;
-
-        let method_identifiers = Self::get_method_identifiers(&solc_output)?;
-
-        let last_contract = Self::get_last_contract(&solc_output, &sources)?;
-
-        let solc_compiler = SolidityCompiler::executable(&mode.solc_version)?;
-
-        let linker_symbols = libraries.as_linker_symbols()?;
-
-        let project = era_compiler_solidity::Project::try_from_solc_output(
-            libraries,
-            mode.solc_codegen,
-            &mut solc_output,
-            &solc_compiler,
-            debug_config.as_ref(),
-        )?;
-
-        let build = project.compile_to_evm(
-            &mut vec![],
-            era_compiler_common::EVMMetadataHashType::IPFS,
-            true,
-            mode.llvm_optimizer_settings.to_owned(),
-            llvm_options,
-            debug_config,
-        )?;
-        build.check_errors()?;
-        let build = build.link(
-            linker_symbols,
-            Some(vec![(
-                era_compiler_solidity::DEFAULT_EXECUTABLE_NAME.to_owned(),
-                semver::Version::new(2, 0, 0),
-            )]),
-        );
-        build.check_errors()?;
-        let builds: HashMap<String, Vec<u8>> = build
-            .results
-            .into_iter()
-            .map(|(path, result)| (path, result.expect("Always valid").deploy_object.bytecode))
-            .collect();
-
-        Ok(EVMInput::new(
-            builds,
-            Some(method_identifiers),
-            last_contract,
-        ))
+        unimplemented!()
     }
 
     fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {

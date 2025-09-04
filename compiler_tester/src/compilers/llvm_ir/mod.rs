@@ -100,43 +100,6 @@ impl Compiler for LLVMIRCompiler {
             .clone();
 
         let builds = match self {
-            Self::Zksolc => {
-                let linker_symbols = libraries.as_linker_symbols()?;
-
-                let sources = sources
-                    .into_iter()
-                    .map(|(path, source)| (path, era_solc::StandardJsonInputSource::from(source)))
-                    .collect::<BTreeMap<_, _>>();
-
-                let project = era_compiler_solidity::Project::try_from_llvm_ir_sources(
-                    sources, libraries, None,
-                )?;
-
-                let build = project.compile_to_evm(
-                    &mut vec![],
-                    era_compiler_common::EVMMetadataHashType::IPFS,
-                    true,
-                    llvm_ir_mode.llvm_optimizer_settings.to_owned(),
-                    llvm_options,
-                    debug_config.clone(),
-                )?;
-                build.check_errors()?;
-
-                let build = build.link(
-                    linker_symbols,
-                    Some(vec![("zksolc".to_owned(), semver::Version::new(0, 0, 0))]),
-                );
-                build.check_errors()?;
-
-                let builds: HashMap<String, Vec<u8>> = build
-                    .results
-                    .into_iter()
-                    .map(|(path, result)| {
-                        (path, result.expect("Always valid").deploy_object.bytecode)
-                    })
-                    .collect();
-                builds
-            }
             Self::Solx(solx) => {
                 let sources: BTreeMap<String, solx_standard_json::InputSource> = sources
                     .iter()
@@ -163,7 +126,7 @@ impl Compiler for LLVMIRCompiler {
                     ),
                     &solx_standard_json::InputSelection::new(selectors),
                     solx_standard_json::InputMetadata::default(),
-                    vec![],
+                    llvm_options,
                 );
 
                 let solx_output = solx.standard_json(
@@ -204,6 +167,7 @@ impl Compiler for LLVMIRCompiler {
                 }
                 builds
             }
+            Self::Zksolc => unimplemented!(),
         };
 
         Ok(EVMInput::new(builds, None, last_contract))
