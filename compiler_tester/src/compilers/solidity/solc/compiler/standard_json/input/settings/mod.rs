@@ -43,12 +43,8 @@ pub struct Settings {
     )]
     pub via_ir: Option<bool>,
     /// Whether to compile via MLIR.
-    #[serde(
-        rename = "viaMLIR",
-        skip_serializing_if = "Option::is_none",
-        skip_deserializing
-    )]
-    pub via_mlir: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none", skip_deserializing)]
+    pub codegen: Option<String>,
     /// The optimizer settings.
     pub optimizer: Optimizer,
     /// The debug settings.
@@ -66,7 +62,7 @@ impl Settings {
         remappings: Option<BTreeSet<String>>,
         output_selection: Selection,
         via_ir: bool,
-        via_mlir: bool,
+        codegen: Option<String>,
         optimizer: Optimizer,
         debug: Option<Debug>,
     ) -> Self {
@@ -76,7 +72,7 @@ impl Settings {
             remappings,
             output_selection: Some(output_selection),
             via_ir: if via_ir { Some(true) } else { None },
-            via_mlir: if via_mlir { Some(true) } else { None },
+            codegen,
             optimizer,
             debug,
         }

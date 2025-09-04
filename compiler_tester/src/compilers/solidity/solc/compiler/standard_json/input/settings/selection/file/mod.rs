@@ -27,14 +27,16 @@ impl File {
     ///
     /// Creates the selection required by EVM compilation process.
     ///
-    pub fn new_required(codegen: era_solc::StandardJsonInputCodegen) -> Self {
+    pub fn new_required(codegen: Option<era_solc::StandardJsonInputCodegen>) -> Self {
+        let mut per_contract = HashSet::new();
+        per_contract.insert(SelectionFlag::Bytecode);
+        per_contract.insert(SelectionFlag::MethodIdentifiers);
+        if let Some(codegen) = codegen {
+            per_contract.insert(SelectionFlag::from(codegen));
+        }
         Self {
             per_file: Some(HashSet::from_iter([SelectionFlag::AST])),
-            per_contract: Some(HashSet::from_iter([
-                SelectionFlag::Bytecode,
-                SelectionFlag::MethodIdentifiers,
-                SelectionFlag::from(codegen),
-            ])),
+            per_contract: Some(per_contract),
         }
     }
 }

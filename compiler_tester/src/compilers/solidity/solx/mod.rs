@@ -348,7 +348,7 @@ impl Compiler for SolidityCompiler {
             .into_iter()
             .cartesian_product(solc_codegen_versions)
             .map(|(llvm_optimizer_settings, (via_ir, version))| {
-                SolxMode::new(version, via_ir, llvm_optimizer_settings).into()
+                SolxMode::new(version, via_ir, false, llvm_optimizer_settings).into()
             })
             .collect::<Vec<Mode>>()
     }
