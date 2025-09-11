@@ -266,6 +266,10 @@ impl Compiler for SolidityCompiler {
             })
             .collect();
 
+        let libraries = solx_utils::Libraries {
+            inner: libraries.inner,
+        };
+
         let mut selectors = BTreeSet::new();
         selectors.insert(solx_standard_json::InputSelector::Bytecode);
         selectors.insert(solx_standard_json::InputSelector::RuntimeBytecode);
@@ -348,7 +352,7 @@ impl Compiler for SolidityCompiler {
             .into_iter()
             .cartesian_product(solc_codegen_versions)
             .map(|(llvm_optimizer_settings, (via_ir, version))| {
-                SolxMode::new(version, via_ir, llvm_optimizer_settings).into()
+                SolxMode::new(version, via_ir, false, llvm_optimizer_settings).into()
             })
             .collect::<Vec<Mode>>()
     }

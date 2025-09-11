@@ -12,13 +12,15 @@ use serde::Serialize;
 pub struct Optimizer {
     /// Whether the optimizer is enabled.
     pub enabled: bool,
+    /// The MLIR optimizer mode.
+    pub mode: Option<char>,
 }
 
 impl Optimizer {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(enabled: bool) -> Self {
-        Self { enabled }
+    pub fn new(enabled: bool, mode: Option<char>) -> Self {
+        Self { enabled, mode }
     }
 }

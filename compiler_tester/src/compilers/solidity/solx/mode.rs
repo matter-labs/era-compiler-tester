@@ -18,6 +18,8 @@ pub struct Mode {
     pub solc_version: semver::Version,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
+    /// Whether to enable the MLIR codegen.
+    pub via_mlir: bool,
     /// The optimizer settings.
     pub llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
 }
@@ -29,6 +31,7 @@ impl Mode {
     pub fn new(
         solc_version: semver::Version,
         via_ir: bool,
+        via_mlir: bool,
         mut llvm_optimizer_settings: era_compiler_llvm_context::OptimizerSettings,
     ) -> Self {
         let llvm_options = LLVMOptions::get();
@@ -38,6 +41,7 @@ impl Mode {
         Self {
             solc_version,
             via_ir,
+            via_mlir,
             llvm_optimizer_settings,
         }
     }
@@ -107,11 +111,20 @@ impl Mode {
 
 impl IMode for Mode {
     fn optimizations(&self) -> Option<String> {
-        Some(format!("+{}", self.llvm_optimizer_settings,))
+        Some(format!("+{}", self.llvm_optimizer_settings))
     }
 
     fn codegen(&self) -> Option<String> {
-        Some(if self.via_ir { "Y" } else { "E" }.to_string())
+        Some(
+            if self.via_mlir {
+                "L"
+            } else if self.via_ir {
+                "Y"
+            } else {
+                "E"
+            }
+            .to_string(),
+        )
     }
 
     fn version(&self) -> Option<String> {

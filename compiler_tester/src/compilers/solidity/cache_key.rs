@@ -15,6 +15,8 @@ pub struct CacheKey {
     pub codegen: Option<era_solc::StandardJsonInputCodegen>,
     /// Whether to enable the EVMLA codegen via Yul IR.
     pub via_ir: bool,
+    /// Whether to enable the MLIR codegen.
+    pub via_mlir: bool,
     /// Whether to run the Solidity compiler optimizer.
     pub optimize: bool,
 }
@@ -28,6 +30,7 @@ impl CacheKey {
         version: semver::Version,
         codegen: Option<era_solc::StandardJsonInputCodegen>,
         via_ir: bool,
+        via_mlir: bool,
         optimize: bool,
     ) -> Self {
         Self {
@@ -35,6 +38,7 @@ impl CacheKey {
             version,
             codegen,
             via_ir,
+            via_mlir,
             optimize,
         }
     }
