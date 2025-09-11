@@ -25,6 +25,10 @@ pub struct Arguments {
     #[structopt(long = "benchmark-context")]
     pub benchmark_context: Option<PathBuf>,
 
+    /// Input source: `tooling` (default) or `compiler-tester`.
+    #[structopt(long = "input-source", default_value_t = benchmark_analyzer::InputSource::Tooling)]
+    pub input_source: benchmark_analyzer::InputSource,
+
     /// Benchmark output format: `json`, `csv`, or `json-lnt`.
     #[structopt(long = "output-format", alias = "benchmark-format", default_value_t = benchmark_analyzer::OutputFormat::Xlsx)]
     pub output_format: benchmark_analyzer::OutputFormat,

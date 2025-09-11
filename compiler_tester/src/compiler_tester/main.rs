@@ -231,8 +231,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
-        let output: benchmark_analyzer::Output =
-            (benchmark, arguments.benchmark_format).try_into()?;
+        let output: benchmark_analyzer::Output = (
+            benchmark,
+            benchmark_analyzer::InputSource::CompilerTester,
+            arguments.benchmark_format,
+        )
+            .try_into()?;
         output.write_to_file(path)?;
     }
 
@@ -267,11 +271,9 @@ mod tests {
             dump_system: false,
             disable_deployer: false,
             disable_value_simulator: false,
-            zksolc: Some(PathBuf::from(
-                era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
-            )),
-            zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
-            solx: None,
+            zksolc: None,
+            zkvyper: None,
+            solx: Some(PathBuf::from("solx")),
             toolchain: Some(compiler_tester::Toolchain::IrLLVM),
             target: era_compiler_common::Target::EVM,
             environment: None,

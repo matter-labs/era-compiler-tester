@@ -5,6 +5,7 @@
 pub mod error;
 pub mod foundry_gas;
 pub mod foundry_size;
+pub mod source;
 
 use std::path::Path;
 

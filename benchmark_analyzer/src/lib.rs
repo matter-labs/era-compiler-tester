@@ -14,6 +14,7 @@ pub mod util;
 
 pub use crate::input::error::Error as InputReportError;
 pub use crate::input::foundry_gas::FoundryGasReport;
+pub use crate::input::source::Source as InputSource;
 pub use crate::input::Input as InputReport;
 pub use crate::model::benchmark::metadata::Metadata as BenchmarkMetadata;
 pub use crate::model::benchmark::test::input::Input;

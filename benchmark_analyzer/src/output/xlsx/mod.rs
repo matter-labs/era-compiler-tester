@@ -6,6 +6,7 @@ pub mod worksheet;
 
 use std::collections::HashMap;
 
+use crate::input::source::Source;
 use crate::model::benchmark::Benchmark;
 
 use self::worksheet::Worksheet;
@@ -89,10 +90,10 @@ impl Xlsx {
     }
 }
 
-impl TryFrom<Benchmark> for Xlsx {
+impl TryFrom<(Benchmark, Source)> for Xlsx {
     type Error = anyhow::Error;
 
-    fn try_from(benchmark: Benchmark) -> Result<Self, Self::Error> {
+    fn try_from((benchmark, source): (Benchmark, Source)) -> Result<Self, Self::Error> {
         let mut xlsx = Self::new()?;
 
         for test in benchmark.tests.into_values() {
@@ -188,9 +189,12 @@ impl TryFrom<Benchmark> for Xlsx {
         xlsx.deploy_size_worksheet
             .set_totals(xlsx.toolchain_ids.len())?;
 
-        for (index, (toolchain_id_1, toolchain_id_2)) in
-            // [(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)]
-            [(6, 2), (7, 3), (4, 0), (5, 1)].into_iter().enumerate()
+        let comparison_mapping = match source {
+            Source::Tooling => vec![(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)],
+            Source::CompilerTester => vec![(6, 2), (7, 3), (4, 0), (5, 1)],
+        };
+
+        for (index, (toolchain_id_1, toolchain_id_2)) in comparison_mapping.into_iter().enumerate()
         {
             xlsx.runtime_gas_worksheet.set_diffs(
                 toolchain_id_1,

@@ -106,7 +106,11 @@ fn convert() {
         .extend(input_2)
         .expect("Failed to extend a benchmark report with a Foundry report");
 
-    let output: benchmark_analyzer::Output = (benchmark, benchmark_analyzer::OutputFormat::JsonLNT)
+    let output: benchmark_analyzer::Output = (
+        benchmark,
+        benchmark_analyzer::InputSource::Tooling,
+        benchmark_analyzer::OutputFormat::JsonLNT,
+    )
         .try_into()
         .expect("Failed to convert a benchmark report to output");
     let contents = match output {
