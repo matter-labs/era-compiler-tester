@@ -143,6 +143,10 @@ impl Compiler for YulCompiler {
                     })
                     .collect();
 
+                let libraries = solx_utils::Libraries {
+                    inner: libraries.inner,
+                };
+
                 let mut selectors = BTreeSet::new();
                 selectors.insert(solx_standard_json::InputSelector::Bytecode);
                 selectors.insert(solx_standard_json::InputSelector::RuntimeBytecode);
