@@ -3633,7 +3633,7 @@ dependencies = [
 [[package]]
 name = "solx-codegen-evm"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#97b0340f97570fd3c2fabd6b1276d3d2cb34a06a"
+source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3649,7 +3649,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#97b0340f97570fd3c2fabd6b1276d3d2cb34a06a"
+source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -3668,7 +3668,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#97b0340f97570fd3c2fabd6b1276d3d2cb34a06a"
+source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
 dependencies = [
  "anyhow",
  "num",
@@ -3683,7 +3683,7 @@ dependencies = [
 [[package]]
 name = "solx-utils"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#97b0340f97570fd3c2fabd6b1276d3d2cb34a06a"
+source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
 dependencies = [
  "anyhow",
  "base58",
@@ -3700,7 +3700,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#97b0340f97570fd3c2fabd6b1276d3d2cb34a06a"
+source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
 dependencies = [
  "anyhow",
  "serde",

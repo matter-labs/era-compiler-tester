@@ -59,7 +59,8 @@ fn main() -> anyhow::Result<()> {
     benchmark.remove_zero_deploy_gas();
     benchmark.metadata.end = Utc::now();
 
-    let output: benchmark_analyzer::Output = (benchmark, arguments.output_format).try_into()?;
+    let output: benchmark_analyzer::Output =
+        (benchmark, arguments.input_source, arguments.output_format).try_into()?;
     output.write_to_file(arguments.output_path)?;
 
     Ok(())

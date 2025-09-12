@@ -48,6 +48,9 @@ impl Benchmark {
         let toolchain = input.toolchain;
         let project = input.project;
         match input.data {
+            Report::Native(report) => {
+                self.extend_with_native_report(toolchain, project, report);
+            }
             Report::FoundryGas(report) => {
                 self.extend_with_foundry_gas_report(toolchain, project, report)?;
             }
@@ -56,6 +59,59 @@ impl Benchmark {
             }
         }
         Ok(())
+    }
+
+    ///
+    /// Extend the benchmark data with a native benchmark report.
+    ///
+    pub fn extend_with_native_report(
+        &mut self,
+        toolchain: String,
+        project: String,
+        mut report: Benchmark,
+    ) {
+        report.tests.retain(|name, _| {
+            name.starts_with("era-solidity") || name.starts_with("tests/solidity")
+        });
+
+        for (name, test) in report.tests.into_iter() {
+            let selector = TestSelector {
+                project: project.clone(),
+                case: Some(name.split('[').next().unwrap_or("Unknown").to_owned()),
+                input: test.metadata.selector.input,
+            };
+            let name = selector.to_string();
+
+            let existing_test = self
+                .tests
+                .entry(name)
+                .or_insert_with(|| Test::new(TestMetadata::new(selector, vec![])));
+            let existing_toolchain_group = existing_test
+                .toolchain_groups
+                .entry(toolchain.clone())
+                .or_default();
+            for toolchain_group in test.toolchain_groups.into_values() {
+                for (codegen, codegen_groups) in toolchain_group.codegen_groups.into_iter() {
+                    for (version, versioned_group) in codegen_groups.versioned_groups.into_iter() {
+                        for (executable, executable_group) in
+                            versioned_group.executables.into_iter()
+                        {
+                            let existing_executable = existing_toolchain_group
+                                .codegen_groups
+                                .entry(codegen.clone())
+                                .or_default()
+                                .versioned_groups
+                                .entry(version.clone())
+                                .or_default()
+                                .executables
+                                .entry(executable.clone())
+                                .or_default();
+                            existing_executable.run.extend(&executable_group.run);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     ///

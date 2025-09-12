@@ -31,6 +31,28 @@ pub struct Run {
 
 impl Run {
     ///
+    /// Extends the run with another run, averaging the values.
+    ///
+    pub fn extend(&mut self, other: &Self) {
+        self.size.extend_from_slice(other.size.as_slice());
+        self.runtime_size
+            .extend_from_slice(other.runtime_size.as_slice());
+        self.cycles.extend_from_slice(other.cycles.as_slice());
+        self.ergs.extend(
+            other
+                .ergs
+                .iter()
+                .filter(|value| value < &&(u32::MAX as u64)),
+        );
+        self.gas.extend(
+            other
+                .ergs
+                .iter()
+                .filter(|value| value < &&(u32::MAX as u64)),
+        );
+    }
+
+    ///
     /// Average contract size.
     ///
     pub fn average_size(&self) -> u64 {

@@ -10,6 +10,7 @@ pub mod xlsx;
 
 use std::path::PathBuf;
 
+use crate::input::source::Source;
 use crate::model::benchmark::Benchmark;
 use crate::output::csv::Csv;
 use crate::output::format::Format;
@@ -67,15 +68,17 @@ impl Output {
     }
 }
 
-impl TryFrom<(Benchmark, Format)> for Output {
+impl TryFrom<(Benchmark, Source, Format)> for Output {
     type Error = anyhow::Error;
 
-    fn try_from((benchmark, output_format): (Benchmark, Format)) -> Result<Self, Self::Error> {
+    fn try_from(
+        (benchmark, input_source, output_format): (Benchmark, Source, Format),
+    ) -> Result<Self, Self::Error> {
         Ok(match output_format {
             Format::Json => Json::from(benchmark).into(),
             Format::Csv => Csv::from(benchmark).into(),
             Format::JsonLNT => JsonLNT::try_from(benchmark)?.into(),
-            Format::Xlsx => Xlsx::try_from(benchmark)?.into(),
+            Format::Xlsx => Xlsx::try_from((benchmark, input_source))?.into(),
         })
     }
 }
