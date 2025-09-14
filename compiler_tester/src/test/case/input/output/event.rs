@@ -44,7 +44,7 @@ impl Event {
     pub fn try_from_matter_labs(
         event: MatterLabsTestExpectedEvent,
         instances: &BTreeMap<String, Instance>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let topics = Value::try_from_vec_matter_labs(event.topics, instances, target)
             .map_err(|error| anyhow::anyhow!("Invalid topics: {}", error))?;

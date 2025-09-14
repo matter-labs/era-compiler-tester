@@ -130,7 +130,7 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(era_compiler_common::Target::EraVM, toolchain, None)?;
+        let tests = self.all_tests(benchmark_analyzer::Target::EraVM, toolchain, None)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -163,7 +163,7 @@ impl CompilerTester {
     /// Runs all tests on REVM.
     ///
     pub fn run_revm(self, toolchain: Toolchain, solx: Option<PathBuf>) -> anyhow::Result<()> {
-        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain, solx)?;
+        let tests = self.all_tests(benchmark_analyzer::Target::EVM, toolchain, solx)?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -203,7 +203,7 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(era_compiler_common::Target::EVM, toolchain, solx)?;
+        let tests = self.all_tests(benchmark_analyzer::Target::EVM, toolchain, solx)?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -232,7 +232,7 @@ impl CompilerTester {
     ///
     fn all_tests(
         &self,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
         toolchain: Toolchain,
         solx: Option<PathBuf>,
     ) -> anyhow::Result<Vec<Test>> {
@@ -243,13 +243,13 @@ impl CompilerTester {
             Arc<dyn Compiler>,
             Arc<dyn Compiler>,
         ) = match (target, toolchain) {
-            (era_compiler_common::Target::EraVM, Toolchain::IrLLVM) => {
+            (benchmark_analyzer::Target::EraVM, Toolchain::IrLLVM) => {
                 let solidity_compiler = Arc::new(ZksolcCompiler::new());
                 let yul_compiler = Arc::new(YulCompiler::Zksolc);
                 let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Zksolc);
                 (solidity_compiler, yul_compiler, llvm_ir_compiler)
             }
-            (era_compiler_common::Target::EVM, Toolchain::IrLLVM) => {
+            (benchmark_analyzer::Target::EVM, Toolchain::IrLLVM) => {
                 let solidity_compiler = Arc::new(SolxCompiler::try_from_path(solx_path)?);
                 let yul_compiler = Arc::new(YulCompiler::Solx(solidity_compiler.clone()));
                 let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Solx(solidity_compiler.clone()));
@@ -293,8 +293,8 @@ impl CompilerTester {
         tests.extend(self.directory::<EthereumDirectory>(
             target,
             match target {
-                era_compiler_common::Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                era_compiler_common::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+                benchmark_analyzer::Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                benchmark_analyzer::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
             },
             era_compiler_common::EXTENSION_SOLIDITY,
             solidity_compiler.clone(),
@@ -310,14 +310,14 @@ impl CompilerTester {
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
             match target {
-                era_compiler_common::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
-                era_compiler_common::Target::EVM => Self::LLVM_SIMPLE_EVM,
+                benchmark_analyzer::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
+                benchmark_analyzer::Target::EVM => Self::LLVM_SIMPLE_EVM,
             },
             era_compiler_common::EXTENSION_LLVM_SOURCE,
             llvm_ir_compiler,
         )?);
 
-        if let era_compiler_common::Target::EraVM = target {
+        if let benchmark_analyzer::Target::EraVM = target {
             let vyper_compiler = Arc::new(VyperCompiler::new());
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
@@ -354,7 +354,7 @@ impl CompilerTester {
     ///
     fn directory<T>(
         &self,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
         path: &str,
         extension: &'static str,
         compiler: Arc<dyn Compiler>,
@@ -375,7 +375,7 @@ impl CompilerTester {
         })?
         .into_iter()
         .map(|test| Arc::new(test) as Arc<dyn Buildable>)
-        .cartesian_product(compiler.all_modes(target))
+        .cartesian_product(compiler.all_modes())
         .map(|(test, mode)| (test, compiler.clone() as Arc<dyn Compiler>, mode))
         .collect())
     }

@@ -266,6 +266,10 @@ impl Compiler for SolidityCompiler {
             })
             .collect();
 
+        let libraries = solx_utils::Libraries {
+            inner: libraries.inner,
+        };
+
         let mut selectors = BTreeSet::new();
         selectors.insert(solx_standard_json::InputSelector::Bytecode);
         selectors.insert(solx_standard_json::InputSelector::RuntimeBytecode);
@@ -338,16 +342,26 @@ impl Compiler for SolidityCompiler {
         ))
     }
 
-    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+    fn all_modes(&self) -> Vec<Mode> {
         let mut solc_codegen_versions = Vec::new();
         for via_ir in [false, true] {
             solc_codegen_versions.push((via_ir, self.version.to_owned()));
         }
 
-        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+        solx_codegen_evm::OptimizerSettings::combinations()
             .into_iter()
             .cartesian_product(solc_codegen_versions)
             .map(|(llvm_optimizer_settings, (via_ir, version))| {
+                let llvm_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::new(
+                    llvm_optimizer_settings.level_middle_end,
+                    match llvm_optimizer_settings.level_middle_end_size as u32 {
+                        0 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::Zero,
+                        1 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::S,
+                        2 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::Z,
+                        _ => panic!("Invalid size level"),
+                    },
+                    llvm_optimizer_settings.level_back_end,
+                );
                 SolxMode::new(version, via_ir, false, llvm_optimizer_settings).into()
             })
             .collect::<Vec<Mode>>()

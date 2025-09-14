@@ -87,9 +87,19 @@ lazy_static::lazy_static! {
     /// All compilers must be downloaded before initialization.
     ///
     static ref SOLIDITY_MLIR_MODES: Vec<Mode> = {
-        era_compiler_llvm_context::OptimizerSettings::combinations(era_compiler_common::Target::EVM)
+        solx_codegen_evm::OptimizerSettings::combinations()
             .into_iter()
             .map(|llvm_optimizer_settings| {
+                let llvm_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::new(
+                    llvm_optimizer_settings.level_middle_end,
+                    match llvm_optimizer_settings.level_middle_end_size as u32 {
+                        0 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::Zero,
+                        1 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::S,
+                        2 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::Z,
+                        _ => panic!("Invalid size level"),
+                    },
+                    llvm_optimizer_settings.level_back_end,
+                );
                 SolxMode::new(SolidityCompiler::CURRENT_MLIR_VERSION, false, true, llvm_optimizer_settings).into()
             })
             .collect::<Vec<Mode>>()
@@ -621,7 +631,7 @@ impl Compiler for SolidityCompiler {
         Ok(EVMInput::new(builds, method_identifiers, last_contract))
     }
 
-    fn all_modes(&self, _target: era_compiler_common::Target) -> Vec<Mode> {
+    fn all_modes(&self) -> Vec<Mode> {
         match (self.language, self.toolchain) {
             (SolcStandardJsonInputLanguage::Solidity, Toolchain::SolcLLVM) => {
                 SOLIDITY_MLIR_MODES.clone()

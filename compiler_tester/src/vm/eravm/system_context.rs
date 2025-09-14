@@ -106,25 +106,25 @@ impl SystemContext {
     /// Returns the storage values for the system context.
     ///
     pub fn create_storage(
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256> {
         let chain_id = match target {
-            era_compiler_common::Target::EraVM => Self::CHAIND_ID_ERAVM,
-            era_compiler_common::Target::EVM => Self::CHAIND_ID_EVM,
+            benchmark_analyzer::Target::EraVM => Self::CHAIND_ID_ERAVM,
+            benchmark_analyzer::Target::EVM => Self::CHAIND_ID_EVM,
         };
         let coinbase = match target {
-            era_compiler_common::Target::EraVM => Self::COIN_BASE_ERAVM,
-            era_compiler_common::Target::EVM => Self::COIN_BASE_EVM,
+            benchmark_analyzer::Target::EraVM => Self::COIN_BASE_ERAVM,
+            benchmark_analyzer::Target::EVM => Self::COIN_BASE_EVM,
         };
 
         let block_number = Self::CURRENT_BLOCK_NUMBER;
         let block_timestamp = match target {
-            era_compiler_common::Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
-            era_compiler_common::Target::EVM => Self::BLOCK_TIMESTAMP_EVM_STEP,
+            benchmark_analyzer::Target::EraVM => Self::CURRENT_BLOCK_TIMESTAMP_ERAVM,
+            benchmark_analyzer::Target::EVM => Self::BLOCK_TIMESTAMP_EVM_STEP,
         };
         let block_gas_limit = match target {
-            era_compiler_common::Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
-            era_compiler_common::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
+            benchmark_analyzer::Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
+            benchmark_analyzer::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
         };
 
         let mut system_context_values = vec![
@@ -206,7 +206,7 @@ impl SystemContext {
             );
         }
 
-        if target == era_compiler_common::Target::EVM {
+        if target == benchmark_analyzer::Target::EVM {
             let rich_addresses: Vec<web3::types::Address> = (0..=9)
                 .map(|address_id| {
                     format!(

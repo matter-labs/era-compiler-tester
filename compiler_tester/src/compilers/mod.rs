@@ -49,7 +49,7 @@ pub trait Compiler: Send + Sync + 'static {
     ///
     /// Returns all supported combinations of compiler settings.
     ///
-    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode>;
+    fn all_modes(&self) -> Vec<Mode>;
 
     ///
     /// Whether one source file can contains multiple contracts.

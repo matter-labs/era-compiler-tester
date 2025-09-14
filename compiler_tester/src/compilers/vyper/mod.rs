@@ -208,7 +208,7 @@ impl Compiler for VyperCompiler {
 
         let mut build = project.compile(
             None,
-            era_compiler_common::EraVMMetadataHashType::IPFS,
+            era_compiler_common::MetadataHashType::IPFS,
             false,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -250,11 +250,11 @@ impl Compiler for VyperCompiler {
         anyhow::bail!("Vyper cannot be compiled to EVM");
     }
 
-    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+    fn all_modes(&self) -> Vec<Mode> {
         let vyper_versions =
             VyperCompiler::all_versions().expect("`vyper` versions analysis error");
 
-        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+        era_compiler_llvm_context::OptimizerSettings::combinations()
             .into_iter()
             .cartesian_product(vyper_versions)
             .cartesian_product(vec![false, true])

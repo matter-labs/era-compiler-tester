@@ -49,7 +49,7 @@ pub struct EraVM {
     /// The current EVM block number.
     current_evm_block_number: u128,
     /// The target instruction set.
-    target: era_compiler_common::Target,
+    target: benchmark_analyzer::Target,
 }
 
 impl EraVM {
@@ -81,7 +81,7 @@ impl EraVM {
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
@@ -371,7 +371,7 @@ impl EraVM {
             0,
         );
 
-        if self.target == era_compiler_common::Target::EVM {
+        if self.target == benchmark_analyzer::Target::EVM {
             // Increase deployment nonce of caller by 1 if it is 0 (we pretend that it is a contract)
             let address_h256 = utils::address_to_h256(&caller);
             let bytes = [
