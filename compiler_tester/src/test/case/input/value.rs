@@ -43,7 +43,7 @@ impl Value {
     pub fn try_from_matter_labs(
         value: String,
         instances: &BTreeMap<String, Instance>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -77,29 +77,29 @@ impl Value {
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
         } else if value == "$CHAIN_ID" {
             match target {
-                era_compiler_common::Target::EraVM => {
+                benchmark_analyzer::Target::EraVM => {
                     web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM)
                 }
-                era_compiler_common::Target::EVM => {
+                benchmark_analyzer::Target::EVM => {
                     web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
                 }
             }
         } else if value == "$GAS_LIMIT" {
             match target {
-                era_compiler_common::Target::EraVM => {
+                benchmark_analyzer::Target::EraVM => {
                     web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM)
                 }
-                era_compiler_common::Target::EVM => {
+                benchmark_analyzer::Target::EVM => {
                     web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM)
                 }
             }
         } else if value == "$COINBASE" {
             match target {
-                era_compiler_common::Target::EraVM => web3::types::U256::from_str_radix(
+                benchmark_analyzer::Target::EraVM => web3::types::U256::from_str_radix(
                     SystemContext::COIN_BASE_ERAVM,
                     era_compiler_common::BASE_HEXADECIMAL,
                 ),
-                era_compiler_common::Target::EVM => web3::types::U256::from_str_radix(
+                benchmark_analyzer::Target::EVM => web3::types::U256::from_str_radix(
                     SystemContext::COIN_BASE_EVM,
                     era_compiler_common::BASE_HEXADECIMAL,
                 ),
@@ -125,10 +125,10 @@ impl Value {
             web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER)
         } else if value == "$BLOCK_TIMESTAMP" {
             match target {
-                era_compiler_common::Target::EraVM => {
+                benchmark_analyzer::Target::EraVM => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
                 }
-                era_compiler_common::Target::EVM => {
+                benchmark_analyzer::Target::EVM => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
                 }
             }
@@ -146,7 +146,7 @@ impl Value {
     pub fn try_from_vec_matter_labs(
         values: Vec<String>,
         instances: &BTreeMap<String, Instance>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Vec<Self>> {
         values
             .into_iter()

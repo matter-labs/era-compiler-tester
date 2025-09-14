@@ -26,7 +26,7 @@ impl Storage {
     pub fn try_from_matter_labs(
         storage: HashMap<String, MatterLabsTestContractStorage>,
         instances: &BTreeMap<String, Instance>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let mut result = HashMap::new();
 

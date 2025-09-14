@@ -47,7 +47,7 @@ impl Output {
         expected: MatterLabsTestExpected,
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let variants = match expected {
             MatterLabsTestExpected::Single(variant) => vec![variant],
@@ -106,13 +106,13 @@ impl Output {
         exception: bool,
         events: &[solidity_adapter::Event],
         contract_address: &web3::types::Address,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> Self {
         let return_data = expected
             .iter()
             .map(|value| {
                 let mut value_str = crate::utils::u256_as_string(value);
-                if let era_compiler_common::Target::EraVM = target {
+                if let benchmark_analyzer::Target::EraVM = target {
                     value_str = value_str.replace(
                         solidity_adapter::DEFAULT_CONTRACT_ADDRESS,
                         &crate::utils::address_as_string(contract_address),

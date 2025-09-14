@@ -10,6 +10,7 @@ pub mod input;
 pub mod model;
 pub mod output;
 pub mod results;
+pub mod target;
 pub mod util;
 
 pub use crate::input::error::Error as InputReportError;
@@ -35,3 +36,4 @@ pub use crate::output::json::lnt::JsonLNT as JsonLNTOutput;
 pub use crate::output::json::Json as JsonNativeOutput;
 pub use crate::output::Output;
 pub use crate::results::group::Group as ResultsGroup;
+pub use crate::target::Target;

@@ -24,7 +24,7 @@ impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
     fn read_all(
-        _target: era_compiler_common::Target,
+        _target: benchmark_analyzer::Target,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,

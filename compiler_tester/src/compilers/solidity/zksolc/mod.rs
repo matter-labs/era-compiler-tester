@@ -341,7 +341,7 @@ impl Compiler for SolidityCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            era_compiler_common::EraVMMetadataHashType::IPFS,
+            era_compiler_common::MetadataHashType::IPFS,
             true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -396,7 +396,7 @@ impl Compiler for SolidityCompiler {
         unimplemented!()
     }
 
-    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
+    fn all_modes(&self) -> Vec<Mode> {
         let mut solc_codegen_versions = Vec::new();
         for (codegen, via_ir) in [
             (era_solc::StandardJsonInputCodegen::EVMLA, false),
@@ -410,7 +410,7 @@ impl Compiler for SolidityCompiler {
             }
         }
 
-        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+        era_compiler_llvm_context::OptimizerSettings::combinations()
             .into_iter()
             .cartesian_product(solc_codegen_versions)
             .map(
