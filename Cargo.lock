@@ -601,9 +601,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.36"
+version = "1.2.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5252b3d2648e5eedbc1a6f501e3c795e07025c1e93bbf8bbdd6eef7f447a6d54"
+checksum = "65193589c6404eb80b450d618eaf9a2cafaaafd57ecce47370519ef674a7bd44"
 dependencies = [
  "find-msvc-tools",
  "shlex",
@@ -763,6 +763,7 @@ dependencies = [
  "serde_yaml",
  "sha3 0.10.8",
  "solidity-adapter",
+ "solx-codegen-evm",
  "solx-standard-json",
  "solx-utils",
  "web3",
@@ -773,15 +774,14 @@ dependencies = [
 
 [[package]]
 name = "const-hex"
-version = "1.15.0"
+version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dccd746bf9b1038c0507b7cec21eb2b11222db96a2902c96e8c185d6d20fb9c4"
+checksum = "b6407bff74dea37e0fa3dc1c1c974e5d46405f0c987bf9997a0762adce71eda6"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "hex",
  "proptest",
- "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -1146,7 +1146,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era-compiler-common"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#c7c7cb3d92f1c185daa52f7868594763385085e9"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#4a0cf2ef09ce69ca87b780cd163f8f9aae52ac89"
 dependencies = [
  "anyhow",
  "base58",
@@ -1163,7 +1163,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-downloader"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#c7c7cb3d92f1c185daa52f7868594763385085e9"
+source = "git+https://github.com/matter-labs/era-compiler-common?branch=main#4a0cf2ef09ce69ca87b780cd163f8f9aae52ac89"
 dependencies = [
  "anyhow",
  "colored",
@@ -1176,24 +1176,22 @@ dependencies = [
 [[package]]
 name = "era-compiler-llvm-context"
 version = "2.0.0"
-source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#8d3042b6c29fe2cab9aa43333e388b8798011f58"
+source = "git+https://github.com/matter-labs/era-compiler-llvm-context?branch=main#68e4674db2c5030d589d758582e9c12ecf12b8a2"
 dependencies = [
  "anyhow",
  "era-compiler-common",
- "indexmap",
  "inkwell",
  "itertools 0.14.0",
  "num",
  "semver 1.0.26",
  "serde",
- "thiserror 2.0.16",
  "zkevm_opcode_defs 0.152.7 (git+https://github.com/matter-labs/zksync-protocol?branch=main)",
 ]
 
 [[package]]
 name = "era-compiler-solidity"
 version = "1.5.16"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9a94dc1962b1712d5bd5072b39ad87bab26f0028"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f6ab9d80b17b903d814a785da9612c6874926efc"
 dependencies = [
  "anyhow",
  "clap",
@@ -1218,7 +1216,7 @@ dependencies = [
 [[package]]
 name = "era-compiler-vyper"
 version = "1.5.11"
-source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#6d9ce891a1007e23e5d1590560cdc53e2ecb63f0"
+source = "git+https://github.com/matter-labs/era-compiler-vyper?branch=main#178d18fc81ab16bd76db0ce2bf89a87930ae9861"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1241,7 +1239,7 @@ dependencies = [
 [[package]]
 name = "era-solc"
 version = "1.5.16"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9a94dc1962b1712d5bd5072b39ad87bab26f0028"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f6ab9d80b17b903d814a785da9612c6874926efc"
 dependencies = [
  "anyhow",
  "boolinator",
@@ -1258,7 +1256,7 @@ dependencies = [
 [[package]]
 name = "era-yul"
 version = "1.5.16"
-source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#9a94dc1962b1712d5bd5072b39ad87bab26f0028"
+source = "git+https://github.com/matter-labs/era-compiler-solidity?branch=main#f6ab9d80b17b903d814a785da9612c6874926efc"
 dependencies = [
  "anyhow",
  "regex",
@@ -1798,9 +1796,9 @@ dependencies = [
 
 [[package]]
 name = "iana-time-zone"
-version = "0.1.63"
+version = "0.1.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0c919e5debc312ad217002b8048a17b7d83f80703865bbfcfebb0458b0b27d8"
+checksum = "33e57f83510bb73707521ebaffa789ec8caf86f9657cad665b092b581d40e9fb"
 dependencies = [
  "android_system_properties",
  "core-foundation-sys",
@@ -2600,9 +2598,9 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "pest"
-version = "2.8.1"
+version = "2.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1db05f56d34358a8b1066f67cbb203ee3e7ed2ba674a6263a1d5ec6db2204323"
+checksum = "21e0a3a33733faeaf8651dfee72dd0f388f0c8e5ad496a3478fa5a922f49cfa8"
 dependencies = [
  "memchr",
  "thiserror 2.0.16",
@@ -3426,10 +3424,11 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.219"
+version = "1.0.221"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
+checksum = "341877e04a22458705eb4e131a1508483c877dca2792b3781d4e5d8a6019ec43"
 dependencies = [
+ "serde_core",
  "serde_derive",
 ]
 
@@ -3443,10 +3442,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_derive"
-version = "1.0.219"
+name = "serde_core"
+version = "1.0.221"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
+checksum = "0c459bc0a14c840cb403fc14b148620de1e0778c96ecd6e0c8c3cacb6d8d00fe"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.221"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6185cf75117e20e62b1ff867b9518577271e58abe0037c40bb4794969355ab0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3455,15 +3463,15 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.143"
+version = "1.0.144"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d401abef1d108fbd9cbaebc3e46611f4b1021f714a0597a71f41ee463f5f4a5a"
+checksum = "56177480b00303e689183f110b4e727bb4211d692c62d4fcd16d02be93077d40"
 dependencies = [
  "indexmap",
  "itoa",
  "memchr",
  "ryu",
- "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -3633,7 +3641,7 @@ dependencies = [
 [[package]]
 name = "solx-codegen-evm"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
+source = "git+https://github.com/matter-labs/solx?branch=main#c6aedce5cd0f9037cfcd684dd9295ffb0553c82e"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3649,7 +3657,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
+source = "git+https://github.com/matter-labs/solx?branch=main#c6aedce5cd0f9037cfcd684dd9295ffb0553c82e"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -3668,7 +3676,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
+source = "git+https://github.com/matter-labs/solx?branch=main#c6aedce5cd0f9037cfcd684dd9295ffb0553c82e"
 dependencies = [
  "anyhow",
  "num",
@@ -3683,7 +3691,7 @@ dependencies = [
 [[package]]
 name = "solx-utils"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
+source = "git+https://github.com/matter-labs/solx?branch=main#c6aedce5cd0f9037cfcd684dd9295ffb0553c82e"
 dependencies = [
  "anyhow",
  "base58",
@@ -3700,7 +3708,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=main#9cf821e04d59fb91d12dabdc12eb2044913e169f"
+source = "git+https://github.com/matter-labs/solx?branch=main#c6aedce5cd0f9037cfcd684dd9295ffb0553c82e"
 dependencies = [
  "anyhow",
  "serde",
@@ -4430,15 +4438,15 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "windows-core"
-version = "0.61.2"
+version = "0.62.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0fdd3ddb90610c7638aa2b3a3ab2904fb9e5cdbecc643ddb3647212781c4ae3"
+checksum = "57fe7168f7de578d2d8a05b07fd61870d2e73b4020e9f49aa00da8471723497c"
 dependencies = [
  "windows-implement",
  "windows-interface",
- "windows-link 0.1.3",
- "windows-result",
- "windows-strings",
+ "windows-link 0.2.0",
+ "windows-result 0.4.0",
+ "windows-strings 0.5.0",
 ]
 
 [[package]]
@@ -4482,8 +4490,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b8a9ed28765efc97bbc954883f4e6796c33a06546ebafacbabee9696967499e"
 dependencies = [
  "windows-link 0.1.3",
- "windows-result",
- "windows-strings",
+ "windows-result 0.3.4",
+ "windows-strings 0.4.2",
 ]
 
 [[package]]
@@ -4496,12 +4504,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "windows-result"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7084dcc306f89883455a206237404d3eaf961e5bd7e0f312f7c91f57eb44167f"
+dependencies = [
+ "windows-link 0.2.0",
+]
+
+[[package]]
 name = "windows-strings"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56e6c93f3a0c3b36176cb1327a4958a0353d5d166c2a35cb268ace15e91d3b57"
 dependencies = [
  "windows-link 0.1.3",
+]
+
+[[package]]
+name = "windows-strings"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7218c655a553b0bed4426cf54b20d7ba363ef543b52d515b3e48d7fd55318dda"
+dependencies = [
+ "windows-link 0.2.0",
 ]
 
 [[package]]

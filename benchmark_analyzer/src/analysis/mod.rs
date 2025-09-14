@@ -24,8 +24,8 @@ type GroupRuns<'a> = BTreeMap<&'a str, (RunDescription<'a>, &'a Run)>;
 /// Collects measurements from a benchmark into groups.
 /// Groups may intersect.
 ///
-fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns> {
-    let mut result: BTreeMap<Group<'_>, GroupRuns> = BTreeMap::new();
+fn collect_runs(benchmark: &Benchmark) -> BTreeMap<Group<'_>, GroupRuns<'_>> {
+    let mut result: BTreeMap<Group<'_>, GroupRuns<'_>> = BTreeMap::new();
     for (test_identifier, test) in benchmark.tests.iter() {
         for (_toolchain, toolchain_group) in test.toolchain_groups.iter() {
             for (codegen, codegen_group) in toolchain_group.codegen_groups.iter() {

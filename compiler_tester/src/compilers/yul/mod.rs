@@ -85,7 +85,7 @@ impl Compiler for YulCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             mode.enable_eravm_extensions,
-            era_compiler_common::EraVMMetadataHashType::IPFS,
+            era_compiler_common::MetadataHashType::IPFS,
             true,
             mode.llvm_optimizer_settings.to_owned(),
             llvm_options,
@@ -273,10 +273,22 @@ impl Compiler for YulCompiler {
         }
     }
 
-    fn all_modes(&self, target: era_compiler_common::Target) -> Vec<Mode> {
-        era_compiler_llvm_context::OptimizerSettings::combinations(target)
+    fn all_modes(&self) -> Vec<Mode> {
+        solx_codegen_evm::OptimizerSettings::combinations()
             .into_iter()
-            .map(|llvm_optimizer_settings| YulMode::new(llvm_optimizer_settings, false).into())
+            .map(|llvm_optimizer_settings| {
+                let llvm_optimizer_settings = era_compiler_llvm_context::OptimizerSettings::new(
+                    llvm_optimizer_settings.level_middle_end,
+                    match llvm_optimizer_settings.level_middle_end_size as u32 {
+                        0 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::Zero,
+                        1 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::S,
+                        2 => era_compiler_llvm_context::OptimizerSettingsSizeLevel::Z,
+                        _ => panic!("Invalid size level"),
+                    },
+                    llvm_optimizer_settings.level_back_end,
+                );
+                YulMode::new(llvm_optimizer_settings, false).into()
+            })
             .collect::<Vec<Mode>>()
     }
 

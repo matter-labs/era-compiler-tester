@@ -48,7 +48,7 @@ impl Compiler for EraVMAssemblyCompiler {
         let build = project.compile_to_eravm(
             &mut vec![],
             true,
-            era_compiler_common::EraVMMetadataHashType::IPFS,
+            era_compiler_common::MetadataHashType::IPFS,
             true,
             era_compiler_llvm_context::OptimizerSettings::none(),
             llvm_options,
@@ -80,7 +80,7 @@ impl Compiler for EraVMAssemblyCompiler {
         anyhow::bail!("EraVM assembly cannot be compiled to EVM");
     }
 
-    fn all_modes(&self, _target: era_compiler_common::Target) -> Vec<Mode> {
+    fn all_modes(&self) -> Vec<Mode> {
         vec![EraVMMode::default().into()]
     }
 

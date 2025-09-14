@@ -101,7 +101,7 @@ impl Case {
             }
         }
 
-        if let era_compiler_common::Target::EraVM = environment.into() {
+        if let benchmark_analyzer::Target::EraVM = environment.into() {
             for (name, instance) in instances.iter() {
                 if let Instance::EraVM { .. } = instance {
                     continue;

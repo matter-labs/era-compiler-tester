@@ -13,7 +13,7 @@ fn convert() {
         toolchain: "solx".to_owned(),
         compiler_version: semver::Version::new(1, 0, 0).to_string(),
         llvm_version: semver::Version::new(19, 1, 0).to_string(),
-        target: era_compiler_common::Target::EVM,
+        target: benchmark_analyzer::Target::EVM,
 
         codegen: Some("Y+".to_owned()),
         optimization: Some("M3B3".to_owned()),

@@ -24,7 +24,7 @@ impl Calldata {
     pub fn try_from_matter_labs(
         calldata: MatterLabsTestInputCalldata,
         instances: &BTreeMap<String, Instance>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let calldata = match calldata {
             MatterLabsTestInputCalldata::Value(value) => {

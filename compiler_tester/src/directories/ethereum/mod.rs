@@ -49,19 +49,19 @@ impl Collection for EthereumDirectory {
     type Test = EthereumTest;
 
     fn read_all(
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
         directory_path: &Path,
         _extension: &'static str,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
     ) -> anyhow::Result<Vec<Self::Test>> {
         let index_path = match target {
-            era_compiler_common::Target::EraVM => {
+            benchmark_analyzer::Target::EraVM => {
                 let mut index_path = directory_path.to_path_buf();
                 index_path.push(Self::INDEX_NAME_ZKSYNC);
                 index_path
             }
-            era_compiler_common::Target::EVM => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
+            benchmark_analyzer::Target::EVM => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
         };
 
         Ok(Self::read_index(index_path.as_path())?
