@@ -11,9 +11,10 @@ use std::time::Instant;
 
 use colored::Colorize;
 use revm::{
-    db::{states::plain_account::PlainStorage, EmptyDBTyped},
+    context::Evm,
+    database::{states::plain_account::PlainStorage, EmptyDBTyped},
     primitives::{Address, FixedBytes, TxKind, B256, U256},
-    Evm,
+    state::EvmState,
 };
 
 use solidity_adapter::EVMVersion;
@@ -30,7 +31,7 @@ use self::revm_type_conversions::{
 #[derive(Debug)]
 pub struct REVM<'a> {
     /// REVM internal state.
-    pub state: Evm<'a, (), revm::State<EmptyDBTyped<Infallible>>>,
+    pub state: Evm<(), EvmState<EmptyDBTyped<Infallible>>>,
 }
 
 impl Default for REVM<'_> {
@@ -44,9 +45,9 @@ impl REVM<'_> {
     /// A shortcut constructor.
     ///
     pub fn new() -> Self {
-        let mut cache = revm::CacheState::new(false);
+        let mut cache = revm::database::CacheState::new(false);
         // Precompile 0x01 needs to have its code hash
-        let acc_info = revm::primitives::AccountInfo {
+        let acc_info = revm::state::AccountInfo {
             balance: U256::from(1_u64),
             code_hash: FixedBytes::from_str(
                 "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
@@ -63,7 +64,7 @@ impl REVM<'_> {
         );
 
         // Account 0x00 needs to have its code hash on 0
-        let acc_info_zero = revm::primitives::AccountInfo {
+        let acc_info_zero = revm::state::AccountInfo {
             balance: U256::from(0_u64),
             code_hash: FixedBytes::from(U256::ZERO),
             code: None,
@@ -76,7 +77,7 @@ impl REVM<'_> {
             PlainStorage::default(),
         );
 
-        let mut state = revm::db::State::builder()
+        let mut state = revm::database::State::builder()
             .with_cached_prestate(cache)
             .with_bundle_update()
             .build();
@@ -94,7 +95,7 @@ impl REVM<'_> {
         );
 
         Self {
-            state: revm::Evm::builder().with_db(state).build(),
+            state: revm::context::Evm::new(state),
         }
     }
 
@@ -175,6 +176,7 @@ impl REVM<'_> {
         calldata: Calldata,
         value: Option<u128>,
         evm_version: Option<EVMVersion>,
+        input_index: usize,
     ) -> Self {
         let vm = self
             .state
@@ -186,7 +188,7 @@ impl REVM<'_> {
                 env.tx.value = revm::primitives::U256::from(value.unwrap_or_default());
                 env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&address));
                 env.cfg.chain_id = evm_context.chain_id;
-                env.block.number = U256::from(evm_context.block_number);
+                env.block.number = U256::from(input_index);
                 let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
                 env.block.coinbase = web3_u256_to_revm_address(coinbase);
                 env.block.timestamp = U256::from(evm_context.block_timestamp);

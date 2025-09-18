@@ -54,12 +54,12 @@ pub fn revm_topics_to_vec_value(revm_topics: &[revm::primitives::B256]) -> Vec<V
 }
 
 pub fn transform_success_output(
-    output: revm::primitives::Output,
+    output: revm::context::result::Output,
     logs: Vec<revm::primitives::Log>,
 ) -> Output {
     let bytes = match output {
-        revm::primitives::Output::Call(bytes) => bytes,
-        revm::primitives::Output::Create(_, address) => {
+        revm::context::result::Output::Call(bytes) => bytes,
+        revm::context::result::Output::Create(_, address) => {
             let addr_slice = address.unwrap();
             Bytes::from(addr_slice.into_word())
         }
