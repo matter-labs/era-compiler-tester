@@ -8,9 +8,6 @@ pub mod input;
 pub mod system_context;
 pub mod system_contracts;
 
-#[cfg(feature = "vm2")]
-mod vm2_adapter;
-
 use std::collections::HashMap;
 use std::ops::Add;
 use std::path::PathBuf;
@@ -52,7 +49,7 @@ pub struct EraVM {
     /// The current EVM block number.
     current_evm_block_number: u128,
     /// The target instruction set.
-    target: era_compiler_common::Target,
+    target: benchmark_analyzer::Target,
 }
 
 impl EraVM {
@@ -84,7 +81,7 @@ impl EraVM {
         system_contracts_debug_config: Option<era_compiler_llvm_context::DebugConfig>,
         system_contracts_load_path: Option<PathBuf>,
         system_contracts_save_path: Option<PathBuf>,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let mut http_client_builder = reqwest::blocking::ClientBuilder::new();
         http_client_builder = http_client_builder.connect_timeout(Duration::from_secs(60));
@@ -374,7 +371,7 @@ impl EraVM {
             0,
         );
 
-        if self.target == era_compiler_common::Target::EVM {
+        if self.target == benchmark_analyzer::Target::EVM {
             // Increase deployment nonce of caller by 1 if it is 0 (we pretend that it is a contract)
             let address_h256 = utils::address_to_h256(&caller);
             let bytes = [
@@ -402,73 +399,42 @@ impl EraVM {
             }
         }
 
-        #[cfg(not(feature = "vm2"))]
-        {
-            let snapshot = zkevm_tester::compiler_tests::run_vm_multi_contracts(
-                trace_file_path.to_string_lossy().to_string(),
-                self.deployed_contracts.clone(),
-                &calldata,
-                self.storage.clone(),
-                self.storage_transient.clone(),
-                entry_address,
-                Some(context),
-                vm_launch_option,
-                usize::MAX,
-                self.known_contracts.clone(),
-                self.published_evm_bytecodes.clone(),
-                self.default_aa_code_hash,
-                self.evm_interpreter_code_hash,
-            )?;
+        let snapshot = zkevm_tester::compiler_tests::run_vm_multi_contracts(
+            trace_file_path.to_string_lossy().to_string(),
+            self.deployed_contracts.clone(),
+            &calldata,
+            self.storage.clone(),
+            self.storage_transient.clone(),
+            entry_address,
+            Some(context),
+            vm_launch_option,
+            usize::MAX,
+            self.known_contracts.clone(),
+            self.published_evm_bytecodes.clone(),
+            self.default_aa_code_hash,
+            self.evm_interpreter_code_hash,
+        )?;
 
-            for (address, assembly) in snapshot.deployed_contracts.iter() {
-                if self.deployed_contracts.contains_key(address) {
-                    continue;
-                }
-
-                self.deployed_contracts
-                    .insert(*address, assembly.to_owned());
+        for (address, assembly) in snapshot.deployed_contracts.iter() {
+            if self.deployed_contracts.contains_key(address) {
+                continue;
             }
 
-            for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
-                if self.published_evm_bytecodes.contains_key(hash) {
-                    continue;
-                }
-
-                self.published_evm_bytecodes.insert(*hash, preimage.clone());
-            }
-
-            self.storage.clone_from(&snapshot.storage);
-
-            Ok(snapshot.into())
+            self.deployed_contracts
+                .insert(*address, assembly.to_owned());
         }
-        #[cfg(feature = "vm2")]
-        {
-            let (result, storage_changes, deployed_contracts) = vm2_adapter::run_vm(
-                self.deployed_contracts.clone(),
-                &calldata,
-                self.storage.clone(),
-                entry_address,
-                Some(context),
-                vm_launch_option,
-                self.known_contracts.clone(),
-                self.default_aa_code_hash,
-                self.evm_interpreter_code_hash,
-            )
-            .map_err(|error| anyhow::anyhow!("EraVM failure: {}", error))?;
 
-            for (key, value) in storage_changes.into_iter() {
-                self.storage.insert(key, value);
-            }
-            for (address, assembly) in deployed_contracts.into_iter() {
-                if self.deployed_contracts.contains_key(&address) {
-                    continue;
-                }
-
-                self.deployed_contracts.insert(address, assembly);
+        for (hash, preimage) in snapshot.published_sha256_blobs.iter() {
+            if self.published_evm_bytecodes.contains_key(hash) {
+                continue;
             }
 
-            Ok(result)
+            self.published_evm_bytecodes.insert(*hash, preimage.clone());
         }
+
+        self.storage.clone_from(&snapshot.storage);
+
+        Ok(snapshot.into())
     }
 
     ///

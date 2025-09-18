@@ -205,7 +205,7 @@ impl MatterLabsTest {
         &self,
         filters: &Filters,
         mode: &Mode,
-        target: era_compiler_common::Target,
+        target: benchmark_analyzer::Target,
     ) -> Option<()> {
         if let Some(targets) = self.metadata.targets.as_ref() {
             if !targets.contains(&target) {
@@ -422,7 +422,7 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
-        self.check_filters(filters, &mode, era_compiler_common::Target::EraVM)?;
+        self.check_filters(filters, &mode, benchmark_analyzer::Target::EraVM)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -519,7 +519,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &eravm_input.method_identifiers,
-                era_compiler_common::Target::EraVM,
+                benchmark_analyzer::Target::EraVM,
             )
             .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {
@@ -565,7 +565,7 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode, era_compiler_common::Target::EVM)?;
+        self.check_filters(filters, &mode, benchmark_analyzer::Target::EVM)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -646,7 +646,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &evm_input.method_identifiers,
-                era_compiler_common::Target::EVM,
+                benchmark_analyzer::Target::EVM,
             )
             .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
             {

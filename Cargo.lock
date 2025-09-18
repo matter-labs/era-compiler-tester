@@ -763,7 +763,9 @@ dependencies = [
  "serde_yaml",
  "sha3 0.10.8",
  "solidity-adapter",
+ "solx-codegen-evm",
  "solx-standard-json",
+ "solx-utils",
  "web3",
  "which",
  "zkevm_opcode_defs",
@@ -3643,7 +3645,7 @@ dependencies = [
 [[package]]
 name = "solx-codegen-evm"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=az-release-v012#051e2593e994c8b777e9d6e052234cac0007b0e6"
+source = "git+https://github.com/matter-labs/solx?branch=main#c45293481f4772459df2a8406b6c51fd8186f9a3"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3659,7 +3661,7 @@ dependencies = [
 [[package]]
 name = "solx-evm-assembly"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=az-release-v012#051e2593e994c8b777e9d6e052234cac0007b0e6"
+source = "git+https://github.com/matter-labs/solx?branch=main#c45293481f4772459df2a8406b6c51fd8186f9a3"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -3678,7 +3680,7 @@ dependencies = [
 [[package]]
 name = "solx-standard-json"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=az-release-v012#051e2593e994c8b777e9d6e052234cac0007b0e6"
+source = "git+https://github.com/matter-labs/solx?branch=main#c45293481f4772459df2a8406b6c51fd8186f9a3"
 dependencies = [
  "anyhow",
  "num",
@@ -3693,7 +3695,7 @@ dependencies = [
 [[package]]
 name = "solx-utils"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=az-release-v012#051e2593e994c8b777e9d6e052234cac0007b0e6"
+source = "git+https://github.com/matter-labs/solx?branch=main#c45293481f4772459df2a8406b6c51fd8186f9a3"
 dependencies = [
  "anyhow",
  "base58",
@@ -3710,7 +3712,7 @@ dependencies = [
 [[package]]
 name = "solx-yul"
 version = "0.1.2"
-source = "git+https://github.com/matter-labs/solx?branch=az-release-v012#051e2593e994c8b777e9d6e052234cac0007b0e6"
+source = "git+https://github.com/matter-labs/solx?branch=main#c45293481f4772459df2a8406b6c51fd8186f9a3"
 dependencies = [
  "anyhow",
  "serde",

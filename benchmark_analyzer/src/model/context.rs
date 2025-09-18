@@ -4,6 +4,8 @@
 
 use std::path::PathBuf;
 
+use crate::target::Target;
+
 ///
 /// A context for benchmarking, passed by compiler-tester.
 ///
@@ -18,7 +20,7 @@ pub struct Context {
     /// Version of the LLVM backend.
     pub llvm_version: String,
     /// Target, such as `evm` or `eravm`.
-    pub target: era_compiler_common::Target,
+    pub target: Target,
 
     /// Global codegen setting.
     pub codegen: Option<String>,
@@ -33,7 +35,7 @@ impl Default for Context {
             toolchain: "unknown".to_string(),
             compiler_version: "unknown".to_string(),
             llvm_version: "unknown".to_string(),
-            target: era_compiler_common::Target::EVM,
+            target: Target::EVM,
             codegen: Some("unknown".to_string()),
             optimization: Some("unknown".to_string()),
         }

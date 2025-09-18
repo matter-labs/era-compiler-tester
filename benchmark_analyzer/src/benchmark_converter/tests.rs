@@ -13,7 +13,7 @@ fn convert() {
         toolchain: "solx".to_owned(),
         compiler_version: semver::Version::new(1, 0, 0).to_string(),
         llvm_version: semver::Version::new(19, 1, 0).to_string(),
-        target: era_compiler_common::Target::EVM,
+        target: benchmark_analyzer::Target::EVM,
 
         codegen: Some("Y+".to_owned()),
         optimization: Some("M3B3".to_owned()),
@@ -106,7 +106,11 @@ fn convert() {
         .extend(input_2)
         .expect("Failed to extend a benchmark report with a Foundry report");
 
-    let output: benchmark_analyzer::Output = (benchmark, benchmark_analyzer::OutputFormat::JsonLNT)
+    let output: benchmark_analyzer::Output = (
+        benchmark,
+        benchmark_analyzer::InputSource::Tooling,
+        benchmark_analyzer::OutputFormat::JsonLNT,
+    )
         .try_into()
         .expect("Failed to convert a benchmark report to output");
     let contents = match output {

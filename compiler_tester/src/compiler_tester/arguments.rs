@@ -90,7 +90,7 @@ pub struct Arguments {
     /// Specify the target architecture.
     /// Available arguments: `evm`, `eravm`.
     #[structopt(long)]
-    pub target: era_compiler_common::Target,
+    pub target: benchmark_analyzer::Target,
 
     /// Specify the environment to run tests on.
     /// Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.

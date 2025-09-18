@@ -48,14 +48,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
     );
 
     inkwell::support::enable_llvm_pretty_stack_trace();
-    for target in [
-        era_compiler_common::Target::EraVM,
-        era_compiler_common::Target::EVM,
-    ]
-    .into_iter()
-    {
-        era_compiler_llvm_context::initialize_target(target);
-    }
+    era_compiler_llvm_context::initialize_target();
+    solx_codegen_evm::initialize_target();
     compiler_tester::LLVMOptions::initialize(
         arguments.llvm_verify_each,
         arguments.llvm_debug_logging,
@@ -100,22 +94,19 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .unwrap_or(compiler_tester::Toolchain::IrLLVM);
     let environment = match (target, arguments.environment) {
         (
-            era_compiler_common::Target::EraVM,
+            benchmark_analyzer::Target::EraVM,
             Some(environment @ compiler_tester::Environment::ZkEVM),
         ) => environment,
-        (era_compiler_common::Target::EraVM, Some(compiler_tester::Environment::FastVM)) => {
-            anyhow::bail!("FastVM is not supported yet");
-        }
-        (era_compiler_common::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
+        (benchmark_analyzer::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
         (
-            era_compiler_common::Target::EVM,
+            benchmark_analyzer::Target::EVM,
             Some(environment @ compiler_tester::Environment::EVMInterpreter),
         ) => environment,
         (
-            era_compiler_common::Target::EVM,
+            benchmark_analyzer::Target::EVM,
             Some(environment @ compiler_tester::Environment::REVM),
         ) => environment,
-        (era_compiler_common::Target::EVM, None) => compiler_tester::Environment::EVMInterpreter,
+        (benchmark_analyzer::Target::EVM, None) => compiler_tester::Environment::EVMInterpreter,
         (target, Some(environment)) => anyhow::bail!(
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),
@@ -123,8 +114,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     let mut executable_download_config_paths = Vec::with_capacity(2);
     if let Some(path) = match (target, toolchain) {
-        (era_compiler_common::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
-        (era_compiler_common::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
+        (benchmark_analyzer::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
+        (benchmark_analyzer::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
             Some("./configs/solc-bin-default.json")
         }
         (_, compiler_tester::Toolchain::Zksolc) => Some("./configs/solc-bin-default.json"),
@@ -191,7 +182,6 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
                     .run_eravm::<compiler_tester::EraVMSystemContractDeployer, true>(vm, toolchain),
             }
         }
-        compiler_tester::Environment::FastVM => anyhow::bail!("FastVM is not supported yet"),
         compiler_tester::Environment::EVMInterpreter => {
             let system_contract_debug_config = if arguments.dump_system {
                 debug_config
@@ -231,8 +221,12 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
-        let output: benchmark_analyzer::Output =
-            (benchmark, arguments.benchmark_format).try_into()?;
+        let output: benchmark_analyzer::Output = (
+            benchmark,
+            benchmark_analyzer::InputSource::CompilerTester,
+            arguments.benchmark_format,
+        )
+            .try_into()?;
         output.write_to_file(path)?;
     }
 
@@ -267,13 +261,11 @@ mod tests {
             dump_system: false,
             disable_deployer: false,
             disable_value_simulator: false,
-            zksolc: Some(PathBuf::from(
-                era_compiler_solidity::DEFAULT_EXECUTABLE_NAME,
-            )),
-            zkvyper: Some(PathBuf::from(era_compiler_vyper::DEFAULT_EXECUTABLE_NAME)),
-            solx: None,
+            zksolc: None,
+            zkvyper: None,
+            solx: Some(PathBuf::from("solx")),
             toolchain: Some(compiler_tester::Toolchain::IrLLVM),
-            target: era_compiler_common::Target::EVM,
+            target: benchmark_analyzer::Target::EVM,
             environment: None,
             workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),
