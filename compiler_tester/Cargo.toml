@@ -39,7 +39,7 @@ chrono = "0.4"
 
 revm = { git = "https://github.com/bluealloy/revm", rev = "fa5650ee8a4d802f4f3557014dd157adfb074460" }
 
-zkevm_opcode_defs = "0.152"
+zkevm_opcode_defs = { git = "https://github.com/matter-labs/zksync-protocol", branch = "main" }
 zkevm_tester = { git = "https://github.com/matter-labs/era-zkevm_tester", branch = "v1.5.2" }
 
 era-compiler-common = { git = "https://github.com/matter-labs/era-compiler-common", branch = "main" }
