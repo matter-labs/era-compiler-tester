@@ -6,8 +6,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::primitives::EVMError;
-use revm::primitives::ExecutionResult;
+use revm::context::result::EVMError;
+use revm::context::result::ExecutionResult;
 use solidity_adapter::EVMVersion;
 
 use crate::summary::Summary;
@@ -181,7 +181,6 @@ impl Runtime {
                     EVMError::Header(error) => format!("Error on Header: {error:?}"),
                     EVMError::Database(_error) => "Error on Database".into(),
                     EVMError::Custom(error) => format!("Error on Custom: {error:?}"),
-                    EVMError::Precompile(error) => format!("Error on Precompile: {error:?}"),
                 };
 
                 Summary::invalid(summary.clone(), test, error_msg);

@@ -1,8 +1,10 @@
 use std::str::FromStr;
 
 use revm::{
-    db::states::plain_account::PlainStorage,
-    primitives::{EVMError, Env, InvalidTransaction, KECCAK_EMPTY, U256},
+    context::result::{EVMError, InvalidTransaction},
+    database::states::plain_account::PlainStorage,
+    primitives::{KECCAK_EMPTY, U256},
+    state::AccountInfo,
 };
 
 use super::{revm_type_conversions::web3_address_to_revm_address, REVM};
@@ -18,7 +20,7 @@ impl<'a> REVM<'a> {
             Ok(Some(acc)) => acc.nonce,
             _ => 1,
         };
-        let account_info = revm::primitives::AccountInfo {
+        let account_info = revm::state::AccountInfo {
             balance: U256::MAX,
             code_hash: revm::primitives::KECCAK_EMPTY,
             code: None,
@@ -41,7 +43,7 @@ impl<'a> REVM<'a> {
     ///
     pub fn update_runtime_balance(self, caller: web3::types::Address) -> Self {
         let address = web3_address_to_revm_address(&caller);
-        let acc_info = revm::primitives::AccountInfo {
+        let acc_info = AccountInfo {
             balance: (U256::from(1) << 100)
                 + U256::from_str("63615000000000").expect("Always valid"),
             code_hash: revm::primitives::KECCAK_EMPTY,
@@ -72,7 +74,7 @@ impl<'a> REVM<'a> {
             balance: _balance,
         })) = self.state.transact()
         {
-            let acc_info = revm::primitives::AccountInfo {
+            let acc_info = AccountInfo {
                 balance: *fee,
                 code_hash: KECCAK_EMPTY,
                 code: None,
@@ -107,7 +109,7 @@ impl<'a> REVM<'a> {
             .balance(web3_address_to_revm_address(&caller))
             .expect("Always exists")
             .data;
-        let acc_info = revm::primitives::AccountInfo {
+        let acc_info = AccountInfo {
             balance: U256::from(self.state.tx().gas_limit) * self.state.tx().gas_price
                 - (post_balance + U256::from_str("63615000000000").expect("Always valid")),
             code_hash: KECCAK_EMPTY,
