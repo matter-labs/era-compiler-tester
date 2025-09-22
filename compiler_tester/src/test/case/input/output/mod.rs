@@ -84,7 +84,7 @@ impl Output {
                         })
                     })
                     .collect::<anyhow::Result<Vec<Event>>>()
-                    .map_err(|error| anyhow::anyhow!("Invalid events: {}", error))?;
+                    .map_err(|error| anyhow::anyhow!("Invalid events: {error}"))?;
                 (return_data, exception, events)
             }
         };

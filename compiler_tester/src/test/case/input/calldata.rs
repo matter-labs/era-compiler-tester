@@ -33,7 +33,7 @@ impl Calldata {
                 })?;
 
                 hex::decode(hex).map_err(|error| {
-                    anyhow::anyhow!("Hexadecimal value `{value}` decoding error: {}", error)
+                    anyhow::anyhow!("Hexadecimal value `{value}` decoding error: {error}")
                 })?
             }
             MatterLabsTestInputCalldata::List(values) => {

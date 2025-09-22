@@ -59,7 +59,7 @@ impl SystemContext {
 
     /// The default origin for tests.
     pub const TX_ORIGIN: &'static str =
-        "0x0000000000000000000000009292929292929292929292929292929292929292";
+        "0x000000000000000000000000deadbeef01000000000000000000000000000000";
 
     /// The default gas price for tests.
     pub const GAS_PRICE: u64 = 3000000000;
@@ -70,11 +70,9 @@ impl SystemContext {
     pub const BLOCK_GAS_LIMIT_EVM: u64 = 20000000;
 
     /// The default coinbase for EraVM tests.
-    pub const COIN_BASE_ERAVM: &'static str =
-        "0x0000000000000000000000000000000000000000000000000000000000008001";
+    pub const COIN_BASE_ERAVM: &'static str = "0x0000000000000000000000000000000000008001";
     /// The default coinbase for EVM tests.
-    pub const COIN_BASE_EVM: &'static str =
-        "0x0000000000000000000000007878787878787878787878787878787878787878";
+    pub const COIN_BASE_EVM: &'static str = "0x7878787878787878787878787878787878787878";
 
     /// The block difficulty for EVM tests using a post paris version.
     pub const BLOCK_DIFFICULTY_POST_PARIS: &'static str =
@@ -101,6 +99,9 @@ impl SystemContext {
     /// The default zero block hash.
     pub const ZERO_BLOCK_HASH: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
+    /// The first call block hash.
+    pub const FIRST_BLOCK_HASH: &'static str =
+        "0x3737373737373737373737373737373737373737373737373737373737373738";
 
     ///
     /// Returns the storage values for the system context.

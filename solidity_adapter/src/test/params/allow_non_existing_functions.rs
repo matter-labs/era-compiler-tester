@@ -20,8 +20,7 @@ impl TryFrom<&str> for AllowNonExistingFunctions {
         Ok(match value {
             "true" => AllowNonExistingFunctions::True,
             word => anyhow::bail!(
-                r#"Expected "true" as allowNonExistingFunctions value, found: {}"#,
-                word
+                r#"Expected "true" as allowNonExistingFunctions value, found: {word}"#
             ),
         })
     }

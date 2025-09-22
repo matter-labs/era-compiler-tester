@@ -40,7 +40,7 @@ impl Literal {
             Literal::Hex(hex) => Ok(hex.as_bytes_be()),
             Literal::String(string) => string
                 .as_bytes_be()
-                .map_err(|err| anyhow::anyhow!("Failed to process string: {}", err)),
+                .map_err(|error| anyhow::anyhow!("Failed to process string: {error}")),
         }
     }
 }

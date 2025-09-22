@@ -62,7 +62,7 @@ impl Value {
             )
         } else if let Some(value) = value.strip_prefix('-') {
             let value = web3::types::U256::from_dec_str(value)
-                .map_err(|error| anyhow::anyhow!("Invalid decimal literal after `-`: {}", error))?;
+                .map_err(|error| anyhow::anyhow!("Invalid decimal literal after `-`: {error}"))?;
             if value > web3::types::U256::one() << 255u8 {
                 anyhow::bail!("Decimal literal after `-` is too big");
             }
@@ -74,7 +74,7 @@ impl Value {
                 .expect("Always valid")
         } else if let Some(value) = value.strip_prefix("0x") {
             web3::types::U256::from_str(value)
-                .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
+                .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {error}"))?
         } else if value == "$CHAIN_ID" {
             match target {
                 benchmark_analyzer::Target::EraVM => {
@@ -132,9 +132,11 @@ impl Value {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
                 }
             }
+        } else if value == "$TX_ORIGIN" {
+            web3::types::U256::from(SystemContext::TX_ORIGIN)
         } else {
             web3::types::U256::from_dec_str(value.as_str())
-                .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
+                .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {error}"))?
         };
 
         Ok(Self::Known(value))

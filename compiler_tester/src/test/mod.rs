@@ -91,7 +91,7 @@ impl Test {
                 mode: &self.mode,
                 group: &self.group,
             };
-            case.run_revm(summary.clone(), self.evm_version, &context);
+            case.run_revm(summary.clone(), &context);
         }
     }
 

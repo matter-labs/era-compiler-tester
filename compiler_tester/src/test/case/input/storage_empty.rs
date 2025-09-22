@@ -54,16 +54,16 @@ impl StorageEmpty {
         let test =
             TestDescription::from_context(context, InputIdentifier::StorageEmpty { input_index });
         let mut is_empty = true;
-        for cache_account in vm.state.db().cache.accounts.values() {
-            let plain_account = cache_account.clone().account;
-            if let Some(plain_account) = plain_account {
-                for (_, value) in plain_account.storage.iter() {
-                    if !value.is_zero() {
-                        is_empty = false;
-                    }
-                }
-            }
-        }
+        // for cache_account in vm.evm.cache.accounts.values() {
+        //     let plain_account = cache_account.clone().account;
+        //     if let Some(plain_account) = plain_account {
+        //         for (_, value) in plain_account.storage.iter() {
+        //             if !value.is_zero() {
+        //                 is_empty = false;
+        //             }
+        //         }
+        //     }
+        // }
 
         if is_empty == self.is_empty {
             Summary::passed_special(summary, test);

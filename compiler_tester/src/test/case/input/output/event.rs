@@ -47,9 +47,9 @@ impl Event {
         target: benchmark_analyzer::Target,
     ) -> anyhow::Result<Self> {
         let topics = Value::try_from_vec_matter_labs(event.topics, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid topics: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Invalid topics: {error}"))?;
         let values = Value::try_from_vec_matter_labs(event.values, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid values: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Invalid values: {error}"))?;
 
         let address = match event.address {
             Some(address) => Some(
@@ -64,7 +64,7 @@ impl Event {
                         })
                 } else {
                     web3::types::Address::from_str(address.as_str())
-                        .map_err(|error| anyhow::anyhow!("Invalid address literal: {}", error))
+                        .map_err(|error| anyhow::anyhow!("Invalid address literal: {error}"))
                 }
                 .map_err(|error| anyhow::anyhow!("Invalid event address `{address}`: {error}"))?,
             ),

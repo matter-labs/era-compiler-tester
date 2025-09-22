@@ -70,15 +70,14 @@ impl Input {
         let value = match input.value {
             Some(value) => Some(if let Some(value) = value.strip_suffix(" ETH") {
                 u128::from_str(value)
-                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {}", error))?
+                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {error}"))?
                     .checked_mul(10u128.pow(18))
                     .ok_or_else(|| {
                         anyhow::anyhow!("Invalid value literal `{value}`: u128 overflow")
                     })?
             } else if let Some(value) = value.strip_suffix(" wei") {
-                u128::from_str(value).map_err(|error| {
-                    anyhow::anyhow!("Invalid value literal `{value}`: {}", error)
-                })?
+                u128::from_str(value)
+                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {error}"))?
             } else {
                 anyhow::bail!("Invalid value `{value}`");
             }),
@@ -86,7 +85,7 @@ impl Input {
         };
 
         let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid calldata: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
 
         let expected = match target {
             benchmark_analyzer::Target::EraVM => input.expected_eravm.or(input.expected),
@@ -95,13 +94,13 @@ impl Input {
         let expected = match expected {
             Some(expected) => {
                 Output::try_from_matter_labs_expected(expected, mode, instances, target)
-                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?
+                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?
             }
             None => Output::default(),
         };
 
         let storage = Storage::try_from_matter_labs(input.storage, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid storage: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Invalid storage: {error}"))?;
 
         let instance = instances
             .get(&input.instance)
@@ -389,22 +388,15 @@ impl Input {
     pub fn run_revm<'b>(
         self,
         summary: Arc<Mutex<Summary>>,
-        mut vm: REVM<'b>,
-        evm_version: Option<solidity_adapter::EVMVersion>,
+        vm: &mut REVM,
         context: InputContext<'_>,
-    ) -> REVM<'b> {
+    ) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, evm_version, context),
-            Self::Runtime(runtime) => runtime.run_revm(summary, vm, evm_version, context),
-            Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_revm(summary, &mut vm, context);
-                vm
-            }
-            Self::Balance(balance_check) => {
-                balance_check.run_revm(summary, &mut vm, context);
-                vm
-            }
+            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, context),
+            Self::Runtime(runtime) => runtime.run_revm(summary, vm, context),
+            Self::StorageEmpty(storage_empty) => storage_empty.run_revm(summary, vm, context),
+            Self::Balance(balance_check) => balance_check.run_revm(summary, vm, context),
         }
     }
 

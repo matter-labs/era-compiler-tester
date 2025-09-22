@@ -97,7 +97,7 @@ impl MatterLabsTest {
         };
 
         let mut metadata = match Metadata::from_str(main_file_string.as_str())
-            .map_err(|error| anyhow::anyhow!("Invalid metadata JSON: {}", error))
+            .map_err(|error| anyhow::anyhow!("Invalid metadata JSON: {error}"))
         {
             Ok(metadata) => metadata,
             Err(error) => {

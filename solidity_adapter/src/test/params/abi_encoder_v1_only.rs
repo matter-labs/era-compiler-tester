@@ -19,10 +19,7 @@ impl TryFrom<&str> for ABIEncoderV1Only {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(match value {
             "true" => ABIEncoderV1Only::True,
-            word => anyhow::bail!(
-                r#"Expected "true" as ABIEncoderV1Only value, found: {}"#,
-                word
-            ),
+            word => anyhow::bail!(r#"Expected "true" as ABIEncoderV1Only value, found: {word}"#),
         })
     }
 }

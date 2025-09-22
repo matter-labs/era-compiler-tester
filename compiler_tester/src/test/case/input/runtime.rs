@@ -2,13 +2,14 @@
 //! The contract call input variant.
 //!
 
-use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use revm::context::result::EVMError;
 use revm::context::result::ExecutionResult;
-use solidity_adapter::EVMVersion;
+use revm::context::result::InvalidTransaction;
+use revm::context::Host;
+use revm::ExecuteCommitEvm;
 
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
@@ -19,9 +20,11 @@ use crate::test::context::input::InputContext;
 use crate::test::description::TestDescription;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
-
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
 use crate::vm::revm::revm_type_conversions::transform_success_output;
+use crate::vm::revm::revm_type_conversions::web3_address_to_revm_address;
+use crate::vm::revm::revm_type_conversions::web3_h256_to_revm_u256;
+use crate::vm::revm::revm_type_conversions::web3_u256_to_revm_u256;
 use crate::vm::revm::REVM;
 
 ///
@@ -132,13 +135,7 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm<'b>(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: REVM<'b>,
-        evm_version: Option<EVMVersion>,
-        context: InputContext<'_>,
-    ) -> REVM<'b> {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         let input_index = context.selector;
         let test = TestDescription::from_context(
             context,
@@ -148,43 +145,46 @@ impl Runtime {
             },
         );
 
-        // On revm we can't send a tx with a tx_origin different from the tx_sender,
-        // this specific test expects tx_origin to be that value, so we change the sender
-        let mut caller = self.caller;
-        if test.selector.path == "solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
-            caller = web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
-                .unwrap();
+        let balance = web3::types::U256::from(self.value.unwrap_or_default())
+            + web3::types::U256::from(1267650600228229401496703205376u128);
+        vm.update_balance(self.caller, balance);
+        if input_index == 1 {
+            for address in SystemContext::get_rich_addresses() {
+                let balance = web3::types::U256::from(1267650600228229401496703205376u128);
+                vm.update_balance(address, balance);
+            }
         }
+        for ((address, key), value) in self.storage.inner.into_iter() {
+            let address = web3_address_to_revm_address(&address);
 
-        let rich_addresses = SystemContext::get_rich_addresses();
-        let vm = if rich_addresses.contains(&caller) {
-            vm.update_runtime_balance(caller)
-        } else {
-            vm
-        };
-
-        let mut vm = vm.fill_runtime_new_transaction(
+            if vm.evm.ctx.load_account_code(address).is_none() {
+                continue;
+            }
+            vm.evm.ctx.sstore(
+                address,
+                web3_u256_to_revm_u256(key),
+                web3_h256_to_revm_u256(value),
+            );
+        }
+        let tx = REVM::new_runtime_transaction(
             self.address,
-            caller,
+            self.caller,
             self.calldata.clone(),
             self.value,
-            evm_version,
-            input_index,
         );
-        vm = vm.update_balance_if_lack_of_funds(caller);
 
-        let result = match vm.state.transact_commit() {
+        let result = match vm.evm.transact_commit(tx) {
             Ok(result) => result,
             Err(error) => {
-                let error_msg = match error {
-                    EVMError::Transaction(error) => format!("Error on Transaction: {error:?}"),
-                    EVMError::Header(error) => format!("Error on Header: {error:?}"),
-                    EVMError::Database(_error) => "Error on Database".into(),
-                    EVMError::Custom(error) => format!("Error on Custom: {error:?}"),
-                };
-
-                Summary::invalid(summary.clone(), test, error_msg);
-                return vm;
+                if let EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
+                    ref fee,
+                    ..
+                }) = error
+                {
+                    vm.update_balance_if_lack_of_funds(self.caller, **fee);
+                }
+                Summary::invalid(summary.clone(), test, error);
+                return;
             }
         };
         let (output, gas, error) = match result {
@@ -195,11 +195,9 @@ impl Runtime {
                 logs,
                 output,
             } => {
-                vm = if !SystemContext::get_rich_addresses().contains(&caller) {
-                    vm.non_rich_update_balance(caller)
-                } else {
-                    vm
-                };
+                if !SystemContext::get_rich_addresses().contains(&self.caller) {
+                    vm.non_rich_update_balance(self.caller);
+                }
                 (transform_success_output(output, logs), gas_used, None)
             }
             ExecutionResult::Revert { gas_used, output } => {
@@ -217,8 +215,7 @@ impl Runtime {
             Summary::invalid(summary, test, format!("{error:?}"));
         } else {
             Summary::failed(summary, test, self.expected, output, self.calldata.inner);
-        };
-        vm
+        }
     }
 
     ///

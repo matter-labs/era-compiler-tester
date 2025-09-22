@@ -81,7 +81,7 @@ impl Literal {
                 State::HexSecond => {
                     code.push(char);
                     let code_u8 = web3::types::U256::from_str(code.as_str())
-                        .map_err(|err| anyhow::anyhow!("Invalid escape sequence: {}", err))?
+                        .map_err(|error| anyhow::anyhow!("Invalid escape sequence: {error}"))?
                         .as_u32() as u8;
                     code.clear();
                     result.push(code_u8);

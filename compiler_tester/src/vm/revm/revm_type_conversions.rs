@@ -17,6 +17,10 @@ pub fn web3_u256_to_revm_u256(u256: web3::types::U256) -> revm::primitives::U256
     revm::primitives::U256::from_be_bytes(bytes)
 }
 
+pub fn web3_h256_to_revm_u256(h256: web3::types::H256) -> revm::primitives::U256 {
+    revm::primitives::U256::from_be_bytes(h256.to_fixed_bytes())
+}
+
 pub fn web3_address_to_revm_address(address: &web3::types::Address) -> revm::primitives::Address {
     let bytes: &mut [u8; 32] = &mut [0; 32];
     web3::types::U256::from(address.as_bytes()).to_big_endian(bytes);

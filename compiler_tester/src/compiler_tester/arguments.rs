@@ -95,7 +95,7 @@ pub struct Arguments {
     /// Specify the environment to run tests on.
     /// Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.
     /// The default for `EraVM` target is `zk_evm`.
-    /// The default for `EVM` target is `EVMInterpreter`.
+    /// The default for `EVM` target is `REVM`.
     #[structopt(long)]
     pub environment: Option<compiler_tester::Environment>,
 

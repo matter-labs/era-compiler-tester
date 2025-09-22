@@ -5,9 +5,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::context::result::EVMError;
 use revm::context::result::ExecutionResult;
-use solidity_adapter::EVMVersion;
+use revm::ExecuteCommitEvm;
 
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
@@ -73,13 +72,7 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm<'b>(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: REVM<'b>,
-        evm_version: Option<EVMVersion>,
-        context: InputContext<'_>,
-    ) -> REVM<'b> {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         let test = TestDescription::from_context(
             context,
             InputIdentifier::Deployer {
@@ -92,25 +85,19 @@ impl DeployEVM {
         let mut code = self.deploy_code;
         code.extend(self.calldata.inner);
 
-        let vm = vm.update_deploy_balance(&self.caller);
-        let mut vm = vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, code);
-
-        let result = match vm.state.transact_commit() {
-            Ok(res) => res,
+        let balance = web3::types::U256::from(self.value.unwrap_or_default())
+            + web3::types::U256::from(1267650600228229401496703205376u128);
+        vm.update_balance(self.caller, balance);
+        let tx = REVM::new_deploy_transaction(self.caller, self.value, code);
+        let result = match vm.evm.transact_commit(tx) {
+            Ok(result) => result,
             Err(error) => {
-                let error_msg = match error {
-                    EVMError::Transaction(error) => format!("Error on Transaction: {error:?}"),
-                    EVMError::Header(error) => format!("Error on Header: {error:?}"),
-                    EVMError::Database(_error) => "Error on Database".into(),
-                    EVMError::Custom(error) => format!("Error on Custom: {error:?}"),
-                };
-
-                Summary::invalid(summary.clone(), test, error_msg);
-                return vm;
+                Summary::invalid(summary.clone(), test, error);
+                return;
             }
         };
 
-        let (output, gas, error) = match result {
+        let (output, gas, halt_reason) = match result {
             ExecutionResult::Success {
                 reason: _,
                 gas_used,
@@ -129,13 +116,11 @@ impl DeployEVM {
 
         if output == self.expected {
             Summary::passed_deploy(summary, test, size, 0, 0, gas);
-        } else if let Some(error) = error {
+        } else if let Some(error) = halt_reason {
             Summary::invalid(summary, test, format!("{error:?}"));
         } else {
             Summary::failed(summary, test, self.expected, output, calldata);
         }
-
-        vm
     }
 
     ///

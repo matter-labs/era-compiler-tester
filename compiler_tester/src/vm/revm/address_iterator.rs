@@ -47,6 +47,6 @@ impl AddressIterator for EVMAddressIterator {
     }
 
     fn nonce(&mut self, caller: &web3::types::Address) -> usize {
-        *self.nonces.entry(*caller).or_insert(1)
+        *self.nonces.entry(*caller).or_default()
     }
 }

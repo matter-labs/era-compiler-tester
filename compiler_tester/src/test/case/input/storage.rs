@@ -42,9 +42,9 @@ impl Storage {
                     })
             } else {
                 web3::types::Address::from_str(address.as_str())
-                    .map_err(|error| anyhow::anyhow!("Invalid address literal: {}", error))
+                    .map_err(|error| anyhow::anyhow!("Invalid address literal: {error}"))
             }
-            .map_err(|error| anyhow::anyhow!("Invalid storage address: {}", error))?;
+            .map_err(|error| anyhow::anyhow!("Invalid storage address: {error}"))?;
 
             let contract_storage = match contract_storage {
                 MatterLabsTestContractStorage::List(list) => list
@@ -56,14 +56,14 @@ impl Storage {
             };
             for (key, value) in contract_storage.into_iter() {
                 let key = match Value::try_from_matter_labs(key, instances, target)
-                    .map_err(|error| anyhow::anyhow!("Invalid storage key: {}", error))?
+                    .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
                 {
                     Value::Known(value) => value,
                     Value::Any => anyhow::bail!("Storage key can not be `*`"),
                 };
 
                 let value = match Value::try_from_matter_labs(value, instances, target)
-                    .map_err(|error| anyhow::anyhow!("Invalid storage value: {}", error))?
+                    .map_err(|error| anyhow::anyhow!("Invalid storage value: {error}"))?
                 {
                     Value::Known(value) => value,
                     Value::Any => anyhow::bail!("Storage value can not be `*`"),

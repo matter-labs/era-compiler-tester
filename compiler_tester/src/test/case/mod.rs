@@ -119,20 +119,15 @@ impl Case {
     ///
     /// Runs the case on REVM.
     ///
-    pub fn run_revm(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        evm_version: Option<solidity_adapter::EVMVersion>,
-        context: &CaseContext,
-    ) {
-        let mut vm = REVM::new();
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, context: &CaseContext) {
+        let mut vm = REVM::default();
         for (index, input) in self.inputs.into_iter().enumerate() {
             let context = InputContext {
                 case_context: context,
                 case_name: &self.name,
                 selector: index,
             };
-            vm = input.run_revm(summary.clone(), vm, evm_version, context)
+            input.run_revm(summary.clone(), &mut vm, context)
         }
     }
 

@@ -26,8 +26,7 @@ impl TryFrom<&str> for CompileViaYul {
             "true" => CompileViaYul::True,
             "false" => CompileViaYul::False,
             word => anyhow::bail!(
-                r#"Expected "also", "true", or "false" as compileViaYul, found: {}"#,
-                word
+                r#"Expected "also", "true", or "false" as compileViaYul, found: {word}"#
             ),
         })
     }
