@@ -117,6 +117,28 @@ impl TryFrom<(Benchmark, Source)> for Xlsx {
                 .as_ref()
                 .and_then(|input| input.runtime_name());
 
+            let blacklist = vec![(
+                "aave-v3",
+                "lib/solidity-utils/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+                "fallback()",
+            ), (
+                "solady",
+                "test/utils/mocks/MockMulticallable.sol:MockMulticallable",
+                "multicallBrutalized(bytes[])",
+            ), (
+                "solady",
+                "src/accounts/ERC6551Proxy.sol:ERC6551Proxy",
+                "fallback()",
+            )];
+            for (project_b, contract_b, function_b) in blacklist.into_iter() {
+                if project.as_str() == project_b
+                    && contract.as_str() == contract_b
+                    && function == Some(function_b)
+                {
+                    continue;
+                }
+            }
+
             for (toolchain_name, toolchain_group) in test.toolchain_groups.into_iter() {
                 for (codegen_name, codegen_group) in toolchain_group.codegen_groups.into_iter() {
                     for (version_name, version_group) in codegen_group.versioned_groups.into_iter()
