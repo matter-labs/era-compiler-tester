@@ -9,17 +9,7 @@ use std::str::FromStr;
 ///
 /// The EraVM system context.
 ///
-pub struct SystemContext;
-
-pub struct EVMContext {
-    pub chain_id: u64,
-    pub coinbase: &'static str,
-    pub block_number: u128,
-    pub block_timestamp: u128,
-    pub block_gas_limit: u64,
-    pub block_difficulty: &'static str,
-    pub base_fee: u64,
-}
+pub struct SystemContext {}
 
 impl SystemContext {
     /// The system context chain ID value position in the storage.
@@ -147,7 +137,9 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_COINBASE_POSITION),
-                web3::types::H256::from_str(coinbase).expect("Always valid"),
+                crate::utils::address_to_h256(
+                    &web3::types::Address::from_str(coinbase).expect("Always valid"),
+                ),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
@@ -259,29 +251,6 @@ impl SystemContext {
         };
 
         storage
-    }
-
-    ///
-    /// Returns constants for the specified EVM version.
-    ///
-    pub fn get_constants_evm(evm_version: Option<solidity_adapter::EVMVersion>) -> EVMContext {
-        let block_difficulty = match evm_version {
-            Some(
-                solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
-                | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
-            ) => &SystemContext::BLOCK_DIFFICULTY_PRE_PARIS[2..],
-            _ => &SystemContext::BLOCK_DIFFICULTY_POST_PARIS[2..],
-        };
-
-        EVMContext {
-            chain_id: SystemContext::CHAIND_ID_EVM,
-            coinbase: &SystemContext::COIN_BASE_EVM[2..],
-            block_number: SystemContext::CURRENT_BLOCK_NUMBER,
-            block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
-            block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
-            block_difficulty,
-            base_fee: SystemContext::BASE_FEE,
-        }
     }
 
     ///
