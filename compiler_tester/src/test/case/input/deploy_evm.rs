@@ -73,6 +73,7 @@ impl DeployEVM {
     /// Runs the deploy transaction on native REVM.
     ///
     pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
+        let input_index = context.selector;
         let test = TestDescription::from_context(
             context,
             InputIdentifier::Deployer {
@@ -85,9 +86,10 @@ impl DeployEVM {
         let mut code = self.deploy_code;
         code.extend(self.calldata.inner);
 
-        let balance = web3::types::U256::from(self.value.unwrap_or_default())
-            + web3::types::U256::from(1267650600228229401496703205376u128);
+        let balance= revm::primitives::U256::from(self.value.unwrap_or_default())
+            + revm::primitives::U256::from(1267650600228229401496703205376u128);
         vm.update_balance(self.caller, balance);
+        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
         let tx = REVM::new_deploy_transaction(self.caller, self.value, code);
         let result = match vm.evm.transact_commit(tx) {
             Ok(result) => result,

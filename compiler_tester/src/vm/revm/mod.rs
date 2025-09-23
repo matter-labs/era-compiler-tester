@@ -10,10 +10,12 @@ use std::time::Instant;
 use colored::Colorize;
 use revm::context::Host;
 use revm::{
-    context::ContextTr, context::Evm, context_interface::JournalTr, state::AccountInfo, Database,
+    database::{states::plain_account::PlainStorage, CacheState},
+    context::ContextTr, context::Evm, context_interface::JournalTr,
+    primitives::{FixedBytes, U256, Address},
+    state::AccountInfo,
 };
 
-use crate::vm::revm::revm_type_conversions::web3_u256_to_revm_u256;
 use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::SystemContext};
 
 use self::revm_type_conversions::web3_address_to_revm_address;
@@ -63,21 +65,47 @@ impl REVM {
     /// A shortcut constructor.
     ///
     pub fn new() -> Self {
-        let block_hashes = vec![
-            SystemContext::ZERO_BLOCK_HASH,
-            SystemContext::FIRST_BLOCK_HASH,
-        ]
-        .into_iter()
-        .enumerate()
-        .map(|(index, hash)| {
-            (
-                index as u64,
-                revm::primitives::B256::from_str(hash).expect("Always valid"),
+        let mut cache = CacheState::new(false);
+        // Account 0x00 needs to have its code hash on 0.
+        cache.insert_account_with_storage(
+            Address::from_word(FixedBytes::from(U256::ZERO)),
+            AccountInfo {
+            balance: U256::from(0_u64),
+            code_hash: FixedBytes::from(U256::ZERO),
+            code: None,
+            nonce: 1,
+        },
+            PlainStorage::default(),
+        );
+        // Precompile 0x01 needs to have its code hash.
+        cache.insert_account_with_storage(
+            Address::from_word(FixedBytes::from(U256::from(1_u64))),
+            AccountInfo {
+            balance: U256::from(1_u64),
+            code_hash: FixedBytes::from_str(
+                "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
             )
-        })
-        .collect();
+            .expect("Always valid"),
+            code: None,
+            nonce: 1,
+        },
+            PlainStorage::default(),
+        );
+
+        let block_hashes = (0..0xffff - 0x3737)
+            .into_iter()
+            .enumerate()
+            .map(|(index, value)| {
+                let hash = format!("0x373737373737373737373737373737373737373737373737373737373737{:04x}", 0x3737 + value);
+                (
+                    index as u64,
+                    revm::primitives::B256::from_str(hash.as_str()).expect("Always valid"),
+                )
+            })
+            .collect();
 
         let state = revm::database::State::builder()
+            .with_cached_prestate(cache)
             .with_block_hashes(block_hashes)
             .with_bundle_update()
             .build();
@@ -105,7 +133,6 @@ impl REVM {
                 .expect("Always valid"),
         );
         evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_EVM;
-        evm.block.number = revm::primitives::U256::from(SystemContext::CURRENT_BLOCK_NUMBER);
         evm.block.timestamp =
             revm::primitives::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM);
         evm.tx.chain_id = Some(SystemContext::CHAIND_ID_EVM);
@@ -155,7 +182,7 @@ impl REVM {
             .data(revm::primitives::Bytes::from(code))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .create()
-            .gas_price(0xb2d05e00_u128)
+            .gas_price(SystemContext::GAS_PRICE as u128)
             .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
             .build_fill()
     }
@@ -174,7 +201,7 @@ impl REVM {
             .data(revm::primitives::Bytes::from(calldata.inner))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .to(web3_address_to_revm_address(&address))
-            .gas_price(0xb2d05e00_u128)
+            .gas_price(SystemContext::GAS_PRICE as u128)
             .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
             .build_fill()
     }
@@ -182,9 +209,8 @@ impl REVM {
     ///
     /// Sets the balance at the specified address.
     ///
-    pub fn update_balance(&mut self, address: web3::types::Address, balance: web3::types::U256) {
+    pub fn update_balance(&mut self, address: web3::types::Address, balance: revm::primitives::U256) {
         let address = web3_address_to_revm_address(&address);
-        let balance = web3_u256_to_revm_u256(balance);
 
         let current_balance = self.evm.ctx.balance(address).unwrap_or_default().data;
         let increment_balance = balance.saturating_sub(current_balance);
@@ -197,45 +223,19 @@ impl REVM {
     }
 
     ///
-    /// REVM needs to send a transaction to execute a contract call,
-    /// the balance of the caller is updated to have enough funds to send the transaction.
-    ///
-    pub fn update_balance_if_lack_of_funds(
-        &mut self,
-        caller: web3::types::Address,
-        fee: revm::primitives::ruint::Uint<256, 4>,
-    ) {
-        let acc_info = AccountInfo {
-            balance: fee,
-            code_hash: revm::primitives::KECCAK_EMPTY,
-            code: None,
-            nonce: 1,
-        };
-        // self.evm.insert_account_with_storage(
-        //     web3_address_to_revm_address(&caller),
-        //     acc_info,
-        //     PlainStorage::default(),
-        // )
-    }
-
-    ///
     /// If the caller is not a rich address, subtract the fee
     /// from the balance used only to previoulsy send the transaction.
     ///
-    pub fn non_rich_update_balance(&mut self, caller: web3::types::Address) {
-        let post_balance = self
-            .evm
-            .db_mut()
-            .basic(web3_address_to_revm_address(&caller))
-            .map(|account_info| account_info.map(|info| info.balance).unwrap_or_default())
-            .expect("Always valid");
-        let balance = (revm::primitives::U256::from(self.evm.tx().gas_limit)
-            * revm::primitives::U256::from(self.evm.tx().gas_price))
-            - (post_balance + revm::primitives::U256::from(63615000000000u128));
+    pub fn non_rich_update_balance(&mut self, address: web3::types::Address) {
+        let address = web3_address_to_revm_address(&address);
+        
+        let increment_balance = revm::primitives::U256::from(self.evm.tx().gas_limit)
+            * revm::primitives::U256::from(self.evm.tx().gas_price);
+
         self.evm
             .ctx
             .journaled_state
-            .balance_incr(web3_address_to_revm_address(&caller), balance)
+            .balance_incr(address, increment_balance)
             .expect("Always valid");
     }
 }

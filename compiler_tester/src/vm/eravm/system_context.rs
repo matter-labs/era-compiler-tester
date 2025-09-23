@@ -49,7 +49,7 @@ impl SystemContext {
 
     /// The default origin for tests.
     pub const TX_ORIGIN: &'static str =
-        "0x0000000000000000000000009292929292929292929292929292929292929292";
+        "0x000000000000000000000000deadbeef00000000000000000000000000000001";
 
     /// The default gas price for tests.
     pub const GAS_PRICE: u64 = 3000000000;
@@ -87,11 +87,8 @@ impl SystemContext {
     pub const BLOCK_TIMESTAMP_EVM_STEP: u128 = 15;
 
     /// The default zero block hash.
-    pub const ZERO_BLOCK_HASH: &'static str =
+    pub const DEFAULT_BLOCK_HASH: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
-    /// The first call block hash.
-    pub const FIRST_BLOCK_HASH: &'static str =
-        "0x3737373737373737373737373737373737373737373737373737373737373738";
 
     ///
     /// Returns the storage values for the system context.
@@ -174,7 +171,7 @@ impl SystemContext {
             let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
 
             let mut hash =
-                web3::types::U256::from_str(Self::ZERO_BLOCK_HASH).expect("Always valid");
+                web3::types::U256::from_str(Self::DEFAULT_BLOCK_HASH).expect("Always valid");
             hash = hash.add(web3::types::U256::from(index));
             let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
             hash.to_big_endian(&mut hash_bytes);

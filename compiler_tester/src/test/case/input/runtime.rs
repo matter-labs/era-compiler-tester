@@ -145,12 +145,12 @@ impl Runtime {
             },
         );
 
-        let balance = web3::types::U256::from(self.value.unwrap_or_default())
-            + web3::types::U256::from(1267650600228229401496703205376u128);
+        let balance = revm::primitives::U256::from(self.value.unwrap_or_default())
+            + revm::primitives::U256::from(1267650600228229401496703205376u128);
         vm.update_balance(self.caller, balance);
         if input_index == 1 {
             for address in SystemContext::get_rich_addresses() {
-                let balance = web3::types::U256::from(1267650600228229401496703205376u128);
+                let balance = revm::primitives::U256::from(1267650600228229401496703205376u128);
                 vm.update_balance(address, balance);
             }
         }
@@ -166,6 +166,8 @@ impl Runtime {
                 web3_h256_to_revm_u256(value),
             );
         }
+        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
+        vm.evm.block.timestamp = revm::primitives::U256::from(((input_index + 1) as u128) * SystemContext::BLOCK_TIMESTAMP_EVM_STEP);
         let tx = REVM::new_runtime_transaction(
             self.address,
             self.caller,
@@ -181,7 +183,7 @@ impl Runtime {
                     ..
                 }) = error
                 {
-                    vm.update_balance_if_lack_of_funds(self.caller, **fee);
+                    vm.update_balance(self.caller, **fee);
                 }
                 Summary::invalid(summary.clone(), test, error);
                 return;

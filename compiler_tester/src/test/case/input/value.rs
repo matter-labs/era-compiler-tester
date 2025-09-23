@@ -118,7 +118,7 @@ impl Value {
                 .and_then(|value| value.parse().ok())
                 .unwrap_or_default();
             let mut hash =
-                web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
+                web3::types::U256::from_str(SystemContext::DEFAULT_BLOCK_HASH).expect("Always valid");
             hash += web3::types::U256::from(offset);
             hash
         } else if value == "$BLOCK_NUMBER" {

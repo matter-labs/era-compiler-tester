@@ -261,7 +261,7 @@ impl EraVM {
                 .to_vec();
         let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
 
-        let mut hash = web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH)
+        let mut hash = web3::types::U256::from_str(SystemContext::DEFAULT_BLOCK_HASH)
             .expect("Invalid zero block hash constant");
         hash = hash.add(web3::types::U256::from(self.current_evm_block_number));
         let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
