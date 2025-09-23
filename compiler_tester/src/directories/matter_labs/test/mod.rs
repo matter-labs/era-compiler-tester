@@ -40,7 +40,7 @@ pub const SIMPLE_TESTS_CONTRACT_NAME: &str = "Test";
 pub const SIMPLE_TESTS_INSTANCE: &str = "Test";
 
 /// The default address of the caller.
-pub const DEFAULT_CALLER_ADDRESS: &str = "deadbeef01000000000000000000000000000000";
+pub const DEFAULT_CALLER_ADDRESS: &str = "9292929292929292929292929292929292929292";
 
 ///
 /// Used for default initialization.

@@ -49,7 +49,7 @@ impl SystemContext {
 
     /// The default origin for tests.
     pub const TX_ORIGIN: &'static str =
-        "0x000000000000000000000000deadbeef01000000000000000000000000000000";
+        "0x0000000000000000000000009292929292929292929292929292929292929292";
 
     /// The default gas price for tests.
     pub const GAS_PRICE: u64 = 3000000000;
