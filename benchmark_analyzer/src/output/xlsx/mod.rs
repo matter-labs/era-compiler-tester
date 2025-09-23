@@ -96,7 +96,7 @@ impl TryFrom<(Benchmark, Source)> for Xlsx {
     fn try_from((benchmark, source): (Benchmark, Source)) -> Result<Self, Self::Error> {
         let mut xlsx = Self::new()?;
 
-        for test in benchmark.tests.into_values() {
+        'outer: for test in benchmark.tests.into_values() {
             let is_deployer = test
                 .metadata
                 .selector
@@ -135,7 +135,7 @@ impl TryFrom<(Benchmark, Source)> for Xlsx {
                     && contract.as_str() == contract_b
                     && function == Some(function_b)
                 {
-                    continue;
+                    continue 'outer;
                 }
             }
 
