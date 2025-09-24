@@ -520,6 +520,7 @@ impl Buildable for MatterLabsTest {
                 &instances,
                 &eravm_input.method_identifiers,
                 benchmark_analyzer::Target::EraVM,
+                environment,
             )
             .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {
@@ -647,6 +648,7 @@ impl Buildable for MatterLabsTest {
                 &instances,
                 &evm_input.method_identifiers,
                 benchmark_analyzer::Target::EVM,
+                environment,
             )
             .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {

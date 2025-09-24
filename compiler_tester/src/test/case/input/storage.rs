@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use crate::environment::Environment;
 use crate::directories::matter_labs::test::metadata::case::input::storage::Storage as MatterLabsTestContractStorage;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
@@ -27,6 +28,7 @@ impl Storage {
         storage: HashMap<String, MatterLabsTestContractStorage>,
         instances: &BTreeMap<String, Instance>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         let mut result = HashMap::new();
 
@@ -56,14 +58,14 @@ impl Storage {
             };
             let mut contract_storage_values = HashMap::new();
             for (key, value) in contract_storage.into_iter() {
-                let key = match Value::try_from_matter_labs(key, instances, target)
+                let key = match Value::try_from_matter_labs(key, instances, target, environment)
                     .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
                 {
                     Value::Known(value) => value,
                     Value::Any => anyhow::bail!("Storage key can not be `*`"),
                 };
 
-                let value = match Value::try_from_matter_labs(value, instances, target)
+                let value = match Value::try_from_matter_labs(value, instances, target, environment)
                     .map_err(|error| anyhow::anyhow!("Invalid storage value: {error}"))?
                 {
                     Value::Known(value) => value,

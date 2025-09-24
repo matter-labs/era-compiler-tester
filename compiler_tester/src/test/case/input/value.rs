@@ -9,6 +9,7 @@ use serde::Serialize;
 use serde::Serializer;
 
 use crate::test::instance::Instance;
+use crate::environment::Environment;
 use crate::vm::eravm::system_context::SystemContext;
 
 ///
@@ -44,6 +45,7 @@ impl Value {
         value: String,
         instances: &BTreeMap<String, Instance>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -139,12 +141,12 @@ impl Value {
         } else if value == "$BASE_FEE" {
             web3::types::U256::from(SystemContext::BASE_FEE_REVM)
         } else if value == "$GAS_PRICE" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
                 }
-                benchmark_analyzer::Target::EVM => {
-                    web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
+                Environment::REVM => {
+                    web3::types::U256::from(SystemContext::GAS_PRICE_REVM)
                 }
             }
         } else {
@@ -162,12 +164,13 @@ impl Value {
         values: Vec<String>,
         instances: &BTreeMap<String, Instance>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Vec<Self>> {
         values
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value, instances, target)
+                Self::try_from_matter_labs(value, instances, target, environment)
                     .map_err(|error| anyhow::anyhow!("Value {index} is invalid: {error}"))
             })
             .collect::<anyhow::Result<Vec<Self>>>()

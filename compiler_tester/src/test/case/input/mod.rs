@@ -20,6 +20,7 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
+use crate::environment::Environment;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::test::InputContext;
@@ -63,6 +64,7 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         let caller = web3::types::Address::from_str(input.caller.as_str())
             .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
@@ -84,7 +86,7 @@ impl Input {
             None => None,
         };
 
-        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target)
+        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target, environment)
             .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
 
         let expected = match target {
@@ -93,13 +95,13 @@ impl Input {
         };
         let expected = match expected {
             Some(expected) => {
-                Output::try_from_matter_labs_expected(expected, mode, instances, target)
+                Output::try_from_matter_labs_expected(expected, mode, instances, target, environment)
                     .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?
             }
             None => Output::default(),
         };
 
-        let storage = Storage::try_from_matter_labs(input.storage, instances, target)
+        let storage = Storage::try_from_matter_labs(input.storage, instances, target, environment)
             .map_err(|error| anyhow::anyhow!("Invalid storage: {error}"))?;
 
         let instance = instances

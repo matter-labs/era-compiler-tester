@@ -7,6 +7,7 @@ pub mod event;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
+use crate::environment::Environment;
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::Variant as MatterLabsTestExpectedVariant;
 use crate::directories::matter_labs::test::metadata::case::input::expected::Expected as MatterLabsTestExpected;
@@ -50,6 +51,7 @@ impl Output {
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         let variants = match expected {
             MatterLabsTestExpected::Single(variant) => vec![variant],
@@ -81,7 +83,7 @@ impl Output {
                     .into_iter()
                     .enumerate()
                     .map(|(index, event)| {
-                        Event::try_from_matter_labs(event, instances, target)
+                        Event::try_from_matter_labs(event, instances, target, environment)
                             .map_err(|error| anyhow::anyhow!("Event #{index} is invalid: {error}"))
                     })
                     .collect::<anyhow::Result<Vec<Event>>>()
@@ -89,7 +91,7 @@ impl Output {
                 (return_data, exception, events)
             }
         };
-        let return_data = Value::try_from_vec_matter_labs(return_data, instances, target)
+        let return_data = Value::try_from_vec_matter_labs(return_data, instances, target, environment)
             .map_err(|error| anyhow::anyhow!("Invalid return data: {error}"))?;
 
         Ok(Self {

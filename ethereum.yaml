@@ -5709,8 +5709,7 @@ entries:
         version: '>=0.4.12'
       tx_origin.sol:
         hash: '0xe79bba8e5d86c43315443dae8a18bcee'
-        enabled: false
-        comment: 'Different in REVM (cannot differ from msg.sender)'
+        enabled: true
         version: '>=0.4.12'
       uncalled_blobhash.sol:
         hash: '0xd85c3cb014d5d113f9abd476f6eeb0b8'

@@ -48,7 +48,7 @@ impl SystemContext {
     pub const CHAIND_ID_EVM: u64 = 1;
 
     /// The default origin for tests.
-    pub const TX_ORIGIN: &'static str = "0xdeadbeef00000000000000000000000000000001";
+    pub const TX_ORIGIN: &'static str = "0x9292929292929292929292929292929292929292";
 
     /// The default gas price for the EVM interpreter.
     pub const GAS_PRICE_EVM_INTERPRETER: u64 = 3000000000;
