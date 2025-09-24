@@ -53,10 +53,10 @@ impl Value {
             web3::types::U256::from_big_endian(
                 instances
                     .get(instance)
-                    .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
+                    .ok_or_else(|| anyhow::anyhow!("Instance `{instance}` not found"))?
                     .address()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
+                        anyhow::anyhow!("Instance `{instance}` was not successfully deployed")
                     })?
                     .as_bytes(),
             )
@@ -107,7 +107,7 @@ impl Value {
             .expect("Always valid")
         } else if value == "$DIFFICULTY" {
             web3::types::U256::from_str_radix(
-                SystemContext::BLOCK_DIFFICULTY_POST_PARIS,
+                SystemContext::BLOCK_DIFFICULTY,
                 era_compiler_common::BASE_HEXADECIMAL,
             )
             .expect("Always valid")
@@ -117,8 +117,8 @@ impl Value {
                 .next_back()
                 .and_then(|value| value.parse().ok())
                 .unwrap_or_default();
-            let mut hash =
-                web3::types::U256::from_str(SystemContext::DEFAULT_BLOCK_HASH).expect("Always valid");
+            let mut hash = web3::types::U256::from_str(SystemContext::DEFAULT_BLOCK_HASH)
+                .expect("Always valid");
             hash += web3::types::U256::from(offset);
             hash
         } else if value == "$BLOCK_NUMBER" {
@@ -134,6 +134,17 @@ impl Value {
             }
         } else if value == "$TX_ORIGIN" {
             web3::types::U256::from(SystemContext::TX_ORIGIN)
+        } else if value == "$BASE_FEE" {
+            web3::types::U256::from(SystemContext::BASE_FEE)
+        } else if value == "$GAS_PRICE" {
+            match target {
+                benchmark_analyzer::Target::EraVM => {
+                    web3::types::U256::from(SystemContext::GAS_PRICE_ERAVM)
+                }
+                benchmark_analyzer::Target::EVM => {
+                    web3::types::U256::from(SystemContext::GAS_PRICE_EVM)
+                }
+            }
         } else {
             web3::types::U256::from_dec_str(value.as_str())
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {error}"))?
@@ -155,7 +166,7 @@ impl Value {
             .enumerate()
             .map(|(index, value)| {
                 Self::try_from_matter_labs(value, instances, target)
-                    .map_err(|error| anyhow::anyhow!("Value {} is invalid: {}", index, error))
+                    .map_err(|error| anyhow::anyhow!("Value {index} is invalid: {error}"))
             })
             .collect::<anyhow::Result<Vec<Self>>>()
     }

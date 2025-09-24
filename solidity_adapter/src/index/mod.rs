@@ -260,7 +260,10 @@ impl FSEntity {
             }
         };
 
-        for (name, entity) in entries.into_iter() {
+        for (name, entity) in entries
+            .into_iter()
+            .filter(|(name, _entity)| !name.starts_with('_'))
+        {
             let mut current = current.to_owned();
             current.push(name);
             entity.into_enabled_list_recursive(&current, accumulator);

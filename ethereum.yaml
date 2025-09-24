@@ -1733,18 +1733,15 @@ entries:
         version: '>=0.4.12'
       ripemd160.sol:
         hash: '0x8f4c0887813d7eca01113e2b1b44d34a'
-        enabled: false
-        comment: 'TODO: ripemd160 precompile'
+        enabled: true
         version: '>=0.4.12'
       ripemd160_empty.sol:
         hash: '0xe9adcf80032b2ee6247a7008a1ae4d1d'
-        enabled: false
-        comment: 'TODO: ripemd160 precompile'
+        enabled: true
         version: '>=0.4.12'
       ripemd160_packed.sol:
         hash: '0xb4d64c7f3ad53144c6ad34a4ae22f136'
-        enabled: false
-        comment: 'TODO: ripemd160 precompile'
+        enabled: true
         version: '>=0.4.12'
       sha256.sol:
         hash: '0x6edc86677abad293dd735d964ed5cb94'
@@ -2779,60 +2776,60 @@ entries:
       FixedFeeRegistrar.sol:
         hash: '0xb91d96fcda759c811887f3c489ac5217'
         enabled: false
-        comment: 'TODO: address is in the kernel space'
+        comment: 'TODO: fees are turned off for now'
         modes:
         - Y >=0.8.1
         - E
         - I
         version: '>=0.6.0'
       _base64:
-        enabled: false
+        enabled: true
         entries:
           base64_inline_asm.sol:
             hash: '0x05b44bce303a8ca194dea3546b47b74c'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           base64_no_inline_asm.sol:
             hash: '0xfde5368fce4aef27609d2ae05c5513a0'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
       _prbmath:
-        enabled: false
+        enabled: true
         entries:
           LICENSE.md:
             hash: '0x0f1cd099a8fc4a3bb5ea4fb03204eab1'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           PRBMathCommon.sol:
             hash: '0xdb8b2c06a5b3ef8c1e7d9e084174a638'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           PRBMathSD59x18.sol:
             hash: '0x57d4d355296641b22c0884a090ad0d5b'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           PRBMathUD60x18.sol:
             hash: '0xc51b5bcdbf243f7b804956ed1174e492'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           README.md:
             hash: '0xfb92f59a14b703bfa4336f6aa56a3732'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
       _stringutils:
-        enabled: false
+        enabled: true
         entries:
           LICENSE:
             hash: '0x37141d73a318f2a13dcc5cd492ea1f9e'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           README.md:
             hash: '0x0b6b78dae72daf3dec0a25a1d6907d78'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           stringutils.sol:
             hash: '0xe453824ed7439884a40e3b0c5afd5292'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
       base64.sol:
         hash: '0xecf6fc314883bc30b83f6a208d428312'
@@ -2866,8 +2863,7 @@ entries:
         version: '>=0.8.0'
       snark.sol:
         hash: '0x03bb0000d44dd4cc1d7bfa00c5503d6b'
-        enabled: false
-        comment: 'TODO: snark precompile'
+        enabled: true
         version: '>=0.4.21'
       strings.sol:
         hash: '0x2b53378039288365cd965ea43f7ae3af'
@@ -2877,53 +2873,53 @@ entries:
     enabled: true
     entries:
       _external:
-        enabled: false
+        enabled: true
         entries:
           external.sol:
             hash: '0x582731d1a6064f958a75202f5ea46456'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           external.sol=sol:
             hash: '0x582731d1a6064f958a75202f5ea46456'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           import.sol:
             hash: '0xacae7a6a46f3e09d89e8fc4a54d0c3be'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           import_with_subdir.sol:
             hash: '0xa57c095f7e6729d3c86eba35f0d9fe1e'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           other_external.sol:
             hash: '0xf2c79c4d6a019a928cbfdc6c33405372'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           subdir:
-            enabled: false
+            enabled: true
             entries:
               import.sol:
                 hash: '0x6f0a00226132965ff06aef5e8bc48682'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
               sub_external.sol:
                 hash: '0xc65984572c51d159a243bff4950a5828'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
       _nonNormalizedPaths:
         enabled: true
         entries:
           a.sol:
             hash: '0xbbc6a40d815554510d08bd14b1ed87df'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           c.sol:
             hash: '0x7160121434112a116d8810dfbe26cb7c'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           d.sol:
             hash: '0x9d1429fa48d65f816d90610b0f7785eb'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
       _relativeImports:
         enabled: true
@@ -2933,11 +2929,11 @@ entries:
             entries:
               d.sol:
                 hash: '0x9d1429fa48d65f816d90610b0f7785eb'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
           c.sol:
             hash: '0x7160121434112a116d8810dfbe26cb7c'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           dir:
             enabled: true
@@ -2947,52 +2943,52 @@ entries:
                 entries:
                   b.sol:
                     hash: '0x7309de9b6cace1e392c9614caca8163b'
-                    enabled: false
+                    enabled: true
                     version: '>=0.4.12'
               G:
                 enabled: true
                 entries:
                   g.sol:
                     hash: '0xceb1c3b5b2422238cdb25fb68df8066f'
-                    enabled: false
+                    enabled: true
                     version: '>=0.4.12'
               a.sol:
                 hash: '0xbbc6a40d815554510d08bd14b1ed87df'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
               contract.sol:
                 hash: '0x41a318992ace60983dbffabad8f1d767'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
           h.sol:
             hash: '0xd42a6d5ae2674a9d1a2ed08859ca8d8b'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
       _sourceNameStartingWithDots:
         enabled: true
         entries:
           b.sol:
             hash: '0x0956d0ee3e4d7a2d0fce49a61ac9055c'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           dir:
             enabled: true
             entries:
               a.sol:
                 hash: '0xbbc6a40d815554510d08bd14b1ed87df'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
               contract.sol:
                 hash: '0x70332ba18edcd1993a3fe836be6b6bcb'
-                enabled: false
+                enabled: true
                 version: '>=0.4.12'
           dot_a.sol:
             hash: '0x8a417451c3381a8641f21a342168ba20'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
           dot_dot_b.sol:
             hash: '0xc21ef51ebd4dc671122a87baec013c45'
-            enabled: false
+            enabled: true
             version: '>=0.4.12'
       multiple_equals_signs.sol:
         hash: '0xea2deff3c34670317998f627654e5a52'
@@ -3094,8 +3090,7 @@ entries:
         version: '>=0.7.1'
       free_namesake_contract_function.sol:
         hash: '0x1fe31d1fbff16a687b8f4347f9425742'
-        enabled: false
-        comment: 'TODO: Cannot be caught on the interpreter due to infinite recursion'
+        enabled: true
         version: '>=0.7.1'
       free_runtimecode.sol:
         hash: '0x05f2cb5b1b4d0ac65b1d132316733495'
@@ -3140,8 +3135,7 @@ entries:
         version: '>=0.5.0'
       bare_call_no_returndatacopy.sol:
         hash: '0xb1a55cf4cde27b6bc2893e5be19888ba'
-        enabled: false
-        comment: 'TODO: address is in the kernel space'
+        enabled: true
         version: '>=0.4.24'
       call_attached_library_function_on_function.sol:
         hash: '0xb963f52be9e9c84e3cf7c4455f59f629'
@@ -3277,8 +3271,7 @@ entries:
         version: '>=0.6.0'
       failed_create.sol:
         hash: '0x0a80674efbf9fdc0f8c8413011a7863f'
-        enabled: false
-        comment: 'TODO: out-of-ergs in underlying EraVM'
+        enabled: true
         version: '>=0.7.0'
       file_level_call_via_module.sol:
         hash: '0x7484f59b7118567c0bb54761d5b87405'
@@ -4126,8 +4119,7 @@ entries:
         version: '>=0.8.15'
       prevrandao.sol:
         hash: '0xcd0569ad2ec413eeeed4d4d54771f9ca'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.8.18'
       selfbalance.sol:
         hash: '0x2e91b6be06a564479b4a8abb677e8988'
@@ -4259,8 +4251,7 @@ entries:
         version: '>=0.4.12'
       balance_other_contract.sol:
         hash: '0x777de2b78b2cb1b26844f702b5e64526'
-        enabled: false
-        comment: 'TODO: address is in the kernel space'
+        enabled: true
         version: '>=0.7.0'
       balance_with_balance.sol:
         hash: '0xf210d097647e64547a09f358b31bfc70'
@@ -4281,7 +4272,7 @@ entries:
       effects.sol:
         hash: '0x5682de4a4c5b27c075e3c3d89485d2e7'
         enabled: false
-        comment: Uses unsupported isoltest
+        comment: 'TODO: Uses unsupported isoltest'
         version: '>=0.4.12'
       empty_contract.sol:
         hash: '0x591b7a347e9cdcf42a4ecd850a224adb'
@@ -5287,7 +5278,7 @@ entries:
           recursive_operator.sol:
             hash: '0xf9da9e563a5b9463f71b82cf17ee0e01'
             enabled: false
-            comment: Optimized out by LLVM
+            comment: 'TODO: Optimized out by LLVM'
             modes:
             - Y
             - E
@@ -5631,7 +5622,8 @@ entries:
         comment: 'TODO: blobs'
       block_basefee.sol:
         hash: '0xf736063ee012830ff7dd0f1530524b3f'
-        enabled: true
+        enabled: false
+        comment: 'TODO: Different in the REVM test env (0)'
         version: '>=0.8.7'
       block_blobbasefee.sol:
         hash: '0x015033380595f341ec5491fea80f01c2'
@@ -5647,17 +5639,16 @@ entries:
         version: '>=0.5.0'
       block_difficulty.sol:
         hash: '0x58b235ea108b6fb65447dac818824654'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.4.12'
       block_difficulty_post_paris.sol:
         hash: '0xaf0b815498b81d9709b312a43f61514d'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.4.12'
       block_gaslimit.sol:
         hash: '0xf81733077b31ae2014e1bff37fb34819'
-        enabled: true
+        enabled: false
+        comment: 'TODO: Different in REVM (30M)'
         version: '>=0.4.12'
       block_number.sol:
         hash: '0x7677b3a84125613671c76ca392845b30'
@@ -5669,13 +5660,11 @@ entries:
         version: '>=0.4.22'
       block_prevrandao.sol:
         hash: '0x0c0fefa7e5f1c572cdb0fa190b71b944'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.8.18'
       block_prevrandao_pre_paris.sol:
         hash: '0x4f1de4a5bf963ccead4e49f5c388a676'
-        enabled: false
-        comment: 'Different in the ZKsync EVM interpreter'
+        enabled: true
         version: '>=0.8.18'
       block_timestamp.sol:
         hash: '0xe33341d130db3aae593b9f66b8acdaab'
@@ -5715,11 +5704,13 @@ entries:
         version: '>=0.4.0'
       tx_gasprice.sol:
         hash: '0x5c09d2b4345cb02ab730c9a82d7ba332'
-        enabled: true
+        enabled: false
+        comment: 'Different in the REVM test env (0)'
         version: '>=0.4.12'
       tx_origin.sol:
         hash: '0xe79bba8e5d86c43315443dae8a18bcee'
-        enabled: true
+        enabled: false
+        comment: 'Different in REVM (cannot differ from msg.sender)'
         version: '>=0.4.12'
       uncalled_blobhash.sol:
         hash: '0xd85c3cb014d5d113f9abd476f6eeb0b8'

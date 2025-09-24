@@ -231,7 +231,7 @@ impl Compiler for YulCompiler {
                     }
 
                     if has_errors {
-                        anyhow::bail!("`solc` errors found: {:?}", error_messages);
+                        anyhow::bail!("`solc` errors found: {error_messages:?}");
                     }
                 }
 

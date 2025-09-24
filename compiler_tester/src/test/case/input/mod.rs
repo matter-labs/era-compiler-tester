@@ -158,10 +158,7 @@ impl Input {
                     Some(method_identifiers) => method_identifiers
                         .get(path)
                         .ok_or_else(|| {
-                            anyhow::anyhow!(
-                                "Contract `{}` not found in the method identifiers",
-                                path
-                            )
+                            anyhow::anyhow!("Contract `{path}` not found in the method identifiers")
                         })?
                         .iter()
                         .find_map(|(name, selector)| {
@@ -173,18 +170,12 @@ impl Input {
                         })
                         .ok_or_else(|| {
                             anyhow::anyhow!(
-                                "In the contract `{}`, selector of the method `{}` not found",
-                                path,
-                                entry
+                                "In contract `{path}`, selector of the method `{entry}` not found"
                             )
                         })?,
                     None => u32::from_str_radix(entry, era_compiler_common::BASE_HEXADECIMAL)
                         .map_err(|error| {
-                            anyhow::anyhow!(
-                                "Invalid entry value for contract `{}`: {}",
-                                path,
-                                error
-                            )
+                            anyhow::anyhow!("Invalid entry value for contract `{path}`: {error}")
                         })?,
                 };
 
@@ -231,7 +222,7 @@ impl Input {
             } => {
                 let value = match value {
                     Some(value) => Some((*value).try_into().map_err(|error| {
-                        anyhow::anyhow!("Invalid value literal `{:X}`: {}", value, error)
+                        anyhow::anyhow!("Invalid value literal `{value:X}`: {error}")
                     })?),
                     None => None,
                 };
@@ -385,12 +376,7 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<'b>(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: &mut REVM,
-        context: InputContext<'_>,
-    ) {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
             Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, context),

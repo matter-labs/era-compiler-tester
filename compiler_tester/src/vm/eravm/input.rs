@@ -49,7 +49,7 @@ impl Input {
 
         for (name, address) in library_addresses.into_iter() {
             let build = self.builds.get(name.as_str()).ok_or_else(|| {
-                anyhow::anyhow!("Library `{}` not found in the build artifacts", name)
+                anyhow::anyhow!("Library `{name}` not found in the build artifacts")
             })?;
             let code_hash = web3::types::U256::from_big_endian(
                 build.bytecode_hash.expect("Always exists").as_slice(),
@@ -88,7 +88,7 @@ impl Input {
         } else {
             for (instance, path) in contracts.iter() {
                 let build = self.builds.get(path.as_str()).ok_or_else(|| {
-                    anyhow::anyhow!("{} not found in the compiler build artifacts", path)
+                    anyhow::anyhow!("Contract `{path}` not found in the compiler build artifacts")
                 })?;
                 let code_hash = web3::types::U256::from_big_endian(
                     build.bytecode_hash.expect("Always exists").as_slice(),

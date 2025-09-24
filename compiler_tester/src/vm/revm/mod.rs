@@ -1,24 +1,42 @@
+///
+/// The REVM adapter.
+///
 pub mod address_iterator;
 pub mod input;
 pub mod revm_type_conversions;
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
-use revm::context::Host;
 use revm::{
-    database::{states::plain_account::PlainStorage, CacheState},
-    context::ContextTr, context::Evm, context_interface::JournalTr,
-    primitives::{FixedBytes, U256, Address},
+    context::ContextTr,
+    context::Evm,
+    database::{states::plain_account::PlainStorage, CacheState, Database},
+    handler::{instructions::EthInstructions, EthFrame, EthPrecompiles},
+    interpreter::interpreter::EthInterpreter,
+    primitives::{Address, FixedBytes, U256},
     state::AccountInfo,
 };
 
+use crate::vm::revm::revm_type_conversions::web3_u256_to_revm_u256;
 use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::SystemContext};
 
 use self::revm_type_conversions::web3_address_to_revm_address;
+
+/// The overloaded REVM Context type.
+type Context = revm::context::Context<
+    revm::context::BlockEnv,
+    revm::context::TxEnv,
+    revm::context::CfgEnv,
+    revm::database::State<revm::database::EmptyDB>,
+    revm::context::Journal<revm::database::State<revm::database::EmptyDB>>,
+    (),
+    revm::context::LocalContext,
+>;
 
 ///
 /// REVM instance with its internal state.
@@ -26,77 +44,48 @@ use self::revm_type_conversions::web3_address_to_revm_address;
 #[derive(Debug)]
 pub struct REVM {
     /// REVM internal state.
-    pub evm: Evm<
-        revm::context::Context<
-            revm::context::BlockEnv,
-            revm::context::TxEnv,
-            revm::context::CfgEnv,
-            revm::database::State<revm::database::EmptyDB>,
-            revm::context::Journal<revm::database::State<revm::database::EmptyDB>>,
-            (),
-            revm::context::LocalContext,
-        >,
-        (),
-        revm::handler::instructions::EthInstructions<
-            revm::interpreter::interpreter::EthInterpreter,
-            revm::context::Context<
-                revm::context::BlockEnv,
-                revm::context::TxEnv,
-                revm::context::CfgEnv,
-                revm::database::State<revm::database::EmptyDB>,
-                revm::context::Journal<revm::database::State<revm::database::EmptyDB>>,
-                (),
-                revm::context::LocalContext,
-            >,
-        >,
-        revm::handler::EthPrecompiles,
-        revm::handler::EthFrame,
-    >,
-}
-
-impl Default for REVM {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub evm: Evm<Context, (), EthInstructions<EthInterpreter, Context>, EthPrecompiles, EthFrame>,
 }
 
 impl REVM {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new() -> Self {
+    pub fn new(evm_version: Option<solidity_adapter::EVMVersion>) -> Self {
         let mut cache = CacheState::new(false);
         // Account 0x00 needs to have its code hash on 0.
         cache.insert_account_with_storage(
             Address::from_word(FixedBytes::from(U256::ZERO)),
             AccountInfo {
-            balance: U256::from(0_u64),
-            code_hash: FixedBytes::from(U256::ZERO),
-            code: None,
-            nonce: 1,
-        },
+                balance: U256::from(0_u64),
+                code_hash: FixedBytes::from(U256::ZERO),
+                code: None,
+                nonce: 1,
+            },
             PlainStorage::default(),
         );
         // Precompile 0x01 needs to have its code hash.
         cache.insert_account_with_storage(
             Address::from_word(FixedBytes::from(U256::from(1_u64))),
             AccountInfo {
-            balance: U256::from(1_u64),
-            code_hash: FixedBytes::from_str(
-                "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-            )
-            .expect("Always valid"),
-            code: None,
-            nonce: 1,
-        },
+                balance: U256::from(1_u64),
+                code_hash: FixedBytes::from_str(
+                    "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+                )
+                .expect("Always valid"),
+                code: None,
+                nonce: 1,
+            },
             PlainStorage::default(),
         );
 
         let block_hashes = (0..0xffff - 0x3737)
-            .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                let hash = format!("0x373737373737373737373737373737373737373737373737373737373737{:04x}", 0x3737 + value);
+                let hash = format!(
+                    "0x373737373737373737373737373737373737373737373737373737373737{:04x}",
+                    0x3737 + value
+                );
                 (
                     index as u64,
                     revm::primitives::B256::from_str(hash.as_str()).expect("Always valid"),
@@ -110,15 +99,7 @@ impl REVM {
             .with_bundle_update()
             .build();
 
-        let context: revm::context::Context<
-            revm::context::BlockEnv,
-            revm::context::TxEnv,
-            revm::context::CfgEnv,
-            revm::database::State<revm::database::EmptyDB>,
-            revm::context::Journal<revm::database::State<revm::database::EmptyDB>>,
-            (),
-            revm::context::LocalContext,
-        > = revm::context::Context::new(state, revm::primitives::hardfork::PRAGUE);
+        let context = Context::new(state, revm::primitives::hardfork::PRAGUE);
 
         let mut evm = revm::context::Evm::new(
             context,
@@ -128,9 +109,19 @@ impl REVM {
         evm.block.beneficiary = revm::primitives::Address::from_str(SystemContext::COIN_BASE_EVM)
             .expect("Always valid");
         evm.block.basefee = SystemContext::BASE_FEE;
+        evm.block.difficulty = revm::primitives::U256::from_str(SystemContext::BLOCK_DIFFICULTY)
+            .expect("Always valid");
         evm.block.prevrandao = Some(
-            revm::primitives::B256::from_str(SystemContext::BLOCK_DIFFICULTY_POST_PARIS)
-                .expect("Always valid"),
+            if evm_version
+                .map(|evm_version| evm_version.matches(&solidity_adapter::EVM::Prague))
+                .unwrap_or(false)
+            {
+                revm::primitives::B256::from_str(SystemContext::BLOCK_PREVRANDAO)
+                    .expect("Always valid")
+            } else {
+                revm::primitives::B256::from_str(SystemContext::BLOCK_DIFFICULTY)
+                    .expect("Always valid")
+            },
         );
         evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_EVM;
         evm.block.timestamp =
@@ -182,7 +173,7 @@ impl REVM {
             .data(revm::primitives::Bytes::from(code))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .create()
-            .gas_price(SystemContext::GAS_PRICE as u128)
+            .gas_price(0)
             .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
             .build_fill()
     }
@@ -201,41 +192,67 @@ impl REVM {
             .data(revm::primitives::Bytes::from(calldata.inner))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .to(web3_address_to_revm_address(&address))
-            .gas_price(SystemContext::GAS_PRICE as u128)
+            .gas_price(0)
             .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
             .build_fill()
     }
 
     ///
-    /// Sets the balance at the specified address.
+    /// Sets the account data and balance.
     ///
-    pub fn update_balance(&mut self, address: web3::types::Address, balance: revm::primitives::U256) {
-        let address = web3_address_to_revm_address(&address);
+    pub fn set_account(&mut self, account: &web3::types::Address, balance: web3::types::U256) {
+        let address = web3_address_to_revm_address(account);
+        let balance = web3_u256_to_revm_u256(balance);
 
-        let current_balance = self.evm.ctx.balance(address).unwrap_or_default().data;
-        let increment_balance = balance.saturating_sub(current_balance);
+        let nonce = self
+            .evm
+            .db_mut()
+            .basic(address)
+            .map(|info| info.map(|info| info.nonce).unwrap_or(1))
+            .unwrap_or(1);
+        let account_info = revm::state::AccountInfo {
+            balance,
+            code_hash: revm::primitives::KECCAK_EMPTY,
+            code: None,
+            nonce,
+        };
 
-        self.evm
-            .ctx
-            .journaled_state
-            .balance_incr(address, increment_balance)
-            .expect("Always valid");
+        self.evm.db_mut().insert_account(address, account_info);
     }
 
     ///
-    /// If the caller is not a rich address, subtract the fee
-    /// from the balance used only to previoulsy send the transaction.
+    /// Sets the account storage.
     ///
-    pub fn non_rich_update_balance(&mut self, address: web3::types::Address) {
-        let address = web3_address_to_revm_address(&address);
-        
-        let increment_balance = revm::primitives::U256::from(self.evm.tx().gas_limit)
-            * revm::primitives::U256::from(self.evm.tx().gas_price);
+    pub fn extend_account_storage(
+        &mut self,
+        account: &web3::types::Address,
+        storage: HashMap<web3::types::U256, web3::types::U256>,
+    ) {
+        let address = web3_address_to_revm_address(account);
+        let storage: HashMap<revm::primitives::U256, revm::primitives::U256> = storage
+            .into_iter()
+            .map(|(key, value)| (web3_u256_to_revm_u256(key), web3_u256_to_revm_u256(value)))
+            .collect();
+
+        let account_info = self
+            .evm
+            .db_mut()
+            .basic(address)
+            .expect("Always exists")
+            .expect("Always exists");
+        let mut existing_storage = self
+            .evm
+            .db_mut()
+            .cache
+            .accounts
+            .get(&address)
+            .and_then(|account| account.account.as_ref())
+            .map(|account| account.storage.to_owned())
+            .unwrap_or_default();
+        existing_storage.extend(storage);
 
         self.evm
-            .ctx
-            .journaled_state
-            .balance_incr(address, increment_balance)
-            .expect("Always valid");
+            .db_mut()
+            .insert_account_with_storage(address, account_info, existing_storage);
     }
 }

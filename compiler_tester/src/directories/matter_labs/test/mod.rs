@@ -157,7 +157,7 @@ impl MatterLabsTest {
 
             for path in paths.into_iter() {
                 let source_code = match std::fs::read_to_string(path.as_str())
-                    .map_err(|err| anyhow::anyhow!("Reading source file error: {}", err))
+                    .map_err(|error| anyhow::anyhow!("Reading source file error: {error}"))
                 {
                     Ok(source) => source,
                     Err(error) => {
@@ -298,7 +298,7 @@ impl MatterLabsTest {
             bytecode.push_str(runtime_code.as_str());
 
             let bytecode = hex::decode(bytecode.as_str()).map_err(|error| {
-                anyhow::anyhow!("Invalid bytecode of EVM instance `{}`: {}", instance, error)
+                anyhow::anyhow!("Invalid bytecode of EVM instance `{instance}`: {error}")
             })?;
             instances.insert(
                 instance.to_owned(),
@@ -648,7 +648,7 @@ impl Buildable for MatterLabsTest {
                 &evm_input.method_identifiers,
                 benchmark_analyzer::Target::EVM,
             )
-            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
+            .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {
                 Ok(case) => case,
                 Err(error) => {

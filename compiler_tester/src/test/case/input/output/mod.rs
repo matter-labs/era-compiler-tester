@@ -12,6 +12,8 @@ use crate::directories::matter_labs::test::metadata::case::input::expected::vari
 use crate::directories::matter_labs::test::metadata::case::input::expected::Expected as MatterLabsTestExpected;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
+use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
+use crate::vm::revm::revm_type_conversions::revm_topics_to_vec_value;
 
 use self::event::Event;
 
@@ -79,9 +81,8 @@ impl Output {
                     .into_iter()
                     .enumerate()
                     .map(|(index, event)| {
-                        Event::try_from_matter_labs(event, instances, target).map_err(|error| {
-                            anyhow::anyhow!("Event #{} is invalid: {}", index, error)
-                        })
+                        Event::try_from_matter_labs(event, instances, target)
+                            .map_err(|error| anyhow::anyhow!("Event #{index} is invalid: {error}"))
                     })
                     .collect::<anyhow::Result<Vec<Event>>>()
                     .map_err(|error| anyhow::anyhow!("Invalid events: {error}"))?;
@@ -239,6 +240,33 @@ impl From<zkevm_tester::compiler_tests::VmSnapshot> for Output {
                 }
             }
         }
+    }
+}
+
+impl From<(revm::context::result::Output, Vec<revm::primitives::Log>)> for Output {
+    fn from((output, logs): (revm::context::result::Output, Vec<revm::primitives::Log>)) -> Self {
+        let bytes = match output {
+            revm::context::result::Output::Call(bytes) => bytes,
+            revm::context::result::Output::Create(_, address) => {
+                let addr_slice = address.unwrap();
+                revm::primitives::Bytes::from(addr_slice.into_word())
+            }
+        };
+        let return_data_value = revm_bytes_to_vec_value(bytes);
+
+        let events = logs
+            .into_iter()
+            .map(|log| {
+                let topics = revm_topics_to_vec_value(log.data.topics());
+                let data_value = revm_bytes_to_vec_value(log.data.data);
+                Event::new(
+                    Some(web3::types::Address::from_slice(log.address.as_slice())),
+                    topics,
+                    data_value,
+                )
+            })
+            .collect();
+        Self::new(return_data_value, false, events)
     }
 }
 

@@ -636,16 +636,18 @@ impl EraVM {
     ///
     pub fn populate_storage(
         &mut self,
-        values: HashMap<(web3::types::Address, web3::types::U256), web3::types::H256>,
+        values: HashMap<web3::types::Address, HashMap<web3::types::U256, web3::types::U256>>,
     ) {
         self.storage.extend(
             values
                 .into_iter()
-                .map(|((address, key), value)| {
-                    (
-                        zkevm_tester::compiler_tests::StorageKey { address, key },
-                        value,
-                    )
+                .flat_map(|(address, storage)| {
+                    storage.into_iter().map(move |(key, value)| {
+                        (
+                            zkevm_tester::compiler_tests::StorageKey { address, key },
+                            crate::utils::u256_to_h256(&value),
+                        )
+                    })
                 })
                 .collect::<HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>>(),
         );

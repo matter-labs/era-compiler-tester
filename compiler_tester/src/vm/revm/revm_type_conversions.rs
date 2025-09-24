@@ -1,24 +1,9 @@
-use revm::primitives::Bytes;
-
-use crate::test::case::input::{
-    output::{self, Output},
-    value::Value,
-};
-
-pub fn web3_u256_to_revm_address(u256: web3::types::U256) -> revm::primitives::Address {
-    let mut bytes = [0_u8; 32];
-    u256.to_big_endian(&mut bytes);
-    revm::primitives::Address::from_word(revm::primitives::FixedBytes::new(bytes))
-}
+use crate::test::case::input::value::Value;
 
 pub fn web3_u256_to_revm_u256(u256: web3::types::U256) -> revm::primitives::U256 {
     let mut bytes = [0_u8; 32];
     u256.to_big_endian(&mut bytes);
     revm::primitives::U256::from_be_bytes(bytes)
-}
-
-pub fn web3_h256_to_revm_u256(h256: web3::types::H256) -> revm::primitives::U256 {
-    revm::primitives::U256::from_be_bytes(h256.to_fixed_bytes())
 }
 
 pub fn web3_address_to_revm_address(address: &web3::types::Address) -> revm::primitives::Address {
@@ -55,32 +40,4 @@ pub fn revm_topics_to_vec_value(revm_topics: &[revm::primitives::B256]) -> Vec<V
         )));
     }
     topics
-}
-
-pub fn transform_success_output(
-    output: revm::context::result::Output,
-    logs: Vec<revm::primitives::Log>,
-) -> Output {
-    let bytes = match output {
-        revm::context::result::Output::Call(bytes) => bytes,
-        revm::context::result::Output::Create(_, address) => {
-            let addr_slice = address.unwrap();
-            Bytes::from(addr_slice.into_word())
-        }
-    };
-    let return_data_value = revm_bytes_to_vec_value(bytes);
-
-    let events = logs
-        .into_iter()
-        .map(|log| {
-            let topics = revm_topics_to_vec_value(log.data.topics());
-            let data_value = revm_bytes_to_vec_value(log.data.data);
-            output::event::Event::new(
-                Some(web3::types::Address::from_slice(log.address.as_slice())),
-                topics,
-                data_value,
-            )
-        })
-        .collect();
-    Output::new(return_data_value, false, events)
 }

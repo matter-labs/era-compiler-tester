@@ -55,7 +55,7 @@ impl Case {
         for (index, input) in case.inputs.into_iter().enumerate() {
             let input =
                 Input::try_from_matter_labs(input, mode, instances, method_identifiers, target)
-                    .map_err(|error| anyhow::anyhow!("Input #{} is invalid: {}", index, error))?;
+                    .map_err(|error| anyhow::anyhow!("Input #{index} is invalid: {error}"))?;
             inputs.push(input);
         }
 
@@ -119,8 +119,13 @@ impl Case {
     ///
     /// Runs the case on REVM.
     ///
-    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, context: &CaseContext) {
-        let mut vm = REVM::default();
+    pub fn run_revm(
+        self,
+        summary: Arc<Mutex<Summary>>,
+        context: &CaseContext,
+        evm_version: Option<solidity_adapter::EVMVersion>,
+    ) {
+        let mut vm = REVM::new(evm_version);
         for (index, input) in self.inputs.into_iter().enumerate() {
             let context = InputContext {
                 case_context: context,

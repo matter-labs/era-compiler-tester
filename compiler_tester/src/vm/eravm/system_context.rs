@@ -51,13 +51,15 @@ impl SystemContext {
     pub const TX_ORIGIN: &'static str =
         "0x000000000000000000000000deadbeef00000000000000000000000000000001";
 
-    /// The default gas price for tests.
-    pub const GAS_PRICE: u64 = 3000000000;
+    /// The default gas price for EraVM tests.
+    pub const GAS_PRICE_ERAVM: u64 = 3000000000;
+    /// The default gas price for EVM tests.
+    pub const GAS_PRICE_EVM: u128 = 0;
 
     /// The default block gas limit for EraVM tests.
     pub const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
     /// The default block gas limit for EVM tests.
-    pub const BLOCK_GAS_LIMIT_EVM: u64 = 20000000;
+    pub const BLOCK_GAS_LIMIT_EVM: u64 = 30000000;
 
     /// The default coinbase for EraVM tests.
     pub const COIN_BASE_ERAVM: &'static str = "0x0000000000000000000000000000000000008001";
@@ -65,14 +67,14 @@ impl SystemContext {
     pub const COIN_BASE_EVM: &'static str = "0x7878787878787878787878787878787878787878";
 
     /// The block difficulty for EVM tests using a post paris version.
-    pub const BLOCK_DIFFICULTY_POST_PARIS: &'static str =
-        "0x0000000000000000000000000000000000000000000000000008e1bc9bf04000";
+    pub const BLOCK_PREVRANDAO: &'static str =
+        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
     /// The block difficulty for EVM tests using a pre paris version.
-    pub const BLOCK_DIFFICULTY_PRE_PARIS: &'static str =
+    pub const BLOCK_DIFFICULTY: &'static str =
         "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
-    pub const BASE_FEE: u64 = 7;
+    pub const BASE_FEE: u64 = 0;
 
     /// The default current block number.
     pub const INITIAL_BLOCK_NUMBER: u128 = 1;
@@ -126,7 +128,7 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_GAS_PRICE_POSITION),
-                web3::types::H256::from_low_u64_be(Self::GAS_PRICE),
+                web3::types::H256::from_low_u64_be(Self::GAS_PRICE_ERAVM),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BLOCK_GAS_LIMIT_POSITION),
@@ -140,8 +142,7 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
-                web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_POST_PARIS)
-                    .expect("Always valid"),
+                web3::types::H256::from_str(Self::BLOCK_PREVRANDAO).expect("Always valid"),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
@@ -283,8 +284,7 @@ impl SystemContext {
                     .as_bytes(),
                 ),
             },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_PRE_PARIS)
-                .expect("Always valid"),
+            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY).expect("Always valid"),
         );
     }
 }

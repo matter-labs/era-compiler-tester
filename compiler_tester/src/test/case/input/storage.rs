@@ -16,7 +16,7 @@ use crate::test::instance::Instance;
 #[derive(Debug, Clone, Default)]
 pub struct Storage {
     /// The inner storage hashmap data.
-    pub inner: HashMap<(web3::types::Address, web3::types::U256), web3::types::H256>,
+    pub inner: HashMap<web3::types::Address, HashMap<web3::types::U256, web3::types::U256>>,
 }
 
 impl Storage {
@@ -34,11 +34,11 @@ impl Storage {
             let address = if let Some(instance) = address.strip_suffix(".address") {
                 instances
                     .get(instance)
-                    .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
+                    .ok_or_else(|| anyhow::anyhow!("Instance `{instance}` not found"))?
                     .address()
                     .copied()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("Instance `{}` is not successfully deployed", instance)
+                        anyhow::anyhow!("Instance `{instance}` is not successfully deployed")
                     })
             } else {
                 web3::types::Address::from_str(address.as_str())
@@ -54,6 +54,7 @@ impl Storage {
                     .collect(),
                 MatterLabsTestContractStorage::Map(map) => map.clone(),
             };
+            let mut contract_storage_values = HashMap::new();
             for (key, value) in contract_storage.into_iter() {
                 let key = match Value::try_from_matter_labs(key, instances, target)
                     .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
@@ -71,10 +72,11 @@ impl Storage {
 
                 let mut value_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
                 value.to_big_endian(value_bytes.as_mut_slice());
-                let value = web3::types::H256::from(value_bytes);
+                let value = web3::types::U256::from(value_bytes);
 
-                result.insert((address, key), value);
+                contract_storage_values.insert(key, value);
             }
+            result.insert(address, contract_storage_values);
         }
 
         Ok(Self { inner: result })

@@ -78,8 +78,7 @@ impl Case {
 
             if contracts.remove(input.instance.as_str()).is_none() {
                 anyhow::bail!(
-                    "Input {} is a second deployer call for the same instance or instance is invalid",
-                    index
+                    "Input {index} is a second deployer call for the same instance or instance is invalid"
                 );
             }
         }
@@ -168,7 +167,7 @@ impl Case {
             let exception = match input.expected.as_ref() {
                 Some(expected) => expected
                     .exception(mode)
-                    .map_err(|error| anyhow::anyhow!("Input #{}: {}", index, error))?,
+                    .map_err(|error| anyhow::anyhow!("Input #{index}: {error}"))?,
                 None => false,
             };
             if exception {
@@ -178,10 +177,8 @@ impl Case {
             let caller =
                 web3::types::Address::from_str(input.caller.as_str()).map_err(|error| {
                     anyhow::anyhow!(
-                        "Input #{} has invalid caller `{}`: {}",
-                        index,
+                        "Input #{index} has invalid caller `{}`: {error}",
                         input.caller.as_str(),
-                        error
                     )
                 })?;
 

@@ -107,6 +107,8 @@ pub enum EVM {
     Shanghai,
     /// Cancun EVM version.
     Cancun,
+    /// Prague EVM version.
+    Prague,
 }
 
 impl TryFrom<&str> for EVM {

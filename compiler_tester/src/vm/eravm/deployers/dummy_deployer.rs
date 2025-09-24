@@ -133,7 +133,7 @@ impl DummyDeployer {
                 web3::ethabi::ParamType::FixedBytes(32),
             ])));
         let mut immutables = web3::ethabi::decode(&[r#type], return_data.as_slice())
-            .map_err(|err| anyhow::anyhow!("Failed to decode immutables: {:?}", err))?;
+            .map_err(|error| anyhow::anyhow!("Failed to decode immutables: {error:?}"))?;
 
         assert_eq!(immutables.len(), 1);
         let immutables = match immutables.remove(0) {
@@ -158,7 +158,7 @@ impl DummyDeployer {
             let immutable_index =
                 web3::types::U256::from_token(immutable_index).expect("Always valid");
             let immutable_value =
-                web3::types::H256::from_token(immutable_value).expect("Always valid");
+                web3::types::U256::from_token(immutable_value).expect("Always valid");
 
             let immutable_position = Self::get_position_of_immutable(address, immutable_index);
 
@@ -167,7 +167,10 @@ impl DummyDeployer {
             );
             let key = immutable_position;
 
-            immutables_storage.insert((address, key), immutable_value);
+            immutables_storage
+                .entry(address)
+                .or_insert_with(HashMap::new)
+                .insert(key, immutable_value);
         }
 
         vm.populate_storage(immutables_storage);

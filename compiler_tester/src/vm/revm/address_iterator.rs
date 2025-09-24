@@ -42,11 +42,11 @@ impl AddressIterator for EVMAddressIterator {
     }
 
     fn increment_nonce(&mut self, caller: &web3::types::Address) {
-        let nonce = self.nonces.entry(*caller).or_default();
+        let nonce = self.nonces.entry(*caller).or_insert(1);
         *nonce += 1;
     }
 
     fn nonce(&mut self, caller: &web3::types::Address) -> usize {
-        *self.nonces.entry(*caller).or_default()
+        *self.nonces.entry(*caller).or_insert(1)
     }
 }

@@ -56,11 +56,11 @@ impl Event {
                 if let Some(instance) = address.strip_suffix(".address") {
                     instances
                         .get(instance)
-                        .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
+                        .ok_or_else(|| anyhow::anyhow!("Instance `{instance}` not found"))?
                         .address()
                         .copied()
                         .ok_or_else(|| {
-                            anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
+                            anyhow::anyhow!("Instance `{instance}` was not successfully deployed")
                         })
                 } else {
                     web3::types::Address::from_str(address.as_str())

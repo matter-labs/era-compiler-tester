@@ -16,10 +16,10 @@ use crate::test::case::input::storage::Storage;
 use crate::test::description::TestDescription;
 use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
+use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
-use crate::vm::revm::revm_type_conversions::transform_success_output;
 use crate::vm::revm::REVM;
 
 ///
@@ -86,11 +86,17 @@ impl DeployEVM {
         let mut code = self.deploy_code;
         code.extend(self.calldata.inner);
 
-        let balance= revm::primitives::U256::from(self.value.unwrap_or_default())
-            + revm::primitives::U256::from(1267650600228229401496703205376u128);
-        vm.update_balance(self.caller, balance);
-        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
         let tx = REVM::new_deploy_transaction(self.caller, self.value, code);
+
+        let initial_balance = (web3::types::U256::from(1) << 100)
+            + web3::types::U256::from(self.value.unwrap_or_default());
+        vm.set_account(&self.caller, initial_balance);
+
+        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
+        vm.evm.block.timestamp = revm::primitives::U256::from(
+            ((input_index + 1) as u128) * SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
+        );
+
         let result = match vm.evm.transact_commit(tx) {
             Ok(result) => result,
             Err(error) => {
@@ -106,7 +112,7 @@ impl DeployEVM {
                 gas_refunded: _,
                 logs,
                 output,
-            } => (transform_success_output(output, logs), gas_used, None),
+            } => ((output, logs).into(), gas_used, None),
             ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 (Output::new(return_data_value, true, vec![]), gas_used, None)

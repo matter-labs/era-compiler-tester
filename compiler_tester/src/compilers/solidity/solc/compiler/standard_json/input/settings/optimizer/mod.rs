@@ -13,6 +13,7 @@ pub struct Optimizer {
     /// Whether the optimizer is enabled.
     pub enabled: bool,
     /// The MLIR optimizer mode.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<char>,
 }
 

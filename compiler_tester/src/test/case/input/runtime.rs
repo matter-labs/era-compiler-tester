@@ -2,13 +2,11 @@
 //! The contract call input variant.
 //!
 
+use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::context::result::EVMError;
 use revm::context::result::ExecutionResult;
-use revm::context::result::InvalidTransaction;
-use revm::context::Host;
 use revm::ExecuteCommitEvm;
 
 use crate::summary::Summary;
@@ -21,10 +19,6 @@ use crate::test::description::TestDescription;
 use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
-use crate::vm::revm::revm_type_conversions::transform_success_output;
-use crate::vm::revm::revm_type_conversions::web3_address_to_revm_address;
-use crate::vm::revm::revm_type_conversions::web3_h256_to_revm_u256;
-use crate::vm::revm::revm_type_conversions::web3_u256_to_revm_u256;
 use crate::vm::revm::REVM;
 
 ///
@@ -135,7 +129,12 @@ impl Runtime {
     ///
     /// Runs the call on REVM.
     ///
-    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
+    pub fn run_revm(
+        mut self,
+        summary: Arc<Mutex<Summary>>,
+        vm: &mut REVM,
+        context: InputContext<'_>,
+    ) {
         let input_index = context.selector;
         let test = TestDescription::from_context(
             context,
@@ -145,29 +144,11 @@ impl Runtime {
             },
         );
 
-        let balance = revm::primitives::U256::from(self.value.unwrap_or_default())
-            + revm::primitives::U256::from(1267650600228229401496703205376u128);
-        vm.update_balance(self.caller, balance);
-        if input_index == 1 {
-            for address in SystemContext::get_rich_addresses() {
-                let balance = revm::primitives::U256::from(1267650600228229401496703205376u128);
-                vm.update_balance(address, balance);
-            }
+        if test.selector.path == "era-solidity/test/libsolidity/semanticTests/state/tx_origin.sol" {
+            self.caller =
+                web3::types::Address::from_str("0x9292929292929292929292929292929292929292")
+                    .unwrap();
         }
-        for ((address, key), value) in self.storage.inner.into_iter() {
-            let address = web3_address_to_revm_address(&address);
-
-            if vm.evm.ctx.load_account_code(address).is_none() {
-                continue;
-            }
-            vm.evm.ctx.sstore(
-                address,
-                web3_u256_to_revm_u256(key),
-                web3_h256_to_revm_u256(value),
-            );
-        }
-        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
-        vm.evm.block.timestamp = revm::primitives::U256::from(((input_index + 1) as u128) * SystemContext::BLOCK_TIMESTAMP_EVM_STEP);
         let tx = REVM::new_runtime_transaction(
             self.address,
             self.caller,
@@ -175,20 +156,33 @@ impl Runtime {
             self.value,
         );
 
+        let mut initial_balance = web3::types::U256::from(self.value.unwrap_or_default());
+        if SystemContext::get_rich_addresses().contains(&self.caller) {
+            initial_balance += web3::types::U256::from(1) << 100;
+        }
+        vm.set_account(&self.caller, initial_balance);
+
+        let storage = self
+            .storage
+            .inner
+            .get(&self.address)
+            .cloned()
+            .unwrap_or_default();
+        vm.extend_account_storage(&self.address, storage);
+
+        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
+        vm.evm.block.timestamp = revm::primitives::U256::from(
+            ((input_index + 1) as u128) * SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
+        );
+
         let result = match vm.evm.transact_commit(tx) {
             Ok(result) => result,
             Err(error) => {
-                if let EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
-                    ref fee,
-                    ..
-                }) = error
-                {
-                    vm.update_balance(self.caller, **fee);
-                }
                 Summary::invalid(summary.clone(), test, error);
                 return;
             }
         };
+
         let (output, gas, error) = match result {
             ExecutionResult::Success {
                 reason: _,
@@ -196,12 +190,7 @@ impl Runtime {
                 gas_refunded: _,
                 logs,
                 output,
-            } => {
-                if !SystemContext::get_rich_addresses().contains(&self.caller) {
-                    vm.non_rich_update_balance(self.caller);
-                }
-                (transform_success_output(output, logs), gas_used, None)
-            }
+            } => ((output, logs).into(), gas_used, None),
             ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 (Output::new(return_data_value, true, vec![]), gas_used, None)

@@ -384,15 +384,13 @@ impl SolidityCompiler {
                     .evm
                     .as_ref()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{}:{}` not found", path, name)
+                        anyhow::anyhow!("EVM object of the contract `{path}:{name}` not found")
                     })?
                     .method_identifiers
                     .as_ref()
                     .ok_or_else(|| {
                         anyhow::anyhow!(
-                            "Method identifiers of the contract `{}:{}` not found",
-                            path,
-                            name
+                            "Method identifiers of the contract `{path}:{name}` not found"
                         )
                     })?
                     .iter()
@@ -401,9 +399,7 @@ impl SolidityCompiler {
                         u32::from_str_radix(selector, era_compiler_common::BASE_HEXADECIMAL)
                             .map_err(|error| {
                                 anyhow::anyhow!(
-                                    "Invalid selector `{}` received from the Solidity compiler: {}",
-                                    selector,
-                                    error
+                                    "Invalid selector `{selector}` received from the Solidity compiler: {error}"
                                 )
                             })?;
                     contract_identifiers.insert(entry.clone(), selector);
@@ -497,7 +493,7 @@ impl Compiler for SolidityCompiler {
             }
 
             if has_errors {
-                anyhow::bail!("`solc` errors found: {:?}", error_messages);
+                anyhow::bail!("`solc` errors found: {error_messages:?}");
             }
         }
 
@@ -587,7 +583,7 @@ impl Compiler for SolidityCompiler {
             }
 
             if has_errors {
-                anyhow::bail!("`solc` errors found: {:?}", error_messages);
+                anyhow::bail!("`solc` errors found: {error_messages:?}");
             }
         }
 
