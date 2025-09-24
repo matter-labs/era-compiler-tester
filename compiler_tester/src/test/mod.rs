@@ -76,7 +76,11 @@ impl Test {
             group: &self.group,
         };
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone(), None);
+            let vm = EraVM::clone_with_contracts(
+                vm.clone(),
+                self.eravm_builds.clone(),
+                self.evm_version,
+            );
             case.run_eravm::<D, M>(summary.clone(), vm.clone(), &context);
         }
     }

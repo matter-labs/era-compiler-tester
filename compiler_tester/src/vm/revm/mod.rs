@@ -108,7 +108,7 @@ impl REVM {
         );
         evm.block.beneficiary = revm::primitives::Address::from_str(SystemContext::COIN_BASE_EVM)
             .expect("Always valid");
-        evm.block.basefee = SystemContext::BASE_FEE;
+        evm.block.basefee = SystemContext::BASE_FEE_REVM;
         evm.block.difficulty = revm::primitives::U256::from_str(SystemContext::BLOCK_DIFFICULTY)
             .expect("Always valid");
         evm.block.prevrandao = Some(
@@ -173,7 +173,7 @@ impl REVM {
             .data(revm::primitives::Bytes::from(code))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .create()
-            .gas_price(0)
+            .gas_price(SystemContext::GAS_PRICE_REVM as u128)
             .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
             .build_fill()
     }
@@ -192,7 +192,7 @@ impl REVM {
             .data(revm::primitives::Bytes::from(calldata.inner))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .to(web3_address_to_revm_address(&address))
-            .gas_price(0)
+            .gas_price(SystemContext::GAS_PRICE_REVM as u128)
             .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
             .build_fill()
     }

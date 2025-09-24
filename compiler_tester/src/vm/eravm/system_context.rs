@@ -48,13 +48,12 @@ impl SystemContext {
     pub const CHAIND_ID_EVM: u64 = 1;
 
     /// The default origin for tests.
-    pub const TX_ORIGIN: &'static str =
-        "0x000000000000000000000000deadbeef00000000000000000000000000000001";
+    pub const TX_ORIGIN: &'static str = "0xdeadbeef00000000000000000000000000000001";
 
-    /// The default gas price for EraVM tests.
-    pub const GAS_PRICE_ERAVM: u64 = 3000000000;
-    /// The default gas price for EVM tests.
-    pub const GAS_PRICE_EVM: u128 = 0;
+    /// The default gas price for the EVM interpreter.
+    pub const GAS_PRICE_EVM_INTERPRETER: u64 = 3000000000;
+    /// The default gas price for REVM.
+    pub const GAS_PRICE_REVM: u64 = 0;
 
     /// The default block gas limit for EraVM tests.
     pub const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
@@ -74,7 +73,9 @@ impl SystemContext {
         "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
-    pub const BASE_FEE: u64 = 0;
+    pub const BASE_FEE_EVM_INTERPRETER: u64 = 7;
+    /// The default base fee for REVM.
+    pub const BASE_FEE_REVM: u64 = 0;
 
     /// The default current block number.
     pub const INITIAL_BLOCK_NUMBER: u128 = 1;
@@ -124,11 +125,13 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_ORIGIN_POSITION),
-                web3::types::H256::from_str(Self::TX_ORIGIN).expect("Always valid"),
+                crate::utils::address_to_h256(
+                    &web3::types::Address::from_str(Self::TX_ORIGIN).expect("Always valid"),
+                ),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_GAS_PRICE_POSITION),
-                web3::types::H256::from_low_u64_be(Self::GAS_PRICE_ERAVM),
+                web3::types::H256::from_low_u64_be(Self::GAS_PRICE_EVM_INTERPRETER),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BLOCK_GAS_LIMIT_POSITION),
@@ -142,11 +145,11 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
-                web3::types::H256::from_str(Self::BLOCK_PREVRANDAO).expect("Always valid"),
+                web3::types::H256::from_str(SystemContext::BLOCK_PREVRANDAO).expect("Always valid"),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
-                web3::types::H256::from_low_u64_be(Self::BASE_FEE),
+                web3::types::H256::from_low_u64_be(Self::BASE_FEE_EVM_INTERPRETER),
             ),
             (
                 web3::types::H256::from_low_u64_be(

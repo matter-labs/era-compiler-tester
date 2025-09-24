@@ -97,16 +97,16 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             benchmark_analyzer::Target::EraVM,
             Some(environment @ compiler_tester::Environment::ZkEVM),
         ) => environment,
-        (benchmark_analyzer::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
-        (
-            benchmark_analyzer::Target::EVM,
-            Some(environment @ compiler_tester::Environment::EVMInterpreter),
-        ) => environment,
         (
             benchmark_analyzer::Target::EVM,
             Some(environment @ compiler_tester::Environment::REVM),
         ) => environment,
+        (
+            benchmark_analyzer::Target::EVM,
+            Some(environment @ compiler_tester::Environment::EVMInterpreter),
+        ) => environment,
         (benchmark_analyzer::Target::EVM, None) => compiler_tester::Environment::REVM,
+        (benchmark_analyzer::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
         (target, Some(environment)) => anyhow::bail!(
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),

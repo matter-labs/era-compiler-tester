@@ -133,16 +133,18 @@ impl Value {
                 }
             }
         } else if value == "$TX_ORIGIN" {
-            web3::types::U256::from(SystemContext::TX_ORIGIN)
+            crate::utils::address_to_u256(
+                &web3::types::Address::from_str(SystemContext::TX_ORIGIN).expect("Alwyays valid"),
+            )
         } else if value == "$BASE_FEE" {
-            web3::types::U256::from(SystemContext::BASE_FEE)
+            web3::types::U256::from(SystemContext::BASE_FEE_REVM)
         } else if value == "$GAS_PRICE" {
             match target {
                 benchmark_analyzer::Target::EraVM => {
-                    web3::types::U256::from(SystemContext::GAS_PRICE_ERAVM)
+                    web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
                 }
                 benchmark_analyzer::Target::EVM => {
-                    web3::types::U256::from(SystemContext::GAS_PRICE_EVM)
+                    web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
                 }
             }
         } else {
