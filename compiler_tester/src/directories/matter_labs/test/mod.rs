@@ -315,12 +315,16 @@ impl MatterLabsTest {
         Ok(instances)
     }
 
+    ///
+    /// Checks whether the test is for running benchmarks of the EVM interpreter.
+    ///
     fn is_evm_interpreter_test(&self) -> bool {
         matches!(
             self.metadata.group.as_deref(),
             Some(benchmark_analyzer::TEST_GROUP_EVM_INTERPRETER)
         )
     }
+
     ///
     /// Returns cases needed for running benchmarks on the EVM interpreter.
     ///

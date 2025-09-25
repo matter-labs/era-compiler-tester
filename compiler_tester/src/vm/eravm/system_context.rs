@@ -147,7 +147,8 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
-                web3::types::H256::from_str(SystemContext::BLOCK_PREVRANDAO_ERAVM).expect("Always valid"),
+                web3::types::H256::from_str(SystemContext::BLOCK_PREVRANDAO_ERAVM)
+                    .expect("Always valid"),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
