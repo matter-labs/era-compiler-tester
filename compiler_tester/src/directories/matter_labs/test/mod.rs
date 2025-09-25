@@ -206,9 +206,15 @@ impl MatterLabsTest {
         filters: &Filters,
         mode: &Mode,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> Option<()> {
         if let Some(targets) = self.metadata.targets.as_ref() {
             if !targets.contains(&target) {
+                return None;
+            }
+        }
+        if let Some(environments) = self.metadata.environments.as_ref() {
+            if !environments.contains(&environment) {
                 return None;
             }
         }
@@ -422,7 +428,7 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
-        self.check_filters(filters, &mode, benchmark_analyzer::Target::EraVM)?;
+        self.check_filters(filters, &mode, benchmark_analyzer::Target::EraVM, environment)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -566,7 +572,7 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode, benchmark_analyzer::Target::EVM)?;
+        self.check_filters(filters, &mode, benchmark_analyzer::Target::EVM, environment)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
