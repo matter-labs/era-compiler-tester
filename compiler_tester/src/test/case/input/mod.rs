@@ -86,18 +86,23 @@ impl Input {
             None => None,
         };
 
-        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target, environment)
-            .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
+        let mut calldata =
+            Calldata::try_from_matter_labs(input.calldata, instances, target, environment)
+                .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
 
         let expected = match target {
             benchmark_analyzer::Target::EraVM => input.expected_eravm.or(input.expected),
             benchmark_analyzer::Target::EVM => input.expected_evm.or(input.expected),
         };
         let expected = match expected {
-            Some(expected) => {
-                Output::try_from_matter_labs_expected(expected, mode, instances, target, environment)
-                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?
-            }
+            Some(expected) => Output::try_from_matter_labs_expected(
+                expected,
+                mode,
+                instances,
+                target,
+                environment,
+            )
+            .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?,
             None => Output::default(),
         };
 

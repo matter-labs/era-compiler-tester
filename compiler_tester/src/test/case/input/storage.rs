@@ -6,8 +6,8 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::environment::Environment;
 use crate::directories::matter_labs::test::metadata::case::input::storage::Storage as MatterLabsTestContractStorage;
+use crate::environment::Environment;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 

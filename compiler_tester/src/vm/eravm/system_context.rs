@@ -57,8 +57,10 @@ impl SystemContext {
 
     /// The default block gas limit for EraVM tests.
     pub const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
-    /// The default block gas limit for EVM tests.
-    pub const BLOCK_GAS_LIMIT_EVM: u64 = 30000000;
+    /// The default block gas limit for the EVM interpreter.
+    pub const BLOCK_GAS_LIMIT_EVM_INTERPRETER: u64 = 20000000;
+    /// The default block gas limit for REVM.
+    pub const BLOCK_GAS_LIMIT_REVM: u64 = 30000000;
 
     /// The default coinbase for EraVM tests.
     pub const COIN_BASE_ERAVM: &'static str = "0x0000000000000000000000000000000000008001";
@@ -115,7 +117,7 @@ impl SystemContext {
         };
         let block_gas_limit = match target {
             benchmark_analyzer::Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
-            benchmark_analyzer::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
+            benchmark_analyzer::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM_INTERPRETER,
         };
 
         let mut system_context_values = vec![

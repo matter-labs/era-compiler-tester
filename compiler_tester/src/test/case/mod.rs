@@ -55,9 +55,15 @@ impl Case {
         let mut inputs = Vec::with_capacity(case.inputs.len());
 
         for (index, input) in case.inputs.into_iter().enumerate() {
-            let input =
-                Input::try_from_matter_labs(input, mode, instances, method_identifiers, target, environment)
-                    .map_err(|error| anyhow::anyhow!("Input #{index} is invalid: {error}"))?;
+            let input = Input::try_from_matter_labs(
+                input,
+                mode,
+                instances,
+                method_identifiers,
+                target,
+                environment,
+            )
+            .map_err(|error| anyhow::anyhow!("Input #{index} is invalid: {error}"))?;
             inputs.push(input);
         }
 

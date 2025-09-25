@@ -7,10 +7,10 @@ pub mod event;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-use crate::environment::Environment;
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::Variant as MatterLabsTestExpectedVariant;
 use crate::directories::matter_labs::test::metadata::case::input::expected::Expected as MatterLabsTestExpected;
+use crate::environment::Environment;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
@@ -91,8 +91,9 @@ impl Output {
                 (return_data, exception, events)
             }
         };
-        let return_data = Value::try_from_vec_matter_labs(return_data, instances, target, environment)
-            .map_err(|error| anyhow::anyhow!("Invalid return data: {error}"))?;
+        let return_data =
+            Value::try_from_vec_matter_labs(return_data, instances, target, environment)
+                .map_err(|error| anyhow::anyhow!("Invalid return data: {error}"))?;
 
         Ok(Self {
             return_data,

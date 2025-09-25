@@ -123,7 +123,7 @@ impl REVM {
                     .expect("Always valid")
             },
         );
-        evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_EVM;
+        evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_REVM;
         evm.block.timestamp =
             revm::primitives::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM);
         evm.tx.chain_id = Some(SystemContext::CHAIND_ID_EVM);
@@ -174,7 +174,7 @@ impl REVM {
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .create()
             .gas_price(SystemContext::GAS_PRICE_REVM as u128)
-            .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
+            .gas_limit(SystemContext::BLOCK_GAS_LIMIT_REVM)
             .build_fill()
     }
 
@@ -193,7 +193,7 @@ impl REVM {
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .to(web3_address_to_revm_address(&address))
             .gas_price(SystemContext::GAS_PRICE_REVM as u128)
-            .gas_limit(SystemContext::BLOCK_GAS_LIMIT_EVM)
+            .gas_limit(SystemContext::BLOCK_GAS_LIMIT_REVM)
             .build_fill()
     }
 

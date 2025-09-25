@@ -8,8 +8,8 @@ use std::str::FromStr;
 use serde::Serialize;
 use serde::Serializer;
 
-use crate::test::instance::Instance;
 use crate::environment::Environment;
+use crate::test::instance::Instance;
 use crate::vm::eravm::system_context::SystemContext;
 
 ///
@@ -87,12 +87,15 @@ impl Value {
                 }
             }
         } else if value == "$GAS_LIMIT" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
+            match environment {
+                Environment::ZkEVM => {
                     web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM)
                 }
-                benchmark_analyzer::Target::EVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM)
+                Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM_INTERPRETER)
+                }
+                Environment::REVM => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_REVM)
                 }
             }
         } else if value == "$COINBASE" {
@@ -145,9 +148,7 @@ impl Value {
                 Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
                 }
-                Environment::REVM => {
-                    web3::types::U256::from(SystemContext::GAS_PRICE_REVM)
-                }
+                Environment::REVM => web3::types::U256::from(SystemContext::GAS_PRICE_REVM),
             }
         } else {
             web3::types::U256::from_dec_str(value.as_str())

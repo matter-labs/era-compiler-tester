@@ -10,6 +10,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::directories::Collection;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
 
@@ -22,16 +23,21 @@ pub struct EthereumDirectory;
 
 impl EthereumDirectory {
     ///
-    /// The upstream index file path.
+    /// The upstream test index file name.
     ///
-    /// Must be appended to the tests directory.
+    /// This version if the index used for the EVM Interpreter environment.
     ///
-    const INDEX_NAME_UPSTREAM: &'static str = "ethereum.yaml";
+    const INDEX_NAME_UPSTREAM_EVM_INTERPRETER: &'static str = "ethereum_evm_interpreter.yaml";
 
     ///
-    /// The ZKsync index file name.
+    /// The upstream test index file name.
     ///
-    /// Should refer to a file in the tester repository root.
+    /// This version if the index used for the REVM environment.
+    ///
+    const INDEX_NAME_UPSTREAM_REVM: &'static str = "ethereum_revm.yaml";
+
+    ///
+    /// The ZKsync test index file name.
     ///
     const INDEX_NAME_ZKSYNC: &'static str = "index.yaml";
 
@@ -50,18 +56,27 @@ impl Collection for EthereumDirectory {
 
     fn read_all(
         target: benchmark_analyzer::Target,
+        environment: Environment,
         directory_path: &Path,
         _extension: &'static str,
         summary: Arc<Mutex<Summary>>,
         filters: &Filters,
     ) -> anyhow::Result<Vec<Self::Test>> {
-        let index_path = match target {
-            benchmark_analyzer::Target::EraVM => {
+        let index_path = match (target, environment) {
+            (benchmark_analyzer::Target::EraVM, _) => {
                 let mut index_path = directory_path.to_path_buf();
                 index_path.push(Self::INDEX_NAME_ZKSYNC);
                 index_path
             }
-            benchmark_analyzer::Target::EVM => PathBuf::from(Self::INDEX_NAME_UPSTREAM),
+            (benchmark_analyzer::Target::EVM, Environment::EVMInterpreter) => {
+                PathBuf::from(Self::INDEX_NAME_UPSTREAM_EVM_INTERPRETER)
+            }
+            (benchmark_analyzer::Target::EVM, Environment::REVM) => {
+                PathBuf::from(Self::INDEX_NAME_UPSTREAM_REVM)
+            }
+            (target, environment) => anyhow::bail!(
+                "Unsupported target/environment combination: {target:?}/{environment:?}"
+            ),
         };
 
         Ok(Self::read_index(index_path.as_path())?
