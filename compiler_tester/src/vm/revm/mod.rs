@@ -47,11 +47,17 @@ pub struct REVM {
     pub evm: Evm<Context, (), EthInstructions<EthInterpreter, Context>, EthPrecompiles, EthFrame>,
 }
 
+impl Default for REVM {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl REVM {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(evm_version: Option<solidity_adapter::EVMVersion>) -> Self {
+    pub fn new() -> Self {
         let mut cache = CacheState::new(false);
         // Account 0x00 needs to have its code hash on 0.
         cache.insert_account_with_storage(
@@ -112,16 +118,8 @@ impl REVM {
         evm.block.difficulty = revm::primitives::U256::from_str(SystemContext::BLOCK_DIFFICULTY)
             .expect("Always valid");
         evm.block.prevrandao = Some(
-            if evm_version
-                .map(|evm_version| evm_version.matches(&solidity_adapter::EVM::Prague))
-                .unwrap_or(false)
-            {
-                revm::primitives::B256::from_str(SystemContext::BLOCK_PREVRANDAO)
-                    .expect("Always valid")
-            } else {
-                revm::primitives::B256::from_str(SystemContext::BLOCK_DIFFICULTY)
-                    .expect("Always valid")
-            },
+            revm::primitives::B256::from_str(SystemContext::BLOCK_PREVRANDAO)
+                .expect("Always valid"),
         );
         evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_REVM;
         evm.block.timestamp =
