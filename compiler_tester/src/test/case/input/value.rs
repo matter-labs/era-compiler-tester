@@ -112,6 +112,12 @@ impl Value {
                 era_compiler_common::BASE_HEXADECIMAL,
             )
             .expect("Always valid")
+        } else if value == "$PREVRANDAO" {
+            web3::types::U256::from_str_radix(
+                SystemContext::BLOCK_PREVRANDAO,
+                era_compiler_common::BASE_HEXADECIMAL,
+            )
+            .expect("Always valid")
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
                 .split(':')
@@ -138,7 +144,12 @@ impl Value {
                 &web3::types::Address::from_str(SystemContext::TX_ORIGIN).expect("Alwyays valid"),
             )
         } else if value == "$BASE_FEE" {
-            web3::types::U256::from(SystemContext::BASE_FEE_REVM)
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::BASE_FEE_EVM_INTERPRETER)
+                }
+                Environment::REVM => web3::types::U256::from(SystemContext::BASE_FEE_REVM),
+            }
         } else if value == "$GAS_PRICE" {
             match environment {
                 Environment::ZkEVM | Environment::EVMInterpreter => {
