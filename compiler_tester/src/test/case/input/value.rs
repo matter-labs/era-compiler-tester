@@ -106,18 +106,13 @@ impl Value {
                 ),
             }
             .expect("Always valid")
-        } else if value == "$DIFFICULTY" {
-            web3::types::U256::from_str_radix(
-                SystemContext::BLOCK_DIFFICULTY,
-                era_compiler_common::BASE_HEXADECIMAL,
-            )
-            .expect("Always valid")
         } else if value == "$PREVRANDAO" {
-            web3::types::U256::from_str_radix(
-                SystemContext::BLOCK_PREVRANDAO,
-                era_compiler_common::BASE_HEXADECIMAL,
-            )
-            .expect("Always valid")
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::BLOCK_PREVRANDAO_ERAVM)
+                }
+                Environment::REVM => web3::types::U256::from(SystemContext::BLOCK_PREVRANDAO_EVM),
+            }
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
                 .split(':')

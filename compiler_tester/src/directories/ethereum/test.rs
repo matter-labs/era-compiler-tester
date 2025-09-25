@@ -236,7 +236,6 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let evm_version = self.test.params.evm_version;
         let eravm_input = match compiler
             .compile_for_eravm(
                 self.selector.to_string(),
@@ -299,7 +298,6 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             builds,
-            Some(evm_version),
         ))
     }
 
@@ -338,7 +336,6 @@ impl Buildable for EthereumTest {
             }
         };
 
-        let evm_version = self.test.params.evm_version;
         let evm_input = match compiler
             .compile_for_evm(
                 self.selector.to_string(),
@@ -389,7 +386,6 @@ impl Buildable for EthereumTest {
             mode,
             self.index_entity.group.clone(),
             HashMap::new(),
-            Some(evm_version),
         ))
     }
 }

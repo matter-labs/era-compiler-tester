@@ -428,7 +428,12 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
-        self.check_filters(filters, &mode, benchmark_analyzer::Target::EraVM, environment)?;
+        self.check_filters(
+            filters,
+            &mode,
+            benchmark_analyzer::Target::EraVM,
+            environment,
+        )?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -559,7 +564,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             builds,
-            None,
         ))
     }
 
@@ -674,7 +678,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             HashMap::new(),
-            None,
         ))
     }
 }

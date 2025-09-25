@@ -67,12 +67,12 @@ impl SystemContext {
     /// The default coinbase for EVM tests.
     pub const COIN_BASE_EVM: &'static str = "0x7878787878787878787878787878787878787878";
 
-    /// The block difficulty for EVM tests using a post paris version.
-    pub const BLOCK_PREVRANDAO: &'static str =
+    /// The block prevrandao for EVM tests.
+    pub const BLOCK_PREVRANDAO_ERAVM: &'static str =
+        "0x0000000000000000000000000000000000000000000000000008e1bc9bf04000";
+    /// The block prevrandao for EVM tests.
+    pub const BLOCK_PREVRANDAO_EVM: &'static str =
         "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
-    /// The block difficulty for EVM tests using a pre paris version.
-    pub const BLOCK_DIFFICULTY: &'static str =
-        "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
     pub const BASE_FEE_EVM_INTERPRETER: u64 = 7;
@@ -147,7 +147,7 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
-                web3::types::H256::from_str(SystemContext::BLOCK_PREVRANDAO).expect("Always valid"),
+                web3::types::H256::from_str(SystemContext::BLOCK_PREVRANDAO_ERAVM).expect("Always valid"),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
@@ -269,27 +269,5 @@ impl SystemContext {
             })
             .map(|string| web3::types::Address::from_str(&string).unwrap())
             .collect()
-    }
-
-    ///
-    /// Sets the storage values for the system context to the pre-Paris values.
-    ///
-    pub fn set_pre_paris_contracts(
-        storage: &mut HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
-    ) {
-        storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
-                ),
-                key: web3::types::U256::from_big_endian(
-                    web3::types::H256::from_low_u64_be(
-                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
-                    )
-                    .as_bytes(),
-                ),
-            },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY).expect("Always valid"),
-        );
     }
 }

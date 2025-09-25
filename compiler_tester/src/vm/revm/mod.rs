@@ -115,10 +115,10 @@ impl REVM {
         evm.block.beneficiary = revm::primitives::Address::from_str(SystemContext::COIN_BASE_EVM)
             .expect("Always valid");
         evm.block.basefee = SystemContext::BASE_FEE_REVM;
-        evm.block.difficulty = revm::primitives::U256::from_str(SystemContext::BLOCK_DIFFICULTY)
+        evm.block.difficulty = revm::primitives::U256::from_str(SystemContext::BLOCK_PREVRANDAO_EVM)
             .expect("Always valid");
         evm.block.prevrandao = Some(
-            revm::primitives::B256::from_str(SystemContext::BLOCK_PREVRANDAO)
+            revm::primitives::B256::from_str(SystemContext::BLOCK_PREVRANDAO_EVM)
                 .expect("Always valid"),
         );
         evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_REVM;

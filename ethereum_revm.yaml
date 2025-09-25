@@ -3927,7 +3927,8 @@ entries:
         version: '>=0.6.7'
       difficulty.sol:
         hash: '0xf5ef282ea9e1d12e807e55359cd3a9c8'
-        enabled: true
+        enabled: false
+        comment: 'difficulty is deprecated'
         version: '>=0.4.16, <=0.8.17'
       external_function_pointer_address.sol:
         hash: '0x0fb62f43c10ef8bf2a431432b884a054'
@@ -5639,7 +5640,8 @@ entries:
         version: '>=0.5.0'
       block_difficulty.sol:
         hash: '0x58b235ea108b6fb65447dac818824654'
-        enabled: true
+        enabled: false
+        comment: 'difficulty is deprecated'
         version: '>=0.4.12'
       block_difficulty_post_paris.sol:
         hash: '0xaf0b815498b81d9709b312a43f61514d'
@@ -5664,7 +5666,8 @@ entries:
         version: '>=0.8.18'
       block_prevrandao_pre_paris.sol:
         hash: '0x4f1de4a5bf963ccead4e49f5c388a676'
-        enabled: true
+        enabled: false
+        comment: 'difficulty is deprecated'
         version: '>=0.8.18'
       block_timestamp.sol:
         hash: '0xe33341d130db3aae593b9f66b8acdaab'

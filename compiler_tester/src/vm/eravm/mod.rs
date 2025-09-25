@@ -17,7 +17,6 @@ use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
-use solidity_adapter::EVMVersion;
 use zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER;
 
 use crate::utils;
@@ -211,18 +210,10 @@ impl EraVM {
     pub fn clone_with_contracts(
         vm: Arc<Self>,
         known_contracts: HashMap<web3::types::U256, Vec<u8>>,
-        evm_version: Option<EVMVersion>,
     ) -> Self {
         let mut vm_clone = (*vm).clone();
         for (bytecode_hash, bytecode) in known_contracts.into_iter() {
             vm_clone.add_known_contract(bytecode, bytecode_hash);
-        }
-        if let Some(
-            solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
-            | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
-        ) = evm_version
-        {
-            SystemContext::set_pre_paris_contracts(&mut vm_clone.storage);
         }
         vm_clone
     }
