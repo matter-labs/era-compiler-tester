@@ -58,15 +58,21 @@ impl Storage {
             };
             let mut contract_storage_values = HashMap::new();
             for (key, value) in contract_storage.into_iter() {
-                let key = match Value::try_from_matter_labs(key, instances, target, environment)
-                    .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
-                {
-                    Value::Known(value) => value,
-                    Value::Any => anyhow::bail!("Storage key can not be `*`"),
-                };
+                let key =
+                    match Value::try_from_matter_labs(key.as_str(), instances, target, environment)
+                        .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
+                    {
+                        Value::Known(value) => value,
+                        Value::Any => anyhow::bail!("Storage key can not be `*`"),
+                    };
 
-                let value = match Value::try_from_matter_labs(value, instances, target, environment)
-                    .map_err(|error| anyhow::anyhow!("Invalid storage value: {error}"))?
+                let value = match Value::try_from_matter_labs(
+                    value.as_str(),
+                    instances,
+                    target,
+                    environment,
+                )
+                .map_err(|error| anyhow::anyhow!("Invalid storage value: {error}"))?
                 {
                     Value::Known(value) => value,
                     Value::Any => anyhow::bail!("Storage value can not be `*`"),

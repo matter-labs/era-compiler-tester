@@ -36,6 +36,7 @@ use self::output::Output;
 use self::runtime::Runtime;
 use self::storage::Storage;
 use self::storage_empty::StorageEmpty;
+use self::value::Value;
 
 ///
 /// The test input.
@@ -66,8 +67,17 @@ impl Input {
         target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
-        let caller = web3::types::Address::from_str(input.caller.as_str())
-            .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
+        let caller = match Value::try_from_matter_labs(
+            input.caller.as_str(),
+            instances,
+            target,
+            environment,
+        )
+        .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {error}", input.caller))?
+        {
+            Value::Known(value) => crate::utils::u256_to_address(&value),
+            Value::Any => anyhow::bail!("Caller can not be `*`"),
+        };
 
         let value = match input.value {
             Some(value) => Some(if let Some(value) = value.strip_suffix(" ETH") {

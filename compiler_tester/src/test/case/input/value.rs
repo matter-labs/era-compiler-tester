@@ -42,7 +42,7 @@ impl Value {
     /// Try convert from Matter Labs compiler test metadata value.
     ///
     pub fn try_from_matter_labs(
-        value: String,
+        value: &str,
         instances: &BTreeMap<String, Instance>,
         target: benchmark_analyzer::Target,
         environment: Environment,
@@ -88,15 +88,11 @@ impl Value {
             }
         } else if value == "$GAS_LIMIT" {
             match environment {
-                Environment::ZkEVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM)
-                }
+                Environment::ZkEVM => web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM),
                 Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM_INTERPRETER)
                 }
-                Environment::REVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_REVM)
-                }
+                Environment::REVM => web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_REVM),
             }
         } else if value == "$COINBASE" {
             match target {
@@ -151,7 +147,7 @@ impl Value {
                 Environment::REVM => web3::types::U256::from(SystemContext::GAS_PRICE_REVM),
             }
         } else {
-            web3::types::U256::from_dec_str(value.as_str())
+            web3::types::U256::from_dec_str(value)
                 .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {error}"))?
         };
 
@@ -171,7 +167,7 @@ impl Value {
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value, instances, target, environment)
+                Self::try_from_matter_labs(value.as_str(), instances, target, environment)
                     .map_err(|error| anyhow::anyhow!("Value {index} is invalid: {error}"))
             })
             .collect::<anyhow::Result<Vec<Self>>>()
