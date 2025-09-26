@@ -520,6 +520,7 @@ impl Buildable for MatterLabsTest {
                 eravm_address_iterator.clone(),
                 evm_address_iterator.clone(),
                 &mode,
+                environment,
             ) {
                 Ok(_) => {}
                 Err(error) => {
@@ -647,6 +648,7 @@ impl Buildable for MatterLabsTest {
                 EraVMAddressIterator::new(),
                 evm_address_iterator.clone(),
                 &mode,
+                environment,
             ) {
                 Ok(_) => {}
                 Err(error) => {

@@ -5,12 +5,12 @@
 pub mod input;
 
 use std::collections::BTreeMap;
-use std::str::FromStr;
 
 use serde::Deserialize;
 
 use crate::compilers::mode::Mode;
 use crate::environment::Environment;
+use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 use crate::vm::address_iterator::AddressIterator;
 use crate::vm::eravm::address_iterator::EraVMAddressIterator;
@@ -154,6 +154,7 @@ impl Case {
         mut eravm_address_iterator: EraVMAddressIterator,
         mut evm_address_iterator: EVMAddressIterator,
         mode: &Mode,
+        environment: Environment,
     ) -> anyhow::Result<()> {
         for (index, input) in self.inputs.iter().enumerate() {
             if input.method.as_str() != "#deployer"
@@ -175,12 +176,13 @@ impl Case {
             }
 
             let caller =
-                web3::types::Address::from_str(input.caller.as_str()).map_err(|error| {
-                    anyhow::anyhow!(
-                        "Input #{index} has invalid caller `{}`: {error}",
-                        input.caller.as_str(),
-                    )
-                })?;
+                match Value::try_from_matter_labs(input.caller.as_str(), instances, environment)
+                    .map_err(|error| {
+                        anyhow::anyhow!("Invalid caller `{}`: {error}", input.caller)
+                    })? {
+                    Value::Known(value) => crate::utils::u256_to_address(&value),
+                    Value::Any => anyhow::bail!("Caller can not be `*`"),
+                };
 
             match instances.get_mut(input.instance.as_str()) {
                 Some(instance @ Instance::EraVM(_)) => {
