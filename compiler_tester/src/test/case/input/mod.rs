@@ -67,17 +67,13 @@ impl Input {
         target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
-        let caller = match Value::try_from_matter_labs(
-            input.caller.as_str(),
-            instances,
-            target,
-            environment,
-        )
-        .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {error}", input.caller))?
-        {
-            Value::Known(value) => crate::utils::u256_to_address(&value),
-            Value::Any => anyhow::bail!("Caller can not be `*`"),
-        };
+        let caller =
+            match Value::try_from_matter_labs(input.caller.as_str(), instances, environment)
+                .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {error}", input.caller))?
+            {
+                Value::Known(value) => crate::utils::u256_to_address(&value),
+                Value::Any => anyhow::bail!("Caller can not be `*`"),
+            };
 
         let value = match input.value {
             Some(value) => Some(if let Some(value) = value.strip_suffix(" ETH") {
@@ -96,27 +92,22 @@ impl Input {
             None => None,
         };
 
-        let mut calldata =
-            Calldata::try_from_matter_labs(input.calldata, instances, target, environment)
-                .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
+        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, environment)
+            .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
 
         let expected = match target {
             benchmark_analyzer::Target::EraVM => input.expected_eravm.or(input.expected),
             benchmark_analyzer::Target::EVM => input.expected_evm.or(input.expected),
         };
         let expected = match expected {
-            Some(expected) => Output::try_from_matter_labs_expected(
-                expected,
-                mode,
-                instances,
-                target,
-                environment,
-            )
-            .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?,
+            Some(expected) => {
+                Output::try_from_matter_labs_expected(expected, mode, instances, environment)
+                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?
+            }
             None => Output::default(),
         };
 
-        let storage = Storage::try_from_matter_labs(input.storage, instances, target, environment)
+        let storage = Storage::try_from_matter_labs(input.storage, instances, environment)
             .map_err(|error| anyhow::anyhow!("Invalid storage: {error}"))?;
 
         let instance = instances

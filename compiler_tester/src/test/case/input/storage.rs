@@ -27,7 +27,6 @@ impl Storage {
     pub fn try_from_matter_labs(
         storage: HashMap<String, MatterLabsTestContractStorage>,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
         let mut result = HashMap::new();
@@ -58,25 +57,20 @@ impl Storage {
             };
             let mut contract_storage_values = HashMap::new();
             for (key, value) in contract_storage.into_iter() {
-                let key =
-                    match Value::try_from_matter_labs(key.as_str(), instances, target, environment)
-                        .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
-                    {
-                        Value::Known(value) => value,
-                        Value::Any => anyhow::bail!("Storage key can not be `*`"),
-                    };
-
-                let value = match Value::try_from_matter_labs(
-                    value.as_str(),
-                    instances,
-                    target,
-                    environment,
-                )
-                .map_err(|error| anyhow::anyhow!("Invalid storage value: {error}"))?
+                let key = match Value::try_from_matter_labs(key.as_str(), instances, environment)
+                    .map_err(|error| anyhow::anyhow!("Invalid storage key: {error}"))?
                 {
                     Value::Known(value) => value,
-                    Value::Any => anyhow::bail!("Storage value can not be `*`"),
+                    Value::Any => anyhow::bail!("Storage key can not be `*`"),
                 };
+
+                let value =
+                    match Value::try_from_matter_labs(value.as_str(), instances, environment)
+                        .map_err(|error| anyhow::anyhow!("Invalid storage value: {error}"))?
+                    {
+                        Value::Known(value) => value,
+                        Value::Any => anyhow::bail!("Storage value can not be `*`"),
+                    };
 
                 let mut value_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
                 value.to_big_endian(value_bytes.as_mut_slice());

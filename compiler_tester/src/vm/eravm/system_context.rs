@@ -42,25 +42,21 @@ impl SystemContext {
     /// The system context virtual blocks upgrade info position in the storage.
     pub const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
 
-    /// The ZKsync chain ID.
-    pub const CHAIND_ID_ERAVM: u64 = 280;
     /// The Ethereum chain ID.
     pub const CHAIND_ID_EVM: u64 = 1;
+    /// The ZKsync chain ID.
+    pub const CHAIND_ID_ERAVM: u64 = 280;
 
     /// The default origin for tests.
     pub const TX_ORIGIN: &'static str = "0x9292929292929292929292929292929292929292";
 
     /// The default gas price for the EVM interpreter.
     pub const GAS_PRICE_EVM_INTERPRETER: u64 = 3000000000;
-    /// The default gas price for REVM.
-    pub const GAS_PRICE_REVM: u64 = 0;
 
     /// The default block gas limit for EraVM tests.
     pub const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
     /// The default block gas limit for the EVM interpreter.
     pub const BLOCK_GAS_LIMIT_EVM_INTERPRETER: u64 = 20000000;
-    /// The default block gas limit for REVM.
-    pub const BLOCK_GAS_LIMIT_REVM: u64 = 30000000;
 
     /// The default coinbase for EraVM tests.
     pub const COIN_BASE_ERAVM: &'static str = "0x0000000000000000000000000000000000008001";
@@ -70,14 +66,9 @@ impl SystemContext {
     /// The block prevrandao for EVM tests.
     pub const BLOCK_PREVRANDAO_ERAVM: &'static str =
         "0x0000000000000000000000000000000000000000000000000008e1bc9bf04000";
-    /// The block prevrandao for EVM tests.
-    pub const BLOCK_PREVRANDAO_EVM: &'static str =
-        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
 
     /// The default base fee for tests.
     pub const BASE_FEE_EVM_INTERPRETER: u64 = 7;
-    /// The default base fee for REVM.
-    pub const BASE_FEE_REVM: u64 = 0;
 
     /// The default current block number.
     pub const INITIAL_BLOCK_NUMBER: u128 = 1;

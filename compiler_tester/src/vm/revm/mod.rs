@@ -22,8 +22,8 @@ use revm::{
     state::AccountInfo,
 };
 
+use crate::test::case::input::calldata::Calldata;
 use crate::vm::revm::revm_type_conversions::web3_u256_to_revm_u256;
-use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::SystemContext};
 
 use self::revm_type_conversions::web3_address_to_revm_address;
 
@@ -54,6 +54,25 @@ impl Default for REVM {
 }
 
 impl REVM {
+    /// Default Ethereum chain ID.
+    pub const CHAIND_ID: u64 = 1;
+    /// Default gas price.
+    pub const GAS_PRICE: u64 = 0;
+    /// Default coinbase.
+    pub const COIN_BASE: &'static str = "0x7878787878787878787878787878787878787878";
+
+    /// Block prevrandao.
+    pub const BLOCK_PREVRANDAO: &'static str =
+        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    /// Default base fee for REVM.
+    pub const BASE_FEE: u64 = 0;
+    /// Default block gas limit for REVM.
+    pub const BLOCK_GAS_LIMIT: u64 = 30000000;
+    /// Default current block timestamp for EVM tests.
+    pub const BLOCK_TIMESTAMP: u128 = 30;
+    /// Default timestamp step for blocks in the EVM context.
+    pub const BLOCK_TIMESTAMP_STEP: u128 = 15;
+
     ///
     /// A shortcut constructor.
     ///
@@ -112,20 +131,16 @@ impl REVM {
             revm::handler::instructions::EthInstructions::new_mainnet(),
             revm::handler::EthPrecompiles::default(),
         );
-        evm.block.beneficiary = revm::primitives::Address::from_str(SystemContext::COIN_BASE_EVM)
-            .expect("Always valid");
-        evm.block.basefee = SystemContext::BASE_FEE_REVM;
+        evm.block.beneficiary =
+            revm::primitives::Address::from_str(Self::COIN_BASE).expect("Always valid");
+        evm.block.basefee = Self::BASE_FEE;
         evm.block.difficulty =
-            revm::primitives::U256::from_str(SystemContext::BLOCK_PREVRANDAO_EVM)
-                .expect("Always valid");
-        evm.block.prevrandao = Some(
-            revm::primitives::B256::from_str(SystemContext::BLOCK_PREVRANDAO_EVM)
-                .expect("Always valid"),
-        );
-        evm.block.gas_limit = SystemContext::BLOCK_GAS_LIMIT_REVM;
-        evm.block.timestamp =
-            revm::primitives::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM);
-        evm.tx.chain_id = Some(SystemContext::CHAIND_ID_EVM);
+            revm::primitives::U256::from_str(Self::BLOCK_PREVRANDAO).expect("Always valid");
+        evm.block.prevrandao =
+            Some(revm::primitives::B256::from_str(Self::BLOCK_PREVRANDAO).expect("Always valid"));
+        evm.block.gas_limit = Self::BLOCK_GAS_LIMIT;
+        evm.block.timestamp = revm::primitives::U256::from(Self::BLOCK_TIMESTAMP);
+        evm.tx.chain_id = Some(Self::CHAIND_ID);
         evm.cfg.disable_nonce_check = true;
         Self { evm }
     }
@@ -172,8 +187,8 @@ impl REVM {
             .data(revm::primitives::Bytes::from(code))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .create()
-            .gas_price(SystemContext::GAS_PRICE_REVM as u128)
-            .gas_limit(SystemContext::BLOCK_GAS_LIMIT_REVM)
+            .gas_price(Self::GAS_PRICE as u128)
+            .gas_limit(Self::BLOCK_GAS_LIMIT)
             .build_fill()
     }
 
@@ -191,8 +206,8 @@ impl REVM {
             .data(revm::primitives::Bytes::from(calldata.inner))
             .value(revm::primitives::U256::from(value.unwrap_or_default()))
             .to(web3_address_to_revm_address(&address))
-            .gas_price(SystemContext::GAS_PRICE_REVM as u128)
-            .gas_limit(SystemContext::BLOCK_GAS_LIMIT_REVM)
+            .gas_price(Self::GAS_PRICE as u128)
+            .gas_limit(Self::BLOCK_GAS_LIMIT)
             .build_fill()
     }
 

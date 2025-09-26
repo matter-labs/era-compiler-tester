@@ -45,12 +45,11 @@ impl Event {
     pub fn try_from_matter_labs(
         event: MatterLabsTestExpectedEvent,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
-        let topics = Value::try_from_vec_matter_labs(event.topics, instances, target, environment)
+        let topics = Value::try_from_vec_matter_labs(event.topics, instances, environment)
             .map_err(|error| anyhow::anyhow!("Invalid topics: {error}"))?;
-        let values = Value::try_from_vec_matter_labs(event.values, instances, target, environment)
+        let values = Value::try_from_vec_matter_labs(event.values, instances, environment)
             .map_err(|error| anyhow::anyhow!("Invalid values: {error}"))?;
 
         let address = match event.address {

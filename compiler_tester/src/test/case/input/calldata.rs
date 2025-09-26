@@ -25,7 +25,6 @@ impl Calldata {
     pub fn try_from_matter_labs(
         calldata: MatterLabsTestInputCalldata,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
         let calldata = match calldata {
@@ -40,8 +39,7 @@ impl Calldata {
             }
             MatterLabsTestInputCalldata::List(values) => {
                 let mut result = Vec::with_capacity(values.len());
-                let calldata =
-                    Value::try_from_vec_matter_labs(values, instances, target, environment)?;
+                let calldata = Value::try_from_vec_matter_labs(values, instances, environment)?;
                 for value in calldata.into_iter() {
                     let value = match value {
                         Value::Known(value) => value,

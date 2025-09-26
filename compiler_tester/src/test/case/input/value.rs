@@ -11,6 +11,7 @@ use serde::Serializer;
 use crate::environment::Environment;
 use crate::test::instance::Instance;
 use crate::vm::eravm::system_context::SystemContext;
+use crate::vm::revm::REVM;
 
 ///
 /// The compiler test value.
@@ -44,7 +45,6 @@ impl Value {
     pub fn try_from_matter_labs(
         value: &str,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
         if value == "*" {
@@ -78,13 +78,11 @@ impl Value {
             web3::types::U256::from_str(value)
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {error}"))?
         } else if value == "$CHAIN_ID" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM)
                 }
-                benchmark_analyzer::Target::EVM => {
-                    web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
-                }
+                Environment::REVM => web3::types::U256::from(REVM::CHAIND_ID),
             }
         } else if value == "$GAS_LIMIT" {
             match environment {
@@ -92,16 +90,18 @@ impl Value {
                 Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM_INTERPRETER)
                 }
-                Environment::REVM => web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_REVM),
+                Environment::REVM => web3::types::U256::from(REVM::BLOCK_GAS_LIMIT),
             }
         } else if value == "$COINBASE" {
-            match target {
-                benchmark_analyzer::Target::EraVM => web3::types::U256::from_str_radix(
-                    SystemContext::COIN_BASE_ERAVM,
-                    era_compiler_common::BASE_HEXADECIMAL,
-                ),
-                benchmark_analyzer::Target::EVM => web3::types::U256::from_str_radix(
-                    SystemContext::COIN_BASE_EVM,
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from_str_radix(
+                        SystemContext::COIN_BASE_ERAVM,
+                        era_compiler_common::BASE_HEXADECIMAL,
+                    )
+                }
+                Environment::REVM => web3::types::U256::from_str_radix(
+                    REVM::COIN_BASE,
                     era_compiler_common::BASE_HEXADECIMAL,
                 ),
             }
@@ -111,7 +111,7 @@ impl Value {
                 Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::BLOCK_PREVRANDAO_ERAVM)
                 }
-                Environment::REVM => web3::types::U256::from(SystemContext::BLOCK_PREVRANDAO_EVM),
+                Environment::REVM => web3::types::U256::from(REVM::BLOCK_PREVRANDAO),
             }
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
@@ -126,11 +126,11 @@ impl Value {
         } else if value == "$BLOCK_NUMBER" {
             web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER)
         } else if value == "$BLOCK_TIMESTAMP" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
                 }
-                benchmark_analyzer::Target::EVM => {
+                Environment::REVM => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
                 }
             }
@@ -143,14 +143,14 @@ impl Value {
                 Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::BASE_FEE_EVM_INTERPRETER)
                 }
-                Environment::REVM => web3::types::U256::from(SystemContext::BASE_FEE_REVM),
+                Environment::REVM => web3::types::U256::from(REVM::BASE_FEE),
             }
         } else if value == "$GAS_PRICE" {
             match environment {
                 Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
                 }
-                Environment::REVM => web3::types::U256::from(SystemContext::GAS_PRICE_REVM),
+                Environment::REVM => web3::types::U256::from(REVM::GAS_PRICE),
             }
         } else {
             web3::types::U256::from_dec_str(value)
@@ -166,14 +166,13 @@ impl Value {
     pub fn try_from_vec_matter_labs(
         values: Vec<String>,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
         environment: Environment,
     ) -> anyhow::Result<Vec<Self>> {
         values
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value.as_str(), instances, target, environment)
+                Self::try_from_matter_labs(value.as_str(), instances, environment)
                     .map_err(|error| anyhow::anyhow!("Value {index} is invalid: {error}"))
             })
             .collect::<anyhow::Result<Vec<Self>>>()
