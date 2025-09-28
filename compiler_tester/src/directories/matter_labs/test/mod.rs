@@ -308,7 +308,14 @@ impl MatterLabsTest {
             })?;
             instances.insert(
                 instance.to_owned(),
-                Instance::evm(instance.to_owned(), None, false, false, bytecode.to_owned()),
+                Instance::evm(
+                    instance.to_owned(),
+                    None,
+                    false,
+                    false,
+                    bytecode.to_owned(),
+                    runtime_code.len() / 2,
+                ),
             );
         }
 

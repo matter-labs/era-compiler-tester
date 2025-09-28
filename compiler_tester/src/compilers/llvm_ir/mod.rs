@@ -146,12 +146,10 @@ impl Compiler for LLVMIRCompiler {
                 let mut builds = HashMap::with_capacity(solx_output.contracts.len());
                 for (_file, contracts) in solx_output.contracts.into_iter() {
                     for (name, contract) in contracts.into_iter() {
-                        let bytecode_string = contract
-                            .evm
-                            .as_ref()
-                            .ok_or_else(|| {
-                                anyhow::anyhow!("EVM object of the contract `{name}` not found")
-                            })?
+                        let evm = contract.evm.as_ref().ok_or_else(|| {
+                            anyhow::anyhow!("EVM object of the contract `{name}` not found")
+                        })?;
+                        let deploy_code_string = evm
                             .bytecode
                             .as_ref()
                             .ok_or_else(|| {
@@ -165,8 +163,24 @@ impl Compiler for LLVMIRCompiler {
                                 )
                             })?
                             .as_str();
-                        let build = hex::decode(bytecode_string).expect("Always valid");
-                        builds.insert(name, build);
+                        let deploy_code = hex::decode(deploy_code_string).expect("Always valid");
+                        let runtime_code_size = evm
+                            .deployed_bytecode
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "EVM deployed bytecode of the contract `{name}` not found"
+                                )
+                            })?
+                            .object
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "EVM deployed bytecode object of the contract `{name}` not found"
+                                )
+                            })?
+                            .len();
+                        builds.insert(name, (deploy_code, runtime_code_size));
                     }
                 }
                 builds

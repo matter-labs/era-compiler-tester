@@ -183,7 +183,7 @@ impl Runtime {
             }
         };
 
-        let (output, gas, error) = match result {
+        let (output, total_gas_used, error) = match result {
             ExecutionResult::Success {
                 reason: _,
                 gas_used,
@@ -199,6 +199,9 @@ impl Runtime {
                 (Output::new(vec![], true, vec![]), gas_used, Some(reason))
             }
         };
+
+        let calldata_cost = REVM::calldata_gas_cost(self.calldata.inner.as_slice());
+        let gas = REVM::runtime_bytecode_execution_gas(total_gas_used, calldata_cost);
 
         if output == self.expected {
             Summary::passed_runtime(summary, test, 0, 0, gas);

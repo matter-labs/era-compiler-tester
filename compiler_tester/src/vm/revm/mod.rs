@@ -73,6 +73,17 @@ impl REVM {
     /// Default timestamp step for blocks in the EVM context.
     pub const BLOCK_TIMESTAMP_STEP: u128 = 15;
 
+    /// Gas cost for transaction fee.
+    pub const GAS_COST_TRANSACTION_FEE: u64 = 21000;
+    /// Gas cost for deployment fee.
+    pub const GAS_COST_DEPLOYMENT_FEE: u64 = 32000;
+    /// Gas cost per zero byte in calldata.
+    pub const GAS_COST_PER_ZERO_CALLDATA_BYTE: u64 = 4;
+    /// Gas cost per non-zero byte in calldata.
+    pub const GAS_COST_PER_NON_ZERO_CALLDATA_BYTE: u64 = 16;
+    /// Gas cost per byte in runtime code.
+    pub const GAS_COST_PER_RUNTIME_CODE_BYTE: u64 = 200;
+
     ///
     /// A shortcut constructor.
     ///
@@ -268,5 +279,49 @@ impl REVM {
         self.evm
             .db_mut()
             .insert_account_with_storage(address, account_info, existing_storage);
+    }
+
+    ///
+    /// Returns the calldata gas cost.
+    ///
+    pub fn calldata_gas_cost(calldata: &[u8]) -> u64 {
+        calldata
+            .iter()
+            .map(|byte| {
+                if *byte == 0 {
+                    Self::GAS_COST_PER_ZERO_CALLDATA_BYTE
+                } else {
+                    Self::GAS_COST_PER_NON_ZERO_CALLDATA_BYTE
+                }
+            })
+            .sum::<u64>()
+    }
+
+    ///
+    /// With the total gas usage, calldata, and init code, returns the gas used for deploy bytecode execution only.
+    ///
+    pub fn deploy_bytecode_execution_gas(
+        total_gas_used: u64,
+        calldata_cost: u64,
+        deploy_code_size: usize,
+        runtime_code_size: usize,
+    ) -> u64 {
+        let init_code_fee = 2
+            * (((deploy_code_size as f64) / (solx_utils::BYTE_LENGTH_FIELD as f64)).ceil() as u64);
+        let runtime_code_fee = (runtime_code_size as u64) * Self::GAS_COST_PER_RUNTIME_CODE_BYTE;
+        total_gas_used.saturating_sub(
+            Self::GAS_COST_TRANSACTION_FEE
+                + calldata_cost
+                + Self::GAS_COST_DEPLOYMENT_FEE
+                + init_code_fee
+                + runtime_code_fee,
+        )
+    }
+
+    ///
+    /// With the total gas usage and calldata, returns the gas used for runtime bytecode execution only.
+    ///
+    pub fn runtime_bytecode_execution_gas(total_gas_used: u64, calldata_cost: u64) -> u64 {
+        total_gas_used.saturating_sub(Self::GAS_COST_TRANSACTION_FEE + calldata_cost)
     }
 }

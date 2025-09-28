@@ -179,12 +179,10 @@ impl Compiler for YulCompiler {
                 let mut builds = HashMap::with_capacity(solx_output.contracts.len());
                 for (file, contracts) in solx_output.contracts.into_iter() {
                     for (_name, contract) in contracts.into_iter() {
-                        let bytecode_string = contract
-                            .evm
-                            .as_ref()
-                            .ok_or_else(|| {
-                                anyhow::anyhow!("EVM object of the contract `{file}` not found")
-                            })?
+                        let evm = contract.evm.as_ref().ok_or_else(|| {
+                            anyhow::anyhow!("EVM object of the contract `{file}` not found")
+                        })?;
+                        let deploy_code_string = evm
                             .bytecode
                             .as_ref()
                             .ok_or_else(|| {
@@ -198,8 +196,23 @@ impl Compiler for YulCompiler {
                                 )
                             })?
                             .as_str();
-                        let build = hex::decode(bytecode_string).expect("Always valid");
-                        builds.insert(file.clone(), build);
+                        let deploy_code = hex::decode(deploy_code_string).expect("Always valid");
+                        let runtime_code_size = evm
+                            .deployed_bytecode
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("EVM bytecode of the contract `{file}` not found")
+                            })?
+                            .object
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "EVM bytecode object of the contract `{file}` not found"
+                                )
+                            })?
+                            .len()
+                            / 2;
+                        builds.insert(file.clone(), (deploy_code, runtime_code_size));
                     }
                 }
 
@@ -249,12 +262,10 @@ impl Compiler for YulCompiler {
                 for (file, contracts) in contracts.into_iter() {
                     for (name, contract) in contracts.into_iter() {
                         let path = format!("{file}:{name}");
-                        let bytecode_string = contract
-                            .evm
-                            .as_ref()
-                            .ok_or_else(|| {
-                                anyhow::anyhow!("EVM object of the contract `{path}` not found")
-                            })?
+                        let evm = contract.evm.as_ref().ok_or_else(|| {
+                            anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                        })?;
+                        let deploy_code_string = evm
                             .bytecode
                             .as_ref()
                             .ok_or_else(|| {
@@ -262,8 +273,17 @@ impl Compiler for YulCompiler {
                             })?
                             .object
                             .as_str();
-                        let build = hex::decode(bytecode_string).expect("Always valid");
-                        builds.insert(path, build);
+                        let deploy_code = hex::decode(deploy_code_string).expect("Always valid");
+                        let runtime_code_size = evm
+                            .deployed_bytecode
+                            .as_ref()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("EVM bytecode of the contract `{path}` not found")
+                            })?
+                            .object
+                            .len()
+                            / 2;
+                        builds.insert(path, (deploy_code, runtime_code_size));
                     }
                 }
 

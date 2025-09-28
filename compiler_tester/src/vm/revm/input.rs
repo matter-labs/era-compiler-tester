@@ -13,7 +13,7 @@ use crate::test::instance::Instance;
 #[derive(Debug)]
 pub struct Input {
     /// The contract builds.
-    pub builds: HashMap<String, Vec<u8>>,
+    pub builds: HashMap<String, (Vec<u8>, usize)>,
     /// The contracts method identifiers.
     pub method_identifiers: Option<BTreeMap<String, BTreeMap<String, u32>>>,
     /// The last contract name.
@@ -25,7 +25,7 @@ impl Input {
     /// A shortcut constructor.
     ///
     pub fn new(
-        builds: HashMap<String, Vec<u8>>,
+        builds: HashMap<String, (Vec<u8>, usize)>,
         method_identifiers: Option<BTreeMap<String, BTreeMap<String, u32>>>,
         last_contract: String,
     ) -> Self {
@@ -48,23 +48,31 @@ impl Input {
         let mut instances = BTreeMap::new();
 
         for (name, address) in library_addresses.into_iter() {
-            let build = self.builds.get(name.as_str()).ok_or_else(|| {
-                anyhow::anyhow!("Library `{name}` not found in the build artifacts")
-            })?;
+            let (deploy_code, runtime_code_size) =
+                self.builds.get(name.as_str()).ok_or_else(|| {
+                    anyhow::anyhow!("Library `{name}` not found in the build artifacts")
+                })?;
 
             instances.insert(
                 name.clone(),
-                Instance::evm(name, Some(address), false, true, build.to_owned()),
+                Instance::evm(
+                    name,
+                    Some(address),
+                    false,
+                    true,
+                    deploy_code.to_owned(),
+                    *runtime_code_size,
+                ),
             );
         }
 
         if contracts.is_empty() {
-            let main_contract_build =
-                self.builds
-                    .get(self.last_contract.as_str())
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("Main contract not found in the compiler build artifacts")
-                    })?;
+            let (main_contract_deploy_code, main_contract_runtime_code_size) = self
+                .builds
+                .get(self.last_contract.as_str())
+                .ok_or_else(|| {
+                    anyhow::anyhow!("Main contract not found in the compiler build artifacts")
+                })?;
 
             instances.insert(
                 "Test".to_owned(),
@@ -73,19 +81,28 @@ impl Input {
                     main_address,
                     true,
                     false,
-                    main_contract_build.to_owned(),
+                    main_contract_deploy_code.to_owned(),
+                    *main_contract_runtime_code_size,
                 ),
             );
         } else {
             for (instance, path) in contracts.iter() {
-                let build = self.builds.get(path.as_str()).ok_or_else(|| {
-                    anyhow::anyhow!("{path} not found in the compiler build artifacts")
-                })?;
+                let (deploy_code, runtime_code_size) =
+                    self.builds.get(path.as_str()).ok_or_else(|| {
+                        anyhow::anyhow!("{path} not found in the compiler build artifacts")
+                    })?;
                 let is_main = path.as_str() == self.last_contract.as_str();
 
                 instances.insert(
                     instance.to_owned(),
-                    Instance::evm(path.to_owned(), None, is_main, false, build.to_owned()),
+                    Instance::evm(
+                        path.to_owned(),
+                        None,
+                        is_main,
+                        false,
+                        deploy_code.to_owned(),
+                        *runtime_code_size,
+                    ),
                 );
             }
         }

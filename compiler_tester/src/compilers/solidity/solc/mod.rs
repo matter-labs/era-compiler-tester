@@ -604,12 +604,10 @@ impl Compiler for SolidityCompiler {
         for (file, contracts) in contracts.into_iter() {
             for (name, contract) in contracts.into_iter() {
                 let path = format!("{file}:{name}");
-                let bytecode_string = contract
-                    .evm
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("EVM object of the contract `{path}` not found")
-                    })?
+                let evm = contract.evm.as_ref().ok_or_else(|| {
+                    anyhow::anyhow!("EVM object of the contract `{path}` not found")
+                })?;
+                let deploy_code_string = evm
                     .bytecode
                     .as_ref()
                     .ok_or_else(|| {
@@ -617,10 +615,19 @@ impl Compiler for SolidityCompiler {
                     })?
                     .object
                     .as_str();
-                let build = hex::decode(bytecode_string).map_err(|error| {
+                let deploy_code = hex::decode(deploy_code_string).map_err(|error| {
                     anyhow::anyhow!("EVM bytecode of the contract `{path}` is invalid: {error}")
                 })?;
-                builds.insert(path, build);
+                let runtime_code_size = evm
+                    .deployed_bytecode
+                    .as_ref()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("EVM deployed bytecode of the contract `{path}` not found")
+                    })?
+                    .object
+                    .len()
+                    / 2;
+                builds.insert(path, (deploy_code, runtime_code_size));
             }
         }
 

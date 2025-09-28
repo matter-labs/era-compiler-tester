@@ -31,6 +31,8 @@ pub struct DeployEVM {
     identifier: String,
     /// The contract deploy code.
     deploy_code: Vec<u8>,
+    /// The contract runtime code size.
+    runtime_code_size: usize,
     /// The calldata.
     calldata: Calldata,
     /// The caller.
@@ -50,6 +52,7 @@ impl DeployEVM {
     pub fn new(
         identifier: String,
         deploy_code: Vec<u8>,
+        runtime_code_size: usize,
         calldata: Calldata,
         caller: web3::types::Address,
         value: Option<u128>,
@@ -59,6 +62,7 @@ impl DeployEVM {
         Self {
             identifier,
             deploy_code,
+            runtime_code_size,
             calldata,
             caller,
             value,
@@ -81,12 +85,12 @@ impl DeployEVM {
             },
         );
 
-        let size = self.deploy_code.len() as u64;
-        let calldata = self.calldata.inner.clone();
-        let mut code = self.deploy_code;
-        code.extend(self.calldata.inner);
+        let deploy_code_size = self.deploy_code.len();
+        let mut calldata = self.deploy_code;
+        calldata.extend(self.calldata.inner);
+        let calldata_cost = REVM::calldata_gas_cost(calldata.as_slice());
 
-        let tx = REVM::new_deploy_transaction(self.caller, self.value, code);
+        let tx = REVM::new_deploy_transaction(self.caller, self.value, calldata.clone());
 
         let initial_balance = (web3::types::U256::from(1) << 100)
             + web3::types::U256::from(self.value.unwrap_or_default());
@@ -105,7 +109,7 @@ impl DeployEVM {
             }
         };
 
-        let (output, gas, halt_reason) = match result {
+        let (output, total_gas_used, halt_reason) = match result {
             ExecutionResult::Success {
                 reason: _,
                 gas_used,
@@ -122,8 +126,15 @@ impl DeployEVM {
             }
         };
 
+        let gas = REVM::deploy_bytecode_execution_gas(
+            total_gas_used,
+            calldata_cost,
+            deploy_code_size,
+            self.runtime_code_size,
+        );
+
         if output == self.expected {
-            Summary::passed_deploy(summary, test, size, 0, 0, gas);
+            Summary::passed_deploy(summary, test, deploy_code_size as u64, 0, 0, gas);
         } else if let Some(error) = halt_reason {
             Summary::invalid(summary, test, format!("{error:?}"));
         } else {

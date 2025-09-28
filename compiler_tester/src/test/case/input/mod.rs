@@ -128,6 +128,7 @@ impl Input {
                 Instance::EVM(instance) => Input::DeployEVM(DeployEVM::new(
                     instance.path.to_owned(),
                     instance.deploy_code.to_owned(),
+                    instance.runtime_code_size,
                     calldata,
                     caller,
                     value,
@@ -258,6 +259,7 @@ impl Input {
                     Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
                         instance.path.to_owned(),
                         instance.deploy_code.to_owned(),
+                        instance.runtime_code_size,
                         calldata.clone().into(),
                         *caller,
                         value,
@@ -301,6 +303,7 @@ impl Input {
                     Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
                         instance.path.to_owned(),
                         instance.deploy_code.to_owned(),
+                        instance.runtime_code_size,
                         Calldata::default(),
                         *caller,
                         None,

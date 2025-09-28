@@ -322,7 +322,7 @@ impl Compiler for SolidityCompiler {
         let mut builds = HashMap::with_capacity(solx_output.contracts.len());
         for (file, source) in solx_output.contracts.iter() {
             for (name, contract) in source.iter() {
-                let bytecode = match contract
+                let deploy_code = match contract
                     .evm
                     .as_ref()
                     .and_then(|evm| evm.bytecode.as_ref())
@@ -331,7 +331,16 @@ impl Compiler for SolidityCompiler {
                     Some(bytecode) => hex::decode(bytecode.as_str())?,
                     None => continue,
                 };
-                builds.insert(format!("{file}:{name}"), bytecode);
+                let runtime_code_size = match contract
+                    .evm
+                    .as_ref()
+                    .and_then(|evm| evm.deployed_bytecode.as_ref())
+                    .and_then(|deployed_bytecode| deployed_bytecode.object.as_ref())
+                {
+                    Some(deployed_bytecode) => deployed_bytecode.len() / 2,
+                    None => 0,
+                };
+                builds.insert(format!("{file}:{name}"), (deploy_code, runtime_code_size));
             }
         }
 
