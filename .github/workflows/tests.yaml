@@ -132,7 +132,7 @@ jobs:
       ccache-key: 'llvm-Linux-X64-gnu'
       target-machine: ${{ matrix.target }}
       toolchain: ${{ matrix.toolchain }}
-      environment: ${{ matrix.target == 'eravm' && 'zk_evm' || 'EVMInterpreter' }}
+      environment: ${{ matrix.target == 'eravm' && 'zk_evm' || 'REVM' }}
       clone-llvm: 'false'
 
   # Special job that allows some of the jobs to be skipped or failed
