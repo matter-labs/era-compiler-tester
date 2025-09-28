@@ -35,10 +35,7 @@ impl Compiler {
     ///
     pub fn new(executable: String) -> anyhow::Result<Self> {
         if let Err(error) = which::which(executable.as_str()) {
-            anyhow::bail!(
-                "The `{executable}` executable not found in ${{PATH}}: {}",
-                error
-            );
+            anyhow::bail!("The `{executable}` executable not found in ${{PATH}}: {error}");
         }
         Ok(Self { executable })
     }
@@ -92,7 +89,7 @@ impl Compiler {
             anyhow::bail!(
                 "{} error: {}",
                 self.executable,
-                String::from_utf8_lossy(output.stderr.as_slice()).to_string()
+                String::from_utf8_lossy(output.stderr.as_slice())
             );
         }
 

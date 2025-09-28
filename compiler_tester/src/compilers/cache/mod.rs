@@ -97,7 +97,7 @@ where
             .unwrap_value()
             .as_ref()
             .map(|value| value.to_owned())
-            .map_err(|error| anyhow::anyhow!("{}", error))
+            .map_err(|error| anyhow::anyhow!("{error}"))
     }
 
     ///

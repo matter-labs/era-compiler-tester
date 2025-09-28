@@ -4,12 +4,12 @@
 
 pub mod test;
 
-use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::directories::Collection;
+use crate::environment::Environment;
 use crate::filters::Filters;
 use crate::summary::Summary;
 
@@ -25,6 +25,7 @@ impl Collection for MatterLabsDirectory {
 
     fn read_all(
         _target: benchmark_analyzer::Target,
+        _environment: Environment,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,
@@ -32,7 +33,7 @@ impl Collection for MatterLabsDirectory {
     ) -> anyhow::Result<Vec<Self::Test>> {
         let mut tests = Vec::new();
 
-        for entry in fs::read_dir(directory_path)? {
+        for entry in std::fs::read_dir(directory_path)? {
             let entry = entry?;
             let path = entry.path();
             let entry_type = entry.file_type().map_err(|error| {
@@ -42,6 +43,7 @@ impl Collection for MatterLabsDirectory {
             if entry_type.is_dir() {
                 tests.extend(Self::read_all(
                     _target,
+                    _environment,
                     path.as_path(),
                     extension,
                     summary.clone(),

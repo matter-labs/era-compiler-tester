@@ -40,7 +40,7 @@ pub const SIMPLE_TESTS_CONTRACT_NAME: &str = "Test";
 pub const SIMPLE_TESTS_INSTANCE: &str = "Test";
 
 /// The default address of the caller.
-pub const DEFAULT_CALLER_ADDRESS: &str = "deadbeef01000000000000000000000000000000";
+pub const DEFAULT_CALLER_ADDRESS: &str = "0xdeadbeef00000000000000000000000000000001";
 
 ///
 /// Used for default initialization.
@@ -97,7 +97,7 @@ impl MatterLabsTest {
         };
 
         let mut metadata = match Metadata::from_str(main_file_string.as_str())
-            .map_err(|error| anyhow::anyhow!("Invalid metadata JSON: {}", error))
+            .map_err(|error| anyhow::anyhow!("Invalid metadata JSON: {error}"))
         {
             Ok(metadata) => metadata,
             Err(error) => {
@@ -157,7 +157,7 @@ impl MatterLabsTest {
 
             for path in paths.into_iter() {
                 let source_code = match std::fs::read_to_string(path.as_str())
-                    .map_err(|err| anyhow::anyhow!("Reading source file error: {}", err))
+                    .map_err(|error| anyhow::anyhow!("Reading source file error: {error}"))
                 {
                     Ok(source) => source,
                     Err(error) => {
@@ -206,9 +206,15 @@ impl MatterLabsTest {
         filters: &Filters,
         mode: &Mode,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> Option<()> {
         if let Some(targets) = self.metadata.targets.as_ref() {
             if !targets.contains(&target) {
+                return None;
+            }
+        }
+        if let Some(environments) = self.metadata.environments.as_ref() {
+            if !environments.contains(&environment) {
                 return None;
             }
         }
@@ -298,23 +304,34 @@ impl MatterLabsTest {
             bytecode.push_str(runtime_code.as_str());
 
             let bytecode = hex::decode(bytecode.as_str()).map_err(|error| {
-                anyhow::anyhow!("Invalid bytecode of EVM instance `{}`: {}", instance, error)
+                anyhow::anyhow!("Invalid bytecode of EVM instance `{instance}`: {error}")
             })?;
             instances.insert(
                 instance.to_owned(),
-                Instance::evm(instance.to_owned(), None, false, false, bytecode.to_owned()),
+                Instance::evm(
+                    instance.to_owned(),
+                    None,
+                    false,
+                    false,
+                    bytecode.to_owned(),
+                    runtime_code.len() / 2,
+                ),
             );
         }
 
         Ok(instances)
     }
 
+    ///
+    /// Checks whether the test is for running benchmarks of the EVM interpreter.
+    ///
     fn is_evm_interpreter_test(&self) -> bool {
         matches!(
             self.metadata.group.as_deref(),
             Some(benchmark_analyzer::TEST_GROUP_EVM_INTERPRETER)
         )
     }
+
     ///
     /// Returns cases needed for running benchmarks on the EVM interpreter.
     ///
@@ -422,7 +439,12 @@ impl Buildable for MatterLabsTest {
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
         mode.enable_eravm_extensions(self.metadata.enable_eravm_extensions);
-        self.check_filters(filters, &mode, benchmark_analyzer::Target::EraVM)?;
+        self.check_filters(
+            filters,
+            &mode,
+            benchmark_analyzer::Target::EraVM,
+            environment,
+        )?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -505,6 +527,7 @@ impl Buildable for MatterLabsTest {
                 eravm_address_iterator.clone(),
                 evm_address_iterator.clone(),
                 &mode,
+                environment,
             ) {
                 Ok(_) => {}
                 Err(error) => {
@@ -520,6 +543,7 @@ impl Buildable for MatterLabsTest {
                 &instances,
                 &eravm_input.method_identifiers,
                 benchmark_analyzer::Target::EraVM,
+                environment,
             )
             .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {
@@ -552,7 +576,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             builds,
-            None,
         ))
     }
 
@@ -565,7 +588,7 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode, benchmark_analyzer::Target::EVM)?;
+        self.check_filters(filters, &mode, benchmark_analyzer::Target::EVM, environment)?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -632,6 +655,7 @@ impl Buildable for MatterLabsTest {
                 EraVMAddressIterator::new(),
                 evm_address_iterator.clone(),
                 &mode,
+                environment,
             ) {
                 Ok(_) => {}
                 Err(error) => {
@@ -647,8 +671,9 @@ impl Buildable for MatterLabsTest {
                 &instances,
                 &evm_input.method_identifiers,
                 benchmark_analyzer::Target::EVM,
+                environment,
             )
-            .map_err(|error| anyhow::anyhow!("Case `{}` is invalid: {}", case_name, error))
+            .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
             {
                 Ok(case) => case,
                 Err(error) => {
@@ -666,7 +691,6 @@ impl Buildable for MatterLabsTest {
             mode,
             self.metadata.group.clone(),
             HashMap::new(),
-            None,
         ))
     }
 }

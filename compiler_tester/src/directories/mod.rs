@@ -30,6 +30,7 @@ pub trait Collection {
     ///
     fn read_all(
         target: benchmark_analyzer::Target,
+        environment: Environment,
         directory_path: &Path,
         extension: &'static str,
         summary: Arc<Mutex<Summary>>,

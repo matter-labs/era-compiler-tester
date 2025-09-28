@@ -5,9 +5,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use revm::primitives::EVMError;
-use revm::primitives::ExecutionResult;
-use solidity_adapter::EVMVersion;
+use revm::context::result::ExecutionResult;
+use revm::ExecuteCommitEvm;
 
 use crate::summary::Summary;
 use crate::test::case::input::calldata::Calldata;
@@ -17,10 +16,10 @@ use crate::test::case::input::storage::Storage;
 use crate::test::description::TestDescription;
 use crate::test::InputContext;
 use crate::vm::eravm::deployers::EraVMDeployer;
+use crate::vm::eravm::system_context::SystemContext;
 use crate::vm::eravm::EraVM;
 
 use crate::vm::revm::revm_type_conversions::revm_bytes_to_vec_value;
-use crate::vm::revm::revm_type_conversions::transform_success_output;
 use crate::vm::revm::REVM;
 
 ///
@@ -32,6 +31,8 @@ pub struct DeployEVM {
     identifier: String,
     /// The contract deploy code.
     deploy_code: Vec<u8>,
+    /// The contract runtime code size.
+    runtime_code_size: usize,
     /// The calldata.
     calldata: Calldata,
     /// The caller.
@@ -51,6 +52,7 @@ impl DeployEVM {
     pub fn new(
         identifier: String,
         deploy_code: Vec<u8>,
+        runtime_code_size: usize,
         calldata: Calldata,
         caller: web3::types::Address,
         value: Option<u128>,
@@ -60,6 +62,7 @@ impl DeployEVM {
         Self {
             identifier,
             deploy_code,
+            runtime_code_size,
             calldata,
             caller,
             value,
@@ -73,13 +76,8 @@ impl DeployEVM {
     ///
     /// Runs the deploy transaction on native REVM.
     ///
-    pub fn run_revm<'b>(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        vm: REVM<'b>,
-        evm_version: Option<EVMVersion>,
-        context: InputContext<'_>,
-    ) -> REVM<'b> {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
+        let input_index = context.selector;
         let test = TestDescription::from_context(
             context,
             InputIdentifier::Deployer {
@@ -87,38 +85,38 @@ impl DeployEVM {
             },
         );
 
-        let size = self.deploy_code.len() as u64;
-        let calldata = self.calldata.inner.clone();
-        let mut code = self.deploy_code;
-        code.extend(self.calldata.inner);
+        let deploy_code_size = self.deploy_code.len();
+        let mut calldata = self.deploy_code;
+        calldata.extend(self.calldata.inner);
+        let calldata_cost = REVM::calldata_gas_cost(calldata.as_slice());
 
-        let vm = vm.update_deploy_balance(&self.caller);
-        let mut vm = vm.fill_deploy_new_transaction(self.caller, self.value, evm_version, code);
+        let tx = REVM::new_deploy_transaction(self.caller, self.value, calldata.clone());
 
-        let result = match vm.state.transact_commit() {
-            Ok(res) => res,
+        let initial_balance = (web3::types::U256::from(1) << 100)
+            + web3::types::U256::from(self.value.unwrap_or_default());
+        vm.set_account(&self.caller, initial_balance);
+
+        vm.evm.block.number = revm::primitives::U256::from(input_index + 1);
+        vm.evm.block.timestamp = revm::primitives::U256::from(
+            ((input_index + 1) as u128) * SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
+        );
+
+        let result = match vm.evm.transact_commit(tx) {
+            Ok(result) => result,
             Err(error) => {
-                let error_msg = match error {
-                    EVMError::Transaction(error) => format!("Error on Transaction: {error:?}"),
-                    EVMError::Header(error) => format!("Error on Header: {error:?}"),
-                    EVMError::Database(_error) => "Error on Database".into(),
-                    EVMError::Custom(error) => format!("Error on Custom: {error:?}"),
-                    EVMError::Precompile(error) => format!("Error on Precompile: {error:?}"),
-                };
-
-                Summary::invalid(summary.clone(), test, error_msg);
-                return vm;
+                Summary::invalid(summary.clone(), test, error);
+                return;
             }
         };
 
-        let (output, gas, error) = match result {
+        let (output, total_gas_used, halt_reason) = match result {
             ExecutionResult::Success {
                 reason: _,
                 gas_used,
                 gas_refunded: _,
                 logs,
                 output,
-            } => (transform_success_output(output, logs), gas_used, None),
+            } => ((output, logs).into(), gas_used, None),
             ExecutionResult::Revert { gas_used, output } => {
                 let return_data_value = revm_bytes_to_vec_value(output);
                 (Output::new(return_data_value, true, vec![]), gas_used, None)
@@ -128,15 +126,20 @@ impl DeployEVM {
             }
         };
 
+        let gas = REVM::deploy_bytecode_execution_gas(
+            total_gas_used,
+            calldata_cost,
+            deploy_code_size,
+            self.runtime_code_size,
+        );
+
         if output == self.expected {
-            Summary::passed_deploy(summary, test, size, 0, 0, gas);
-        } else if let Some(error) = error {
+            Summary::passed_deploy(summary, test, deploy_code_size as u64, 0, 0, gas);
+        } else if let Some(error) = halt_reason {
             Summary::invalid(summary, test, format!("{error:?}"));
         } else {
             Summary::failed(summary, test, self.expected, output, calldata);
         }
-
-        vm
     }
 
     ///

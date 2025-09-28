@@ -1,9 +1,11 @@
+///
+/// The REVM adapter.
+///
 pub mod address_iterator;
-pub mod balance;
 pub mod input;
 pub mod revm_type_conversions;
 
-use std::convert::Infallible;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
@@ -11,91 +13,147 @@ use std::time::Instant;
 
 use colored::Colorize;
 use revm::{
-    db::{states::plain_account::PlainStorage, EmptyDBTyped},
-    primitives::{Address, FixedBytes, TxKind, B256, U256},
-    Evm,
+    context::ContextTr,
+    context::Evm,
+    database::{states::plain_account::PlainStorage, CacheState, Database},
+    handler::{instructions::EthInstructions, EthFrame, EthPrecompiles},
+    interpreter::interpreter::EthInterpreter,
+    primitives::{Address, FixedBytes, U256},
+    state::AccountInfo,
 };
 
-use solidity_adapter::EVMVersion;
+use crate::test::case::input::calldata::Calldata;
+use crate::vm::revm::revm_type_conversions::web3_u256_to_revm_u256;
 
-use crate::{test::case::input::calldata::Calldata, vm::eravm::system_context::SystemContext};
+use self::revm_type_conversions::web3_address_to_revm_address;
 
-use self::revm_type_conversions::{
-    web3_address_to_revm_address, web3_u256_to_revm_address, web3_u256_to_revm_u256,
-};
+/// The overloaded REVM Context type.
+type Context = revm::context::Context<
+    revm::context::BlockEnv,
+    revm::context::TxEnv,
+    revm::context::CfgEnv,
+    revm::database::State<revm::database::EmptyDB>,
+    revm::context::Journal<revm::database::State<revm::database::EmptyDB>>,
+    (),
+    revm::context::LocalContext,
+>;
 
 ///
 /// REVM instance with its internal state.
 ///
 #[derive(Debug)]
-pub struct REVM<'a> {
+pub struct REVM {
     /// REVM internal state.
-    pub state: Evm<'a, (), revm::State<EmptyDBTyped<Infallible>>>,
+    pub evm: Evm<Context, (), EthInstructions<EthInterpreter, Context>, EthPrecompiles, EthFrame>,
 }
 
-impl Default for REVM<'_> {
+impl Default for REVM {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl REVM<'_> {
+impl REVM {
+    /// Default Ethereum chain ID.
+    pub const CHAIND_ID: u64 = 1;
+    /// Default gas price.
+    pub const GAS_PRICE: u64 = 0;
+    /// Default coinbase.
+    pub const COIN_BASE: &'static str = "0x7878787878787878787878787878787878787878";
+
+    /// Block prevrandao.
+    pub const BLOCK_PREVRANDAO: &'static str =
+        "0xa86c2e601b6c44eb4848f7d23d9df3113fbcac42041c49cbed5000cb4f118777";
+    /// Default base fee for REVM.
+    pub const BASE_FEE: u64 = 0;
+    /// Default block gas limit for REVM.
+    pub const BLOCK_GAS_LIMIT: u64 = 30000000;
+    /// Default current block timestamp for EVM tests.
+    pub const BLOCK_TIMESTAMP: u128 = 30;
+    /// Default timestamp step for blocks in the EVM context.
+    pub const BLOCK_TIMESTAMP_STEP: u128 = 15;
+
+    /// Gas cost for transaction fee.
+    pub const GAS_COST_TRANSACTION_FEE: u64 = 21000;
+    /// Gas cost for deployment fee.
+    pub const GAS_COST_DEPLOYMENT_FEE: u64 = 32000;
+    /// Gas cost per zero byte in calldata.
+    pub const GAS_COST_PER_ZERO_CALLDATA_BYTE: u64 = 4;
+    /// Gas cost per non-zero byte in calldata.
+    pub const GAS_COST_PER_NON_ZERO_CALLDATA_BYTE: u64 = 16;
+    /// Gas cost per byte in runtime code.
+    pub const GAS_COST_PER_RUNTIME_CODE_BYTE: u64 = 200;
+
     ///
     /// A shortcut constructor.
     ///
     pub fn new() -> Self {
-        let mut cache = revm::CacheState::new(false);
-        // Precompile 0x01 needs to have its code hash
-        let acc_info = revm::primitives::AccountInfo {
-            balance: U256::from(1_u64),
-            code_hash: FixedBytes::from_str(
-                "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-            )
-            .expect("Always valid"),
-            code: None,
-            nonce: 1,
-        };
-
-        cache.insert_account_with_storage(
-            Address::from_word(FixedBytes::from(U256::from(1_u64))),
-            acc_info,
-            PlainStorage::default(),
-        );
-
-        // Account 0x00 needs to have its code hash on 0
-        let acc_info_zero = revm::primitives::AccountInfo {
-            balance: U256::from(0_u64),
-            code_hash: FixedBytes::from(U256::ZERO),
-            code: None,
-            nonce: 1,
-        };
-
+        let mut cache = CacheState::new(false);
+        // Account 0x00 needs to have its code hash on 0.
         cache.insert_account_with_storage(
             Address::from_word(FixedBytes::from(U256::ZERO)),
-            acc_info_zero,
+            AccountInfo {
+                balance: U256::from(0_u64),
+                code_hash: FixedBytes::from(U256::ZERO),
+                code: None,
+                nonce: 1,
+            },
+            PlainStorage::default(),
+        );
+        // Precompile 0x01 needs to have its code hash.
+        cache.insert_account_with_storage(
+            Address::from_word(FixedBytes::from(U256::from(1_u64))),
+            AccountInfo {
+                balance: U256::from(1_u64),
+                code_hash: FixedBytes::from_str(
+                    "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+                )
+                .expect("Always valid"),
+                code: None,
+                nonce: 1,
+            },
             PlainStorage::default(),
         );
 
-        let mut state = revm::db::State::builder()
+        let block_hashes = (0..0xffff - 0x3737)
+            .enumerate()
+            .map(|(index, value)| {
+                let hash = format!(
+                    "0x373737373737373737373737373737373737373737373737373737373737{:04x}",
+                    0x3737 + value
+                );
+                (
+                    index as u64,
+                    revm::primitives::B256::from_str(hash.as_str()).expect("Always valid"),
+                )
+            })
+            .collect();
+
+        let state = revm::database::State::builder()
             .with_cached_prestate(cache)
+            .with_block_hashes(block_hashes)
             .with_bundle_update()
             .build();
 
-        // Blocks 0 and 1 need to have their hashes set (revm by default just uses the keccak of the number)
-        state.block_hashes.insert(
-            1,
-            B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
-                .unwrap(),
-        );
-        state.block_hashes.insert(
-            0,
-            B256::from_str("0x3737373737373737373737373737373737373737373737373737373737373737")
-                .unwrap(),
-        );
+        let context = Context::new(state, revm::primitives::hardfork::PRAGUE);
 
-        Self {
-            state: revm::Evm::builder().with_db(state).build(),
-        }
+        let mut evm = revm::context::Evm::new(
+            context,
+            revm::handler::instructions::EthInstructions::new_mainnet(),
+            revm::handler::EthPrecompiles::default(),
+        );
+        evm.block.beneficiary =
+            revm::primitives::Address::from_str(Self::COIN_BASE).expect("Always valid");
+        evm.block.basefee = Self::BASE_FEE;
+        evm.block.difficulty =
+            revm::primitives::U256::from_str(Self::BLOCK_PREVRANDAO).expect("Always valid");
+        evm.block.prevrandao =
+            Some(revm::primitives::B256::from_str(Self::BLOCK_PREVRANDAO).expect("Always valid"));
+        evm.block.gas_limit = Self::BLOCK_GAS_LIMIT;
+        evm.block.timestamp = revm::primitives::U256::from(Self::BLOCK_TIMESTAMP);
+        evm.tx.chain_id = Some(Self::CHAIND_ID);
+        evm.cfg.disable_nonce_check = true;
+        Self { evm }
     }
 
     ///
@@ -130,77 +188,140 @@ impl REVM<'_> {
     ///
     /// Fills a deploy transaction with the given parameters.
     ///
-    pub fn fill_deploy_new_transaction(
-        self,
+    pub fn new_deploy_transaction(
         caller: web3::types::Address,
         value: Option<u128>,
-        evm_version: Option<EVMVersion>,
         code: Vec<u8>,
-    ) -> Self {
-        let vm = self
-            .state
-            .modify()
-            .modify_env(|env| {
-                let evm_context = SystemContext::get_constants_evm(evm_version);
-                env.cfg.chain_id = evm_context.chain_id;
-                env.block.number = U256::from(evm_context.block_number);
-                let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
-                env.block.coinbase = web3_u256_to_revm_address(coinbase);
-                env.block.timestamp = U256::from(evm_context.block_timestamp);
-                env.block.gas_limit = U256::from(evm_context.block_gas_limit);
-                env.block.basefee = U256::from(evm_context.base_fee);
-                let block_difficulty =
-                    web3::types::U256::from_str_radix(evm_context.block_difficulty, 16).unwrap();
-                env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
-                env.block.prevrandao = Some(B256::from(env.block.difficulty));
-                env.tx.gas_price = U256::from(0xb2d05e00_u32);
-                env.tx.gas_limit = evm_context.block_gas_limit;
-                env.tx.access_list = vec![];
-                env.tx.caller = web3_address_to_revm_address(&caller);
-                env.tx.data = revm::primitives::Bytes::from(code);
-                env.tx.value = revm::primitives::U256::from(value.unwrap_or_default());
-                env.tx.transact_to = TxKind::Create;
-            })
-            .build();
-        Self { state: vm }
+    ) -> revm::context::TxEnv {
+        revm::context::TxEnv::builder()
+            .caller(web3_address_to_revm_address(&caller))
+            .data(revm::primitives::Bytes::from(code))
+            .value(revm::primitives::U256::from(value.unwrap_or_default()))
+            .create()
+            .gas_price(Self::GAS_PRICE as u128)
+            .gas_limit(Self::BLOCK_GAS_LIMIT)
+            .build_fill()
     }
 
     ///
     /// Fills a runtime transaction with the given parameters.
     ///
-    pub fn fill_runtime_new_transaction(
-        self,
+    pub fn new_runtime_transaction(
         address: web3::types::Address,
         caller: web3::types::Address,
         calldata: Calldata,
         value: Option<u128>,
-        evm_version: Option<EVMVersion>,
-    ) -> Self {
-        let vm = self
-            .state
-            .modify()
-            .modify_env(|env| {
-                let evm_context = SystemContext::get_constants_evm(evm_version);
-                env.tx.caller = web3_address_to_revm_address(&caller);
-                env.tx.data = revm::primitives::Bytes::from(calldata.inner.clone());
-                env.tx.value = revm::primitives::U256::from(value.unwrap_or_default());
-                env.tx.transact_to = TxKind::Call(web3_address_to_revm_address(&address));
-                env.cfg.chain_id = evm_context.chain_id;
-                env.block.number = U256::from(evm_context.block_number);
-                let coinbase = web3::types::U256::from_str_radix(evm_context.coinbase, 16).unwrap();
-                env.block.coinbase = web3_u256_to_revm_address(coinbase);
-                env.block.timestamp = U256::from(evm_context.block_timestamp);
-                env.block.gas_limit = U256::from(evm_context.block_gas_limit);
-                env.block.basefee = U256::from(evm_context.base_fee);
-                let block_difficulty =
-                    web3::types::U256::from_str_radix(evm_context.block_difficulty, 16).unwrap();
-                env.block.difficulty = web3_u256_to_revm_u256(block_difficulty);
-                env.block.prevrandao = Some(B256::from(env.block.difficulty));
-                env.tx.gas_price = U256::from(0xb2d05e00_u32);
-                env.tx.gas_limit = evm_context.block_gas_limit;
-                env.tx.access_list = vec![];
+    ) -> revm::context::TxEnv {
+        revm::context::TxEnv::builder()
+            .caller(web3_address_to_revm_address(&caller))
+            .data(revm::primitives::Bytes::from(calldata.inner))
+            .value(revm::primitives::U256::from(value.unwrap_or_default()))
+            .to(web3_address_to_revm_address(&address))
+            .gas_price(Self::GAS_PRICE as u128)
+            .gas_limit(Self::BLOCK_GAS_LIMIT)
+            .build_fill()
+    }
+
+    ///
+    /// Sets the account data and balance.
+    ///
+    pub fn set_account(&mut self, account: &web3::types::Address, balance: web3::types::U256) {
+        let address = web3_address_to_revm_address(account);
+        let balance = web3_u256_to_revm_u256(balance);
+
+        let nonce = self
+            .evm
+            .db_mut()
+            .basic(address)
+            .map(|info| info.map(|info| info.nonce).unwrap_or(1))
+            .unwrap_or(1);
+        let account_info = revm::state::AccountInfo {
+            balance,
+            code_hash: revm::primitives::KECCAK_EMPTY,
+            code: None,
+            nonce,
+        };
+
+        self.evm.db_mut().insert_account(address, account_info);
+    }
+
+    ///
+    /// Sets the account storage.
+    ///
+    pub fn extend_account_storage(
+        &mut self,
+        account: &web3::types::Address,
+        storage: HashMap<web3::types::U256, web3::types::U256>,
+    ) {
+        let address = web3_address_to_revm_address(account);
+        let storage: HashMap<revm::primitives::U256, revm::primitives::U256> = storage
+            .into_iter()
+            .map(|(key, value)| (web3_u256_to_revm_u256(key), web3_u256_to_revm_u256(value)))
+            .collect();
+
+        let account_info = self
+            .evm
+            .db_mut()
+            .basic(address)
+            .expect("Always exists")
+            .expect("Always exists");
+        let mut existing_storage = self
+            .evm
+            .db_mut()
+            .cache
+            .accounts
+            .get(&address)
+            .and_then(|account| account.account.as_ref())
+            .map(|account| account.storage.to_owned())
+            .unwrap_or_default();
+        existing_storage.extend(storage);
+
+        self.evm
+            .db_mut()
+            .insert_account_with_storage(address, account_info, existing_storage);
+    }
+
+    ///
+    /// Returns the calldata gas cost.
+    ///
+    pub fn calldata_gas_cost(calldata: &[u8]) -> u64 {
+        calldata
+            .iter()
+            .map(|byte| {
+                if *byte == 0 {
+                    Self::GAS_COST_PER_ZERO_CALLDATA_BYTE
+                } else {
+                    Self::GAS_COST_PER_NON_ZERO_CALLDATA_BYTE
+                }
             })
-            .build();
-        Self { state: vm }
+            .sum::<u64>()
+    }
+
+    ///
+    /// With the total gas usage, calldata, and init code, returns the gas used for deploy bytecode execution only.
+    ///
+    pub fn deploy_bytecode_execution_gas(
+        total_gas_used: u64,
+        calldata_cost: u64,
+        deploy_code_size: usize,
+        runtime_code_size: usize,
+    ) -> u64 {
+        let init_code_fee = 2
+            * (((deploy_code_size as f64) / (solx_utils::BYTE_LENGTH_FIELD as f64)).ceil() as u64);
+        let runtime_code_fee = (runtime_code_size as u64) * Self::GAS_COST_PER_RUNTIME_CODE_BYTE;
+        total_gas_used.saturating_sub(
+            Self::GAS_COST_TRANSACTION_FEE
+                + calldata_cost
+                + Self::GAS_COST_DEPLOYMENT_FEE
+                + init_code_fee
+                + runtime_code_fee,
+        )
+    }
+
+    ///
+    /// With the total gas usage and calldata, returns the gas used for runtime bytecode execution only.
+    ///
+    pub fn runtime_bytecode_execution_gas(total_gas_used: u64, calldata_cost: u64) -> u64 {
+        total_gas_used.saturating_sub(Self::GAS_COST_TRANSACTION_FEE + calldata_cost)
     }
 }

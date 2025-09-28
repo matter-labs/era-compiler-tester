@@ -17,6 +17,8 @@ pub struct Instance {
     pub is_library: bool,
     /// The deploy bytecode.
     pub deploy_code: Vec<u8>,
+    /// The runtime bytecode size.
+    pub runtime_code_size: usize,
 }
 
 impl Instance {
@@ -29,6 +31,7 @@ impl Instance {
         is_main: bool,
         is_library: bool,
         deploy_code: Vec<u8>,
+        runtime_code_size: usize,
     ) -> Self {
         Self {
             path,
@@ -36,6 +39,7 @@ impl Instance {
             is_main,
             is_library,
             deploy_code,
+            runtime_code_size,
         }
     }
 }

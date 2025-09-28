@@ -20,6 +20,7 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::input::Input as MatterLabsTestInput;
+use crate::environment::Environment;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::test::InputContext;
@@ -35,6 +36,7 @@ use self::output::Output;
 use self::runtime::Runtime;
 use self::storage::Storage;
 use self::storage_empty::StorageEmpty;
+use self::value::Value;
 
 ///
 /// The test input.
@@ -63,30 +65,35 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
-        let caller = web3::types::Address::from_str(input.caller.as_str())
-            .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {}", input.caller, error))?;
+        let caller =
+            match Value::try_from_matter_labs(input.caller.as_str(), instances, environment)
+                .map_err(|error| anyhow::anyhow!("Invalid caller `{}`: {error}", input.caller))?
+            {
+                Value::Known(value) => crate::utils::u256_to_address(&value),
+                Value::Any => anyhow::bail!("Caller can not be `*`"),
+            };
 
         let value = match input.value {
             Some(value) => Some(if let Some(value) = value.strip_suffix(" ETH") {
                 u128::from_str(value)
-                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {}", error))?
+                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {error}"))?
                     .checked_mul(10u128.pow(18))
                     .ok_or_else(|| {
                         anyhow::anyhow!("Invalid value literal `{value}`: u128 overflow")
                     })?
             } else if let Some(value) = value.strip_suffix(" wei") {
-                u128::from_str(value).map_err(|error| {
-                    anyhow::anyhow!("Invalid value literal `{value}`: {}", error)
-                })?
+                u128::from_str(value)
+                    .map_err(|error| anyhow::anyhow!("Invalid value literal `{value}`: {error}"))?
             } else {
                 anyhow::bail!("Invalid value `{value}`");
             }),
             None => None,
         };
 
-        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid calldata: {}", error))?;
+        let mut calldata = Calldata::try_from_matter_labs(input.calldata, instances, environment)
+            .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
 
         let expected = match target {
             benchmark_analyzer::Target::EraVM => input.expected_eravm.or(input.expected),
@@ -94,14 +101,14 @@ impl Input {
         };
         let expected = match expected {
             Some(expected) => {
-                Output::try_from_matter_labs_expected(expected, mode, instances, target)
-                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {}", error))?
+                Output::try_from_matter_labs_expected(expected, mode, instances, environment)
+                    .map_err(|error| anyhow::anyhow!("Invalid expected metadata: {error}"))?
             }
             None => Output::default(),
         };
 
-        let storage = Storage::try_from_matter_labs(input.storage, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid storage: {}", error))?;
+        let storage = Storage::try_from_matter_labs(input.storage, instances, environment)
+            .map_err(|error| anyhow::anyhow!("Invalid storage: {error}"))?;
 
         let instance = instances
             .get(&input.instance)
@@ -121,6 +128,7 @@ impl Input {
                 Instance::EVM(instance) => Input::DeployEVM(DeployEVM::new(
                     instance.path.to_owned(),
                     instance.deploy_code.to_owned(),
+                    instance.runtime_code_size,
                     calldata,
                     caller,
                     value,
@@ -159,10 +167,7 @@ impl Input {
                     Some(method_identifiers) => method_identifiers
                         .get(path)
                         .ok_or_else(|| {
-                            anyhow::anyhow!(
-                                "Contract `{}` not found in the method identifiers",
-                                path
-                            )
+                            anyhow::anyhow!("Contract `{path}` not found in the method identifiers")
                         })?
                         .iter()
                         .find_map(|(name, selector)| {
@@ -174,18 +179,12 @@ impl Input {
                         })
                         .ok_or_else(|| {
                             anyhow::anyhow!(
-                                "In the contract `{}`, selector of the method `{}` not found",
-                                path,
-                                entry
+                                "In contract `{path}`, selector of the method `{entry}` not found"
                             )
                         })?,
                     None => u32::from_str_radix(entry, era_compiler_common::BASE_HEXADECIMAL)
                         .map_err(|error| {
-                            anyhow::anyhow!(
-                                "Invalid entry value for contract `{}`: {}",
-                                path,
-                                error
-                            )
+                            anyhow::anyhow!("Invalid entry value for contract `{path}`: {error}")
                         })?,
                 };
 
@@ -232,7 +231,7 @@ impl Input {
             } => {
                 let value = match value {
                     Some(value) => Some((*value).try_into().map_err(|error| {
-                        anyhow::anyhow!("Invalid value literal `{:X}`: {}", value, error)
+                        anyhow::anyhow!("Invalid value literal `{value:X}`: {error}")
                     })?),
                     None => None,
                 };
@@ -260,6 +259,7 @@ impl Input {
                     Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
                         instance.path.to_owned(),
                         instance.deploy_code.to_owned(),
+                        instance.runtime_code_size,
                         calldata.clone().into(),
                         *caller,
                         value,
@@ -303,6 +303,7 @@ impl Input {
                     Instance::EVM(instance) => Some(Input::DeployEVM(DeployEVM::new(
                         instance.path.to_owned(),
                         instance.deploy_code.to_owned(),
+                        instance.runtime_code_size,
                         Calldata::default(),
                         *caller,
                         None,
@@ -386,25 +387,13 @@ impl Input {
     ///
     /// Runs the input on REVM.
     ///
-    pub fn run_revm<'b>(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        mut vm: REVM<'b>,
-        evm_version: Option<solidity_adapter::EVMVersion>,
-        context: InputContext<'_>,
-    ) -> REVM<'b> {
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         match self {
             Self::DeployEraVM { .. } => panic!("EraVM deploy transaction cannot be run on REVM"),
-            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, evm_version, context),
-            Self::Runtime(runtime) => runtime.run_revm(summary, vm, evm_version, context),
-            Self::StorageEmpty(storage_empty) => {
-                storage_empty.run_revm(summary, &mut vm, context);
-                vm
-            }
-            Self::Balance(balance_check) => {
-                balance_check.run_revm(summary, &mut vm, context);
-                vm
-            }
+            Self::DeployEVM(deploy) => deploy.run_revm(summary, vm, context),
+            Self::Runtime(runtime) => runtime.run_revm(summary, vm, context),
+            Self::StorageEmpty(storage_empty) => storage_empty.run_revm(summary, vm, context),
+            Self::Balance(balance_check) => balance_check.run_revm(summary, vm, context),
         }
     }
 

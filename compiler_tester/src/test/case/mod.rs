@@ -10,6 +10,7 @@ use std::sync::Mutex;
 
 use crate::compilers::mode::Mode;
 use crate::directories::matter_labs::test::metadata::case::Case as MatterLabsTestCase;
+use crate::environment::Environment;
 use crate::summary::Summary;
 use crate::test::instance::Instance;
 use crate::vm::eravm::deployers::EraVMDeployer;
@@ -49,13 +50,20 @@ impl Case {
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
         target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         let mut inputs = Vec::with_capacity(case.inputs.len());
 
         for (index, input) in case.inputs.into_iter().enumerate() {
-            let input =
-                Input::try_from_matter_labs(input, mode, instances, method_identifiers, target)
-                    .map_err(|error| anyhow::anyhow!("Input #{} is invalid: {}", index, error))?;
+            let input = Input::try_from_matter_labs(
+                input,
+                mode,
+                instances,
+                method_identifiers,
+                target,
+                environment,
+            )
+            .map_err(|error| anyhow::anyhow!("Input #{index} is invalid: {error}"))?;
             inputs.push(input);
         }
 
@@ -119,20 +127,15 @@ impl Case {
     ///
     /// Runs the case on REVM.
     ///
-    pub fn run_revm(
-        self,
-        summary: Arc<Mutex<Summary>>,
-        evm_version: Option<solidity_adapter::EVMVersion>,
-        context: &CaseContext,
-    ) {
-        let mut vm = REVM::new();
+    pub fn run_revm(self, summary: Arc<Mutex<Summary>>, context: &CaseContext) {
+        let mut vm = REVM::default();
         for (index, input) in self.inputs.into_iter().enumerate() {
             let context = InputContext {
                 case_context: context,
                 case_name: &self.name,
                 selector: index,
             };
-            vm = input.run_revm(summary.clone(), vm, evm_version, context)
+            input.run_revm(summary.clone(), &mut vm, context)
         }
     }
 

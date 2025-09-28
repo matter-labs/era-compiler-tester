@@ -19,10 +19,7 @@ impl TryFrom<&str> for RevertStrings {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(match value {
             "debug" => RevertStrings::Debug,
-            word => anyhow::bail!(
-                r#"Expected "debug" as revertStrings value, found: {}"#,
-                word
-            ),
+            word => anyhow::bail!(r#"Expected "debug" as revertStrings value, found: {word}"#),
         })
     }
 }

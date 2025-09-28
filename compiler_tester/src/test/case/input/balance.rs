@@ -5,6 +5,9 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use revm::context::ContextTr;
+use revm::DatabaseRef;
+
 use crate::summary::Summary;
 use crate::test::case::input::identifier::InputIdentifier;
 use crate::test::context::input::InputContext;
@@ -79,35 +82,23 @@ impl Balance {
     pub fn run_revm(self, summary: Arc<Mutex<Summary>>, vm: &mut REVM, context: InputContext<'_>) {
         let input_index = context.selector;
         let test = TestDescription::from_context(context, InputIdentifier::Balance { input_index });
-        let found = vm
-            .state
-            .context
+        let balance = vm
             .evm
-            .balance(web3_address_to_revm_address(&self.address));
-        match found {
-            Ok(found) => {
-                let u256_found = web3::types::U256::from(found.data.to_be_bytes());
-                if u256_found == self.balance {
-                    Summary::passed_special(summary, test);
-                } else {
-                    Summary::failed(
-                        summary,
-                        test,
-                        self.balance.into(),
-                        u256_found.into(),
-                        self.address.to_fixed_bytes().to_vec(),
-                    );
-                }
-            }
-            Err(_) => {
-                Summary::failed(
-                    summary,
-                    test,
-                    self.balance.into(),
-                    web3::types::U256::zero().into(),
-                    self.address.to_fixed_bytes().to_vec(),
-                );
-            }
+            .db()
+            .basic_ref(web3_address_to_revm_address(&self.address))
+            .map(|account_info| account_info.map(|info| info.balance).unwrap_or_default())
+            .expect("Always valid");
+        let balance = web3::types::U256::from(balance.to_be_bytes());
+        if balance == self.balance {
+            Summary::passed_special(summary, test);
+        } else {
+            Summary::failed(
+                summary,
+                test,
+                self.balance.into(),
+                balance.into(),
+                self.address.to_fixed_bytes().to_vec(),
+            );
         }
     }
 

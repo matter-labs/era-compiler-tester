@@ -9,17 +9,7 @@ use std::str::FromStr;
 ///
 /// The EraVM system context.
 ///
-pub struct SystemContext;
-
-pub struct EVMContext {
-    pub chain_id: u64,
-    pub coinbase: &'static str,
-    pub block_number: u128,
-    pub block_timestamp: u128,
-    pub block_gas_limit: u64,
-    pub block_difficulty: &'static str,
-    pub base_fee: u64,
-}
+pub struct SystemContext {}
 
 impl SystemContext {
     /// The system context chain ID value position in the storage.
@@ -52,39 +42,33 @@ impl SystemContext {
     /// The system context virtual blocks upgrade info position in the storage.
     pub const SYSTEM_CONTEXT_VIRTUAL_BLOCK_UPGRADE_INFO_POSITION: u64 = 269;
 
-    /// The ZKsync chain ID.
-    pub const CHAIND_ID_ERAVM: u64 = 280;
     /// The Ethereum chain ID.
     pub const CHAIND_ID_EVM: u64 = 1;
+    /// The ZKsync chain ID.
+    pub const CHAIND_ID_ERAVM: u64 = 280;
 
     /// The default origin for tests.
-    pub const TX_ORIGIN: &'static str =
-        "0x0000000000000000000000009292929292929292929292929292929292929292";
+    pub const TX_ORIGIN: &'static str = "0x9292929292929292929292929292929292929292";
 
-    /// The default gas price for tests.
-    pub const GAS_PRICE: u64 = 3000000000;
+    /// The default gas price for the EVM interpreter.
+    pub const GAS_PRICE_EVM_INTERPRETER: u64 = 3000000000;
 
     /// The default block gas limit for EraVM tests.
     pub const BLOCK_GAS_LIMIT_ERAVM: u64 = (1 << 30);
-    /// The default block gas limit for EVM tests.
-    pub const BLOCK_GAS_LIMIT_EVM: u64 = 20000000;
+    /// The default block gas limit for the EVM interpreter.
+    pub const BLOCK_GAS_LIMIT_EVM_INTERPRETER: u64 = 20000000;
 
     /// The default coinbase for EraVM tests.
-    pub const COIN_BASE_ERAVM: &'static str =
-        "0x0000000000000000000000000000000000000000000000000000000000008001";
+    pub const COIN_BASE_ERAVM: &'static str = "0x0000000000000000000000000000000000008001";
     /// The default coinbase for EVM tests.
-    pub const COIN_BASE_EVM: &'static str =
-        "0x0000000000000000000000007878787878787878787878787878787878787878";
+    pub const COIN_BASE_EVM: &'static str = "0x7878787878787878787878787878787878787878";
 
-    /// The block difficulty for EVM tests using a post paris version.
-    pub const BLOCK_DIFFICULTY_POST_PARIS: &'static str =
+    /// The block prevrandao for EVM tests.
+    pub const BLOCK_PREVRANDAO_ERAVM: &'static str =
         "0x0000000000000000000000000000000000000000000000000008e1bc9bf04000";
-    /// The block difficulty for EVM tests using a pre paris version.
-    pub const BLOCK_DIFFICULTY_PRE_PARIS: &'static str =
-        "0x000000000000000000000000000000000000000000000000000000000bebc200";
 
     /// The default base fee for tests.
-    pub const BASE_FEE: u64 = 7;
+    pub const BASE_FEE_EVM_INTERPRETER: u64 = 7;
 
     /// The default current block number.
     pub const INITIAL_BLOCK_NUMBER: u128 = 1;
@@ -99,7 +83,7 @@ impl SystemContext {
     pub const BLOCK_TIMESTAMP_EVM_STEP: u128 = 15;
 
     /// The default zero block hash.
-    pub const ZERO_BLOCK_HASH: &'static str =
+    pub const DEFAULT_BLOCK_HASH: &'static str =
         "0x3737373737373737373737373737373737373737373737373737373737373737";
 
     ///
@@ -124,7 +108,7 @@ impl SystemContext {
         };
         let block_gas_limit = match target {
             benchmark_analyzer::Target::EraVM => Self::BLOCK_GAS_LIMIT_ERAVM,
-            benchmark_analyzer::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM,
+            benchmark_analyzer::Target::EVM => Self::BLOCK_GAS_LIMIT_EVM_INTERPRETER,
         };
 
         let mut system_context_values = vec![
@@ -134,11 +118,13 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_ORIGIN_POSITION),
-                web3::types::H256::from_str(Self::TX_ORIGIN).expect("Always valid"),
+                crate::utils::address_to_h256(
+                    &web3::types::Address::from_str(Self::TX_ORIGIN).expect("Always valid"),
+                ),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_GAS_PRICE_POSITION),
-                web3::types::H256::from_low_u64_be(Self::GAS_PRICE),
+                web3::types::H256::from_low_u64_be(Self::GAS_PRICE_EVM_INTERPRETER),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BLOCK_GAS_LIMIT_POSITION),
@@ -146,16 +132,18 @@ impl SystemContext {
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_COINBASE_POSITION),
-                web3::types::H256::from_str(coinbase).expect("Always valid"),
+                crate::utils::address_to_h256(
+                    &web3::types::Address::from_str(coinbase).expect("Always valid"),
+                ),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_DIFFICULTY_POSITION),
-                web3::types::H256::from_str(Self::BLOCK_DIFFICULTY_POST_PARIS)
+                web3::types::H256::from_str(SystemContext::BLOCK_PREVRANDAO_ERAVM)
                     .expect("Always valid"),
             ),
             (
                 web3::types::H256::from_low_u64_be(Self::SYSTEM_CONTEXT_BASE_FEE_POSITION),
-                web3::types::H256::from_low_u64_be(Self::BASE_FEE),
+                web3::types::H256::from_low_u64_be(Self::BASE_FEE_EVM_INTERPRETER),
             ),
             (
                 web3::types::H256::from_low_u64_be(
@@ -181,7 +169,7 @@ impl SystemContext {
             let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
 
             let mut hash =
-                web3::types::U256::from_str(Self::ZERO_BLOCK_HASH).expect("Always valid");
+                web3::types::U256::from_str(Self::DEFAULT_BLOCK_HASH).expect("Always valid");
             hash = hash.add(web3::types::U256::from(index));
             let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
             hash.to_big_endian(&mut hash_bytes);
@@ -261,29 +249,6 @@ impl SystemContext {
     }
 
     ///
-    /// Returns constants for the specified EVM version.
-    ///
-    pub fn get_constants_evm(evm_version: Option<solidity_adapter::EVMVersion>) -> EVMContext {
-        let block_difficulty = match evm_version {
-            Some(
-                solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
-                | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
-            ) => &SystemContext::BLOCK_DIFFICULTY_PRE_PARIS[2..],
-            _ => &SystemContext::BLOCK_DIFFICULTY_POST_PARIS[2..],
-        };
-
-        EVMContext {
-            chain_id: SystemContext::CHAIND_ID_EVM,
-            coinbase: &SystemContext::COIN_BASE_EVM[2..],
-            block_number: SystemContext::INITIAL_BLOCK_NUMBER,
-            block_timestamp: SystemContext::BLOCK_TIMESTAMP_EVM_STEP,
-            block_gas_limit: SystemContext::BLOCK_GAS_LIMIT_EVM,
-            block_difficulty,
-            base_fee: SystemContext::BASE_FEE,
-        }
-    }
-
-    ///
     /// Returns addresses that must be funded for testing.
     ///
     pub fn get_rich_addresses() -> Vec<web3::types::Address> {
@@ -296,28 +261,5 @@ impl SystemContext {
             })
             .map(|string| web3::types::Address::from_str(&string).unwrap())
             .collect()
-    }
-
-    ///
-    /// Sets the storage values for the system context to the pre-Paris values.
-    ///
-    pub fn set_pre_paris_contracts(
-        storage: &mut HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>,
-    ) {
-        storage.insert(
-            zkevm_tester::compiler_tests::StorageKey {
-                address: web3::types::Address::from_low_u64_be(
-                    zkevm_opcode_defs::ADDRESS_SYSTEM_CONTEXT.into(),
-                ),
-                key: web3::types::U256::from_big_endian(
-                    web3::types::H256::from_low_u64_be(
-                        SystemContext::SYSTEM_CONTEXT_DIFFICULTY_POSITION,
-                    )
-                    .as_bytes(),
-                ),
-            },
-            web3::types::H256::from_str(SystemContext::BLOCK_DIFFICULTY_PRE_PARIS)
-                .expect("Always valid"),
-        );
     }
 }

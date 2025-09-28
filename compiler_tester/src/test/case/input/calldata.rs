@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use crate::directories::matter_labs::test::metadata::case::input::calldata::Calldata as MatterLabsTestInputCalldata;
+use crate::environment::Environment;
 use crate::test::case::input::value::Value;
 use crate::test::instance::Instance;
 
@@ -24,7 +25,7 @@ impl Calldata {
     pub fn try_from_matter_labs(
         calldata: MatterLabsTestInputCalldata,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         let calldata = match calldata {
             MatterLabsTestInputCalldata::Value(value) => {
@@ -33,12 +34,12 @@ impl Calldata {
                 })?;
 
                 hex::decode(hex).map_err(|error| {
-                    anyhow::anyhow!("Hexadecimal value `{value}` decoding error: {}", error)
+                    anyhow::anyhow!("Hexadecimal value `{value}` decoding error: {error}")
                 })?
             }
             MatterLabsTestInputCalldata::List(values) => {
                 let mut result = Vec::with_capacity(values.len());
-                let calldata = Value::try_from_vec_matter_labs(values, instances, target)?;
+                let calldata = Value::try_from_vec_matter_labs(values, instances, environment)?;
                 for value in calldata.into_iter() {
                     let value = match value {
                         Value::Known(value) => value,

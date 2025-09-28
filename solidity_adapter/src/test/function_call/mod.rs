@@ -309,7 +309,7 @@ impl FunctionCall {
     pub fn parse_calls(value: &str) -> anyhow::Result<Vec<Self>> {
         self::parser::Parser::default()
             .parse(value)
-            .map_err(|error| anyhow::anyhow!("Failed to parse function calls: {:?}", error))?
+            .map_err(|error| anyhow::anyhow!("Failed to parse function calls: {error:?}"))?
             .into_iter()
             .map(|call| call.try_into())
             .collect::<anyhow::Result<Vec<FunctionCall>>>()

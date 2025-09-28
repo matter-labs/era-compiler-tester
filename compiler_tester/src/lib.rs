@@ -130,7 +130,12 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(benchmark_analyzer::Target::EraVM, toolchain, None)?;
+        let tests = self.all_tests(
+            benchmark_analyzer::Target::EraVM,
+            Environment::ZkEVM,
+            toolchain,
+            None,
+        )?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -163,7 +168,12 @@ impl CompilerTester {
     /// Runs all tests on REVM.
     ///
     pub fn run_revm(self, toolchain: Toolchain, solx: Option<PathBuf>) -> anyhow::Result<()> {
-        let tests = self.all_tests(benchmark_analyzer::Target::EVM, toolchain, solx)?;
+        let tests = self.all_tests(
+            benchmark_analyzer::Target::EVM,
+            Environment::REVM,
+            toolchain,
+            solx,
+        )?;
 
         let _: Vec<()> = tests
             .into_par_iter()
@@ -203,7 +213,12 @@ impl CompilerTester {
     where
         D: EraVMDeployer,
     {
-        let tests = self.all_tests(benchmark_analyzer::Target::EVM, toolchain, solx)?;
+        let tests = self.all_tests(
+            benchmark_analyzer::Target::EVM,
+            Environment::EVMInterpreter,
+            toolchain,
+            solx,
+        )?;
         let vm = Arc::new(vm);
 
         let _: Vec<()> = tests
@@ -233,6 +248,7 @@ impl CompilerTester {
     fn all_tests(
         &self,
         target: benchmark_analyzer::Target,
+        environment: Environment,
         toolchain: Toolchain,
         solx: Option<PathBuf>,
     ) -> anyhow::Result<Vec<Test>> {
@@ -280,18 +296,21 @@ impl CompilerTester {
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
+            environment,
             Self::SOLIDITY_SIMPLE,
             era_compiler_common::EXTENSION_SOLIDITY,
             solidity_compiler.clone(),
         )?);
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
+            environment,
             Self::SOLIDITY_COMPLEX,
             era_compiler_common::EXTENSION_JSON,
             solidity_compiler.clone(),
         )?);
         tests.extend(self.directory::<EthereumDirectory>(
             target,
+            environment,
             match target {
                 benchmark_analyzer::Target::EraVM => Self::SOLIDITY_ETHEREUM,
                 benchmark_analyzer::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
@@ -302,6 +321,7 @@ impl CompilerTester {
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
+            environment,
             Self::YUL_SIMPLE,
             era_compiler_common::EXTENSION_YUL,
             yul_compiler,
@@ -309,6 +329,7 @@ impl CompilerTester {
 
         tests.extend(self.directory::<MatterLabsDirectory>(
             target,
+            environment,
             match target {
                 benchmark_analyzer::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
                 benchmark_analyzer::Target::EVM => Self::LLVM_SIMPLE_EVM,
@@ -321,6 +342,7 @@ impl CompilerTester {
             let vyper_compiler = Arc::new(VyperCompiler::new());
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
+                environment,
                 Self::ERAVM_SIMPLE,
                 era_compiler_common::EXTENSION_ERAVM_ASSEMBLY,
                 eravm_assembly_compiler,
@@ -328,18 +350,21 @@ impl CompilerTester {
 
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
+                environment,
                 Self::VYPER_SIMPLE,
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler.clone(),
             )?);
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
+                environment,
                 Self::VYPER_COMPLEX,
                 era_compiler_common::EXTENSION_JSON,
                 vyper_compiler.clone(),
             )?);
             tests.extend(self.directory::<EthereumDirectory>(
                 target,
+                environment,
                 Self::VYPER_ETHEREUM,
                 era_compiler_common::EXTENSION_VYPER,
                 vyper_compiler,
@@ -355,6 +380,7 @@ impl CompilerTester {
     fn directory<T>(
         &self,
         target: benchmark_analyzer::Target,
+        environment: Environment,
         path: &str,
         extension: &'static str,
         compiler: Arc<dyn Compiler>,
@@ -365,6 +391,7 @@ impl CompilerTester {
         let directory_path = crate::utils::str_to_path_normalized(path);
         Ok(T::read_all(
             target,
+            environment,
             directory_path.as_path(),
             extension,
             self.summary.clone(),

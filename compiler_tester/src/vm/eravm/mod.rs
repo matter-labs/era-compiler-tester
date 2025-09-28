@@ -17,7 +17,6 @@ use std::time::Duration;
 use std::time::Instant;
 
 use colored::Colorize;
-use solidity_adapter::EVMVersion;
 use zkevm_opcode_defs::ADDRESS_CONTRACT_DEPLOYER;
 
 use crate::utils;
@@ -211,18 +210,10 @@ impl EraVM {
     pub fn clone_with_contracts(
         vm: Arc<Self>,
         known_contracts: HashMap<web3::types::U256, Vec<u8>>,
-        evm_version: Option<EVMVersion>,
     ) -> Self {
         let mut vm_clone = (*vm).clone();
         for (bytecode_hash, bytecode) in known_contracts.into_iter() {
             vm_clone.add_known_contract(bytecode, bytecode_hash);
-        }
-        if let Some(
-            solidity_adapter::EVMVersion::Lesser(solidity_adapter::EVM::Paris)
-            | solidity_adapter::EVMVersion::LesserEquals(solidity_adapter::EVM::Paris),
-        ) = evm_version
-        {
-            SystemContext::set_pre_paris_contracts(&mut vm_clone.storage);
         }
         vm_clone
     }
@@ -261,7 +252,7 @@ impl EraVM {
                 .to_vec();
         let key = web3::signing::keccak256([padded_index, padded_slot].concat().as_slice());
 
-        let mut hash = web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH)
+        let mut hash = web3::types::U256::from_str(SystemContext::DEFAULT_BLOCK_HASH)
             .expect("Invalid zero block hash constant");
         hash = hash.add(web3::types::U256::from(self.current_evm_block_number));
         let mut hash_bytes = [0u8; era_compiler_common::BYTE_LENGTH_FIELD];
@@ -636,16 +627,18 @@ impl EraVM {
     ///
     pub fn populate_storage(
         &mut self,
-        values: HashMap<(web3::types::Address, web3::types::U256), web3::types::H256>,
+        values: HashMap<web3::types::Address, HashMap<web3::types::U256, web3::types::U256>>,
     ) {
         self.storage.extend(
             values
                 .into_iter()
-                .map(|((address, key), value)| {
-                    (
-                        zkevm_tester::compiler_tests::StorageKey { address, key },
-                        value,
-                    )
+                .flat_map(|(address, storage)| {
+                    storage.into_iter().map(move |(key, value)| {
+                        (
+                            zkevm_tester::compiler_tests::StorageKey { address, key },
+                            crate::utils::u256_to_h256(&value),
+                        )
+                    })
                 })
                 .collect::<HashMap<zkevm_tester::compiler_tests::StorageKey, web3::types::H256>>(),
         );

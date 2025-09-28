@@ -68,7 +68,7 @@ impl TryFrom<&Path> for Test {
             .join("");
 
         let params = Params::try_from(params.as_str())
-            .map_err(|err| anyhow::anyhow!("Failed to parse params: {}", err))?;
+            .map_err(|error| anyhow::anyhow!("Failed to parse params: {error}"))?;
 
         let function_calls = function_calls
             .lines()
@@ -82,7 +82,7 @@ impl TryFrom<&Path> for Test {
             .join("");
 
         let calls = FunctionCall::parse_calls(function_calls.as_str())
-            .map_err(|err| anyhow::anyhow!("Failed to parse function calls: {}", err))?;
+            .map_err(|error| anyhow::anyhow!("Failed to parse function calls: {error}"))?;
 
         Ok(Self {
             sources,
@@ -133,9 +133,8 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
                 let mut file = fs::File::open(path)?;
 
                 let mut data = String::new();
-                file.read_to_string(&mut data).map_err(|error| {
-                    anyhow::anyhow!("Failed to read source code file: {}", error)
-                })?;
+                file.read_to_string(&mut data)
+                    .map_err(|error| anyhow::anyhow!("Failed to read source code file: {error}"))?;
 
                 sources.push((name.replace(std::path::MAIN_SEPARATOR, "/"), data));
             }
@@ -156,9 +155,8 @@ fn process_sources(data: &str, path: &Path) -> anyhow::Result<Vec<(String, Strin
                 source_name = Some(name);
             }
             word => anyhow::bail!(
-                "Expected \"Source\" or \"ExternalSource\" on line {}, found: {}",
-                index + 1,
-                word
+                "Expected \"Source\" or \"ExternalSource\" on line {}, found: {word}",
+                index + 1
             ),
         }
     }

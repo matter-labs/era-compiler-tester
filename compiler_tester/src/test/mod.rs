@@ -12,8 +12,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use solidity_adapter::EVMVersion;
-
 use crate::compilers::mode::Mode;
 use crate::summary::Summary;
 use crate::test::case::Case;
@@ -37,8 +35,6 @@ pub struct Test {
     group: Option<String>,
     /// The EraVM contract builds.
     eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-    /// The EVM version.
-    evm_version: Option<EVMVersion>,
 }
 
 impl Test {
@@ -51,7 +47,6 @@ impl Test {
         mode: Mode,
         group: Option<String>,
         eravm_builds: HashMap<web3::types::U256, Vec<u8>>,
-        evm_version: Option<EVMVersion>,
     ) -> Self {
         Self {
             name,
@@ -59,7 +54,6 @@ impl Test {
             mode,
             group,
             eravm_builds,
-            evm_version,
         }
     }
 
@@ -76,7 +70,7 @@ impl Test {
             group: &self.group,
         };
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone(), None);
+            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone());
             case.run_eravm::<D, M>(summary.clone(), vm.clone(), &context);
         }
     }
@@ -91,7 +85,7 @@ impl Test {
                 mode: &self.mode,
                 group: &self.group,
             };
-            case.run_revm(summary.clone(), self.evm_version, &context);
+            case.run_revm(summary.clone(), &context);
         }
     }
 
@@ -103,11 +97,7 @@ impl Test {
         D: EraVMDeployer,
     {
         for case in self.cases {
-            let vm = EraVM::clone_with_contracts(
-                vm.clone(),
-                self.eravm_builds.clone(),
-                self.evm_version,
-            );
+            let vm = EraVM::clone_with_contracts(vm.clone(), self.eravm_builds.clone());
             let context = CaseContext {
                 name: &self.name,
                 mode: &self.mode,

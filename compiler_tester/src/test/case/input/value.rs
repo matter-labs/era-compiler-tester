@@ -8,8 +8,10 @@ use std::str::FromStr;
 use serde::Serialize;
 use serde::Serializer;
 
+use crate::environment::Environment;
 use crate::test::instance::Instance;
 use crate::vm::eravm::system_context::SystemContext;
+use crate::vm::revm::REVM;
 
 ///
 /// The compiler test value.
@@ -41,9 +43,9 @@ impl Value {
     /// Try convert from Matter Labs compiler test metadata value.
     ///
     pub fn try_from_matter_labs(
-        value: String,
+        value: &str,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
         if value == "*" {
             return Ok(Self::Any);
@@ -53,16 +55,16 @@ impl Value {
             web3::types::U256::from_big_endian(
                 instances
                     .get(instance)
-                    .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
+                    .ok_or_else(|| anyhow::anyhow!("Instance `{instance}` not found"))?
                     .address()
                     .ok_or_else(|| {
-                        anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
+                        anyhow::anyhow!("Instance `{instance}` was not successfully deployed")
                     })?
                     .as_bytes(),
             )
         } else if let Some(value) = value.strip_prefix('-') {
             let value = web3::types::U256::from_dec_str(value)
-                .map_err(|error| anyhow::anyhow!("Invalid decimal literal after `-`: {}", error))?;
+                .map_err(|error| anyhow::anyhow!("Invalid decimal literal after `-`: {error}"))?;
             if value > web3::types::U256::one() << 255u8 {
                 anyhow::bail!("Decimal literal after `-` is too big");
             }
@@ -74,67 +76,85 @@ impl Value {
                 .expect("Always valid")
         } else if let Some(value) = value.strip_prefix("0x") {
             web3::types::U256::from_str(value)
-                .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {}", error))?
+                .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {error}"))?
         } else if value == "$CHAIN_ID" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM)
                 }
-                benchmark_analyzer::Target::EVM => {
-                    web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
-                }
+                Environment::REVM => web3::types::U256::from(REVM::CHAIND_ID),
             }
         } else if value == "$GAS_LIMIT" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM)
+            match environment {
+                Environment::ZkEVM => web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_ERAVM),
+                Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM_INTERPRETER)
                 }
-                benchmark_analyzer::Target::EVM => {
-                    web3::types::U256::from(SystemContext::BLOCK_GAS_LIMIT_EVM)
-                }
+                Environment::REVM => web3::types::U256::from(REVM::BLOCK_GAS_LIMIT),
             }
         } else if value == "$COINBASE" {
-            match target {
-                benchmark_analyzer::Target::EraVM => web3::types::U256::from_str_radix(
-                    SystemContext::COIN_BASE_ERAVM,
-                    era_compiler_common::BASE_HEXADECIMAL,
-                ),
-                benchmark_analyzer::Target::EVM => web3::types::U256::from_str_radix(
-                    SystemContext::COIN_BASE_EVM,
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from_str_radix(
+                        SystemContext::COIN_BASE_ERAVM,
+                        era_compiler_common::BASE_HEXADECIMAL,
+                    )
+                }
+                Environment::REVM => web3::types::U256::from_str_radix(
+                    REVM::COIN_BASE,
                     era_compiler_common::BASE_HEXADECIMAL,
                 ),
             }
             .expect("Always valid")
-        } else if value == "$DIFFICULTY" {
-            web3::types::U256::from_str_radix(
-                SystemContext::BLOCK_DIFFICULTY_POST_PARIS,
-                era_compiler_common::BASE_HEXADECIMAL,
-            )
-            .expect("Always valid")
+        } else if value == "$PREVRANDAO" {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::BLOCK_PREVRANDAO_ERAVM)
+                }
+                Environment::REVM => web3::types::U256::from(REVM::BLOCK_PREVRANDAO),
+            }
         } else if value.starts_with("$BLOCK_HASH") {
             let offset: u64 = value
                 .split(':')
                 .next_back()
                 .and_then(|value| value.parse().ok())
                 .unwrap_or_default();
-            let mut hash =
-                web3::types::U256::from_str(SystemContext::ZERO_BLOCK_HASH).expect("Always valid");
+            let mut hash = web3::types::U256::from_str(SystemContext::DEFAULT_BLOCK_HASH)
+                .expect("Always valid");
             hash += web3::types::U256::from(offset);
             hash
         } else if value == "$BLOCK_NUMBER" {
             web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER)
         } else if value == "$BLOCK_TIMESTAMP" {
-            match target {
-                benchmark_analyzer::Target::EraVM => {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
                 }
-                benchmark_analyzer::Target::EVM => {
+                Environment::REVM => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
                 }
             }
+        } else if value == "$TX_ORIGIN" {
+            crate::utils::address_to_u256(
+                &web3::types::Address::from_str(SystemContext::TX_ORIGIN).expect("Alwyays valid"),
+            )
+        } else if value == "$BASE_FEE" {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::BASE_FEE_EVM_INTERPRETER)
+                }
+                Environment::REVM => web3::types::U256::from(REVM::BASE_FEE),
+            }
+        } else if value == "$GAS_PRICE" {
+            match environment {
+                Environment::ZkEVM | Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::GAS_PRICE_EVM_INTERPRETER)
+                }
+                Environment::REVM => web3::types::U256::from(REVM::GAS_PRICE),
+            }
         } else {
-            web3::types::U256::from_dec_str(value.as_str())
-                .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {}", error))?
+            web3::types::U256::from_dec_str(value)
+                .map_err(|error| anyhow::anyhow!("Invalid decimal literal: {error}"))?
         };
 
         Ok(Self::Known(value))
@@ -146,14 +166,14 @@ impl Value {
     pub fn try_from_vec_matter_labs(
         values: Vec<String>,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Vec<Self>> {
         values
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
-                Self::try_from_matter_labs(value, instances, target)
-                    .map_err(|error| anyhow::anyhow!("Value {} is invalid: {}", index, error))
+                Self::try_from_matter_labs(value.as_str(), instances, environment)
+                    .map_err(|error| anyhow::anyhow!("Value {index} is invalid: {error}"))
             })
             .collect::<anyhow::Result<Vec<Self>>>()
     }

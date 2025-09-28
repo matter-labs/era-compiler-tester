@@ -155,12 +155,12 @@ impl FSEntity {
                 let new_hash = new_file
                     .hash
                     .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {:?}", current))?;
+                    .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {current:?}"))?;
 
                 if !old_file
                     .hash
                     .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {:?}", current))?
+                    .ok_or_else(|| anyhow::anyhow!("Test file hash is None: {current:?}"))?
                     .eq(new_hash)
                 {
                     if old_file.was_changed(current)? {
@@ -174,7 +174,7 @@ impl FSEntity {
                             new_file
                                 .data
                                 .as_ref()
-                                .ok_or_else(|| anyhow::anyhow!("Test data is None: {:?}", current))?
+                                .ok_or_else(|| anyhow::anyhow!("Test data is None: {current:?}"))?
                                 .as_bytes(),
                         )?;
                     }
@@ -260,7 +260,10 @@ impl FSEntity {
             }
         };
 
-        for (name, entity) in entries.into_iter() {
+        for (name, entity) in entries
+            .into_iter()
+            .filter(|(name, _entity)| !name.starts_with('_'))
+        {
             let mut current = current.to_owned();
             current.push(name);
             entity.into_enabled_list_recursive(&current, accumulator);
@@ -275,11 +278,11 @@ impl FSEntity {
             Self::Directory(directory) => &directory.entries,
             Self::File(test) => {
                 let mut file = File::create(current)
-                    .map_err(|err| anyhow::anyhow!("Failed to create file: {}", err))?;
+                    .map_err(|error| anyhow::anyhow!("Failed to create file: {error}"))?;
                 file.write_all(
                     test.data
                         .as_ref()
-                        .ok_or_else(|| anyhow::anyhow!("Test data is None: {:?}", current))?
+                        .ok_or_else(|| anyhow::anyhow!("Test data is None: {current:?}"))?
                         .as_bytes(),
                 )?;
                 return Ok(());
@@ -287,7 +290,7 @@ impl FSEntity {
         };
 
         fs::create_dir(current)
-            .map_err(|err| anyhow::anyhow!("Failed to create directory: {}", err))?;
+            .map_err(|error| anyhow::anyhow!("Failed to create directory: {error}"))?;
 
         for (name, entity) in entries.iter() {
             let mut current = current.to_owned();
@@ -303,12 +306,12 @@ impl FSEntity {
     ///
     fn delete(&self, current: &Path) -> anyhow::Result<()> {
         if let Self::Directory(_) = self {
-            fs::remove_dir_all(current).map_err(|err| {
-                anyhow::anyhow!("Failed to delete directory {:?}: {}", current, err)
+            fs::remove_dir_all(current).map_err(|error| {
+                anyhow::anyhow!("Failed to delete directory {current:?}: {error}")
             })?;
         } else {
             fs::remove_file(current)
-                .map_err(|err| anyhow::anyhow!("Failed to delete file {:?}: {}", current, err))?;
+                .map_err(|error| anyhow::anyhow!("Failed to delete file {current:?}: {error}"))?;
         }
 
         Ok(())

@@ -60,7 +60,7 @@ impl TryFrom<&str> for EVMVersion {
 
         let captures = regex
             .captures(value)
-            .ok_or_else(|| anyhow::anyhow!("Invalid EVM version description: {}", value))?;
+            .ok_or_else(|| anyhow::anyhow!("Invalid EVM version description: {value}"))?;
 
         let symbol = captures.get(1).expect("Always exists").as_str();
         let version = captures.get(2).expect("Always exists").as_str();
@@ -73,7 +73,7 @@ impl TryFrom<&str> for EVMVersion {
             "<" => EVMVersion::Lesser(version),
             ">=" => EVMVersion::GreaterEquals(version),
             "<=" => EVMVersion::LesserEquals(version),
-            _ => anyhow::bail!("Invalid symbol before EVM version: {}", symbol),
+            _ => anyhow::bail!("Invalid symbol before EVM version: {symbol}"),
         })
     }
 }
@@ -107,6 +107,8 @@ pub enum EVM {
     Shanghai,
     /// Cancun EVM version.
     Cancun,
+    /// Prague EVM version.
+    Prague,
 }
 
 impl TryFrom<&str> for EVM {
@@ -126,7 +128,7 @@ impl TryFrom<&str> for EVM {
             "paris" => EVM::Paris,
             "shanghai" => EVM::Shanghai,
             "cancun" => EVM::Cancun,
-            _ => anyhow::bail!("Invalid EVM: {}", value),
+            _ => anyhow::bail!("Invalid EVM version: {value}"),
         })
     }
 }

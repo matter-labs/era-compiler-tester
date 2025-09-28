@@ -23,8 +23,7 @@ impl TryFrom<&str> for CompileToEwasm {
             "also" => CompileToEwasm::Also,
             "false" => CompileToEwasm::False,
             word => anyhow::bail!(
-                r#"Expected "also", or "false" as compileToEwasm value, found: {}"#,
-                word
+                r#"Expected "also", or "false" as compileToEwasm value, found: {word}"#
             ),
         })
     }

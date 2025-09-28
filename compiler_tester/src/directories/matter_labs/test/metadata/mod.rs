@@ -8,6 +8,8 @@ pub mod evm_contract;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
+use crate::environment::Environment;
+
 use self::case::Case;
 use self::evm_contract::EVMContract;
 
@@ -20,6 +22,8 @@ pub struct Metadata {
     pub cases: Vec<Case>,
     /// The target filter.
     pub targets: Option<Vec<benchmark_analyzer::Target>>,
+    /// The target filter.
+    pub environments: Option<Vec<Environment>>,
     /// The mode filter.
     pub modes: Option<Vec<String>>,
     /// The test group.

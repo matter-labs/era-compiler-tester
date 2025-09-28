@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
+use crate::environment::Environment;
 use crate::directories::matter_labs::test::metadata::case::input::expected::variant::extended::event::Event as MatterLabsTestExpectedEvent;
 use crate::test::instance::Instance;
 use crate::test::case::input::value::Value;
@@ -44,27 +45,27 @@ impl Event {
     pub fn try_from_matter_labs(
         event: MatterLabsTestExpectedEvent,
         instances: &BTreeMap<String, Instance>,
-        target: benchmark_analyzer::Target,
+        environment: Environment,
     ) -> anyhow::Result<Self> {
-        let topics = Value::try_from_vec_matter_labs(event.topics, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid topics: {}", error))?;
-        let values = Value::try_from_vec_matter_labs(event.values, instances, target)
-            .map_err(|error| anyhow::anyhow!("Invalid values: {}", error))?;
+        let topics = Value::try_from_vec_matter_labs(event.topics, instances, environment)
+            .map_err(|error| anyhow::anyhow!("Invalid topics: {error}"))?;
+        let values = Value::try_from_vec_matter_labs(event.values, instances, environment)
+            .map_err(|error| anyhow::anyhow!("Invalid values: {error}"))?;
 
         let address = match event.address {
             Some(address) => Some(
                 if let Some(instance) = address.strip_suffix(".address") {
                     instances
                         .get(instance)
-                        .ok_or_else(|| anyhow::anyhow!("Instance `{}` not found", instance))?
+                        .ok_or_else(|| anyhow::anyhow!("Instance `{instance}` not found"))?
                         .address()
                         .copied()
                         .ok_or_else(|| {
-                            anyhow::anyhow!("Instance `{}` was not successfully deployed", instance)
+                            anyhow::anyhow!("Instance `{instance}` was not successfully deployed")
                         })
                 } else {
                     web3::types::Address::from_str(address.as_str())
-                        .map_err(|error| anyhow::anyhow!("Invalid address literal: {}", error))
+                        .map_err(|error| anyhow::anyhow!("Invalid address literal: {error}"))
                 }
                 .map_err(|error| anyhow::anyhow!("Invalid event address `{address}`: {error}"))?,
             ),
