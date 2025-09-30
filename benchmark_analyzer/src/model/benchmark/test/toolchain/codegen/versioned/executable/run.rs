@@ -44,12 +44,8 @@ impl Run {
                 .iter()
                 .filter(|value| value < &&(u32::MAX as u64)),
         );
-        self.gas.extend(
-            other
-                .ergs
-                .iter()
-                .filter(|value| value < &&(u32::MAX as u64)),
-        );
+        self.gas
+            .extend(other.gas.iter().filter(|value| value < &&(u32::MAX as u64)));
     }
 
     ///
