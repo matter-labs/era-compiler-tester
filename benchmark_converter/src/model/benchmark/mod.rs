@@ -230,11 +230,6 @@ impl Benchmark {
     /// Removes tests with zero deployment gas, that are supposed to be non-deployable contracts.
     ///
     pub fn remove_zero_deploy_gas(&mut self) {
-        // let max_toolchain_groups = self.tests
-        //     .values()
-        //     .map(|test| test.toolchain_groups.len())
-        //     .max()
-        //     .unwrap_or_default();
         self.tests.retain(|_, test| {
             if test.toolchain_groups.is_empty() {
                 return false;
@@ -255,6 +250,23 @@ impl Benchmark {
                                     .executables
                                     .values()
                                     .any(|executable| executable.run.average_gas() != 0)
+                            })
+                    })
+                })
+                .count();
+            test.non_zero_ergs_values = test
+                .toolchain_groups
+                .values()
+                .filter(|group| {
+                    group.codegen_groups.values().any(|codegen_group| {
+                        codegen_group
+                            .versioned_groups
+                            .values()
+                            .any(|versioned_group| {
+                                versioned_group
+                                    .executables
+                                    .values()
+                                    .any(|executable| executable.run.average_ergs() != 0)
                             })
                     })
                 })

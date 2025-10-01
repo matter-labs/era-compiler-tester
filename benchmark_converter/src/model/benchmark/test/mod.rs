@@ -34,6 +34,9 @@ pub struct Test {
     /// The number of non-zero gas values across all toolchains.
     #[serde(skip)]
     pub non_zero_gas_values: usize,
+    /// The number of non-zero ergs values across all toolchains.
+    #[serde(skip)]
+    pub non_zero_ergs_values: usize,
 }
 
 impl Test {
@@ -46,6 +49,7 @@ impl Test {
             metadata,
 
             non_zero_gas_values: 0,
+            non_zero_ergs_values: 0,
         }
     }
 

@@ -99,7 +99,15 @@ impl DeployEraVM {
 
         if result.output == self.expected {
             let size = vm.get_contract_size(self.hash) as u64;
-            Summary::passed_deploy(summary, test, size, result.cycles, result.ergs, result.gas);
+            Summary::passed_deploy(
+                summary,
+                test,
+                0,
+                size,
+                result.cycles,
+                result.ergs,
+                result.gas,
+            );
         } else {
             Summary::failed(
                 summary,

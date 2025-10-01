@@ -12,7 +12,7 @@ use serde::Serialize;
 ///
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Run {
-    /// Contract full size, includes both deploy and runtime code.
+    /// Contract deploy code size.
     #[serde(default)]
     pub size: Vec<u64>,
     /// Contract runtime code size.

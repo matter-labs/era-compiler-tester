@@ -17,10 +17,10 @@ use self::worksheet::Worksheet;
 ///
 #[derive(Default)]
 pub struct Xlsx {
-    /// Worksheet for runtime gas measurements.
-    pub runtime_gas_worksheet: Worksheet,
-    /// Worksheet for deployment gas measurements.
-    pub deploy_gas_worksheet: Worksheet,
+    /// Worksheet for runtime fee measurements.
+    pub runtime_fee_worksheet: Worksheet,
+    /// Worksheet for deployment fee measurements.
+    pub deploy_fee_worksheet: Worksheet,
     /// Worksheet for runtime bytecode size measurements.
     pub runtime_size_worksheet: Worksheet,
     /// Worksheet for deploy bytecode size measurements.
@@ -30,36 +30,50 @@ pub struct Xlsx {
     pub toolchains: Vec<String>,
     /// Toolchain indexes used to allocate columns.
     pub toolchain_ids: HashMap<String, u16>,
+
+    /// The target platform.
+    pub target: Target,
 }
 
 impl Xlsx {
     ///
     /// Creates a new XLSX workbook.
     ///
-    pub fn new() -> anyhow::Result<Self> {
+    pub fn new(target: Target) -> anyhow::Result<Self> {
         let project_header = ("Project", 15);
         let contract_header = ("Contract", 60);
         let function_header = ("Function", 40);
 
-        let runtime_gas_worksheet = Worksheet::new(
-            "Runtime Gas",
+        let runtime_fee_caption = match target {
+            Target::EVM => "Runtime Gas",
+            Target::EraVM => "Runtime Ergs",
+        };
+        let deploy_fee_caption = match target {
+            Target::EVM => "Deploy Gas",
+            Target::EraVM => "Deploy Ergs",
+        };
+
+        let runtime_fee_worksheet = Worksheet::new(
+            runtime_fee_caption,
             vec![project_header, contract_header, function_header],
         )?;
-        let deploy_gas_worksheet =
-            Worksheet::new("Deploy Gas", vec![project_header, contract_header])?;
+        let deploy_fee_worksheet =
+            Worksheet::new(deploy_fee_caption, vec![project_header, contract_header])?;
         let runtime_size_worksheet =
             Worksheet::new("Runtime Size", vec![project_header, contract_header])?;
         let deploy_size_worksheet =
             Worksheet::new("Deploy Size", vec![project_header, contract_header])?;
 
         Ok(Self {
-            runtime_gas_worksheet,
-            deploy_gas_worksheet,
+            runtime_fee_worksheet,
+            deploy_fee_worksheet,
             runtime_size_worksheet,
             deploy_size_worksheet,
 
             toolchains: Vec::with_capacity(8),
             toolchain_ids: HashMap::with_capacity(8),
+
+            target,
         })
     }
 
@@ -83,10 +97,12 @@ impl Xlsx {
     ///
     pub fn finalize(self) -> rust_xlsxwriter::Workbook {
         let mut workbook = rust_xlsxwriter::Workbook::new();
-        workbook.push_worksheet(self.runtime_gas_worksheet.into_inner());
-        workbook.push_worksheet(self.deploy_gas_worksheet.into_inner());
+        workbook.push_worksheet(self.runtime_fee_worksheet.into_inner());
+        workbook.push_worksheet(self.deploy_fee_worksheet.into_inner());
         workbook.push_worksheet(self.runtime_size_worksheet.into_inner());
-        workbook.push_worksheet(self.deploy_size_worksheet.into_inner());
+        if let Target::EVM = self.target {
+            workbook.push_worksheet(self.deploy_size_worksheet.into_inner());
+        }
         workbook
     }
 }
@@ -97,7 +113,7 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
     fn try_from(
         (benchmark, source, target): (Benchmark, Source, Target),
     ) -> Result<Self, Self::Error> {
-        let mut xlsx = Self::new()?;
+        let mut xlsx = Self::new(target)?;
 
         'outer: for test in benchmark.tests.into_values() {
             let is_deployer = test
@@ -154,39 +170,49 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
 
                             if is_deployer {
                                 if test.non_zero_gas_values > 0 {
-                                    xlsx.deploy_gas_worksheet.add_toolchain_column(
+                                    xlsx.deploy_fee_worksheet.add_toolchain_column(
                                         toolchain_name.as_str(),
                                         toolchain_id,
                                     )?;
-                                    xlsx.deploy_gas_worksheet.write_test_value(
+                                    xlsx.deploy_fee_worksheet.write_test_value(
                                         project.as_str(),
                                         contract.as_str(),
                                         None,
                                         toolchain_id,
-                                        optimization_group.run.average_gas(),
+                                        match target {
+                                            Target::EVM => optimization_group.run.average_gas(),
+                                            Target::EraVM => optimization_group.run.average_ergs(),
+                                        },
                                     )?;
                                 }
                             } else {
-                                xlsx.runtime_gas_worksheet
+                                xlsx.runtime_fee_worksheet
                                     .add_toolchain_column(toolchain_name.as_str(), toolchain_id)?;
-                                xlsx.runtime_gas_worksheet.write_test_value(
+                                xlsx.runtime_fee_worksheet.write_test_value(
                                     project.as_str(),
                                     contract.as_str(),
                                     function,
                                     toolchain_id,
-                                    optimization_group.run.average_gas(),
+                                    match target {
+                                        Target::EVM => optimization_group.run.average_gas(),
+                                        Target::EraVM => optimization_group.run.average_ergs(),
+                                    },
                                 )?;
                             }
-                            if !optimization_group.run.size.is_empty() {
-                                xlsx.deploy_size_worksheet
-                                    .add_toolchain_column(toolchain_name.as_str(), toolchain_id)?;
-                                xlsx.deploy_size_worksheet.write_test_value(
-                                    project.as_str(),
-                                    contract.as_str(),
-                                    None,
-                                    toolchain_id,
-                                    optimization_group.run.average_size(),
-                                )?;
+                            if let Target::EVM = target {
+                                if !optimization_group.run.size.is_empty() {
+                                    xlsx.deploy_size_worksheet.add_toolchain_column(
+                                        toolchain_name.as_str(),
+                                        toolchain_id,
+                                    )?;
+                                    xlsx.deploy_size_worksheet.write_test_value(
+                                        project.as_str(),
+                                        contract.as_str(),
+                                        None,
+                                        toolchain_id,
+                                        optimization_group.run.average_size(),
+                                    )?;
+                                }
                             }
                             if !optimization_group.run.runtime_size.is_empty() {
                                 xlsx.runtime_size_worksheet
@@ -205,26 +231,28 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
             }
         }
 
-        xlsx.runtime_gas_worksheet
+        xlsx.runtime_fee_worksheet
             .set_totals(xlsx.toolchain_ids.len())?;
-        xlsx.deploy_gas_worksheet
+        xlsx.deploy_fee_worksheet
             .set_totals(xlsx.toolchain_ids.len())?;
         xlsx.runtime_size_worksheet
             .set_totals(xlsx.toolchain_ids.len())?;
-        xlsx.deploy_size_worksheet
-            .set_totals(xlsx.toolchain_ids.len())?;
+        if let Target::EVM = target {
+            xlsx.deploy_size_worksheet
+                .set_totals(xlsx.toolchain_ids.len())?;
+        }
 
         let comparison_mapping = match (source, target) {
             (Source::Tooling, _) => vec![(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)],
             (Source::CompilerTester, Target::EVM) => vec![(6, 2), (7, 3), (4, 0), (5, 1)],
             (Source::CompilerTester, Target::EraVM) => {
-                vec![(10, 4), (11, 5), (8, 2), (9, 3), (6, 0), (7, 1)]
+                vec![(10, 4), (11, 5), (6, 0), (7, 1), (8, 2), (9, 3)]
             }
         };
 
         for (index, (toolchain_id_1, toolchain_id_2)) in comparison_mapping.into_iter().enumerate()
         {
-            xlsx.runtime_gas_worksheet.set_diffs(
+            xlsx.runtime_fee_worksheet.set_diffs(
                 toolchain_id_1,
                 xlsx.toolchains[toolchain_id_1 as usize].as_str(),
                 toolchain_id_2,
@@ -232,7 +260,7 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
                 xlsx.toolchain_ids.len() as u16,
                 index as u16,
             )?;
-            xlsx.deploy_gas_worksheet.set_diffs(
+            xlsx.deploy_fee_worksheet.set_diffs(
                 toolchain_id_1,
                 xlsx.toolchains[toolchain_id_1 as usize].as_str(),
                 toolchain_id_2,
@@ -248,14 +276,16 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
                 xlsx.toolchain_ids.len() as u16,
                 index as u16,
             )?;
-            xlsx.deploy_size_worksheet.set_diffs(
-                toolchain_id_1,
-                xlsx.toolchains[toolchain_id_1 as usize].as_str(),
-                toolchain_id_2,
-                xlsx.toolchains[toolchain_id_2 as usize].as_str(),
-                xlsx.toolchain_ids.len() as u16,
-                index as u16,
-            )?;
+            if let Target::EVM = target {
+                xlsx.deploy_size_worksheet.set_diffs(
+                    toolchain_id_1,
+                    xlsx.toolchains[toolchain_id_1 as usize].as_str(),
+                    toolchain_id_2,
+                    xlsx.toolchains[toolchain_id_2 as usize].as_str(),
+                    xlsx.toolchain_ids.len() as u16,
+                    index as u16,
+                )?;
+            }
         }
 
         Ok(xlsx)

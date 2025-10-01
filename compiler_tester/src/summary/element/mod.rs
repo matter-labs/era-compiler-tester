@@ -58,13 +58,23 @@ impl Element {
                 let mut details = Vec::new();
                 match variant {
                     PassedVariant::Deploy {
-                        size,
+                        deploy_size,
+                        runtime_size,
                         cycles,
                         ergs,
                         gas,
                         ..
                     } => {
-                        details.push(format!("size {size}").bright_white().to_string());
+                        details.push(
+                            format!("deploy size {deploy_size}")
+                                .bright_white()
+                                .to_string(),
+                        );
+                        details.push(
+                            format!("runtime size {runtime_size}")
+                                .bright_white()
+                                .to_string(),
+                        );
                         details.push(format!("cycles {cycles}").bright_white().to_string());
                         details.push(format!("ergs {ergs}").bright_white().to_string());
                         details.push(format!("gas {gas}").bright_white().to_string());
