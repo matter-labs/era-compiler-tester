@@ -224,6 +224,7 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
             benchmark,
             benchmark_converter::InputSource::CompilerTester,
             arguments.benchmark_format,
+            arguments.target,
         )
             .try_into()?;
         output.write_to_file(path)?;

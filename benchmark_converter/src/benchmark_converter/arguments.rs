@@ -24,6 +24,11 @@ pub struct Arguments {
     #[structopt(long = "input-source", default_value_t = benchmark_converter::InputSource::Tooling)]
     pub input_source: benchmark_converter::InputSource,
 
+    /// Target platform the benchmarks were collected for: `evm` (default) or `eravm`.
+    /// Can be added to the original report.
+    #[structopt(long = "target")]
+    pub target: Option<benchmark_converter::Target>,
+
     /// Benchmark output format: `json`, `csv`, or `json-lnt`.
     #[structopt(long = "output-format", alias = "benchmark-format", default_value_t = benchmark_converter::OutputFormat::Xlsx)]
     pub output_format: benchmark_converter::OutputFormat,

@@ -14,6 +14,7 @@ use crate::model::benchmark::Benchmark;
 use crate::output::format::Format;
 use crate::output::json::Json;
 use crate::output::xlsx::Xlsx;
+use crate::target::Target;
 
 use self::file::File;
 
@@ -65,15 +66,15 @@ impl Output {
     }
 }
 
-impl TryFrom<(Benchmark, Source, Format)> for Output {
+impl TryFrom<(Benchmark, Source, Format, Target)> for Output {
     type Error = anyhow::Error;
 
     fn try_from(
-        (benchmark, input_source, output_format): (Benchmark, Source, Format),
+        (benchmark, input_source, output_format, target): (Benchmark, Source, Format, Target),
     ) -> Result<Self, Self::Error> {
         Ok(match output_format {
             Format::Json => Json::from(benchmark).into(),
-            Format::Xlsx => Xlsx::try_from((benchmark, input_source))?.into(),
+            Format::Xlsx => Xlsx::try_from((benchmark, input_source, target))?.into(),
         })
     }
 }

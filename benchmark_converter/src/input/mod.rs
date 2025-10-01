@@ -10,7 +10,6 @@ pub mod source;
 use std::path::Path;
 
 use crate::model::benchmark::Benchmark;
-use crate::target::Target;
 
 use self::error::Error as InputError;
 use self::foundry_gas::FoundryGasReport;
@@ -30,9 +29,6 @@ pub struct Input {
     /// Optional toolchain identifier.
     /// Can be added to the original report.
     pub toolchain: String,
-    /// Optional target identifier.
-    /// Can be added to the original report.
-    pub target: Option<Target>,
 }
 
 ///

@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 use crate::input::source::Source;
 use crate::model::benchmark::Benchmark;
+use crate::target::Target;
 
 use self::worksheet::Worksheet;
 
@@ -90,10 +91,12 @@ impl Xlsx {
     }
 }
 
-impl TryFrom<(Benchmark, Source)> for Xlsx {
+impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
     type Error = anyhow::Error;
 
-    fn try_from((benchmark, source): (Benchmark, Source)) -> Result<Self, Self::Error> {
+    fn try_from(
+        (benchmark, source, target): (Benchmark, Source, Target),
+    ) -> Result<Self, Self::Error> {
         let mut xlsx = Self::new()?;
 
         'outer: for test in benchmark.tests.into_values() {
@@ -211,9 +214,12 @@ impl TryFrom<(Benchmark, Source)> for Xlsx {
         xlsx.deploy_size_worksheet
             .set_totals(xlsx.toolchain_ids.len())?;
 
-        let comparison_mapping = match source {
-            Source::Tooling => vec![(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)],
-            Source::CompilerTester => vec![(6, 2), (7, 3), (4, 0), (5, 1)],
+        let comparison_mapping = match (source, target) {
+            (Source::Tooling, _) => vec![(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)],
+            (Source::CompilerTester, Target::EVM) => vec![(6, 2), (7, 3), (4, 0), (5, 1)],
+            (Source::CompilerTester, Target::EraVM) => {
+                vec![(10, 4), (11, 5), (8, 2), (9, 3), (6, 0), (7, 1)]
+            }
         };
 
         for (index, (toolchain_id_1, toolchain_id_2)) in comparison_mapping.into_iter().enumerate()

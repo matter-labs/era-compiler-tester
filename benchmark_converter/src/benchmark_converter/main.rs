@@ -47,8 +47,13 @@ fn main() -> anyhow::Result<()> {
     }
     benchmark.remove_zero_deploy_gas();
 
-    let output: benchmark_converter::Output =
-        (benchmark, arguments.input_source, arguments.output_format).try_into()?;
+    let output: benchmark_converter::Output = (
+        benchmark,
+        arguments.input_source,
+        arguments.output_format,
+        arguments.target.unwrap_or_default(),
+    )
+        .try_into()?;
     output.write_to_file(arguments.output_path)?;
 
     Ok(())

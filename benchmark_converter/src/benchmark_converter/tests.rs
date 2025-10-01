@@ -92,6 +92,7 @@ fn convert() {
         benchmark,
         benchmark_converter::InputSource::Tooling,
         benchmark_converter::OutputFormat::Json,
+        benchmark_converter::Target::EVM,
     )
         .try_into()
         .expect("Failed to convert a benchmark report to output");
