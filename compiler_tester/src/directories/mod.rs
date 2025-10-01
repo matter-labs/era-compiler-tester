@@ -29,7 +29,7 @@ pub trait Collection {
     /// Returns all directory tests.
     ///
     fn read_all(
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
         directory_path: &Path,
         extension: &'static str,

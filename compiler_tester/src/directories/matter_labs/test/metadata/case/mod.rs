@@ -100,7 +100,7 @@ impl Case {
             }
         }
 
-        if let benchmark_analyzer::Target::EraVM = environment.into() {
+        if let benchmark_converter::Target::EraVM = environment.into() {
             for (name, instance) in instances.iter() {
                 if let Instance::EraVM { .. } = instance {
                     continue;

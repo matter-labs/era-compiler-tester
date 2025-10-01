@@ -21,7 +21,7 @@ pub struct Metadata {
     /// The test cases.
     pub cases: Vec<Case>,
     /// The target filter.
-    pub targets: Option<Vec<benchmark_analyzer::Target>>,
+    pub targets: Option<Vec<benchmark_converter::Target>>,
     /// The target filter.
     pub environments: Option<Vec<Environment>>,
     /// The mode filter.

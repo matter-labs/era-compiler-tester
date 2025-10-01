@@ -38,7 +38,6 @@ fn main() {
 /// The entry point wrapper used for proper error handling.
 ///
 fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
-    let arguments = Arguments::validate(arguments)?;
     println!(
         "    {} {} v{} (LLVM build {})",
         "Starting".bright_green().bold(),
@@ -94,19 +93,19 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
         .unwrap_or(compiler_tester::Toolchain::IrLLVM);
     let environment = match (target, arguments.environment) {
         (
-            benchmark_analyzer::Target::EraVM,
+            benchmark_converter::Target::EraVM,
             Some(environment @ compiler_tester::Environment::ZkEVM),
         ) => environment,
         (
-            benchmark_analyzer::Target::EVM,
+            benchmark_converter::Target::EVM,
             Some(environment @ compiler_tester::Environment::REVM),
         ) => environment,
         (
-            benchmark_analyzer::Target::EVM,
+            benchmark_converter::Target::EVM,
             Some(environment @ compiler_tester::Environment::EVMInterpreter),
         ) => environment,
-        (benchmark_analyzer::Target::EVM, None) => compiler_tester::Environment::REVM,
-        (benchmark_analyzer::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
+        (benchmark_converter::Target::EVM, None) => compiler_tester::Environment::REVM,
+        (benchmark_converter::Target::EraVM, None) => compiler_tester::Environment::ZkEVM,
         (target, Some(environment)) => anyhow::bail!(
             "Target `{target}` and environment `{environment}` combination is not supported"
         ),
@@ -114,8 +113,8 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     let mut executable_download_config_paths = Vec::with_capacity(2);
     if let Some(path) = match (target, toolchain) {
-        (benchmark_analyzer::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
-        (benchmark_analyzer::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
+        (benchmark_converter::Target::EVM, compiler_tester::Toolchain::IrLLVM) => None,
+        (benchmark_converter::Target::EraVM, compiler_tester::Toolchain::IrLLVM) => {
             Some("./configs/solc-bin-default.json")
         }
         (_, compiler_tester::Toolchain::Zksolc) => Some("./configs/solc-bin-default.json"),
@@ -221,9 +220,9 @@ fn main_inner(arguments: Arguments) -> anyhow::Result<()> {
 
     if let Some(path) = arguments.benchmark {
         let benchmark = summary.benchmark(toolchain)?;
-        let output: benchmark_analyzer::Output = (
+        let output: benchmark_converter::Output = (
             benchmark,
-            benchmark_analyzer::InputSource::CompilerTester,
+            benchmark_converter::InputSource::CompilerTester,
             arguments.benchmark_format,
         )
             .try_into()?;
@@ -255,8 +254,7 @@ mod tests {
             path: vec!["tests/solidity/simple/default.sol".to_owned()],
             group: vec![],
             benchmark: None,
-            benchmark_format: benchmark_analyzer::OutputFormat::Json,
-            benchmark_context: None,
+            benchmark_format: benchmark_converter::OutputFormat::Xlsx,
             threads: Some(1),
             dump_system: false,
             disable_deployer: false,
@@ -265,7 +263,7 @@ mod tests {
             zkvyper: None,
             solx: Some(PathBuf::from("solx")),
             toolchain: Some(compiler_tester::Toolchain::IrLLVM),
-            target: benchmark_analyzer::Target::EVM,
+            target: benchmark_converter::Target::EVM,
             environment: Some(compiler_tester::Environment::REVM),
             workflow: compiler_tester::Workflow::BuildAndRun,
             solc_bin_config_path: Some(PathBuf::from("./configs/solc-bin-default.json")),

@@ -55,7 +55,7 @@ impl Collection for EthereumDirectory {
     type Test = EthereumTest;
 
     fn read_all(
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
         directory_path: &Path,
         _extension: &'static str,
@@ -63,15 +63,15 @@ impl Collection for EthereumDirectory {
         filters: &Filters,
     ) -> anyhow::Result<Vec<Self::Test>> {
         let index_path = match (target, environment) {
-            (benchmark_analyzer::Target::EraVM, _) => {
+            (benchmark_converter::Target::EraVM, _) => {
                 let mut index_path = directory_path.to_path_buf();
                 index_path.push(Self::INDEX_NAME_ZKSYNC);
                 index_path
             }
-            (benchmark_analyzer::Target::EVM, Environment::EVMInterpreter) => {
+            (benchmark_converter::Target::EVM, Environment::EVMInterpreter) => {
                 PathBuf::from(Self::INDEX_NAME_UPSTREAM_EVM_INTERPRETER)
             }
-            (benchmark_analyzer::Target::EVM, Environment::REVM) => {
+            (benchmark_converter::Target::EVM, Environment::REVM) => {
                 PathBuf::from(Self::INDEX_NAME_UPSTREAM_REVM)
             }
             (target, environment) => anyhow::bail!(

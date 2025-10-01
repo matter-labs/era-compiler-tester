@@ -49,7 +49,7 @@ impl Case {
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
         let mut inputs = Vec::with_capacity(case.inputs.len());
@@ -77,7 +77,7 @@ impl Case {
         case: &[solidity_adapter::FunctionCall],
         instances: BTreeMap<String, Instance>,
         last_source: &str,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
     ) -> anyhow::Result<Self> {
         let mut inputs = Vec::with_capacity(case.len());
         let mut caller = solidity_adapter::account_address(solidity_adapter::DEFAULT_ACCOUNT_INDEX);

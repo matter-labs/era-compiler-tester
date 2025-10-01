@@ -78,12 +78,15 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self, toolchain: Toolchain) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+    pub fn benchmark(
+        &self,
+        toolchain: Toolchain,
+    ) -> anyhow::Result<benchmark_converter::Benchmark> {
         if let Toolchain::SolcLLVM = toolchain {
             anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
         }
 
-        let mut benchmark = benchmark_analyzer::Benchmark::default();
+        let mut benchmark = benchmark_converter::Benchmark::default();
 
         for Element {
             test_description:
@@ -129,8 +132,8 @@ impl Summary {
             let run = benchmark
                 .tests
                 .entry(test_name)
-                .or_insert(benchmark_analyzer::Test::new(
-                    benchmark_analyzer::TestMetadata::new(selector.clone().into(), tags),
+                .or_insert(benchmark_converter::Test::new(
+                    benchmark_converter::TestMetadata::new(selector.clone().into(), tags),
                 ))
                 .toolchain_groups
                 .entry(toolchain.to_string())

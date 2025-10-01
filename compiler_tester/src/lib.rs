@@ -131,7 +131,7 @@ impl CompilerTester {
         D: EraVMDeployer,
     {
         let tests = self.all_tests(
-            benchmark_analyzer::Target::EraVM,
+            benchmark_converter::Target::EraVM,
             Environment::ZkEVM,
             toolchain,
             None,
@@ -169,7 +169,7 @@ impl CompilerTester {
     ///
     pub fn run_revm(self, toolchain: Toolchain, solx: Option<PathBuf>) -> anyhow::Result<()> {
         let tests = self.all_tests(
-            benchmark_analyzer::Target::EVM,
+            benchmark_converter::Target::EVM,
             Environment::REVM,
             toolchain,
             solx,
@@ -214,7 +214,7 @@ impl CompilerTester {
         D: EraVMDeployer,
     {
         let tests = self.all_tests(
-            benchmark_analyzer::Target::EVM,
+            benchmark_converter::Target::EVM,
             Environment::EVMInterpreter,
             toolchain,
             solx,
@@ -247,7 +247,7 @@ impl CompilerTester {
     ///
     fn all_tests(
         &self,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
         toolchain: Toolchain,
         solx: Option<PathBuf>,
@@ -259,13 +259,13 @@ impl CompilerTester {
             Arc<dyn Compiler>,
             Arc<dyn Compiler>,
         ) = match (target, toolchain) {
-            (benchmark_analyzer::Target::EraVM, Toolchain::IrLLVM) => {
+            (benchmark_converter::Target::EraVM, Toolchain::IrLLVM) => {
                 let solidity_compiler = Arc::new(ZksolcCompiler::new());
                 let yul_compiler = Arc::new(YulCompiler::Zksolc);
                 let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Zksolc);
                 (solidity_compiler, yul_compiler, llvm_ir_compiler)
             }
-            (benchmark_analyzer::Target::EVM, Toolchain::IrLLVM) => {
+            (benchmark_converter::Target::EVM, Toolchain::IrLLVM) => {
                 let solidity_compiler = Arc::new(SolxCompiler::try_from_path(solx_path)?);
                 let yul_compiler = Arc::new(YulCompiler::Solx(solidity_compiler.clone()));
                 let llvm_ir_compiler = Arc::new(LLVMIRCompiler::Solx(solidity_compiler.clone()));
@@ -312,8 +312,8 @@ impl CompilerTester {
             target,
             environment,
             match target {
-                benchmark_analyzer::Target::EraVM => Self::SOLIDITY_ETHEREUM,
-                benchmark_analyzer::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
+                benchmark_converter::Target::EraVM => Self::SOLIDITY_ETHEREUM,
+                benchmark_converter::Target::EVM => Self::SOLIDITY_ETHEREUM_UPSTREAM,
             },
             era_compiler_common::EXTENSION_SOLIDITY,
             solidity_compiler.clone(),
@@ -331,14 +331,14 @@ impl CompilerTester {
             target,
             environment,
             match target {
-                benchmark_analyzer::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
-                benchmark_analyzer::Target::EVM => Self::LLVM_SIMPLE_EVM,
+                benchmark_converter::Target::EraVM => Self::LLVM_SIMPLE_ERAVM,
+                benchmark_converter::Target::EVM => Self::LLVM_SIMPLE_EVM,
             },
             era_compiler_common::EXTENSION_LLVM_SOURCE,
             llvm_ir_compiler,
         )?);
 
-        if let benchmark_analyzer::Target::EraVM = target {
+        if let benchmark_converter::Target::EraVM = target {
             let vyper_compiler = Arc::new(VyperCompiler::new());
             tests.extend(self.directory::<MatterLabsDirectory>(
                 target,
@@ -379,7 +379,7 @@ impl CompilerTester {
     ///
     fn directory<T>(
         &self,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
         path: &str,
         extension: &'static str,

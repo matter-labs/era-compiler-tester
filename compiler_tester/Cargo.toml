@@ -52,7 +52,7 @@ solx-codegen-evm = { git = "https://github.com/matter-labs/solx", branch = "main
 solx-utils = { git = "https://github.com/matter-labs/solx", branch = "main" }
 
 solidity-adapter = { path = "../solidity_adapter" }
-benchmark-analyzer = { path = "../benchmark_analyzer" }
+benchmark-converter = { path = "../benchmark_converter" }
 
 [dependencies.web3]
 git = "https://github.com/jacques-kigo/rust-web3"

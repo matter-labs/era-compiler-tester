@@ -43,12 +43,8 @@ pub struct Arguments {
     /// The benchmark output format: `json`, `csv`, or `json-lnt`.
     /// Using `json-lnt` requires providing the path to a JSON file describing the
     /// benchmarking context via `--benchmark-context`.
-    #[structopt(long = "benchmark-format", default_value_t = benchmark_analyzer::OutputFormat::Json)]
-    pub benchmark_format: benchmark_analyzer::OutputFormat,
-
-    /// The benchmark context to pass additional data to backends.
-    #[structopt(long = "benchmark-context")]
-    pub benchmark_context: Option<PathBuf>,
+    #[structopt(long = "benchmark-format", default_value_t = benchmark_converter::OutputFormat::Json)]
+    pub benchmark_format: benchmark_converter::OutputFormat,
 
     /// Sets the number of threads, which execute the tests concurrently.
     #[structopt(short, long)]
@@ -90,7 +86,7 @@ pub struct Arguments {
     /// Specify the target architecture.
     /// Available arguments: `evm`, `eravm`.
     #[structopt(long)]
-    pub target: benchmark_analyzer::Target,
+    pub target: benchmark_converter::Target,
 
     /// Specify the environment to run tests on.
     /// Available arguments: `zk_evm`, `FastVM`, `EVMInterpreter`, `REVM`.
@@ -126,25 +122,4 @@ pub struct Arguments {
     /// Sets the `debug logging` option in LLVM.
     #[structopt(long)]
     pub llvm_debug_logging: bool,
-}
-
-impl Arguments {
-    ///
-    /// Validate the arguments passed from user, checking invariants that are not
-    /// expressed in the type system.
-    ///
-    pub fn validate(arguments: Self) -> anyhow::Result<Self> {
-        match (&arguments.benchmark_format, &arguments.benchmark_context) {
-            (benchmark_analyzer::OutputFormat::JsonLNT, None) => {
-                anyhow::bail!("Generation of LNT-compatible benchmark results in JSON format requires passing a valid context in the argument `--benchmark-context` to compiler tester.")
-            }
-            (benchmark_analyzer::OutputFormat::JsonLNT, Some(_)) => (),
-            (_, Some(_)) => {
-                anyhow::bail!("Only LNT backend in JSON format supports passing a valid context in the argument `--benchmark-context` to compiler tester.")
-            }
-            _ => (),
-        }
-
-        Ok(arguments)
-    }
 }
