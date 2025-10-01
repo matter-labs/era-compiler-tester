@@ -24,7 +24,7 @@ impl Collection for MatterLabsDirectory {
     type Test = MatterLabsTest;
 
     fn read_all(
-        _target: benchmark_analyzer::Target,
+        _target: benchmark_converter::Target,
         _environment: Environment,
         directory_path: &Path,
         extension: &'static str,

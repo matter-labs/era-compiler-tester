@@ -78,12 +78,15 @@ impl Summary {
     ///
     /// Returns the benchmark structure.
     ///
-    pub fn benchmark(&self, toolchain: Toolchain) -> anyhow::Result<benchmark_analyzer::Benchmark> {
+    pub fn benchmark(
+        &self,
+        toolchain: Toolchain,
+    ) -> anyhow::Result<benchmark_converter::Benchmark> {
         if let Toolchain::SolcLLVM = toolchain {
             anyhow::bail!("The benchmarking is not supported for the SolcLLVM toolchain.")
         }
 
-        let mut benchmark = benchmark_analyzer::Benchmark::default();
+        let mut benchmark = benchmark_converter::Benchmark::default();
 
         for Element {
             test_description:
@@ -95,21 +98,28 @@ impl Summary {
             outcome,
         } in self.elements.iter()
         {
-            let (size, cycles, ergs, gas) = match outcome {
+            let (deploy_size, runtime_size, cycles, ergs, gas) = match outcome {
                 Outcome::Passed {
                     variant:
                         PassedVariant::Deploy {
-                            size,
+                            deploy_size,
+                            runtime_size,
                             cycles,
                             ergs,
                             gas,
                         },
                     ..
-                } => (Some(*size), *cycles, *ergs, *gas),
+                } => (
+                    Some(*deploy_size),
+                    Some(*runtime_size),
+                    *cycles,
+                    *ergs,
+                    *gas,
+                ),
                 Outcome::Passed {
                     variant: PassedVariant::Runtime { cycles, ergs, gas },
                     ..
-                } => (None, *cycles, *ergs, *gas),
+                } => (None, None, *cycles, *ergs, *gas),
                 _ => continue,
             };
 
@@ -129,8 +139,8 @@ impl Summary {
             let run = benchmark
                 .tests
                 .entry(test_name)
-                .or_insert(benchmark_analyzer::Test::new(
-                    benchmark_analyzer::TestMetadata::new(selector.clone().into(), tags),
+                .or_insert(benchmark_converter::Test::new(
+                    benchmark_converter::TestMetadata::new(selector.clone().into(), tags),
                 ))
                 .toolchain_groups
                 .entry(toolchain.to_string())
@@ -144,8 +154,11 @@ impl Summary {
                 .executables
                 .entry(optimizations)
                 .or_default();
-            if let Some(size) = size {
-                run.run.size.push(size);
+            if let Some(deploy_size) = deploy_size {
+                run.run.size.push(deploy_size);
+            }
+            if let Some(runtime_size) = runtime_size {
+                run.run.runtime_size.push(runtime_size);
             }
             run.run.cycles.push(cycles);
             run.run.ergs.push(ergs);
@@ -177,13 +190,15 @@ impl Summary {
     pub fn passed_deploy(
         summary: Arc<Mutex<Self>>,
         test: TestDescription,
-        size: u64,
+        deploy_size: u64,
+        runtime_size: u64,
         cycles: u64,
         ergs: u64,
         gas: u64,
     ) {
         let passed_variant = PassedVariant::Deploy {
-            size,
+            deploy_size,
+            runtime_size,
             cycles,
             ergs,
             gas,

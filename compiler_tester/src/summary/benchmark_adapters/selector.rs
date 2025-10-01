@@ -4,11 +4,11 @@
 
 use crate::test::selector::TestSelector;
 
-impl From<TestSelector> for benchmark_analyzer::TestSelector {
+impl From<TestSelector> for benchmark_converter::TestSelector {
     fn from(selector: TestSelector) -> Self {
         let TestSelector { path, case, input } = selector;
         let input = input.map(Into::into);
-        benchmark_analyzer::TestSelector {
+        benchmark_converter::TestSelector {
             project: path,
             case,
             input,

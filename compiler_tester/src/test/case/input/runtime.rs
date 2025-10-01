@@ -85,7 +85,7 @@ impl Runtime {
         let name = test.selector.to_string();
         vm.populate_storage(self.storage.inner);
         let vm_function = match group.as_deref() {
-            Some(benchmark_analyzer::TEST_GROUP_EVM_INTERPRETER) => {
+            Some(benchmark_converter::TEST_GROUP_EVM_INTERPRETER) => {
                 EraVM::execute_evm_interpreter::<M>
             }
             _ => EraVM::execute::<M>,

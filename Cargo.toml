@@ -3,7 +3,7 @@ members = [
     "compiler_tester",
     "solidity_adapter",
     "coverage_watcher",
-    "benchmark_analyzer",
+    "benchmark_converter",
     # "fuzzer"
 ]
 resolver = "2"

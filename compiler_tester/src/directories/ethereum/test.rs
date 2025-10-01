@@ -270,7 +270,7 @@ impl Buildable for EthereumTest {
             &calls,
             instances,
             last_source.as_str(),
-            benchmark_analyzer::Target::EraVM,
+            benchmark_converter::Target::EraVM,
         ) {
             Ok(case) => case,
             Err(error) => {
@@ -371,7 +371,7 @@ impl Buildable for EthereumTest {
             &calls,
             instances,
             last_source.as_str(),
-            benchmark_analyzer::Target::EVM,
+            benchmark_converter::Target::EVM,
         ) {
             Ok(case) => case,
             Err(error) => {

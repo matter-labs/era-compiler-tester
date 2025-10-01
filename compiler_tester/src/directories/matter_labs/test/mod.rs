@@ -205,7 +205,7 @@ impl MatterLabsTest {
         &self,
         filters: &Filters,
         mode: &Mode,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
     ) -> Option<()> {
         if let Some(targets) = self.metadata.targets.as_ref() {
@@ -328,7 +328,7 @@ impl MatterLabsTest {
     fn is_evm_interpreter_test(&self) -> bool {
         matches!(
             self.metadata.group.as_deref(),
-            Some(benchmark_analyzer::TEST_GROUP_EVM_INTERPRETER)
+            Some(benchmark_converter::TEST_GROUP_EVM_INTERPRETER)
         )
     }
 
@@ -442,7 +442,7 @@ impl Buildable for MatterLabsTest {
         self.check_filters(
             filters,
             &mode,
-            benchmark_analyzer::Target::EraVM,
+            benchmark_converter::Target::EraVM,
             environment,
         )?;
 
@@ -542,7 +542,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &eravm_input.method_identifiers,
-                benchmark_analyzer::Target::EraVM,
+                benchmark_converter::Target::EraVM,
                 environment,
             )
             .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))
@@ -588,7 +588,12 @@ impl Buildable for MatterLabsTest {
         filters: &Filters,
         debug_config: Option<era_compiler_llvm_context::DebugConfig>,
     ) -> Option<Test> {
-        self.check_filters(filters, &mode, benchmark_analyzer::Target::EVM, environment)?;
+        self.check_filters(
+            filters,
+            &mode,
+            benchmark_converter::Target::EVM,
+            environment,
+        )?;
 
         let mut contracts = self.metadata.contracts.clone();
         self.push_default_contract(&mut contracts, compiler.allows_multi_contract_files());
@@ -670,7 +675,7 @@ impl Buildable for MatterLabsTest {
                 &mode,
                 &instances,
                 &evm_input.method_identifiers,
-                benchmark_analyzer::Target::EVM,
+                benchmark_converter::Target::EVM,
                 environment,
             )
             .map_err(|error| anyhow::anyhow!("Case `{case_name}` is invalid: {error}"))

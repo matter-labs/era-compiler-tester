@@ -36,7 +36,7 @@ impl std::str::FromStr for Environment {
     }
 }
 
-impl From<Environment> for benchmark_analyzer::Target {
+impl From<Environment> for benchmark_converter::Target {
     fn from(environment: Environment) -> Self {
         match environment {
             Environment::ZkEVM => Self::EraVM,

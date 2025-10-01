@@ -64,7 +64,7 @@ impl Input {
         mode: &Mode,
         instances: &BTreeMap<String, Instance>,
         method_identifiers: &Option<BTreeMap<String, BTreeMap<String, u32>>>,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
         environment: Environment,
     ) -> anyhow::Result<Self> {
         let caller =
@@ -96,8 +96,8 @@ impl Input {
             .map_err(|error| anyhow::anyhow!("Invalid calldata: {error}"))?;
 
         let expected = match target {
-            benchmark_analyzer::Target::EraVM => input.expected_eravm.or(input.expected),
-            benchmark_analyzer::Target::EVM => input.expected_evm.or(input.expected),
+            benchmark_converter::Target::EraVM => input.expected_eravm.or(input.expected),
+            benchmark_converter::Target::EVM => input.expected_evm.or(input.expected),
         };
         let expected = match expected {
             Some(expected) => {
@@ -213,7 +213,7 @@ impl Input {
         instances: &BTreeMap<String, Instance>,
         last_source: &str,
         caller: &web3::types::Address,
-        target: benchmark_analyzer::Target,
+        target: benchmark_converter::Target,
     ) -> anyhow::Result<Option<Self>> {
         let main_contract_instance = instances
             .values()

@@ -134,7 +134,15 @@ impl DeployEVM {
         );
 
         if output == self.expected {
-            Summary::passed_deploy(summary, test, deploy_code_size as u64, 0, 0, gas);
+            Summary::passed_deploy(
+                summary,
+                test,
+                deploy_code_size as u64,
+                self.runtime_code_size as u64,
+                0,
+                0,
+                gas,
+            );
         } else if let Some(error) = halt_reason {
             Summary::invalid(summary, test, format!("{error:?}"));
         } else {
@@ -180,7 +188,15 @@ impl DeployEVM {
             }
         };
         if result.output == self.expected {
-            Summary::passed_deploy(summary, test, size, result.cycles, result.ergs, result.gas);
+            Summary::passed_deploy(
+                summary,
+                test,
+                size,
+                self.runtime_code_size as u64,
+                result.cycles,
+                result.ergs,
+                result.gas,
+            );
         } else {
             Summary::failed(
                 summary,
