@@ -157,6 +157,11 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
                     continue 'outer;
                 }
             }
+            if project == "compiler-tester"
+                && contract.starts_with("tests/solidity/complex/interpreter/test.json")
+            {
+                continue 'outer;
+            }
 
             for (toolchain_name, toolchain_group) in test.toolchain_groups.into_iter() {
                 for (codegen_name, codegen_group) in toolchain_group.codegen_groups.into_iter() {
