@@ -79,8 +79,9 @@ impl Value {
                 .map_err(|error| anyhow::anyhow!("Invalid hexadecimal literal: {error}"))?
         } else if value == "$CHAIN_ID" {
             match environment {
-                Environment::ZkEVM | Environment::EVMInterpreter => {
-                    web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM)
+                Environment::ZkEVM => web3::types::U256::from(SystemContext::CHAIND_ID_ERAVM),
+                Environment::EVMInterpreter => {
+                    web3::types::U256::from(SystemContext::CHAIND_ID_EVM)
                 }
                 Environment::REVM => web3::types::U256::from(REVM::CHAIND_ID),
             }
@@ -94,12 +95,14 @@ impl Value {
             }
         } else if value == "$COINBASE" {
             match environment {
-                Environment::ZkEVM | Environment::EVMInterpreter => {
-                    web3::types::U256::from_str_radix(
-                        SystemContext::COIN_BASE_ERAVM,
-                        era_compiler_common::BASE_HEXADECIMAL,
-                    )
-                }
+                Environment::ZkEVM => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_ERAVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
+                Environment::EVMInterpreter => web3::types::U256::from_str_radix(
+                    SystemContext::COIN_BASE_EVM,
+                    era_compiler_common::BASE_HEXADECIMAL,
+                ),
                 Environment::REVM => web3::types::U256::from_str_radix(
                     REVM::COIN_BASE,
                     era_compiler_common::BASE_HEXADECIMAL,
@@ -127,12 +130,13 @@ impl Value {
             web3::types::U256::from(SystemContext::CURRENT_BLOCK_NUMBER)
         } else if value == "$BLOCK_TIMESTAMP" {
             match environment {
-                Environment::ZkEVM | Environment::EVMInterpreter => {
+                Environment::ZkEVM => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_ERAVM)
                 }
-                Environment::REVM => {
+                Environment::EVMInterpreter => {
                     web3::types::U256::from(SystemContext::CURRENT_BLOCK_TIMESTAMP_EVM)
                 }
+                Environment::REVM => web3::types::U256::from(REVM::BLOCK_TIMESTAMP),
             }
         } else if value == "$TX_ORIGIN" {
             crate::utils::address_to_u256(
