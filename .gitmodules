@@ -1,7 +1,7 @@
 [submodule "tests"]
     path = tests
     url = https://github.com/matter-labs/era-compiler-tests
-    branch = main
+    branch = kpv-add-fuzzer-tests
     update = none
 [submodule "era-contracts"]
     path = era-contracts
@@ -16,5 +16,5 @@
 [submodule "llvm"]
     path = llvm
     url = https://github.com/matter-labs/era-compiler-llvm
-    branch = main
+    branch = kpv-fix-branch-folding
     update = none
