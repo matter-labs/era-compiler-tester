@@ -249,9 +249,9 @@ impl TryFrom<(Benchmark, Source, Target)> for Xlsx {
 
         let comparison_mapping = match (source, target) {
             (Source::Tooling, _) => vec![(6, 4), (7, 5), (6, 2), (7, 3), (6, 0), (7, 1)],
-            (Source::CompilerTester, Target::EVM) => vec![(6, 2), (7, 3), (4, 0), (5, 1)],
+            (Source::CompilerTester, Target::EVM) => vec![(2, 6), (3, 7), (0, 4), (1, 5)],
             (Source::CompilerTester, Target::EraVM) => {
-                vec![(10, 4), (11, 5), (6, 0), (7, 1), (8, 2), (9, 3)]
+                vec![(4, 10), (5, 11), (0, 6), (1, 7), (2, 8), (3, 9)]
             }
         };
 
