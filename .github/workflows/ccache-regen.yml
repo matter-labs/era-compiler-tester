@@ -52,7 +52,7 @@ jobs:
           git submodule update --force --depth=1 --recursive --checkout
 
       - name: Build LLVM for tests
-        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@9f40f1ebd5ec6bbb037be408cf3203cd09187428 # v1
         with:
           target-env: ${{ contains(matrix.target, 'musl') && 'musl' || 'gnu' }}
           build-type: RelWithDebInfo
@@ -62,7 +62,7 @@ jobs:
           ccache-key: ${{ format('llvm-{0}-{1}-{2}', runner.os, runner.arch, 'gnu') }}
 
       - name: Build LLVM for benchmarks
-        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@9f40f1ebd5ec6bbb037be408cf3203cd09187428 # v1
         with:
           target-env: ${{ contains(matrix.target, 'musl') && 'musl' || 'gnu' }}
           enable-assertions: 'false'

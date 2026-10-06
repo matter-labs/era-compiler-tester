@@ -67,14 +67,14 @@ jobs:
           
       - name: Building solc
         if: inputs.target == 'evm' && inputs.toolchain == 'ir-llvm'
-        uses: matter-labs/era-compiler-ci/.github/actions/build-solc@v1
+        uses: matter-labs/era-compiler-ci/.github/actions/build-solc@9f40f1ebd5ec6bbb037be408cf3203cd09187428 # v1
         with:
           cmake-build-type: RelWithDebInfo
           working-dir: 'era-solidity'
           upload-testing-binary: false
 
       - name: Build LLVM
-        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@v1
+        uses: matter-labs/era-compiler-ci/.github/actions/build-llvm@9f40f1ebd5ec6bbb037be408cf3203cd09187428 # v1
         with:
           clone-llvm: ${{ inputs.llvm-branch == '' }}
           sanitizer: ${{ inputs.llvm-sanitizer }}
